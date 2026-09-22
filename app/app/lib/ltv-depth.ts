@@ -39,10 +39,15 @@ export interface DepthOrder {
   discountAmount?: number | null;
   /**
    * Discount code / title when the order actually carried one. SAMPLE Snowdevil
-   * can stamp first-order codes. Live OrderFacts do not store codes — leave
-   * null rather than guess from discount $.
+   * can stamp first-order codes. Live stores the code when Shopify sent one on
+   * discountApplications — leave null rather than guess from discount $.
    */
   discountCode?: string | null;
+  /**
+   * Shopify `sourceName` (web / pos / shop). First-order source cohorts Online /
+   * POS / Shop / Other. Never ad attribution.
+   */
+  sourceName?: string | null;
 }
 
 /** Whole-month follow-up windows shown across the retention grid and curves. */

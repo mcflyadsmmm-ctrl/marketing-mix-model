@@ -204,14 +204,19 @@ describe("clearOrderFactDayCompleteSeal", () => {
 });
 
 describe("OrderFact v2 crawl", () => {
-  it("selects discount, sourceName, and unit quantity without SKUs", () => {
+  it("selects discount, sourceName, unit quantity, and discount code without SKUs", () => {
     expect(orderFactsSource).toContain("currentTotalDiscountsSet");
     expect(orderFactsSource).toContain("sourceName");
     expect(orderFactsSource).toContain("currentSubtotalLineItemsQuantity");
     expect(orderFactsSource).toContain("numberOfOrders");
+    expect(orderFactsSource).toContain("discountApplications(first: 5)");
+    expect(orderFactsSource).toContain("DiscountCodeApplication");
+    expect(orderFactsSource).toContain("discountCode");
     expect(orderFactsSource).not.toMatch(/\b(?:sku|vendor|lineItems)\b/);
     expect(orderFactsSource).toContain("unsealOrderFactsMissingV2");
     expect(orderFactsSource).toContain("seedSampleOrderFacts");
+    // Codes fill on crawl — never reset the backfill cursor for codes alone.
+    expect(orderFactsSource).not.toMatch(/unsealOrderFactsMissingDiscountCode/);
   });
 });
 

@@ -351,6 +351,8 @@ model OrderFact {
   currency       String?
   /// currentTotalDiscountsSet shop amount. 0 = none; null = not crawled yet.
   discountAmount Float?
+  /// First DiscountCodeApplication.code when Shopify sent one. Null when none.
+  discountCode   String?
   /// Shopify sourceName (web / pos / shop). Not ad attribution.
   sourceName     String?
   /// currentSubtotalLineItemsQuantity — units only, never SKU/title.

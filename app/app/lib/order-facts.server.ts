@@ -191,6 +191,13 @@ const ORDERS_FOR_FACTS_QUERY = `#graphql
               currencyCode
             }
           }
+          discountApplications(first: 5) {
+            nodes {
+              ... on DiscountCodeApplication {
+                code
+              }
+            }
+          }
           totalPriceSet {
             shopMoney {
               amount
@@ -226,6 +233,9 @@ type OrdersForFactsJson = {
           currentTotalDiscountsSet?: {
             shopMoney?: { amount?: string; currencyCode?: string };
           };
+          discountApplications?: {
+            nodes?: Array<{ code?: string | null } | null> | null;
+          } | null;
           totalPriceSet?: {
             shopMoney?: { amount?: string; currencyCode?: string };
           };
@@ -251,6 +261,8 @@ export interface OrderFactRow {
   grossAmount: number | null;
   currency: string | null;
   discountAmount: number | null;
+  /** First DiscountCodeApplication code when Shopify sent one. Null otherwise. */
+  discountCode: string | null;
   sourceName: string | null;
   unitCount: number | null;
   lifetimeOrders?: number | null;
@@ -319,6 +331,22 @@ function parseLifetimeOrders(raw: number | string | null | undefined): number | 
   const n = typeof raw === "number" ? raw : Number.parseInt(String(raw), 10);
   if (!Number.isFinite(n) || n < 0) return null;
   return Math.trunc(n);
+}
+
+/**
+ * First non-empty DiscountCodeApplication.code. Never invent from discount $.
+ */
+function firstDiscountCodeFromApplications(
+  apps:
+    | { nodes?: Array<{ code?: string | null } | null> | null }
+    | null
+    | undefined,
+): string | null {
+  for (const node of apps?.nodes ?? []) {
+    const code = node?.code?.trim();
+    if (code) return code;
+  }
+  return null;
 }
 
 const isHistoryWindowError = isShopifyHistoryWindowError;
@@ -477,6 +505,7 @@ async function upsertOrderFact(
     grossAmount: row.grossAmount,
     currency: row.currency,
     discountAmount: row.discountAmount,
+    discountCode: row.discountCode,
     sourceName: row.sourceName,
     unitCount: row.unitCount,
     lifetimeOrders: row.lifetimeOrders ?? null,
@@ -673,6 +702,9 @@ async function fetchOrdersForDay(
           null,
         discountAmount: parseMoneyAmount(
           node.currentTotalDiscountsSet?.shopMoney?.amount,
+        ),
+        discountCode: firstDiscountCodeFromApplications(
+          node.discountApplications,
         ),
         sourceName: node.sourceName?.trim() || null,
         unitCount: parseUnitCount(node.currentSubtotalLineItemsQuantity),
@@ -893,6 +925,7 @@ export async function runOrderFactsBackfill(
             grossAmount: null,
             currency: metadata.currencyCode,
             discountAmount: 0,
+            discountCode: null,
             sourceName: null,
             unitCount: null,
           },
@@ -1083,6 +1116,7 @@ export async function loadOrderDepthRows(
     orderedAt: Date;
     shopLocalDate: Date;
     discountAmount: number | null;
+    discountCode: string | null;
     sourceName: string | null;
     unitCount: number | null;
   }>
@@ -1103,6 +1137,7 @@ export async function loadOrderDepthRows(
       orderedAt: true,
       shopLocalDate: true,
       discountAmount: true,
+      discountCode: true,
       sourceName: true,
       unitCount: true,
     },
@@ -1333,6 +1368,7 @@ export interface SampleOrderFactRow {
   amount: number;
   currency: string;
   discountAmount: number;
+  discountCode: string | null;
   sourceName: string;
   unitCount: number;
   lifetimeOrders: number | null;
@@ -1424,6 +1460,7 @@ export function buildSampleOrderFactRows(
         amount,
         currency: "USD",
         discountAmount,
+        discountCode: null,
         sourceName,
         unitCount: 1 + (i % 2),
         lifetimeOrders,

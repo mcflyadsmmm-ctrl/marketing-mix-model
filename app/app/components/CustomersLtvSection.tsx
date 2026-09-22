@@ -311,6 +311,7 @@ function useCustomersLtvPack({
       depth.promoLtv.depthLine ||
       depth.promoLtv.depthEmpty ||
       depth.promoLtv.depthBands.length > 0 ||
+      depth.sourceLtv.rows.some((row) => row.buyers > 0) ||
       (depth.refunds && depth.refunds.orderCount > 0),
   );
 
@@ -414,6 +415,10 @@ export function CustomersLtvWindows(props: LtvPackProps) {
         drivers={depth.firstProductDrivers}
         useSampleDesk={useSampleDesk}
       />
+      <LtvPromoBoard
+        promo={depth.promoLtv}
+        bySource={depth.sourceLtv}
+      />
       <LtvExpectedEstimate
         estimate={depth.expectedLtv}
         useSampleDesk={useSampleDesk}
@@ -452,8 +457,6 @@ export function CustomersLtvDepth(props: LtvPackProps) {
         buyers={depth.buyers}
       />
       <LtvProductBoard product={depth.productLtv} />
-      {/* Placement: LTV tab, after Product→LTV, before spend-build explorers. */}
-      <LtvPromoBoard promo={depth.promoLtv} />
       <LtvBuildCurves
         curves={depth.curves}
         buyers={depth.buyers}
