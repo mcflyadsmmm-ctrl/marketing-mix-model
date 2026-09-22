@@ -1,30 +1,30 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v432 / tip `1abfa7e` (merge of #189 spend leftover honesty) / image `deployment-01M354B2VDV7WTAHA4SCEBMC7B` / Live PARKED. Health ok 2026-09-22T18:00Z. v431 was site trial leftover.
+**Tip Fly note:** v433 / tip `d4ccd1c` (merge of #190 wrong-lane leftover) / image `deployment-01M355KB6BNF9R6M39F0R5NX05` / Live PARKED. Health ok 2026-09-22T18:22Z. v432 was spend leftover honesty. v431 was site trial leftover (fly.dev honest; mcflyads.com Pages still stale).
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v432 / tip `1abfa7e` / Live PARKED |
+| Tip Fly SoT | v433 / tip `d4ccd1c` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — fly.dev static site honest on v431; Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v432 / tip `1abfa7e`; Live PARKED |
+| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v433 / tip `d4ccd1c`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 6 of that queue is the only cook. |
+| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Wrong-lane leftover.** “I tapped Coverage to fill an empty day. The Add-a-day fold opened too, and the coverage calendar also snapped open. On Overview, Mix close still opens weekday.”
+**Phone six-figure wrap.** “On my phone I cannot read first 30 / 90 / first year — they sit three across. The LTV triangle is a nowrap heat table. The Orders weekly ledger is eight nowrap columns.”
 
-Spend Add-spend fold · Overview mix close. Public `/demo` and Admin `/app`. Coverage / recurring / ledger hashes must open only that `<details>` (or a dedicated fold), not the parent Add-spend `DeskLane`. Mix close must not set `defaultOpen` on the weekday fold. Do not recook v422’s later-`defaultOpen` contract. Do not recook spend leftover honesty. Do not unpark Live. Do not change the 90.
+Customers → LTV (flagship tiles + open-lane triangle) · Orders weekly ledger. Public `/demo` and Admin `/app`. Under 36rem, 30 / 90 / first year stack the way Goals / Orders / Growth already wrap. Triangle sealed six-figure dollars stay on screen; unsealed stays — / hatch, never `$0` / `0%`. Ledger keeps Week + Sales (+ AOV) on screen; park Codes / Returns in the existing drill. Missing prior stays —. Dollar may wrap. Never a fake `$0`. Do not recook whale 430px. Do not edit the morning-habit block. Do not recook wrong-lane leftover. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/wrong-lane-leftover-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 7–8 and 10–14 of the third-queue stay queued. Do not rebuild spend leftover honesty, site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/phone-six-figure-wrap-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 8 and 10–14 of the third-queue stay queued. Do not rebuild wrong-lane leftover, spend leftover honesty, site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 6. After PASS, stamp phone six-figure wrap (`cursor/phone-six-figure-wrap-5bc6`), not rank 8.
+Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 7. After PASS, stamp first-90 honesty (`cursor/ltv-first90-honesty-5bc6`), not rank 10.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
