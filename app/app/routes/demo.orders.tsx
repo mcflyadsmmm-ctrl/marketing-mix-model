@@ -12,6 +12,7 @@ import { deskBookLede } from "../lib/desk-history";
 import {
   assembleOrdersIntelligence,
   ordersIntelPeriodBadge,
+  ordersLastYearRows,
   type OrderIntelRow,
 } from "../lib/orders-intelligence";
 import {
@@ -35,6 +36,7 @@ function sampleOrderToIntel(row: {
   shopLocalDate: Date;
   discountCode: string | null;
   lifetimeOrders: number | null;
+  unitCount: number;
 }): OrderIntelRow {
   return {
     customerKey: row.customerKey,
@@ -45,6 +47,7 @@ function sampleOrderToIntel(row: {
     discountCode: row.discountCode,
     grossAmount: null,
     lifetimeOrders: row.lifetimeOrders,
+    unitCount: row.unitCount,
   };
 }
 
@@ -73,9 +76,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const assembled = assembleOrdersIntelligence({
     rows: ordersBetween(through, range.start, range.end),
     priorRows: ordersBetween(book, prior.start, prior.end),
+    lastYearRows: ordersLastYearRows(book, range.start, range.end),
     orderBook: through,
     periodLabel: range.label,
     badge: ordersIntelPeriodBadge(preset),
+    netSales: page.sales.netSales,
+    netSalesKnown: page.sales.netSalesKnown !== false,
+    timeZone: PUBLIC_SAMPLE_TZ,
   });
   if (!assembled) {
     return { ...page, ordersIntel: null, ordersFrequency: null };
@@ -112,7 +119,13 @@ export default function PublicDemoOrders() {
           )}
         </p>
         <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL}>
-          <OrdersFirstViewport depth={data.depth} salesPending={false} useSampleDesk />
+          <OrdersFirstViewport
+            depth={data.depth}
+            salesPending={false}
+            useSampleDesk
+            stepMix={ordersIntel?.stepMix ?? null}
+            tickets={ordersIntel?.tickets ?? null}
+          />
         </DeskLane>
         <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>
           <OrdersScoreboard
@@ -136,6 +149,7 @@ export default function PublicDemoOrders() {
             hourlyShares={data.depth.hourlySalesShare}
             peakWeekday={data.depth.peakWeekday}
             salesPending={false}
+            timingSplit={ordersIntel?.timingSplit ?? null}
           />
           {ordersFrequency && ordersFrequency.length > 1 ? (
             <OrdersFrequencyChart buckets={ordersFrequency} />

@@ -33,6 +33,7 @@ import {
 import {
   assembleOrdersIntelligence,
   ordersIntelPeriodBadge,
+  ordersLastYearRows,
   type OrderIntelRow,
   type OrdersFrequencyBucket,
   type OrdersIntelData,
@@ -51,6 +52,7 @@ function toOrderIntelRow(row: {
   discountCode: string | null;
   grossAmount: number | null;
   lifetimeOrders: number | null;
+  unitCount: number | null;
 }): OrderIntelRow {
   return {
     customerKey: row.customerKey,
@@ -61,6 +63,7 @@ function toOrderIntelRow(row: {
     discountCode: row.discountCode,
     grossAmount: row.grossAmount,
     lifetimeOrders: row.lifetimeOrders,
+    unitCount: row.unitCount,
   };
 }
 
@@ -149,9 +152,13 @@ export async function loadDeskSalesPage(
       const assembled = assembleOrdersIntelligence({
         rows,
         priorRows: priorDepth.map(toOrderIntelRow),
+        lastYearRows: ordersLastYearRows(orderBook, range.start, range.end),
         orderBook,
         periodLabel: range.label,
         badge: ordersIntelPeriodBadge(preset),
+        netSales: sales.netSales,
+        netSalesKnown: sales.netSalesKnown,
+        timeZone: deskTz,
       });
       if (assembled) {
         const { frequency, ...intel } = assembled;

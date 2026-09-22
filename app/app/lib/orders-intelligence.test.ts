@@ -2,23 +2,36 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { ORDER_STEP_MIN_BUYERS } from "./customers-analytics";
 import {
   aggregateOrderRows,
   assembleOrdersIntelligence,
   buildOrdersAovTiers,
+  buildOrdersCheckoutDiscount,
   buildOrdersCodeMoney,
+  buildOrdersConcentration,
+  buildOrdersDollarsPerUnit,
   buildOrdersFrequency,
   buildOrdersIntelDays,
   buildOrdersIntelKpis,
+  buildOrdersKeptShare,
+  buildOrdersPeriodTickets,
+  buildOrdersStepMix,
+  buildOrdersTimingSplit,
   buildOrdersWeeklyRows,
+  buildOrdersYearDiscount,
+  buildOrdersZeroAmountOrders,
   ordersCodeTookLabel,
   ordersIntelDelta,
   ordersIntelPeriodBadge,
   ordersIntelWindowLabel,
   ordersMonthBoardSentence,
+  ordersPaintStepSales,
   ordersReturnDrag,
+  ORDERS_TICKET_BASIS,
   type OrderIntelRow,
 } from "./orders-intelligence";
+import { HOUR_STATS_MIN_ORDERS } from "./shopify-depth-stats";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -430,3 +443,544 @@ describe("orders month board wiring", () => {
     expect(board).toContain("Returns");
   });
 });
+
+function lifetimeRow(
+  day: string,
+  amount: number,
+  customerKey: string,
+  lifetimeOrders: number | null,
+  extra: Partial<OrderIntelRow> = {},
+): OrderIntelRow {
+  return { ...row(day, amount, customerKey), lifetimeOrders, ...extra };
+}
+
+function nBuyers(opts: {
+  n: number;
+  prefix: string;
+  day: string;
+  amount: number;
+  lifetime: number | null;
+  extra?: Partial<OrderIntelRow>;
+}): OrderIntelRow[] {
+  return Array.from({ length: opts.n }, (_, i) =>
+    lifetimeRow(
+      opts.day,
+      opts.amount,
+      `${opts.prefix}${i}`,
+      opts.lifetime,
+      opts.extra,
+    ),
+  );
+}
+
+/** Period order at `lifetime`, plus one earlier stored order so the book can number it. */
+function nReturning(opts: {
+  n: number;
+  prefix: string;
+  periodDay: string;
+  priorDay: string;
+  amount: number;
+  lifetime: number;
+  extra?: Partial<OrderIntelRow>;
+}): { period: OrderIntelRow[]; book: OrderIntelRow[] } {
+  const period: OrderIntelRow[] = [];
+  const book: OrderIntelRow[] = [];
+  for (let i = 0; i < opts.n; i += 1) {
+    const key = `${opts.prefix}${i}`;
+    const prior = lifetimeRow(opts.priorDay, 40, key, opts.lifetime);
+    const current = lifetimeRow(
+      opts.periodDay,
+      opts.amount,
+      key,
+      opts.lifetime,
+      opts.extra,
+    );
+    period.push(current);
+    book.push(prior, current);
+  }
+  return { period, book };
+}
+
+describe("orders step mix — this period’s dollars by 1st / 2nd / 3rd / 4th+", () => {
+  it("keeps the same 8-buyer floor as Growth wait columns, without painting wait", () => {
+    expect(ORDER_STEP_MIN_BUYERS).toBe(8);
+    const mix = buildOrdersStepMix([], []);
+    expect(mix.map((bar) => bar.id)).toEqual([
+      "first",
+      "second",
+      "third",
+      "fourthPlus",
+    ]);
+    expect(mix.map((bar) => bar.label)).toEqual(["1st", "2nd", "3rd", "4th+"]);
+    expect(mix.every((bar) => bar.sales == null && !bar.sealed)).toBe(true);
+  });
+
+  it("sums Shopify Total Sales per step and seals at 8 identified buyers", () => {
+    const first = nBuyers({
+      n: 8,
+      prefix: "new-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    const second = nReturning({
+      n: 8,
+      prefix: "two-",
+      periodDay: "2026-09-08",
+      priorDay: "2026-03-01",
+      amount: 200,
+      lifetime: 2,
+    });
+    const third = nReturning({
+      n: 8,
+      prefix: "three-",
+      periodDay: "2026-09-08",
+      priorDay: "2026-03-01",
+      amount: 300,
+      lifetime: 3,
+    });
+    const later = nReturning({
+      n: 8,
+      prefix: "four-",
+      periodDay: "2026-09-08",
+      priorDay: "2026-03-01",
+      amount: 400,
+      lifetime: 5,
+    });
+    const guest = lifetimeRow("2026-09-08", 9999, "guest", null);
+    const period = [...first, ...second.period, ...third.period, ...later.period, guest];
+    const book = [...first, ...second.book, ...third.book, ...later.book, guest];
+    const mix = Object.fromEntries(
+      buildOrdersStepMix(period, book).map((bar) => [bar.id, bar]),
+    );
+    expect(mix.first).toMatchObject({ sales: 800, buyers: 8, sealed: true });
+    expect(mix.second).toMatchObject({ sales: 1600, buyers: 8, sealed: true });
+    expect(mix.third).toMatchObject({ sales: 2400, buyers: 8, sealed: true });
+    expect(mix.fourthPlus).toMatchObject({ sales: 3200, buyers: 8, sealed: true });
+    expect(ordersPaintStepSales(mix.first!, "USD")).toBe("$800");
+    expect(mix.first!.sales).not.toBe(9999);
+  });
+
+  it("leaves a step — under 8 identified buyers, never a 7-buyer total", () => {
+    const thin = nBuyers({
+      n: 7,
+      prefix: "thin-",
+      day: "2026-09-08",
+      amount: 500,
+      lifetime: 1,
+    });
+    const mix = buildOrdersStepMix(thin, thin);
+    expect(mix.find((bar) => bar.id === "first")).toMatchObject({
+      buyers: 7,
+      sales: null,
+      sealed: false,
+    });
+    expect(ordersPaintStepSales(mix.find((bar) => bar.id === "first")!, "USD")).toBe(
+      "—",
+    );
+  });
+
+  it("never stuffs unknown lifetime into 1st — own bar or —", () => {
+    const unknown = nBuyers({
+      n: 8,
+      prefix: "unsure-",
+      day: "2026-09-08",
+      amount: 70,
+      lifetime: null,
+    });
+    const fresh = nBuyers({
+      n: 8,
+      prefix: "fresh-",
+      day: "2026-09-08",
+      amount: 40,
+      lifetime: 1,
+    });
+    const mix = buildOrdersStepMix([...unknown, ...fresh], [...unknown, ...fresh]);
+    const byId = Object.fromEntries(mix.map((bar) => [bar.id, bar]));
+    expect(byId.first).toMatchObject({ sales: 320, buyers: 8, sealed: true });
+    expect(byId.unknown).toMatchObject({ sales: 560, buyers: 8, sealed: true });
+    expect(byId.first!.sales).not.toBe(880);
+  });
+
+  it("treats a lifetime above the stored book as 4th+, not a first order", () => {
+    const rows = nBuyers({
+      n: 8,
+      prefix: "quiet-",
+      day: "2026-09-08",
+      amount: 80,
+      lifetime: 6,
+    });
+    const mix = buildOrdersStepMix(rows, rows);
+    const byId = Object.fromEntries(mix.map((bar) => [bar.id, bar]));
+    expect(byId.first).toMatchObject({ sales: null, buyers: 0, sealed: false });
+    expect(byId.fourthPlus).toMatchObject({ sales: 640, buyers: 8, sealed: true });
+  });
+});
+
+describe("orders first-time vs returning ticket", () => {
+  it("splits Shopify Total Sales per order — not one blended AOV", () => {
+    const first = nBuyers({
+      n: 8,
+      prefix: "new-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    const returning = nReturning({
+      n: 8,
+      prefix: "back-",
+      periodDay: "2026-09-08",
+      priorDay: "2026-03-01",
+      amount: 250,
+      lifetime: 2,
+    });
+    const tickets = buildOrdersPeriodTickets(
+      [...first, ...returning.period],
+      [...first, ...returning.book],
+    );
+    expect(tickets.firstTimeTicket).toBe(100);
+    expect(tickets.returningTicket).toBe(250);
+    expect(ORDERS_TICKET_BASIS).toBe("Shopify Total Sales per order");
+    expect(ORDERS_TICKET_BASIS).not.toMatch(/AOV/i);
+  });
+
+  it("keeps unknown lifetime and guests out of both tickets", () => {
+    const first = nBuyers({
+      n: 8,
+      prefix: "new-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    const unknown = lifetimeRow("2026-09-08", 900, "unsure", null);
+    const guest = lifetimeRow("2026-09-08", 800, "guest", 1);
+    const tickets = buildOrdersPeriodTickets(
+      [...first, unknown, guest],
+      [...first, unknown, guest],
+    );
+    expect(tickets.firstTimeTicket).toBe(100);
+    expect(tickets.returningTicket).toBeNull();
+  });
+
+  it("dashes a ticket under 8 identified buyers", () => {
+    const first = nBuyers({
+      n: 7,
+      prefix: "new-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    expect(buildOrdersPeriodTickets(first, first).firstTimeTicket).toBeNull();
+  });
+});
+
+describe("orders period concentration", () => {
+  it("counts identified buyers who made 50% of period sales, and top-decile share", () => {
+    const whale = nBuyers({
+      n: 1,
+      prefix: "whale-",
+      day: "2026-09-08",
+      amount: 1000,
+      lifetime: 1,
+    });
+    const rest = nBuyers({
+      n: 9,
+      prefix: "rest-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    const guest = lifetimeRow("2026-09-08", 5000, "guest", 1);
+    const conc = buildOrdersConcentration([...whale, ...rest, guest]);
+    expect(conc.identifiedBuyers).toBe(10);
+    expect(conc.buyersForHalf).toBe(1);
+    expect(conc.topDecileShare).toBeCloseTo(1000 / 1900, 5);
+  });
+
+  it("dashes under 8 identified buyers — guests do not fill the floor", () => {
+    const thin = nBuyers({
+      n: 7,
+      prefix: "thin-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    const guests = Array.from({ length: 20 }, (_, i) =>
+      lifetimeRow("2026-09-08", 50, "guest", 1, {
+        customerKey: i === 0 ? "guest" : "guest",
+      }),
+    );
+    const conc = buildOrdersConcentration([...thin, ...guests]);
+    expect(conc.identifiedBuyers).toBe(7);
+    expect(conc.buyersForHalf).toBeNull();
+    expect(conc.topDecileShare).toBeNull();
+  });
+});
+
+describe("orders first-time vs already-bought timing", () => {
+  it("stacks weekday shares after the same 5-day gate and leaves guests out of returning", () => {
+    const first: OrderIntelRow[] = [];
+    const returningBook: OrderIntelRow[] = [];
+    for (let d = 1; d <= 5; d += 1) {
+      const day = `2026-09-0${d}`;
+      first.push(
+        ...nBuyers({
+          n: 2,
+          prefix: `f${d}-`,
+          day,
+          amount: 100,
+          lifetime: 1,
+        }),
+      );
+      const back = nReturning({
+        n: 2,
+        prefix: `r${d}-`,
+        periodDay: day,
+        priorDay: "2026-03-01",
+        amount: 50,
+        lifetime: 2,
+      });
+      first.push(...back.period);
+      returningBook.push(...back.book);
+    }
+    const guest = lifetimeRow("2026-09-01", 9000, "guest", 4);
+    const period = [...first, guest];
+    const book = [...first, ...returningBook, guest];
+    const split = buildOrdersTimingSplit(period, book, { timeZone: "UTC" });
+    expect(split.weekday.first).not.toBeNull();
+    expect(split.weekday.returning).not.toBeNull();
+    expect(split.weekday.returning!.some((share) => share > 0)).toBe(true);
+    expect(split.weekday.first!.reduce((s, n) => s + n, 0)).toBeCloseTo(1, 5);
+  });
+
+  it("does not paint unknown lifetime as new, and withholds hour before the 20-order gate", () => {
+    const days: OrderIntelRow[] = [];
+    for (let d = 1; d <= 5; d += 1) {
+      days.push(
+        lifetimeRow(`2026-09-0${d}`, 40, `unsure-${d}`, null),
+        lifetimeRow(`2026-09-0${d}`, 80, `fresh-${d}`, 1),
+      );
+    }
+    const split = buildOrdersTimingSplit(days, days, { timeZone: "UTC" });
+    expect(split.weekday.first).not.toBeNull();
+    const firstShare = split.weekday.first!.reduce((s, n) => s + n, 0);
+    expect(firstShare).toBeCloseTo(1, 5);
+    expect(split.hourly.first).toBeNull();
+    expect(HOUR_STATS_MIN_ORDERS).toBe(20);
+  });
+
+  it("withholds weekday split until five days have sales", () => {
+    const rows = [
+      ...nBuyers({ n: 4, prefix: "a-", day: "2026-09-01", amount: 50, lifetime: 1 }),
+      ...nBuyers({ n: 4, prefix: "b-", day: "2026-09-02", amount: 50, lifetime: 1 }),
+    ];
+    const split = buildOrdersTimingSplit(rows, rows, { timeZone: "UTC" });
+    expect(split.weekday.first).toBeNull();
+    expect(split.weekday.returning).toBeNull();
+  });
+});
+
+describe("orders same-month-last-year discount and placed-day kept share", () => {
+  it("names last year’s discount dollars and depth, and keeps WELCOME10 as a name", () => {
+    const current = nBuyers({
+      n: 8,
+      prefix: "now-",
+      day: "2026-09-08",
+      amount: 90,
+      lifetime: 1,
+      extra: { discountAmount: 10, discountCode: "WELCOME10", grossAmount: 100 },
+    });
+    const lastYear = nBuyers({
+      n: 8,
+      prefix: "ly-",
+      day: "2025-09-08",
+      amount: 96,
+      lifetime: 1,
+      extra: { discountAmount: 4, discountCode: "WELCOME10", grossAmount: 100 },
+    });
+    const yoy = buildOrdersYearDiscount(current, lastYear);
+    expect(yoy.currentDollars).toBe(80);
+    expect(yoy.lastYearDollars).toBe(32);
+    expect(yoy.currentDepth).toBeCloseTo(80 / 800, 5);
+    expect(yoy.lastYearDepth).toBeCloseTo(32 / 800, 5);
+    expect(yoy.codes.map((line) => line.code)).toEqual(["WELCOME10"]);
+    expect(yoy.codes[0]!.code).not.toMatch(/%/);
+  });
+
+  it("dashes last year when that month is missing, and never a partial 0%", () => {
+    const current = nBuyers({
+      n: 3,
+      prefix: "now-",
+      day: "2026-09-08",
+      amount: 90,
+      lifetime: 1,
+      extra: { discountAmount: 10, grossAmount: 100 },
+    });
+    const yoy = buildOrdersYearDiscount(current, []);
+    expect(yoy.lastYearDollars).toBeNull();
+    expect(yoy.lastYearDepth).toBeNull();
+    const missingGross = [
+      lifetimeRow("2026-09-08", 90, "a", 1, { grossAmount: 100 }),
+      lifetimeRow("2026-09-08", 80, "b", 1, { grossAmount: null }),
+    ];
+    expect(buildOrdersKeptShare(missingGross, []).current).toBeNull();
+    expect(buildOrdersKeptShare(missingGross, []).lastYear).toBeNull();
+  });
+
+  it("keeps net vs gross this month vs last year when every row has gross", () => {
+    const current = [
+      lifetimeRow("2026-09-08", 90, "a", 1, { grossAmount: 100 }),
+      lifetimeRow("2026-09-09", 80, "b", 1, { grossAmount: 100 }),
+    ];
+    const lastYear = [
+      lifetimeRow("2025-09-08", 97, "c", 1, { grossAmount: 100 }),
+    ];
+    const kept = buildOrdersKeptShare(current, lastYear);
+    expect(kept.current).toBeCloseTo(170 / 200, 5);
+    expect(kept.lastYear).toBeCloseTo(97 / 100, 5);
+  });
+});
+
+describe("orders first vs returning checkout discount, dollars per unit, $0 orders", () => {
+  it("splits share of gross taken off and dashes a missing discount field", () => {
+    const first = nBuyers({
+      n: 8,
+      prefix: "new-",
+      day: "2026-09-08",
+      amount: 80,
+      lifetime: 1,
+      extra: { discountAmount: 20, grossAmount: 100 },
+    });
+    const returning = nReturning({
+      n: 8,
+      prefix: "back-",
+      periodDay: "2026-09-08",
+      priorDay: "2026-03-01",
+      amount: 95,
+      lifetime: 2,
+      extra: { discountAmount: 5, grossAmount: 100 },
+    });
+    const depth = buildOrdersCheckoutDiscount(
+      [...first, ...returning.period],
+      [...first, ...returning.book],
+    );
+    expect(depth.firstDepth).toBeCloseTo(160 / 800, 5);
+    expect(depth.returningDepth).toBeCloseTo(40 / 800, 5);
+    const missing = nBuyers({
+      n: 8,
+      prefix: "miss-",
+      day: "2026-09-08",
+      amount: 80,
+      lifetime: 1,
+      extra: { discountAmount: null },
+    });
+    expect(buildOrdersCheckoutDiscount(missing, missing).firstDepth).toBeNull();
+  });
+
+  it("divides Shopify Total Sales by crawled units, or Net when netSales is on the day", () => {
+    const rows = nBuyers({
+      n: 8,
+      prefix: "u-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+      extra: { unitCount: 2 },
+    });
+    expect(buildOrdersDollarsPerUnit(rows, {}).dollarsPerUnit).toBe(50);
+    expect(
+      buildOrdersDollarsPerUnit(rows, { netSales: 640, netSalesKnown: true })
+        .dollarsPerUnit,
+    ).toBe(40);
+    const uncrawled = nBuyers({
+      n: 8,
+      prefix: "x-",
+      day: "2026-09-08",
+      amount: 100,
+      lifetime: 1,
+    });
+    expect(buildOrdersDollarsPerUnit(uncrawled, {}).dollarsPerUnit).toBeNull();
+  });
+
+  it("counts $0-amount orders and their units without calling them internal", () => {
+    const zeros = [
+      lifetimeRow("2026-09-08", 0, "z1", 2, { unitCount: 3 }),
+      lifetimeRow("2026-09-08", 0, "z2", 4, { unitCount: 1 }),
+      lifetimeRow("2026-09-08", 80, "paid", 1, { unitCount: 2 }),
+    ];
+    const zero = buildOrdersZeroAmountOrders(zeros);
+    expect(zero.count).toBe(2);
+    expect(zero.units).toBe(4);
+    const missingUnits = [
+      lifetimeRow("2026-09-08", 0, "z1", 2, { unitCount: 3 }),
+      lifetimeRow("2026-09-08", 0, "z2", 4),
+    ];
+    expect(buildOrdersZeroAmountOrders(missingUnits).units).toBeNull();
+  });
+});
+
+describe("orders step mix assemble + paint locks", () => {
+  it("puts step mix, tickets, concentration, and last-year discount on the board payload", () => {
+    const first = nBuyers({
+      n: 8,
+      prefix: "new-",
+      day: "2026-09-08",
+      amount: 90,
+      lifetime: 1,
+      extra: {
+        discountAmount: 10,
+        discountCode: "WELCOME10",
+        grossAmount: 100,
+        unitCount: 1,
+      },
+    });
+    const lastYear = nBuyers({
+      n: 8,
+      prefix: "ly-",
+      day: "2025-09-08",
+      amount: 96,
+      lifetime: 1,
+      extra: { discountAmount: 4, discountCode: "WELCOME10", grossAmount: 100 },
+    });
+    const intel = assembleOrdersIntelligence({
+      rows: first,
+      priorRows: [],
+      lastYearRows: lastYear,
+      orderBook: first,
+      periodLabel: "Month to date",
+      badge: "MTD",
+      netSales: 640,
+      netSalesKnown: true,
+      timeZone: "UTC",
+    });
+    expect(intel?.stepMix.find((bar) => bar.id === "first")?.sales).toBe(720);
+    expect(intel?.tickets.firstTimeTicket).toBe(90);
+    expect(intel?.tickets.basis).toBe(ORDERS_TICKET_BASIS);
+    expect(intel?.concentration.buyersForHalf).toBe(4);
+    expect(intel?.yearDiscount.lastYearDollars).toBe(32);
+    expect(intel?.keptShare.current).toBeCloseTo(720 / 800, 5);
+    expect(intel?.checkoutDiscount.firstDepth).toBeCloseTo(80 / 800, 5);
+    expect(intel?.dollarsPerUnit.dollarsPerUnit).toBe(80);
+    expect(intel?.zeroOrders.count).toBe(0);
+    expect(intel?.current.returningSales).toBe(0);
+  });
+
+  it("does not recook third-order wait columns or paint VAT-out / Shopify AOV", () => {
+    const lib = readFileSync(join(here, "orders-intelligence.ts"), "utf8");
+    const board = readFileSync(join(here, "../components/OrdersIntelligence.tsx"), "utf8");
+    const firstView = readFileSync(
+      join(here, "../components/OrdersFirstViewport.tsx"),
+      "utf8",
+    );
+    expect(lib).not.toContain("waitDays");
+    expect(lib).not.toContain("VAT-out");
+    expect(lib).not.toContain("VAT out");
+    expect(board).not.toContain("waitDays");
+    expect(board).not.toContain("Shopify Total Sales clock");
+    expect(firstView).toContain("stepMix");
+    expect(firstView).toContain("ORDERS_TICKET_BASIS");
+    expect(firstView).toContain("Shipping + tax");
+    expect(firstView).not.toContain("Shopify’s AOV");
+    expect(firstView).not.toContain("Shopify's AOV");
+  });
+});
+

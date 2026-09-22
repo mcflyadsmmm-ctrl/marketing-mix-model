@@ -117,6 +117,8 @@ export default function OrdersPage() {
             depth={metrics.shopifyDepth}
             salesPending={Boolean(metrics.salesPending)}
             useSampleDesk={useSampleDesk}
+            stepMix={ordersIntel?.stepMix ?? null}
+            tickets={ordersIntel?.tickets ?? null}
           />
         </DeskLane>
         <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>
@@ -145,6 +147,7 @@ export default function OrdersPage() {
             peakWeekday={metrics.shopifyDepth.peakWeekday}
             peakHour={metrics.shopifyDepth.peakHour}
             salesPending={Boolean(metrics.salesPending)}
+            timingSplit={ordersIntel?.timingSplit ?? null}
           />
           {ordersFrequency && ordersFrequency.length > 1 && !metrics.salesPending ? (
             <OrdersFrequencyChart buckets={ordersFrequency} />

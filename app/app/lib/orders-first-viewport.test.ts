@@ -10,9 +10,11 @@ import {
   ORDERS_PENDING_LINE,
   ORDERS_THIN_EMPTY_LINE,
   buildOrdersLeadPeeks,
+  buildOrdersTicketPeeks,
   ordersHeroBeatsShopifyAnalytics,
   ordersOperatorGreeting,
 } from "./orders-first-viewport";
+import { ORDERS_TICKET_BASIS } from "./orders-intelligence";
 import { ORDERS_SPEND_BANS } from "./orders-scoreboard";
 import type { ShopifyDepthStats } from "./shopify-depth-stats";
 
@@ -135,6 +137,30 @@ describe("buildOrdersLeadPeeks", () => {
       "USD",
     );
     expect(peeks).toEqual([]);
+  });
+});
+
+describe("buildOrdersTicketPeeks", () => {
+  it("names first-time and returning tickets as Shopify Total Sales per order", () => {
+    const peeks = buildOrdersTicketPeeks(
+      {
+        firstTimeTicket: 100,
+        returningTicket: 250,
+        basis: ORDERS_TICKET_BASIS,
+      },
+      snowdevilDepth(),
+      "USD",
+    );
+    expect(peeks.map((peek) => peek.k)).toEqual([
+      "First-time ticket",
+      "Returning ticket",
+      "Shipping + tax",
+    ]);
+    expect(peeks[0]?.v).toBe("$100");
+    expect(peeks[0]?.s).toBe(ORDERS_TICKET_BASIS);
+    expect(peeks[1]?.v).toBe("$250");
+    expect(peeks[2]?.v).toBe("$8,215");
+    expect(peeks[0]?.d).not.toMatch(/Shopify’s AOV formula/i);
   });
 });
 

@@ -21989,3 +21989,130 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-desk--shot .mcfly-morning-habit {
   display: none;
 }
+
+.mcfly-orders-step {
+  margin: 0.75rem 0 0.2rem;
+}
+
+.mcfly-orders-step__cap {
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+  line-height: 1.35;
+}
+
+.mcfly-orders-step__rows {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mcfly-orders-step__row {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr 4.4rem;
+  gap: 0.45rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.28rem 0.1rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mcfly-orders-step__k {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-orders-step__track {
+  display: block;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 65%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-step__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-step__v {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  text-align: right;
+}
+
+.mcfly-orders-mix {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-orders-mix__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.6rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mcfly-orders-mix__k {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-mix__v {
+  font-family: var(--mcfly-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-mix__s {
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+  line-height: 1.3;
+}
+
+.mcfly-chart__day-bar--stack {
+  display: flex;
+  flex-direction: column-reverse;
+  background: transparent;
+  overflow: hidden;
+}
+
+.mcfly-chart__day-fill {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+}
+
+.mcfly-chart__day-fill--first {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__day-fill--returning {
+  background: color-mix(in srgb, var(--mcfly-accent-ink) 72%, #fff);
+}
+
+@media (max-width: 720px) {
+  .mcfly-orders-mix {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

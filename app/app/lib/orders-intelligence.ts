@@ -4,9 +4,16 @@
  * order-frequency distribution. Order data only — zero spend / ROAS.
  */
 
+import { ORDER_STEP_MIN_BUYERS } from "./customers-analytics";
 import { formatCurrency } from "./mer-format";
 import type { PeriodPreset } from "./periods";
-import { DEPTH_GUEST_KEY, percentileOf } from "./shopify-depth-stats";
+import { shopLocalHour } from "./shop-local-day";
+import {
+  DEPTH_GUEST_KEY,
+  HOUR_STATS_MIN_ORDERS,
+  MEDIAN_DAY_MIN_DAYS,
+  percentileOf,
+} from "./shopify-depth-stats";
 
 export type OrderIntelRow = {
   customerKey: string;
@@ -23,6 +30,8 @@ export type OrderIntelRow = {
    * Omit when the row was not loaded with it. `null` means loaded and missing.
    */
   lifetimeOrders?: number | null;
+  /** Units on the order. Omit when not crawled. `null` means loaded and missing. */
+  unitCount?: number | null;
 };
 
 export type OrdersIntelDay = {
@@ -38,6 +47,8 @@ export type OrdersIntelAgg = {
   aov: number | null;
   newOrders: number;
   returningOrders: number;
+  /** Identified already-bought Shopify Total Sales. Guests out. */
+  returningSales: number;
   /** Identified orders whose lifetime was missing. Not a zero new-buyer count. */
   unknownOrders: number;
   newSalesShare: number | null;
@@ -192,6 +203,7 @@ export function aggregateOrderRows(
   let newOrders = 0;
   let returningOrders = 0;
   let newSales = 0;
+  let returningSales = 0;
   let unknownOrders = 0;
   if (orderBook) {
     const files = buyerFiles(orderBook);
@@ -200,6 +212,7 @@ export function aggregateOrderRows(
       const kind = buyerKind(row, files.get(row.customerKey));
       if (kind === "returning") {
         returningOrders += 1;
+        returningSales += finite(row.amount);
       } else if (kind === "new") {
         newOrders += 1;
         newSales += finite(row.amount);
@@ -222,6 +235,9 @@ export function aggregateOrderRows(
       newOrders += 1;
       newSales += finite(sorted[0]!.amount);
       returningOrders += sorted.length - 1;
+      for (let i = 1; i < sorted.length; i += 1) {
+        returningSales += finite(sorted[i]!.amount);
+      }
     }
   }
 
@@ -231,6 +247,7 @@ export function aggregateOrderRows(
     aov: orders > 0 ? sales / orders : null,
     newOrders,
     returningOrders,
+    returningSales,
     unknownOrders,
     newSalesShare: sales > 0 && unknownOrders === 0 ? newSales / sales : null,
     discountDepth: gross > 0 ? discountTotal / gross : null,
@@ -521,6 +538,7 @@ type BuyerFile = {
   stored: number;
   /** `undefined` = not on the row. `null` = stored and missing. */
   lifetime: number | null | undefined;
+  times: number[];
 };
 
 type BuyerKind = "guest" | "new" | "returning" | "unknown";
@@ -553,10 +571,11 @@ function buyerFiles(rows: OrderIntelRow[]): Map<string, BuyerFile> {
     const lifetime = knownLifetime(row.lifetimeOrders);
     const prev = files.get(row.customerKey);
     if (!prev) {
-      files.set(row.customerKey, { first: t, stored: 1, lifetime });
+      files.set(row.customerKey, { first: t, stored: 1, lifetime, times: [t] });
       continue;
     }
     prev.stored += 1;
+    prev.times.push(t);
     if (t < prev.first) prev.first = t;
     prev.lifetime = mergeLifetime(prev.lifetime, lifetime);
   }
@@ -761,6 +780,538 @@ export function ordersMonthBoardSentence(input: {
   return `${input.periodLabel} — ${codeSentence(input.codes, input.currency)}. ${returnsSentence(input.returnsDrag, input.priorReturnsDrag)}.`;
 }
 
+export const ORDERS_STEP_IDS = ["first", "second", "third", "fourthPlus"] as const;
+export type OrdersStepBucketId = (typeof ORDERS_STEP_IDS)[number];
+export type OrdersStepId = OrdersStepBucketId | "unknown";
+
+export type OrdersStepBar = {
+  id: OrdersStepId;
+  label: string;
+  /** Shopify Total Sales in this step. Null until 8 identified buyers seal it. */
+  sales: number | null;
+  buyers: number;
+  sealed: boolean;
+};
+
+/** Named so a ~20% tax/shipping gap is not painted as Shopify’s AOV. */
+export const ORDERS_TICKET_BASIS = "Shopify Total Sales per order";
+
+export type OrdersPeriodTickets = {
+  firstTimeTicket: number | null;
+  returningTicket: number | null;
+  basis: typeof ORDERS_TICKET_BASIS;
+};
+
+export type OrdersConcentration = {
+  identifiedBuyers: number;
+  /** Smallest identified set whose period sales reach 50%. */
+  buyersForHalf: number | null;
+  topDecileShare: number | null;
+};
+
+export type OrdersTimingLane = {
+  first: number[] | null;
+  returning: number[] | null;
+  firstDollars: number[] | null;
+  returningDollars: number[] | null;
+};
+
+function emptyTimingLane(): OrdersTimingLane {
+  return {
+    first: null,
+    returning: null,
+    firstDollars: null,
+    returningDollars: null,
+  };
+}
+
+export type OrdersTimingSplit = {
+  weekday: OrdersTimingLane;
+  hourly: OrdersTimingLane;
+};
+
+export type OrdersYearCode = {
+  code: string;
+  sales: number;
+};
+
+export type OrdersYearDiscount = {
+  currentDollars: number | null;
+  currentDepth: number | null;
+  lastYearDollars: number | null;
+  lastYearDepth: number | null;
+  codes: OrdersYearCode[];
+};
+
+export type OrdersKeptShare = {
+  current: number | null;
+  lastYear: number | null;
+};
+
+export type OrdersCheckoutDiscount = {
+  firstDepth: number | null;
+  returningDepth: number | null;
+};
+
+export type OrdersDollarsPerUnit = {
+  dollarsPerUnit: number | null;
+  basis: "total" | "net";
+};
+
+export type OrdersZeroOrders = {
+  count: number;
+  units: number | null;
+};
+
+function ordersStepLabel(id: OrdersStepId): string {
+  switch (id) {
+    case "first":
+      return "1st";
+    case "second":
+      return "2nd";
+    case "third":
+      return "3rd";
+    case "fourthPlus":
+      return "4th+";
+    case "unknown":
+      return "Lifetime unknown";
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
+}
+
+function stepBucketOf(step: number): OrdersStepBucketId {
+  if (step <= 1) return "first";
+  if (step === 2) return "second";
+  if (step === 3) return "third";
+  return "fourthPlus";
+}
+
+/** 1-based lifetime step of this order, or null when lifetime is unknown. */
+function orderStepNumber(
+  row: OrderIntelRow,
+  file: BuyerFile | undefined,
+): number | null {
+  if (!file || file.lifetime === null) return null;
+  const t = row.orderedAt.getTime();
+  if (!Number.isFinite(t)) return null;
+  const rank = file.times.filter((time) => time <= t).length;
+  if (rank < 1) return null;
+  if (typeof file.lifetime === "number") {
+    const offset = Math.max(0, Math.max(file.lifetime, file.stored) - file.stored);
+    return offset + rank;
+  }
+  return rank;
+}
+
+function sealStepBar(
+  id: OrdersStepId,
+  sales: number,
+  buyers: number,
+): OrdersStepBar {
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    id,
+    label: ordersStepLabel(id),
+    sales: sealed ? sales : null,
+    buyers,
+    sealed,
+  };
+}
+
+/**
+ * This period’s Shopify Total Sales by 1st / 2nd / 3rd / 4th+.
+ * Guests out. Unknown lifetime is its own bar, never stuffed into 1st.
+ */
+export function buildOrdersStepMix(
+  rows: OrderIntelRow[],
+  orderBook: OrderIntelRow[],
+): OrdersStepBar[] {
+  const files = buyerFiles(orderBook);
+  const buckets: Record<
+    OrdersStepId,
+    { sales: number; buyers: Set<string> }
+  > = {
+    first: { sales: 0, buyers: new Set() },
+    second: { sales: 0, buyers: new Set() },
+    third: { sales: 0, buyers: new Set() },
+    fourthPlus: { sales: 0, buyers: new Set() },
+    unknown: { sales: 0, buyers: new Set() },
+  };
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount) || isGuest(row.customerKey)) continue;
+    const step = orderStepNumber(row, files.get(row.customerKey));
+    const id: OrdersStepId = step == null ? "unknown" : stepBucketOf(step);
+    buckets[id].sales += finite(row.amount);
+    buckets[id].buyers.add(row.customerKey);
+  }
+  const bars = ORDERS_STEP_IDS.map((id) =>
+    sealStepBar(id, buckets[id].sales, buckets[id].buyers.size),
+  );
+  if (buckets.unknown.buyers.size > 0) {
+    bars.push(
+      sealStepBar(
+        "unknown",
+        buckets.unknown.sales,
+        buckets.unknown.buyers.size,
+      ),
+    );
+  }
+  return bars;
+}
+
+export function ordersPaintStepSales(
+  bar: OrdersStepBar,
+  currency: string,
+): string {
+  if (!bar.sealed || bar.sales == null || !Number.isFinite(bar.sales)) {
+    return "—";
+  }
+  return formatCurrency(bar.sales, currency);
+}
+
+function ticketFrom(
+  sales: number,
+  orders: number,
+  buyers: number,
+): number | null {
+  if (buyers < ORDER_STEP_MIN_BUYERS || orders <= 0) return null;
+  return sales / orders;
+}
+
+/** First-time vs already-bought Shopify Total Sales per order this period. */
+export function buildOrdersPeriodTickets(
+  rows: OrderIntelRow[],
+  orderBook: OrderIntelRow[],
+): OrdersPeriodTickets {
+  const files = buyerFiles(orderBook);
+  let firstSales = 0;
+  let firstOrders = 0;
+  const firstBuyers = new Set<string>();
+  let returningSales = 0;
+  let returningOrders = 0;
+  const returningBuyers = new Set<string>();
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount) || isGuest(row.customerKey)) continue;
+    const step = orderStepNumber(row, files.get(row.customerKey));
+    if (step == null) continue;
+    if (step <= 1) {
+      firstSales += finite(row.amount);
+      firstOrders += 1;
+      firstBuyers.add(row.customerKey);
+    } else {
+      returningSales += finite(row.amount);
+      returningOrders += 1;
+      returningBuyers.add(row.customerKey);
+    }
+  }
+  return {
+    firstTimeTicket: ticketFrom(firstSales, firstOrders, firstBuyers.size),
+    returningTicket: ticketFrom(
+      returningSales,
+      returningOrders,
+      returningBuyers.size,
+    ),
+    basis: ORDERS_TICKET_BASIS,
+  };
+}
+
+/** Identified buyers who made 50% of period sales, and top-decile share. */
+export function buildOrdersConcentration(
+  rows: OrderIntelRow[],
+): OrdersConcentration {
+  const byBuyer = new Map<string, number>();
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount) || isGuest(row.customerKey)) continue;
+    byBuyer.set(
+      row.customerKey,
+      (byBuyer.get(row.customerKey) ?? 0) + finite(row.amount),
+    );
+  }
+  const identifiedBuyers = byBuyer.size;
+  if (identifiedBuyers < ORDER_STEP_MIN_BUYERS) {
+    return {
+      identifiedBuyers,
+      buyersForHalf: null,
+      topDecileShare: null,
+    };
+  }
+  const totals = [...byBuyer.values()].sort((a, b) => b - a);
+  const identifiedSales = totals.reduce((sum, n) => sum + n, 0);
+  if (!(identifiedSales > 0)) {
+    return {
+      identifiedBuyers,
+      buyersForHalf: null,
+      topDecileShare: null,
+    };
+  }
+  const half = identifiedSales * 0.5;
+  let cumulative = 0;
+  let buyersForHalf = totals.length;
+  for (let i = 0; i < totals.length; i += 1) {
+    cumulative += totals[i]!;
+    if (cumulative >= half) {
+      buyersForHalf = i + 1;
+      break;
+    }
+  }
+  const nTop = Math.max(1, Math.floor(identifiedBuyers * 0.1));
+  const top = totals.slice(0, nTop).reduce((sum, n) => sum + n, 0);
+  return {
+    identifiedBuyers,
+    buyersForHalf,
+    topDecileShare: top / identifiedSales,
+  };
+}
+
+function dayCountWithSales(rows: OrderIntelRow[]): number {
+  const byDay = new Set<string>();
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount) || finite(row.amount) <= 0) continue;
+    byDay.add(dayKeyOf(row.shopLocalDate));
+  }
+  return byDay.size;
+}
+
+function shareLane(totals: number[], denom: number): number[] | null {
+  if (!(denom > 0)) return null;
+  return totals.map((n) => n / denom);
+}
+
+/**
+ * First-time vs already-bought weekday/hour shares.
+ * Same 5-day and 20-order hour gates. Guests out. Unknown not painted as new.
+ */
+export function buildOrdersTimingSplit(
+  rows: OrderIntelRow[],
+  orderBook: OrderIntelRow[],
+  options?: { timeZone?: string | null },
+): OrdersTimingSplit {
+  const empty: OrdersTimingSplit = {
+    weekday: emptyTimingLane(),
+    hourly: emptyTimingLane(),
+  };
+  const weekdayOk = dayCountWithSales(rows) >= MEDIAN_DAY_MIN_DAYS;
+  const timeZone = options?.timeZone?.trim() || null;
+  const hourOk =
+    Boolean(timeZone) &&
+    rows.filter((row) => Number.isFinite(row.amount)).length >=
+      HOUR_STATS_MIN_ORDERS;
+  if (!weekdayOk && !hourOk) return empty;
+
+  const files = buyerFiles(orderBook);
+  const weekdayFirst = [0, 0, 0, 0, 0, 0, 0];
+  const weekdayReturning = [0, 0, 0, 0, 0, 0, 0];
+  const hourFirst = Array.from({ length: 24 }, () => 0);
+  const hourReturning = Array.from({ length: 24 }, () => 0);
+  let firstSales = 0;
+  let returningSales = 0;
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount) || isGuest(row.customerKey)) continue;
+    const step = orderStepNumber(row, files.get(row.customerKey));
+    if (step == null) continue;
+    const amt = finite(row.amount);
+    const returning = step >= 2;
+    if (returning) returningSales += amt;
+    else firstSales += amt;
+    const dow = row.shopLocalDate.getUTCDay();
+    if (dow >= 0 && dow <= 6) {
+      if (returning) weekdayReturning[dow]! += amt;
+      else weekdayFirst[dow]! += amt;
+    }
+    if (timeZone) {
+      const hour = shopLocalHour(row.orderedAt, timeZone);
+      if (returning) hourReturning[hour]! += amt;
+      else hourFirst[hour]! += amt;
+    }
+  }
+  return {
+    weekday: weekdayOk
+      ? {
+          first: shareLane(weekdayFirst, firstSales),
+          returning: shareLane(weekdayReturning, returningSales),
+          firstDollars: weekdayFirst,
+          returningDollars: weekdayReturning,
+        }
+      : emptyTimingLane(),
+    hourly: hourOk
+      ? {
+          first: shareLane(hourFirst, firstSales),
+          returning: shareLane(hourReturning, returningSales),
+          firstDollars: hourFirst,
+          returningDollars: hourReturning,
+        }
+      : emptyTimingLane(),
+  };
+}
+
+function discountSlice(rows: OrderIntelRow[]): {
+  dollars: number | null;
+  depth: number | null;
+} {
+  const clean = rows.filter((row) => Number.isFinite(row.amount));
+  if (clean.length === 0) return { dollars: null, depth: null };
+  let discount = 0;
+  let sales = 0;
+  for (const row of clean) {
+    if (row.discountAmount == null || !Number.isFinite(row.discountAmount)) {
+      return { dollars: null, depth: null };
+    }
+    discount += Math.abs(row.discountAmount);
+    sales += finite(row.amount);
+  }
+  const gross = sales + discount;
+  return {
+    dollars: discount,
+    depth: gross > 0 ? discount / gross : null,
+  };
+}
+
+/** Same-month-last-year discount dollars. Codes stay names. Missing last year —. */
+export function buildOrdersYearDiscount(
+  rows: OrderIntelRow[],
+  lastYearRows: OrderIntelRow[],
+): OrdersYearDiscount {
+  const current = discountSlice(rows);
+  const lastYear = discountSlice(lastYearRows);
+  return {
+    currentDollars: current.dollars,
+    currentDepth: current.depth,
+    lastYearDollars: lastYear.dollars,
+    lastYearDepth: lastYear.depth,
+    codes: weekCodeLines(rows),
+  };
+}
+
+function placedKeptShare(rows: OrderIntelRow[]): number | null {
+  let seen = false;
+  let net = 0;
+  let gross = 0;
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount)) continue;
+    if (typeof row.grossAmount !== "number" || !Number.isFinite(row.grossAmount)) {
+      return null;
+    }
+    seen = true;
+    net += row.amount;
+    gross += row.grossAmount;
+  }
+  if (!seen || !(gross > 0)) return null;
+  return net / gross;
+}
+
+/** Placed-day kept share (net vs gross). Any missing gross → —. */
+export function buildOrdersKeptShare(
+  rows: OrderIntelRow[],
+  lastYearRows: OrderIntelRow[],
+): OrdersKeptShare {
+  return {
+    current: placedKeptShare(rows),
+    lastYear: lastYearRows.length > 0 ? placedKeptShare(lastYearRows) : null,
+  };
+}
+
+function groupDiscountDepth(rows: OrderIntelRow[]): number | null {
+  return discountSlice(rows).depth;
+}
+
+/** First vs returning checkouts: share of gross taken off. Missing discount → —. */
+export function buildOrdersCheckoutDiscount(
+  rows: OrderIntelRow[],
+  orderBook: OrderIntelRow[],
+): OrdersCheckoutDiscount {
+  const files = buyerFiles(orderBook);
+  const first: OrderIntelRow[] = [];
+  const returning: OrderIntelRow[] = [];
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount) || isGuest(row.customerKey)) continue;
+    const step = orderStepNumber(row, files.get(row.customerKey));
+    if (step == null) continue;
+    if (step <= 1) first.push(row);
+    else returning.push(row);
+  }
+  return {
+    firstDepth: groupDiscountDepth(first),
+    returningDepth: groupDiscountDepth(returning),
+  };
+}
+
+function crawledUnitCount(row: OrderIntelRow): number | null {
+  if (row.unitCount == null || !Number.isFinite(row.unitCount) || row.unitCount < 0) {
+    return null;
+  }
+  return Math.trunc(row.unitCount);
+}
+
+/**
+ * Period dollars per unit = Shopify Total Sales ÷ units, or Net ÷ units
+ * when netSales is on the day. Dash when unitCount is not crawled.
+ */
+export function buildOrdersDollarsPerUnit(
+  rows: OrderIntelRow[],
+  options?: { netSales?: number | null; netSalesKnown?: boolean },
+): OrdersDollarsPerUnit {
+  const clean = rows.filter((row) => Number.isFinite(row.amount));
+  let units = 0;
+  let sales = 0;
+  for (const row of clean) {
+    const count = crawledUnitCount(row);
+    if (count == null) {
+      return { dollarsPerUnit: null, basis: "total" };
+    }
+    units += count;
+    sales += finite(row.amount);
+  }
+  if (!(units > 0) || clean.length === 0) {
+    return { dollarsPerUnit: null, basis: "total" };
+  }
+  const useNet =
+    options?.netSalesKnown === true &&
+    options.netSales != null &&
+    Number.isFinite(options.netSales);
+  const dollars = useNet ? options.netSales! : sales;
+  return {
+    dollarsPerUnit: dollars / units,
+    basis: useNet ? "net" : "total",
+  };
+}
+
+/** $0-amount orders and the units on those rows. Not tagged internal. */
+export function buildOrdersZeroAmountOrders(
+  rows: OrderIntelRow[],
+): OrdersZeroOrders {
+  const zeros = rows.filter(
+    (row) => Number.isFinite(row.amount) && row.amount === 0,
+  );
+  let units = 0;
+  for (const row of zeros) {
+    const count = crawledUnitCount(row);
+    if (count == null) return { count: zeros.length, units: null };
+    units += count;
+  }
+  return { count: zeros.length, units: zeros.length > 0 ? units : 0 };
+}
+
+/** Same calendar window one year earlier. Empty means last year is not on file. */
+export function ordersLastYearRows(
+  book: OrderIntelRow[],
+  start: Date,
+  end: Date,
+): OrderIntelRow[] {
+  const startMs = new Date(start.getTime());
+  startMs.setUTCFullYear(startMs.getUTCFullYear() - 1);
+  const endMs = new Date(end.getTime());
+  endMs.setUTCFullYear(endMs.getUTCFullYear() - 1);
+  const from = startMs.getTime();
+  const to = endMs.getTime();
+  return book.filter((row) => {
+    const t = row.orderedAt.getTime();
+    return t >= from && t <= to;
+  });
+}
+
 export type OrdersIntelData = {
   windowLabel: string;
   badge: string;
@@ -773,6 +1324,15 @@ export type OrdersIntelData = {
   codes: OrdersCodeMoney[];
   returnsDrag: number | null;
   priorReturnsDrag: number | null;
+  stepMix: OrdersStepBar[];
+  tickets: OrdersPeriodTickets;
+  concentration: OrdersConcentration;
+  timingSplit: OrdersTimingSplit;
+  yearDiscount: OrdersYearDiscount;
+  keptShare: OrdersKeptShare;
+  checkoutDiscount: OrdersCheckoutDiscount;
+  dollarsPerUnit: OrdersDollarsPerUnit;
+  zeroOrders: OrdersZeroOrders;
 };
 
 /**
@@ -782,12 +1342,17 @@ export type OrdersIntelData = {
 export function assembleOrdersIntelligence(input: {
   rows: OrderIntelRow[];
   priorRows: OrderIntelRow[];
+  lastYearRows?: OrderIntelRow[];
   orderBook: OrderIntelRow[];
   periodLabel: string;
   badge: string;
+  netSales?: number | null;
+  netSalesKnown?: boolean;
+  timeZone?: string | null;
 }): (OrdersIntelData & { frequency: OrdersFrequencyBucket[] }) | null {
   if (input.rows.length === 0) return null;
   const days = buildOrdersIntelDays(input.rows);
+  const lastYearRows = input.lastYearRows ?? [];
   return {
     windowLabel: ordersIntelWindowLabel(days, input.periodLabel),
     badge: input.badge,
@@ -805,5 +1370,19 @@ export function assembleOrdersIntelligence(input: {
     priorReturnsDrag:
       input.priorRows.length > 0 ? ordersReturnDrag(input.priorRows) : null,
     frequency: buildOrdersFrequency(input.rows, input.orderBook),
+    stepMix: buildOrdersStepMix(input.rows, input.orderBook),
+    tickets: buildOrdersPeriodTickets(input.rows, input.orderBook),
+    concentration: buildOrdersConcentration(input.rows),
+    timingSplit: buildOrdersTimingSplit(input.rows, input.orderBook, {
+      timeZone: input.timeZone,
+    }),
+    yearDiscount: buildOrdersYearDiscount(input.rows, lastYearRows),
+    keptShare: buildOrdersKeptShare(input.rows, lastYearRows),
+    checkoutDiscount: buildOrdersCheckoutDiscount(input.rows, input.orderBook),
+    dollarsPerUnit: buildOrdersDollarsPerUnit(input.rows, {
+      netSales: input.netSales,
+      netSalesKnown: input.netSalesKnown,
+    }),
+    zeroOrders: buildOrdersZeroAmountOrders(input.rows),
   };
 }
