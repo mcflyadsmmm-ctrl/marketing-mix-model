@@ -468,25 +468,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           orderSource,
         ),
       ]);
-      const today = todayRows.map((row) => ({
+      clockTodayOrders = todayRows.map((row) => ({
         orderedAt: row.orderedAt.toISOString(),
         amount: row.amount,
       }));
-      const prior =
+      clockPriorOrders =
         priorRows.length > 0
           ? priorRows.map((row) => ({
               orderedAt: row.orderedAt.toISOString(),
               amount: row.amount,
             }))
           : null;
-      // No stored orders on either day — the book has not landed. Not a finished $0.
-      if (today.length === 0 && prior == null) {
-        clockTodayOrders = null;
-        clockPriorOrders = null;
-      } else {
-        clockTodayOrders = today;
-        clockPriorOrders = prior;
-      }
     } catch {
       clockTodayOrders = null;
       clockPriorOrders = null;
@@ -949,14 +941,6 @@ export default function Dashboard() {
                         dateKey: day.dateKey,
                         sales: day.sales,
                       }))}
-                      clock={
-                        sameClock
-                          ? {
-                              ...sameClock,
-                              pending: sameClock.pending || greetingPending,
-                            }
-                          : null
-                      }
                       ordersHref={ordersHref}
                       salesPending={greetingPending}
                       typicalDay={metrics.shopifyDepth.medianDailySales}

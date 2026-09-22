@@ -22,7 +22,6 @@ import {
   overviewFilterRange,
   overviewLatestDayKey,
   overviewMedian,
-  overviewClockSentenceFromPayload,
   overviewPresetRange,
   overviewPriorWindow,
   overviewSameDatesSales,
@@ -30,7 +29,6 @@ import {
   overviewVsTypical,
   overviewVsTypicalPctCopy,
   type ChartGrain,
-  type OverviewClockPayload,
   type OverviewDelta,
   type OverviewRangePreset,
   type SalesDayInput,
@@ -88,13 +86,7 @@ const PRESETS: readonly { key: OverviewRangePreset; label: string; long: string 
   { key: "1y", label: "1y", long: "Last 12 months" },
 ];
 
-function ChartEmptyFrame({
-  copy,
-  clockSentence = null,
-}: {
-  copy: string;
-  clockSentence?: string | null;
-}) {
+function ChartEmptyFrame({ copy }: { copy: string }) {
   return (
     <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label="Sales by day">
       <div className="mcfly-chart__head">
@@ -103,11 +95,6 @@ function ChartEmptyFrame({
           Sales
         </p>
       </div>
-      {clockSentence ? (
-        <p className="mcfly-chart__muted" data-overview-compare="clock">
-          {clockSentence}
-        </p>
-      ) : null}
       <p className="mcfly-chart__empty">{copy}</p>
     </section>
   );
@@ -128,7 +115,6 @@ export function OverviewSalesChart({
   salesPending = false,
   typicalDay = null,
   historyDays = null,
-  clock = null,
   initialPreset = "30d",
   initialCustom = null,
 }: {
@@ -138,8 +124,6 @@ export function OverviewSalesChart({
   typicalDay?: number | null;
   /** Sales days already on the desk, including last year when the chart window is shorter. */
   historyDays?: SalesDayPoint[] | null;
-  /** Through this clock. Null until the route has a shop clock to pass. */
-  clock?: OverviewClockPayload | null;
   initialPreset?: OverviewRangePreset | "custom";
   initialCustom?: { fromKey: string; toKey: string } | null;
 }) {
@@ -212,17 +196,10 @@ export function OverviewSalesChart({
     ]),
   );
 
-  const clockSentence = clock
-    ? overviewClockSentenceFromPayload(clock, (amount) =>
-        formatCurrency(amount, currency),
-      )
-    : null;
-
   if (sorted.length < 2) {
     return (
       <ChartEmptyFrame
         copy={salesPending ? OVERVIEW_PENDING_LINE : OVERVIEW_CHART_EMPTY}
-        clockSentence={clockSentence}
       />
     );
   }
@@ -454,11 +431,6 @@ export function OverviewSalesChart({
           <h3 className="mcfly-chart__serif">Sales explorer</h3>
           {ledeParts.length > 0 ? (
             <p className="mcfly-chart__muted">{ledeParts.join(" · ")}</p>
-          ) : null}
-          {clockSentence ? (
-            <p className="mcfly-chart__muted" data-overview-compare="clock">
-              {clockSentence}
-            </p>
           ) : null}
           {sameDatesSentence ? (
             <p className="mcfly-chart__muted" data-overview-compare="same-dates">

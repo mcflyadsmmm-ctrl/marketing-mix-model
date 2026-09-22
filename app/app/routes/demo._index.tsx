@@ -246,7 +246,6 @@ export default function PublicDemoOverview() {
                       dateKey: day.dateKey,
                       sales: day.sales,
                     }))}
-                    clock={data.sameClock}
                     ordersHref={ordersHref}
                     salesPending={false}
                     typicalDay={data.depth.medianDailySales}
