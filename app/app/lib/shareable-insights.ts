@@ -505,6 +505,8 @@ export function whaleSlackInsight(input: {
   whaleCount: number;
   salesShare: number | null;
   medianLifetime: number | null;
+  coldShare: number | null;
+  historyLimited: boolean;
   shopLabel: string;
   sample: boolean;
   where: string;
@@ -520,12 +522,24 @@ export function whaleSlackInsight(input: {
   const typical = finitePositive(input.medianLifetime);
   if (count < 1 || share == null || typical == null) return null;
   const pct = wholePercent(share);
+  const cold =
+    !input.historyLimited &&
+    input.coldShare != null &&
+    Number.isFinite(input.coldShare) &&
+    input.coldShare > 0
+      ? wholePercent(input.coldShare)
+      : 0;
+  let line = `Best customers carry ${pct}% of identified sales. A typical best customer is ${input.money(typical)}.`;
+  if (cold > 0) {
+    line += ` ${cold}% have not ordered in over 180 days.`;
+  }
+  if (line.includes("$0")) return null;
   return sealSlackInsight({
     id: "whale",
     label: "Best customers",
-    line: `Best customers carry ${pct}% of identified sales. A typical best customer is ${input.money(typical)}.`,
+    line,
     formula:
-      "Share = best-customer lifetime $ ÷ identified lifetime $. Typical = median lifetime in the top tenth.",
+      "Share = best-customer lifetime $ ÷ identified lifetime $. Typical = median lifetime in the top tenth. Cold share = best customers whose last order is over 180 days ago.",
     trust: "Top tenth by lifetime dollars. Guests stay out. Order history only.",
     shopLabel: input.shopLabel,
     sample: input.sample,

@@ -416,6 +416,8 @@ describe("Slack insight paste — one sealed number", () => {
       whaleCount: 6,
       salesShare: 0.34,
       medianLifetime: 1240,
+      coldShare: null,
+      historyLimited: false,
       shopLabel: "harbor.myshopify.com",
       sample: false,
       where: "On file",
@@ -429,6 +431,8 @@ describe("Slack insight paste — one sealed number", () => {
         whaleCount: 0,
         salesShare: 0.34,
         medianLifetime: 1240,
+        coldShare: 0.5,
+        historyLimited: false,
         shopLabel: "",
         sample: false,
         where: "On file",
@@ -444,8 +448,53 @@ describe("Slack insight paste — one sealed number", () => {
         sample: false,
         where: "On file",
         money,
+        coldShare: 0.22,
+        historyLimited: false,
       }),
     ).toBeNull();
+  });
+
+  it("appends cold share when it is > 0 and withholds it on a limited book", () => {
+    const withCold = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      coldShare: 0.22,
+      historyLimited: false,
+      shopLabel: "harbor.myshopify.com",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(withCold?.line).toContain("34%");
+    expect(withCold?.line).toContain("$1,240");
+    expect(withCold?.line).toMatch(/22% have not ordered in over 180 days/);
+    expect(withCold?.slack).not.toContain("$0");
+    const quiet = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      coldShare: 0,
+      historyLimited: false,
+      shopLabel: "",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(quiet?.line).not.toMatch(/180 days/);
+    const pending = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      coldShare: 0.4,
+      historyLimited: true,
+      shopLabel: "",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(pending?.line).not.toMatch(/180 days/);
+    expect(pending?.slack).not.toContain("$0");
   });
 
   it("paints a selectable quote and stays quiet when the insight is missing", () => {
@@ -506,6 +555,8 @@ describe("Slack insight paste — one sealed number", () => {
       whaleCount: whales?.whaleCount ?? 0,
       salesShare: whales?.salesShare ?? null,
       medianLifetime: whales?.medianLifetime ?? null,
+      coldShare: whales?.coldShare ?? null,
+      historyLimited: false,
       shopLabel: "Snowdevil",
       sample: true,
       where: "On file",
