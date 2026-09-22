@@ -11,26 +11,26 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#f2f5f8" />
   <title>Shopify order desk | Mcfly Analytics</title>
-  <meta name="description" content="Deeper Shopify numbers than Analytics Overview. Typical order, returning dollars, weekends, days to second, LTV. Spend optional. 7-day trial then $39/store/mo. No pixels." />
-  <meta name="mcfly-version" content="v21" />
-  <meta name="mcfly-build" content="craft-v20" />
+  <meta name="description" content="Overview, Orders, and Customers first — typical order, returning dollars, weekends, days to second, LTV. Spend optional last. 7-day trial then $39/store/mo. No pixels." />
+  <meta name="mcfly-version" content="v31" />
+  <meta name="mcfly-build" content="desk-match-v31" />
   <link rel="canonical" href="https://mcflyads.com/product" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/product" />
   <meta property="og:title" content="Shopify order desk | Mcfly Analytics" />
-  <meta property="og:description" content="Overview is a YoY sales glance. Typical order on Orders; returning dollars and LTV on Customers. Total ROAS lives on Spend after you type spend. 7-day trial then $39/store/mo." />
+  <meta property="og:description" content="Overview → Orders → Customers first. Spend optional last. Typical order, returning dollars, LTV. 7-day trial then $39/store/mo." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Shopify order desk | Mcfly Analytics" />
-  <meta name="twitter:description" content="Typical order, returning dollars, weekends, days to second, LTV. Spend optional. 7-day trial then $39/store/mo." />
+  <meta name="twitter:description" content="Overview → Orders → Customers. Spend optional. 7-day trial then $39/store/mo." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
   <style>
     body.product-page {
       background:
-        radial-gradient(ellipse 70% 45% at 90% -5%, rgba(94, 231, 240, 0.11), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 90% -5%, rgba(2, 132, 199, 0.10), transparent 55%),
         radial-gradient(ellipse 50% 35% at 0% 20%, rgba(26, 163, 122, 0.07), transparent 50%),
         var(--paper-2);
     }
@@ -59,12 +59,43 @@
       letter-spacing: -0.025em;
       line-height: 1.35;
     }
+    body.product-page .desk-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 1.1rem 0 0;
+      padding: 0;
+      list-style: none;
+      max-width: 46rem;
+    }
+    body.product-page .desk-pills li {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.3rem;
+      padding: 0.28rem 0.72rem;
+      border: 1px solid rgba(10, 18, 33, 0.12);
+      border-radius: 999px;
+      background: #ffffff;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #0f1720;
+    }
+    body.product-page .desk-pills li span {
+      color: #5b6b7c;
+      font-size: 0.64rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    body.product-page .hero-cta {
+      margin: 1.25rem 0 0;
+    }
     body.product-page .show-frame {
       border-color: rgba(10, 18, 33, 0.12);
       box-shadow: 0 18px 40px -28px rgba(10, 18, 33, 0.35);
     }
 
-    /* Scientist craft — full-width numbered rail (deep-dive vs home how-rail) */
     body.product-page .ritual-rail {
       list-style: none;
       margin: 2rem 0 0;
@@ -102,7 +133,6 @@
       line-height: 1.5;
     }
 
-    /* Break-even deep dive */
     body.product-page .be-band {
       background:
         radial-gradient(500px 240px at 100% 0%, rgba(26, 163, 122, 0.08), transparent 55%),
@@ -239,7 +269,6 @@
       font-size: 0.98rem;
     }
 
-    /* v20 craft — floating SAMPLE metrics + Signal / Evidence / Next move */
     body.product-page .float-desk {
       margin: 1.75rem auto 0;
       max-width: 42rem;
@@ -307,10 +336,10 @@
     body.product-page .mer-loud {
       margin: 1.35rem 0 0;
       padding: 1.05rem 1.15rem 1.15rem;
-      border: 1px solid rgba(26, 184, 196, 0.35);
+      border: 1px solid rgba(2, 132, 199, 0.28);
       border-left: 3px solid var(--cyan-deep);
       background:
-        linear-gradient(165deg, rgba(94, 231, 240, 0.1), transparent 55%),
+        linear-gradient(165deg, rgba(2, 132, 199, 0.08), transparent 55%),
         #fff;
       max-width: 46rem;
     }
@@ -390,9 +419,9 @@
           "@type": "Offer",
           "price": "39",
           "priceCurrency": "USD",
-          "description": "7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Whole desk. Uninstall stops the charge."
+          "description": "7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Uninstall stops the charge."
         },
-        "description": "Deeper Shopify numbers than Analytics Overview. Five analysis tabs plus Settings. Spend optional. 7-day trial, then $39/store/mo."
+        "description": "Deeper Shopify numbers than Analytics Overview. Five analysis tabs: Overview, Orders, Customers, Spend, Goals. Spend optional. 7-day trial, then $39/store/mo."
       },
       {
         "@type": "BreadcrumbList",
@@ -413,39 +442,46 @@
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
       <h1>Deeper than Shopify Analytics Overview.</h1>
-      <p>Overview is this month, this quarter, and this year vs last year — KPI cards, a sales chart, and the YoY year board. Typical order and weekends live on Orders. Returning dollars, LTV 30/90/365, and days-to-second live on Customers. Add spend last on Spend — Total ROAS, mix, and CPA are in-page panels there, with Yesterday / last-N chips. Goals stays. 7-day trial, then $39/store/mo.</p>
-      <p class="product-thesis">Spend next to sales. Upload spend → see Total ROAS → hit Goals.</p>
-      <aside class="mer-loud" aria-label="Total ROAS formula">
-        <p class="mer-loud__k">MER · Total ROAS</p>
-        <p class="mer-loud__line">Total ROAS = Shopify sales ÷ entered spend</p>
-        <p class="mer-loud__note">Empty spend paints <strong>—</strong>, never 0×. Not platform ROAS. Not pixels.</p>
-      </aside>
+      <p>The desk a merchant installs is five tabs: Overview, Orders, Customers, Spend, Goals. Overview → Orders → Customers first — this month vs last year, typical order, returning dollars, weekends, days to second, LTV. Growth and LTV are Customers chips, not extra tabs. Spend is optional last. 7-day trial, then $39/store/mo.</p>
+      <p class="product-thesis">Overview → Orders → Customers. Spend optional last.</p>
+      <ol class="desk-pills" aria-label="Tabs the Shopify app ships">
+        <li>Overview</li>
+        <li>Orders</li>
+        <li>Customers</li>
+        <li>Spend <span>optional</span></li>
+        <li>Goals</li>
+      </ol>
       <aside class="float-desk" aria-label="Snowdevil SAMPLE metrics">
         <span class="float-desk__badge">SAMPLE · Snowdevil · not a live client</span>
         <div class="float-desk__stack">
           <article class="float-card">
-            <p class="float-card__k">Entered spend</p>
-            <p class="float-card__v">$19,023</p>
-            <p class="float-card__s">This month</p>
+            <p class="float-card__k">This month</p>
+            <p class="float-card__v float-card__v--accent">$68,457</p>
+            <p class="float-card__s">Overview · vs last year $69,891</p>
           </article>
           <article class="float-card">
-            <p class="float-card__k">Shopify sales</p>
-            <p class="float-card__v">$68,457</p>
-            <p class="float-card__s">Returns included</p>
+            <p class="float-card__k">Typical order</p>
+            <p class="float-card__v">$631</p>
+            <p class="float-card__s">Orders · median, not Shopify’s average</p>
           </article>
           <article class="float-card">
-            <p class="float-card__k">Total ROAS</p>
-            <p class="float-card__v float-card__v--accent">3.60×</p>
-            <p class="float-card__s">BE 2.50× @ 40%</p>
+            <p class="float-card__k">Returning dollars</p>
+            <p class="float-card__v">$45,409</p>
+            <p class="float-card__s">Customers · 66% of this window</p>
           </article>
         </div>
       </aside>
+      <div class="cta-row hero-cta">
+        <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
+        <a class="btn ghost" href="/demo">Try the demo</a>
+        <a class="btn ghost" href="/pricing">See pricing</a>
+      </div>
     </header>
 
     <aside class="pitch-box" aria-labelledby="pitch-title">
       <p class="pitch-kicker">Sales reps</p>
       <h2 id="pitch-title">Pitch this in 30 seconds</h2>
-      <p>Install inside Admin. Read this month vs last year on Overview — no Meta or Google login. Typical order is on Orders; returning dollars and LTV are on Customers. Add spend later on Spend for Total ROAS. Five analysis tabs plus Settings after a 7-day trial at $39/store/mo. Empty spend is — , never 0×.</p>
+      <p>Install inside Admin. Read Overview — this month vs last year — with no Meta or Google login. Typical order is on Orders. Returning dollars, Growth, and LTV are on Customers. Add spend later on Spend for Total ROAS if you want it. Five tabs: Overview · Orders · Customers · Spend · Goals. 7-day trial, then $39/store/mo. Empty spend is —, never 0×.</p>
     </aside>
 
     <div class="show-frame">
@@ -461,43 +497,31 @@
       </picture>
     </div>
 
-    <section class="band formula-band" aria-labelledby="product-formula-title">
-      <div class="wrap">
-        <p class="eyebrow">The math</p>
-        <h2 id="product-formula-title" class="display">MER is Total ROAS.<br />Say it loud.</h2>
-        <div class="formula-panel reveal">
-          <p class="formula-line mono">Total ROAS = Shopify sales ÷ entered spend</p>
-          <p class="formula-line mono soft">Break-even Total ROAS ≈ 1 ÷ profit margin</p>
-          <p class="formula-note">Empty spend = —. Stay above break-even. Shift mix to protect it.</p>
-        </div>
-      </div>
-    </section>
-
     <section class="band ritual-band" aria-labelledby="ritual-title">
       <div class="wrap">
-        <p class="eyebrow">Copy rhythm</p>
-        <h2 id="ritual-title" class="display">Upload spend.<br />See Total ROAS.<br />Hit Goals.</h2>
-        <p class="lede-soft">Upload spend → see Total ROAS → hit Goals. Overview, Orders, and Customers still work at $0 spend. No ad-network logins. No “which touchpoint won.”</p>
+        <p class="eyebrow">What installs</p>
+        <h2 id="ritual-title" class="display">Overview.<br />Orders.<br />Customers.</h2>
+        <p class="lede-soft">Same five tabs as Shopify Admin. Open Overview, then Orders, then Customers. Growth and LTV live on Customers. Spend is a later tab, optional. Goals is sales vs the calendar — no spend required. SAMPLE walkthrough on <a href="/demo">/demo</a>.</p>
         <ol class="ritual-rail">
           <li>
             <span class="n" aria-hidden="true">01</span>
             <div>
-              <h3>Upload spend</h3>
-              <p>Shopify Total Sales are already in. Add one day’s spend (Meta or a billboard) or paste a CSV. SyncWith optional — you pay them. No ad-account OAuth. Trial is 90 days of order history. Paid is up to 24 months. <a href="#spend-csv">How spend gets in →</a></p>
+              <h3>Overview</h3>
+              <p>This month, this quarter, and this year vs last year — KPI cards, a sales chart, and the YoY year board. Shopify Analytics shows this period’s sales. This tab puts last year next to it. Trial is 90 days of order history. Paid is up to 24 months.</p>
             </div>
           </li>
           <li>
             <span class="n" aria-hidden="true">02</span>
             <div>
-              <h3>See Total ROAS</h3>
-              <p>Sales ÷ entered spend for the same window, vs break-even. Yesterday / last N / this month / quarter / year chips live on Spend — not on Overview. Empty spend is —, never 0×.</p>
+              <h3>Orders</h3>
+              <p>Typical order (the median ticket, not Shopify’s average), weekends, discounts, returns, and the weekly ledger. Works at $0 spend.</p>
             </div>
           </li>
           <li>
             <span class="n" aria-hidden="true">03</span>
             <div>
-              <h3>Hit Goals</h3>
-              <p>Monthly sales plan next to optional Total ROAS. Above the floor: protect. At or below: cut or shift. One allocation call with inputs shown.</p>
+              <h3>Customers</h3>
+              <p>Returning dollars vs new. Growth and LTV are chips on this tab — days to a second order, LTV 30 / 90 / 365 — not extra top tabs. Still $0 spend.</p>
             </div>
           </li>
         </ol>
@@ -506,34 +530,85 @@
 
     <section class="band" aria-labelledby="signal-title">
       <div class="wrap">
-        <p class="eyebrow">One finding · deterministic</p>
+        <p class="eyebrow">One finding · SAMPLE Snowdevil</p>
         <h2 id="signal-title" class="display">Signal. Evidence. Next move.</h2>
-        <p class="lede-soft">Structured operator note from SAMPLE Snowdevil — not an AI agent that “executes” campaigns.</p>
+        <p class="lede-soft">Operator note from SAMPLE Snowdevil — not a live client, not an AI that “executes” campaigns.</p>
         <div class="signal-grid">
           <article class="signal-card">
             <p class="signal-card__role">Signal</p>
-            <strong>Total ROAS 3.60× vs BE 2.50×</strong>
-            <p>Above break-even at 40% margin on the SAMPLE window.</p>
+            <strong>This month $68,457 vs last year $69,891</strong>
+            <p>Overview YoY glance. Last year stays on the card — never painted as $0.</p>
           </article>
           <article class="signal-card">
             <p class="signal-card__role">Evidence</p>
-            <strong>Sales $68,457 · spend $19,023</strong>
-            <p>Shopify Total Sales ÷ entered spend. Same window. No path credit.</p>
+            <strong>Typical $631 · returning $45,409</strong>
+            <p>Orders holds the median ticket. Customers holds returning dollars. Same SAMPLE window.</p>
           </article>
           <article class="signal-card">
             <p class="signal-card__role">Next move</p>
-            <strong>Protect mix · set Goals</strong>
-            <p>Keep channels that clear the floor. Empty spend stays — until you upload.</p>
+            <strong>Stay on the order desk</strong>
+            <p>Open Customers for Growth and LTV chips. Add spend later only if you want Total ROAS.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="band spend-csv-band" id="spend-csv" aria-labelledby="spend-csv-title">
+    <section class="band dark-band" aria-labelledby="compare-title">
       <div class="wrap">
-        <p class="eyebrow">Spend spine</p>
-        <h2 id="spend-csv-title" class="display">Three doors into spend.<br />One Total ROAS.</h2>
-        <p class="lede-soft">We already have Shopify sales/orders/LTV. You add spend by day by channel — no Meta or Google OAuth. Spend dates can go back to 2021. Trial is 90 days of order history. Paid is up to 24 months. <a href="/assets/mcfly-sheets-spend-guide">Sheets spend guide →</a></p>
+        <p class="eyebrow on-dark">What’s on the screen</p>
+        <h2 id="compare-title" class="display">Five tabs.<br />Spend is optional last.</h2>
+        <p class="contrast-lede on-dark">Overview → Orders → Customers at $0 spend. Growth and LTV stay Customers chips. Type spend on Spend when you want Total ROAS. Goals is the sales plan. Settings is billing and shop clock — not a sixth analysis tab in the Admin iframe pills.</p>
+        <div class="table-scroll">
+          <table class="compare on-dark">
+            <caption class="sr-only">What Mcfly Analytics puts on screen</caption>
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">Mcfly Analytics</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Overview</th>
+                <td>This month / quarter / year vs last year, sales chart, YoY year board</td>
+              </tr>
+              <tr>
+                <th scope="row">Orders</th>
+                <td>Typical order, weekends, discounts, returns</td>
+              </tr>
+              <tr>
+                <th scope="row">Customers</th>
+                <td>Returning dollars. Growth and LTV chips — not extra tabs</td>
+              </tr>
+              <tr>
+                <th scope="row">Spend</th>
+                <td>Optional last. Total ROAS = sales ÷ entered spend. Empty is —</td>
+              </tr>
+              <tr>
+                <th scope="row">Goals</th>
+                <td>Sales vs the calendar. Spend not required</td>
+              </tr>
+              <tr>
+                <th scope="row">History</th>
+                <td>Trial is 90 days of order history. Paid is up to 24 months</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="contrast-note">7-day trial, then $39/store/mo. Uninstall stops the charge. SAMPLE on <a href="/demo">/demo</a> — install opens this shop’s Live book only.</p>
+      </div>
+    </section>
+
+    <section class="band formula-band spend-csv-band" id="spend-csv" aria-labelledby="spend-csv-title">
+      <div class="wrap">
+        <p class="eyebrow">Spend · optional last</p>
+        <h2 id="spend-csv-title" class="display">Add spend later.<br />Total ROAS is honest MER.</h2>
+        <p class="lede-soft">Overview, Orders, and Customers already work. Spend is the fourth tab — paste or type a day when you want sales next to spend. No Meta or Google OAuth. Trial is 90 days of order history. Paid is up to 24 months. <a href="/assets/mcfly-sheets-spend-guide">Sheets spend guide →</a></p>
+        <aside class="mer-loud" aria-label="Total ROAS formula">
+          <p class="mer-loud__k">When spend is on file</p>
+          <p class="mer-loud__line">Total ROAS = Shopify sales ÷ entered spend</p>
+          <p class="mer-loud__note">Empty spend paints <strong>—</strong>, never 0×. Not platform ROAS. Not pixels. Break-even is 1 ÷ the margin you type in Settings — not a 40% pledge.</p>
+        </aside>
 
         <ol class="spend-flow">
           <li>
@@ -553,7 +628,7 @@
           </li>
         </ol>
 
-        <p class="lede-soft spend-platforms-intro">Five analysis tabs plus Settings: Overview · Orders · Customers · Spend · Goals. Growth and LTV live on Customers; the YoY year board on Overview; Total ROAS, mix, and CPA on Spend (upload last). Spend dates can go back to 2021. Trial is 90 days of order history. Paid is up to 24 months. Full Snowdevil SAMPLE demo on <a href="/demo">/demo</a> — install opens this shop’s Live book only.</p>
+        <p class="lede-soft spend-platforms-intro">SAMPLE Snowdevil on Spend this month: sales $68,457 · entered spend $19,023 · Total ROAS 3.60×. Empty spend on a live shop stays —. Full demo on <a href="/demo">/demo</a> — install opens this shop’s Live book only.</p>
         <ul class="platform-tags" aria-label="Supported spend platforms">
           <li>Meta</li>
           <li>Google</li>
@@ -573,7 +648,7 @@
 
         <div class="spend-vs reveal">
           <p><span class="vs-label">Vs connector tax</span>Suites sell OAuth pipes and “Works with” logos before you see a number. Mcfly is paste-first: every named platform plus extras like billboards, no ad OAuth, no connector tax. Automation means you may pay SyncWith-class tools to fill our template — we don’t claim fake partnerships.</p>
-          <p>After install, Spend accepts paste or file. Sales stay on Shopify.</p>
+          <p>After install, Spend accepts paste or file. Sales stay on Shopify. Total ROAS, mix, and CPA live on Spend — Yesterday / last-N chips sit there, not on Overview.</p>
         </div>
 
         <div class="spend-csv-cta">
@@ -586,9 +661,9 @@
 
     <section class="band be-band" aria-labelledby="be-title">
       <div class="wrap">
-        <p class="eyebrow">Know your floor</p>
-        <h2 id="be-title" class="display">Break-even isn’t a vibe.<br />It’s 1 ÷ margin.</h2>
-        <p class="lede-soft">Contribution margin sets how far Total ROAS can fall before ads stop making cash and start burning it.</p>
+        <p class="eyebrow">When you add spend</p>
+        <h2 id="be-title" class="display">Break-even is 1 ÷ margin.<br />Not a 40% pledge.</h2>
+        <p class="lede-soft">If you type spend, contribution margin sets how far Total ROAS can fall before ads stop making cash. You type the margin in Settings. Mcfly does not promise a 40% floor.</p>
         <div class="be-grid">
           <div class="be-table-wrap reveal">
             <table class="be-table">
@@ -608,76 +683,39 @@
             </table>
           </div>
           <div class="be-example reveal">
-            <p>Margin at 35% → break-even ≈ <span class="mono">2.86×</span>. This week at <span class="mono">3.2×</span>: <span class="verdict-good">above break-even — protect the mix.</span></p>
-            <p>At <span class="mono">2.4×</span>: <span class="verdict-bad">you’re buying revenue at a loss</span> — even if a channel dashboard still looks fine. That gap is the product.</p>
+            <p>Margin at 35% → break-even ≈ <span class="mono">2.86×</span>. A week at <span class="mono">3.2×</span>: <span class="verdict-good">above that shop’s floor — protect the mix.</span></p>
+            <p>At <span class="mono">2.4×</span>: <span class="verdict-bad">you’re buying revenue at a loss</span> for <em>that</em> margin — even if a channel dashboard still looks fine. That gap is optional Spend math, not the Overview greeting.</p>
           </div>
         </div>
       </div>
     </section>
 
     <div class="prose">
-      <h2>Same sales. Clearer decision math.</h2>
-      <p>Shopify Total Sales, then optional spend → Total ROAS, break-even, mix, Goals. Five analysis tabs plus Settings: Overview · Orders · Customers · Spend · Goals. Try it: <a href="/demo">full Snowdevil demo →</a> · <a href="/mer-calculator">ROAS calculator →</a> · <a href="/break-even-roas-calculator">Break-even ROAS →</a> · <a href="/pricing">Pricing →</a> · <a href="#spend-csv">How spend gets in →</a></p>
+      <h2>Same sales. Clearer order math.</h2>
+      <p>Shopify Total Sales on Overview, Orders, and Customers first. Optional spend on Spend → Total ROAS, mix, CPA. Five tabs: Overview · Orders · Customers · Spend · Goals. Try it: <a href="/demo">full Snowdevil demo →</a> · <a href="/mer-calculator">ROAS calculator →</a> · <a href="/break-even-roas-calculator">Break-even ROAS →</a> · <a href="/pricing">Pricing →</a> · <a href="#spend-csv">How spend gets in →</a></p>
 
       <h2>What we refuse</h2>
       <ul class="refuse-list">
         <li>Path attribution / MTA / view-through “true ROAS”</li>
         <li>Tracking pixels as a Mcfly product</li>
+        <li>A P&amp;L / COGS hero or “kept after margin” as the install reason</li>
         <li>A SyncWith-style connector zoo as the product</li>
         <li>Custom MMM consulting as the core offer</li>
         <li>Fake forever-free bait pricing</li>
       </ul>
     </div>
 
-    <section class="band dark-band" aria-labelledby="compare-title">
-      <div class="wrap">
-        <p class="eyebrow on-dark">What’s on the screen</p>
-        <h2 id="compare-title" class="display">Five analysis tabs plus Settings.<br />Spend is optional.</h2>
-        <p class="contrast-lede on-dark">Overview is a YoY sales glance. Typical order, returning dollars, weekends, days to second, and LTV from orders. Add spend when you want Total ROAS vs break-even — from every platform you buy, including billboards.</p>
-        <div class="table-scroll">
-          <table class="compare on-dark">
-            <caption class="sr-only">What Mcfly Analytics puts on screen</caption>
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col">Mcfly Analytics</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">What you see</th>
-                <td>YoY sales glance + typical order, returning dollars, LTV. Total ROAS after spend</td>
-              </tr>
-              <tr>
-                <th scope="row">Where it comes from</th>
-                <td>Shopify Total Sales ÷ the ad spend you upload</td>
-              </tr>
-              <tr>
-                <th scope="row">The decision question</th>
-                <td>Clear break-even? Shift mix.</td>
-              </tr>
-              <tr>
-                <th scope="row">History</th>
-                <td>Daily, back to January five years ago</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="contrast-note">One desk: Overview · Orders · Customers at $0 spend. Spend is the honest MER desk after typed spend — Total ROAS, mix, and CPA live there. Yesterday / last-N chips sit on Spend. Goals stays. 7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months.</p>
-      </div>
-    </section>
-
     <section class="band close close-band" aria-labelledby="product-close-title">
       <div class="wrap narrow">
         <p class="eyebrow">Get in</p>
         <h2 id="product-close-title" class="display">Install the desk.<br />Read Overview in ten minutes.</h2>
-        <p class="lede-soft">Try the <a href="/demo">full Snowdevil demo</a>, then install when ready. <strong>7-day trial</strong>, then $39/store/mo for five analysis tabs plus Settings. Trial is 90 days of orders; paid is up to 24 months. Uninstall stops the charge. Install from the Shopify App Store.</p>
+        <p class="lede-soft">Try the <a href="/demo">full Snowdevil demo</a>, then install when ready. <strong>7-day trial</strong>, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Uninstall stops the charge. Install from the Shopify App Store.</p>
         <div class="cta-row">
           <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
           <a class="btn ghost" href="/pricing">See pricing</a>
           <a class="btn ghost" href="/demo">Try the demo</a>
         </div>
-        <p class="close-fine">Try the demo · 7-day trial then $39/mo whole desk · uninstall stops the charge.</p>
+        <p class="close-fine">Try the demo · 7-day trial then $39/mo · Overview first · uninstall stops the charge.</p>
       </div>
     </section>
   </main>
