@@ -6,8 +6,17 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   growthSecondVsFirst,
+  growthStandupCopyText,
   growthWholePct,
 } from "../lib/growth-comeback";
+import { morningSentence } from "../lib/morning-habit";
+import { CopyMorningSentence } from "./MorningHabitStrip";
+import {
+  buyerLifetimeSpanLine,
+  type BuyerLifetimeSpan,
+  type ComebackNextWait,
+  type QuietBackView,
+} from "../lib/customers-analytics";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 
@@ -123,6 +132,11 @@ export function GrowthScoreboard({
   salesPending,
   useSampleDesk,
   ltvHref = "#mcfly-ltv",
+  quietBack,
+  comebackWait,
+  lifetimeSpan,
+  reachNow,
+  clockAvailable,
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;
@@ -131,6 +145,11 @@ export function GrowthScoreboard({
   salesPending: boolean;
   useSampleDesk: boolean;
   ltvHref?: string;
+  quietBack: QuietBackView;
+  comebackWait: ComebackNextWait;
+  lifetimeSpan: BuyerLifetimeSpan;
+  reachNow: number;
+  clockAvailable: boolean;
 }) {
   const currency = useDeskCurrency();
   const firstTime =
@@ -163,6 +182,41 @@ export function GrowthScoreboard({
     !salesPending && isNum(avgOrdersD90) && avgOrdersD90 > 0
       ? avgOrdersD90.toFixed(1)
       : "—";
+  const quietValue =
+    !salesPending &&
+    quietBack.sealed &&
+    isNum(quietBack.sales) &&
+    quietBack.sales > 0
+      ? formatCurrency(quietBack.sales, currency)
+      : "—";
+  const nextWait =
+    !salesPending &&
+    comebackWait.sealed &&
+    isNum(comebackWait.waitDays)
+      ? `${Math.round(comebackWait.waitDays)}d`
+      : "—";
+  const firstToLast =
+    !salesPending &&
+    lifetimeSpan.sealed &&
+    isNum(lifetimeSpan.firstToLastDays)
+      ? `${Math.round(lifetimeSpan.firstToLastDays)}d`
+      : "—";
+  const typicalGap =
+    !salesPending &&
+    lifetimeSpan.sealed &&
+    isNum(lifetimeSpan.interOrderGapDays)
+      ? `${Math.round(lifetimeSpan.interOrderGapDays)}d`
+      : "—";
+  const spanLine = buyerLifetimeSpanLine(lifetimeSpan);
+  const standupCopy = growthStandupCopyText({
+    salesPending,
+    newSales: book.newSales,
+    money: (n) => formatCurrency(n, currency),
+    secondShare: depth.secondOrderBuyerShare,
+    thirdShare: depth.thirdPlusBuyerShare,
+    reachNow,
+    clockAvailable,
+  });
 
   return (
     <section
@@ -197,6 +251,22 @@ export function GrowthScoreboard({
               : book.newCustomers > 0
                 ? `${book.newCustomers.toLocaleString()} new customers in this window`
                 : "Needs identified first orders — not $0."}
+          </p>
+          {standupCopy ? (
+            <CopyMorningSentence
+              sentence={morningSentence({
+                history: "ready",
+                goalLine: standupCopy,
+              })}
+            />
+          ) : null}
+
+          <p className="mcfly-growth-board__hero-k">Quiet, then back</p>
+          <p className="mcfly-growth-board__hero-v">{quietValue}</p>
+          <p className="mcfly-growth-board__hero-sub">
+            {quietBack.sealed && quietValue !== "—"
+              ? `${quietBack.buyers.toLocaleString()} identified buyers whose previous order was already past this shop’s wait`
+              : "Needs 8 identified buyers who came back after going quiet — not $0."}
           </p>
 
           <div className="mcfly-cust-tiles">
@@ -247,6 +317,43 @@ export function GrowthScoreboard({
               next="Open LTV for first-90-day dollars per new buyer."
               nextHref={ltvHref}
               nextLabel={PRODUCT_NOUN.openLtv}
+            />
+            <Tile
+              label="Wait after they came back"
+              value={nextWait}
+              note={
+                comebackWait.sealed
+                  ? `${comebackWait.buyers.toLocaleString()} buyers placed a third order`
+                  : "Needs 8 identified buyers who already came back and placed a third — not $0."
+              }
+              icon="clock"
+              formula="Median days from the 2nd stored order to the 3rd. Not the 1st / 2nd / 3rd ticket column. Guests stay out."
+              next="Ticket and wait at each step sits under the days-to-second clock."
+            />
+            <Tile
+              label="First to last"
+              value={firstToLast}
+              note={
+                spanLine ??
+                (lifetimeSpan.sealed
+                  ? `${lifetimeSpan.buyers.toLocaleString()} buyers with 2 or more orders`
+                  : "Needs 8 identified buyers with 2 or more orders — not $0.")
+              }
+              icon="clock"
+              formula="Median days from a buyer’s first stored order to their last. History-limited books stay a short window, not a fake short life."
+              next="Typical wait to a second order is a different clock above."
+            />
+            <Tile
+              label="Typical gap"
+              value={typicalGap}
+              note={
+                lifetimeSpan.sealed
+                  ? "Median wait between consecutive stored orders"
+                  : "Needs 8 identified buyers with 2 or more orders — not $0."
+              }
+              icon="orders"
+              formula="Median inter-order gap across every consecutive pair, among buyers with 2 or more orders. Guests stay out."
+              next="Wait after they came back is the 2nd→3rd gap only."
             />
           </div>
         </div>

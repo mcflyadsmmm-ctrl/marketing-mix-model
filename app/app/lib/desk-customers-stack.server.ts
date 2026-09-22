@@ -39,6 +39,8 @@ export async function loadCustomersStackPage(request: Request) {
       loadCustomerAnalytics(request, {
         useSampleDesk: base.useSampleDesk,
         windowEnd: base.metrics.period.end,
+        periodStart: base.metrics.period.start,
+        periodEnd: base.metrics.period.end,
       }),
       loadGrowthComeback(request, {
         useSampleDesk: base.useSampleDesk,

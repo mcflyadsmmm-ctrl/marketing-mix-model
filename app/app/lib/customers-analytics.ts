@@ -137,6 +137,39 @@ export type OrderStepRow = {
   sealed: boolean;
 };
 
+/**
+ * Period Shopify Total Sales from identified buyers who had gone quiet
+ * (previous gap already past that shop’s wait) and then ordered again.
+ * Sales stay null under the 8-buyer floor — never a fake $0.
+ */
+export type QuietBackView = {
+  sales: number | null;
+  buyers: number;
+  sealed: boolean;
+};
+
+/** Next wait after they already came back — median 2nd→3rd, guests out. */
+export type ComebackNextWait = {
+  waitDays: number | null;
+  buyers: number;
+  sealed: boolean;
+};
+
+/**
+ * First order → last order, plus median gap across every consecutive pair.
+ * History-limited books keep the hedge; they are not a fake short life.
+ */
+export type BuyerLifetimeSpan = {
+  firstToLastDays: number | null;
+  interOrderGapDays: number | null;
+  buyers: number;
+  sealed: boolean;
+  historyLimited: boolean;
+  historyDays: number;
+};
+
+type BuyerOrder = { t: number; amount: number };
+
 export type CustomerAnalytics = {
   available: boolean;
   /** Distinct identified (non-guest) buyers in the window. */
@@ -189,6 +222,16 @@ export type CustomerAnalytics = {
    * book. Unsealed steps stay null — never a fake $0, 0%, or 0d.
    */
   orderSteps: OrderStepRow[];
+  /**
+   * This period’s Shopify Total Sales from identified buyers whose previous
+   * order was already past that shop’s wait. Not RFM hibernating (still quiet).
+   * Not returning mix (any earlier stored order).
+   */
+  quietBack: QuietBackView;
+  /** Median 2nd→3rd wait. Not the 1st/2nd/3rd ticket column. */
+  comebackWait: ComebackNextWait;
+  /** Median first→last span and inter-order gap among 2+ order buyers. */
+  lifetimeSpan: BuyerLifetimeSpan;
 };
 
 function finite(n: number): number {
@@ -424,6 +467,194 @@ export function orderStepFormula(id: OrderStepId): string {
   }
 }
 
+function identifiedBuyerOrders(rows: RetentionOrderRow[]): Map<string, BuyerOrder[]> {
+  const byCustomer = new Map<string, BuyerOrder[]>();
+  for (const row of rows) {
+    if (!row || !row.customerKey || row.customerKey === RETENTION_GUEST_KEY) {
+      continue;
+    }
+    if (!Number.isFinite(row.amount)) continue;
+    const t = ms(row.orderedAt);
+    if (!Number.isFinite(t)) continue;
+    const list = byCustomer.get(row.customerKey) ?? [];
+    list.push({ t, amount: row.amount });
+    byCustomer.set(row.customerKey, list);
+  }
+  for (const list of byCustomer.values()) {
+    list.sort((a, b) => a.t - b.t);
+  }
+  return byCustomer;
+}
+
+function consecutiveGaps(list: BuyerOrder[]): number[] {
+  const gaps: number[] = [];
+  for (let i = 1; i < list.length; i += 1) {
+    const gap = (list[i]!.t - list[i - 1]!.t) / DAY_MS;
+    if (gap >= 0 && Number.isFinite(gap)) gaps.push(gap);
+  }
+  return gaps;
+}
+
+/** Shop typical first→second wait. Same 5-gap floor as the repurchase clock. */
+function shopTypicalDaysToSecond(byCustomer: Map<string, BuyerOrder[]>): number | null {
+  const gaps: number[] = [];
+  for (const list of byCustomer.values()) {
+    if (list.length < 2) continue;
+    const gap = (list[1]!.t - list[0]!.t) / DAY_MS;
+    if (gap >= 0 && Number.isFinite(gap)) gaps.push(gap);
+  }
+  if (gaps.length < 5) return null;
+  return medianOf(gaps);
+}
+
+function buyerOwnMedianWait(list: BuyerOrder[]): number | null {
+  if (list.length < 3) return null;
+  return medianOf(consecutiveGaps(list));
+}
+
+function bookHistoryDays(
+  byCustomer: Map<string, BuyerOrder[]>,
+  windowEndMs: number,
+): number {
+  let earliest = Number.POSITIVE_INFINITY;
+  for (const list of byCustomer.values()) {
+    const first = list[0]?.t;
+    if (first != null && first < earliest) earliest = first;
+  }
+  if (!Number.isFinite(earliest) || byCustomer.size === 0) return 0;
+  return Math.max(1, Math.ceil((windowEndMs - earliest) / DAY_MS));
+}
+
+export function emptyQuietBackView(): QuietBackView {
+  return { sales: null, buyers: 0, sealed: false };
+}
+
+export function emptyComebackNextWait(): ComebackNextWait {
+  return { waitDays: null, buyers: 0, sealed: false };
+}
+
+export function emptyBuyerLifetimeSpan(
+  historyLimited = false,
+  historyDays = 0,
+): BuyerLifetimeSpan {
+  return {
+    firstToLastDays: null,
+    interOrderGapDays: null,
+    buyers: 0,
+    sealed: false,
+    historyLimited,
+    historyDays,
+  };
+}
+
+/**
+ * This period’s Shopify Total Sales from identified buyers whose previous
+ * order was already past that shop’s wait. Gap vs own median wait at 3+
+ * stored orders; else vs typical days-to-second. Guests out. Seal at 8.
+ * Not RFM hibernating (those buyers have not come back).
+ */
+export function buildQuietBackDollars(input: {
+  rows: RetentionOrderRow[];
+  periodStart: Date;
+  periodEnd: Date;
+}): QuietBackView {
+  const start = ms(input.periodStart);
+  const end = ms(input.periodEnd);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return emptyQuietBackView();
+  }
+  const byCustomer = identifiedBuyerOrders(input.rows);
+  const typical = shopTypicalDaysToSecond(byCustomer);
+  let buyers = 0;
+  let sales = 0;
+  for (const list of byCustomer.values()) {
+    const inPeriod = list.filter((order) => order.t >= start && order.t <= end);
+    if (inPeriod.length === 0) continue;
+    const firstIn = inPeriod[0]!;
+    let prev: BuyerOrder | null = null;
+    for (const order of list) {
+      if (order.t < firstIn.t) prev = order;
+      else break;
+    }
+    if (!prev) continue;
+    const gap = (firstIn.t - prev.t) / DAY_MS;
+    if (!(gap >= 0) || !Number.isFinite(gap)) continue;
+    const wait = list.length >= 3 ? buyerOwnMedianWait(list) : typical;
+    if (wait == null || !Number.isFinite(wait) || wait < 0) continue;
+    if (!(gap > wait)) continue;
+    buyers += 1;
+    for (const order of inPeriod) sales += finite(order.amount);
+  }
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    sales: sealed ? sales : null,
+    buyers,
+    sealed,
+  };
+}
+
+/**
+ * Median days from the 2nd stored order to the 3rd. Seal at 8 identified
+ * buyers who already came back and placed a third. Guests out. Thin side —.
+ */
+export function buildComebackNextWait(rows: RetentionOrderRow[]): ComebackNextWait {
+  const byCustomer = identifiedBuyerOrders(rows);
+  const waits: number[] = [];
+  let buyers = 0;
+  for (const list of byCustomer.values()) {
+    if (list.length < 3) continue;
+    buyers += 1;
+    const gap = (list[2]!.t - list[1]!.t) / DAY_MS;
+    if (gap >= 0 && Number.isFinite(gap)) waits.push(gap);
+  }
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    waitDays: sealed ? medianOf(waits) : null,
+    buyers,
+    sealed,
+  };
+}
+
+/**
+ * Median first→last among identified buyers with 2+ orders, and median
+ * inter-order gap across every consecutive pair. Seal at 8 such buyers.
+ */
+export function buildBuyerLifetimeSpan(
+  rows: RetentionOrderRow[],
+  options: { windowEnd: Date; historyLimited: boolean },
+): BuyerLifetimeSpan {
+  const byCustomer = identifiedBuyerOrders(rows);
+  const historyDays = bookHistoryDays(byCustomer, ms(options.windowEnd));
+  const spans: number[] = [];
+  const gaps: number[] = [];
+  let buyers = 0;
+  for (const list of byCustomer.values()) {
+    if (list.length < 2) continue;
+    buyers += 1;
+    const span = (list[list.length - 1]!.t - list[0]!.t) / DAY_MS;
+    if (span >= 0 && Number.isFinite(span)) spans.push(span);
+    gaps.push(...consecutiveGaps(list));
+  }
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    firstToLastDays: sealed ? medianOf(spans) : null,
+    interOrderGapDays: sealed ? medianOf(gaps) : null,
+    buyers,
+    sealed,
+    historyLimited: options.historyLimited,
+    historyDays,
+  };
+}
+
+/** Honest hedge when the stored book is shorter than a life. */
+export function buyerLifetimeSpanLine(span: BuyerLifetimeSpan): string | null {
+  if (!span.sealed) return null;
+  if (span.historyLimited) {
+    return `On file · last ~${span.historyDays} days — not a fake short life.`;
+  }
+  return `Full stored book · last ~${span.historyDays} days.`;
+}
+
 /** UTC midnight of the calendar day containing `d`. */
 function utcDayStart(d: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
@@ -574,9 +805,16 @@ export function buildCustomerAnalytics(
     /**
      * Full stored order book. The mix window stays `rows` (the 90-day slice).
      * Classification uses this book so a prior order outside that slice is
-     * returning dollars, not new dollars.
+     * returning dollars, not new dollars. Quiet-then-back, next wait, and
+     * first→last also read this book.
      */
     orderBook?: RetentionOrderRow[];
+    /** Picked period start. Quiet-then-back dollars stay — without it. */
+    periodStart?: Date;
+    /** Picked period end. Defaults to `windowEnd`. */
+    periodEnd?: Date;
+    /** Unpaid / truncated book — first→last is not a fake short life. */
+    historyLimited?: boolean;
   },
 ): CustomerAnalytics {
   const clean = rows.filter((r) => r && Number.isFinite(r.amount));
@@ -823,6 +1061,23 @@ export function buildCustomerAnalytics(
   const within30Share = eligible30 >= 8 ? within30 / eligible30 : null;
   const within60Share = eligible60 >= 8 ? within60 / eligible60 : null;
 
+  const storedBook = options.orderBook ?? rows;
+  const periodStart = options.periodStart;
+  const periodEnd = options.periodEnd ?? options.windowEnd;
+  const quietBack =
+    periodStart != null
+      ? buildQuietBackDollars({
+          rows: storedBook,
+          periodStart,
+          periodEnd,
+        })
+      : emptyQuietBackView();
+  const comebackWait = buildComebackNextWait(storedBook);
+  const lifetimeSpan = buildBuyerLifetimeSpan(storedBook, {
+    windowEnd: options.windowEnd,
+    historyLimited: options.historyLimited === true,
+  });
+
   return {
     available: identifiedBuyers > 0,
     identifiedBuyers,
@@ -857,7 +1112,10 @@ export function buildCustomerAnalytics(
     mixDaily,
     mixWeekly,
     mixReturningShareAvg,
-    orderSteps: buildOrderSteps(options.orderBook ?? rows),
+    orderSteps: buildOrderSteps(storedBook),
+    quietBack,
+    comebackWait,
+    lifetimeSpan,
   };
 }
 

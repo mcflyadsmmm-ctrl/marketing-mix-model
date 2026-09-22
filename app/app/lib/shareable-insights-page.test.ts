@@ -65,6 +65,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(lib).toContain("Returning $ ÷ (new $ + returning $)");
     expect(lib).toContain("median of paid orders");
     expect(lib).toContain("median first→second gap");
+    expect(lib).toContain("firstTimeSlackInsight");
+    expect(lib).toContain("Never copy $0");
     expect(lib).toContain("average dollars per new buyer");
     expect(png).toContain("Mcfly Analytics");
     expect(png).toContain("image/png");

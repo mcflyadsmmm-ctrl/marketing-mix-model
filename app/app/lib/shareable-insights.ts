@@ -337,7 +337,7 @@ export function buildShareableInsights(
   };
 }
 
-export type SlackInsightId = ShareableInsightKind | "whale";
+export type SlackInsightId = ShareableInsightKind | "whale" | "firstTime";
 
 /** One paste-ready insight. Missing numbers never become a card. */
 export type SlackInsight = {
@@ -435,6 +435,32 @@ export function daysToSecondSlackInsight(input: {
     line,
     formula: "Days to second = median first→second gap among buyers who came back.",
     trust: "Among buyers who came back. Guests stay out.",
+    shopLabel: input.shopLabel,
+    sample: input.sample,
+    where: input.where,
+  });
+}
+
+/**
+ * Growth stand-up. First-time Shopify Total Sales this period, plus 2nd vs
+ * 3rd when both seal, plus reach-now. Never copy $0 or a pending window.
+ */
+export function firstTimeSlackInsight(input: {
+  line: string | null;
+  shopLabel: string;
+  sample: boolean;
+  where: string;
+}): SlackInsight | null {
+  const line = input.line?.trim() ?? "";
+  if (!line) return null;
+  if (/[$£€]\s*0(?:[.,]0+)?(?!\d)/.test(line)) return null;
+  return sealSlackInsight({
+    id: "firstTime",
+    label: "First-time dollars",
+    line,
+    formula:
+      "First-time Shopify Total Sales this period. 2nd vs 3rd when both shares seal. Reach-now from the win-back clock.",
+    trust: "Identified first-time dollars. Guests stay out of returning. Order history only.",
     shopLabel: input.shopLabel,
     sample: input.sample,
     where: input.where,
