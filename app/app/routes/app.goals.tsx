@@ -38,6 +38,9 @@ import {
   buildHabitGoals,
   parseHabitGoalInput,
 } from "../lib/goals-habit";
+import { buildOrderHistoryForecast } from "../lib/order-history-forecast";
+import { shopLocalYmd } from "../lib/shop-local-day";
+import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OrderHistoryGoalsBoard } from "../components/OrderHistoryGoalsBoard";
 import {
   impliedSpendCeiling,
@@ -298,9 +301,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const yearSales = useSampleDesk
     ? await fetchSampleSales(shop.id, range)
     : await getSalesFactsTotals(shop.id, range, new Date());
-  const yearReturningSales = useSampleDesk
-    ? yearSales.returningCustomerNetSales
-    : yearSales.returningCustomerNetSalesSum;
+  const yearReturningSales =
+    "returningCustomerNetSalesSum" in yearSales
+      ? yearSales.returningCustomerNetSalesSum
+      : yearSales.returningCustomerNetSales;
   const yearOrderCount = yearSales.orderCount;
   const historyLimited = Boolean(
     !useSampleDesk &&
@@ -308,6 +312,51 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         ("rangeClampedToFactWindow" in yearSales &&
           yearSales.rangeClampedToFactWindow)),
   );
+  const habitGoals = buildHabitGoals({
+    salesPending: Boolean(periodMetrics.salesPending),
+    orderCount: yearOrderCount,
+    ltv30: periodMetrics.tillLtv.avgRevenueD30,
+    ltv90: periodMetrics.tillLtv.avgRevenueD90,
+    ltv365: periodMetrics.tillLtv.avgRevenueD365,
+    yearReturningSales: yearReturningSales,
+    typedReturningTarget: settings.returningSalesTarget,
+    historyLimited,
+    sample: useSampleDesk,
+    year,
+  });
+  const forecastNow = new Date();
+  const shopNow = deskTz
+    ? shopLocalYmd(forecastNow, deskTz)
+    : {
+        y: forecastNow.getFullYear(),
+        m: forecastNow.getMonth() + 1,
+        d: forecastNow.getDate(),
+      };
+  const currentGoalRow =
+    year === shopNow.y
+      ? (board.rows.find((row) => row.isCurrent) ?? null)
+      : null;
+  const returningSource = habitGoals.returning?.targetSource;
+  const orderForecast = buildOrderHistoryForecast({
+    salesPending: Boolean(periodMetrics.salesPending),
+    dailySales: [...salesByDay.values()],
+    todayYear: shopNow.y,
+    todayMonth: shopNow.m,
+    historyLimited,
+    bookLabel: `${year} book`,
+    targets: {
+      salesActual: currentGoalRow?.actual ?? null,
+      salesGoal: currentGoalRow?.salesGoal ?? null,
+      returningActual: habitGoals.returning?.actual ?? null,
+      returningTarget: habitGoals.returning?.target ?? null,
+      returningSource:
+        returningSource === "typed" || returningSource === "sample"
+          ? returningSource
+          : null,
+      ltvActual: habitGoals.ltv?.actual ?? null,
+      ltvWindow: habitGoals.ltv?.windowLabel ?? null,
+    },
+  });
 
   return {
     board,
@@ -329,18 +378,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       sampleDesk: useSampleDesk,
       paidPro: shop.proBillingActive,
     }),
-    habitGoals: buildHabitGoals({
-      salesPending: Boolean(periodMetrics.salesPending),
-      orderCount: yearOrderCount,
-      ltv30: periodMetrics.tillLtv.avgRevenueD30,
-      ltv90: periodMetrics.tillLtv.avgRevenueD90,
-      ltv365: periodMetrics.tillLtv.avgRevenueD365,
-      yearReturningSales: yearReturningSales,
-      typedReturningTarget: settings.returningSalesTarget,
-      historyLimited,
-      sample: useSampleDesk,
-      year,
-    }),
+    habitGoals,
+    orderForecast,
   };
 };
 
@@ -556,6 +595,7 @@ export default function GoalsPage() {
     priorYearMonthly,
     entitlements,
     habitGoals,
+    orderForecast,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -767,6 +807,7 @@ export default function GoalsPage() {
             year={year}
             busy={isSaving || isRevalidating}
           />
+          <OrderHistoryForecast view={orderForecast} variant="goals" />
 
           {/* One hero, drill rows — same book language as Orders and Buyers. */}
           <section

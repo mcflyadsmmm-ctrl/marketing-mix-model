@@ -6,6 +6,7 @@ import {
   OverviewDepthPeeks,
   OverviewFirstViewport,
 } from "../components/OverviewFirstViewport";
+import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
@@ -80,6 +81,7 @@ export default function PublicDemoOverview() {
     deskHref("/app/customers"),
     searchParams,
   );
+  const goalsHref = deskNavHrefFromSearch(deskHref("/app/goals"), searchParams);
   const customersGrowthHref = deskNavHref(deskHref("/app/customers"), {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
@@ -228,6 +230,11 @@ export default function PublicDemoOverview() {
                   <OverviewMixForecast
                     view={mixView}
                     customersHref={customersHref}
+                  />
+                  <OrderHistoryForecast
+                    view={data.orderHistoryForecast}
+                    variant="overview"
+                    goalsHref={goalsHref}
                   />
                   <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
                 </DeskLane>

@@ -13,6 +13,11 @@ import {
   type GrowthCohortInput,
   type GrowthMonthBar,
 } from "./growth-comeback";
+import { SAMPLE_HABIT_RETURNING_TARGET } from "./goals-habit";
+import {
+  buildOrderHistoryForecast,
+  type OrderHistoryForecastView,
+} from "./order-history-forecast";
 import {
   buildOverviewMixForecast,
   overviewHistoryDays,
@@ -20,6 +25,10 @@ import {
   overviewMtdFromDays,
   type OverviewMixForecastView,
 } from "./overview-mix-forecast";
+import {
+  pickShareableLtvPeek,
+  shareableLtvWindowLabel,
+} from "./shareable-insights";
 import { buildOverviewYoyCards, type OverviewYoyCard } from "./overview-yoy";
 import {
   parsePeriodPreset,
@@ -93,6 +102,7 @@ export type PublicSamplePage = {
   yoyCards: OverviewYoyCard[];
   explorerDays: Array<{ dateKey: string; sales: number; orders: number }>;
   mixForecast: OverviewMixForecastView;
+  orderHistoryForecast: OrderHistoryForecastView;
   customers: PublicSampleCustomers;
   tt2: GrowthTt2View;
   comebackDepth: ShopifyDepthStats;
@@ -377,6 +387,36 @@ export async function loadPublicSamplePage(
   ];
 
   const ledgerDays = [...periodDays].sort((a, b) => b.dateKey.localeCompare(a.dateKey)).slice(0, 14);
+  const ltv = sampleLtvAverages(book.orders, now);
+  const ltvPeek = pickShareableLtvPeek({
+    revenue30: ltv.revenue30,
+    revenue90: ltv.revenue90,
+    revenue365: ltv.revenue365,
+    historyLimited: false,
+  });
+  const yearDays = book.days.filter((day) =>
+    day.dateKey.startsWith(`${ymd.y}-`),
+  );
+  const yearReturningSales = sampleSalesFromDays(yearDays).returningCustomerNetSales;
+  const yearReturning = yearReturningSales > 0 ? yearReturningSales : null;
+  const orderHistoryForecast = buildOrderHistoryForecast({
+    salesPending: false,
+    dailySales: book.days.map((day) => day.sales),
+    todayYear: ymd.y,
+    todayMonth: ymd.m,
+    historyLimited: false,
+    bookLabel: "Snowdevil book",
+    targets: {
+      salesActual: mtdSales > 0 ? mtdSales : null,
+      salesGoal: null,
+      returningActual: yearReturning,
+      returningTarget:
+        yearReturning != null ? SAMPLE_HABIT_RETURNING_TARGET : null,
+      returningSource: yearReturning != null ? "sample" : null,
+      ltvActual: ltvPeek?.amount ?? null,
+      ltvWindow: ltvPeek ? shareableLtvWindowLabel(ltvPeek.days) : null,
+    },
+  });
 
   return {
     preset,
@@ -397,11 +437,12 @@ export async function loadPublicSamplePage(
     yoyCards,
     explorerDays,
     mixForecast,
+    orderHistoryForecast,
     customers,
     tt2,
     comebackDepth,
     growthMonths: growthFirstOrderMonths(sampleGrowthCohorts(book.orders)),
-    ltv: sampleLtvAverages(book.orders, now),
+    ltv,
     cpaWindows,
     cpaDays,
     ledgerDays,

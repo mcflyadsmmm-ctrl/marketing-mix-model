@@ -3,6 +3,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { calculateBreakEvenMer } from "@mcfly/mer-core";
 
 import { DeskBookPage } from "../components/DeskBookPage";
+import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -39,6 +40,7 @@ export default function PublicDemoGoals() {
         Read-only SAMPLE. In the app you set a monthly sales plan from Shopify
         orders. Spend is the second chapter.
       </p>
+      <OrderHistoryForecast view={data.orderHistoryForecast} variant="goals" />
       <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-4 mcfly-kpi-grid--soft">
         <article className="mcfly-kpi mcfly-kpi--soft mcfly-kpi--hero">
           <span className="mcfly-kpi__label">This month sales</span>
