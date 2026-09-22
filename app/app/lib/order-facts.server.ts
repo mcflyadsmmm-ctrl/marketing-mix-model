@@ -351,12 +351,27 @@ function firstDiscountCodeFromApplications(
 
 const isHistoryWindowError = isShopifyHistoryWindowError;
 
+export interface CohortComputeResult {
+  rollups: CohortRollup[];
+  /** Identified buyers whose Shopify lifetime is longer than stored orders. */
+  truncatedBuyers: number;
+}
+
+function parseCohortLifetime(
+  value: number | null | undefined,
+): number | null | undefined {
+  if (value === undefined) return undefined;
+  if (value == null || !Number.isFinite(value)) return null;
+  return Math.max(0, Math.trunc(value));
+}
+
 /**
  * Pure cohort math: first non-guest order on file defines cohort month; sum
  * amounts/orders within 30/90/365 days of that first *visible* order.
  * Buyers whose Shopify `numberOfOrders` is greater than in-window orders are
- * not a new cohort — first-on-file is not lifetime first.
- * Guests are ignored.
+ * named on `truncatedBuyers` and withheld from first-time LTV — never skipped
+ * as if they do not exist, never stuffed as a finished first-time $.
+ * A missing lifetime stays unknown, not a new cohort. Guests are ignored.
  */
 export function computeCohortRollups(
   orders: Array<{
@@ -367,23 +382,19 @@ export function computeCohortRollups(
     grossAmount?: number | null;
     lifetimeOrders?: number | null;
   }>,
-): CohortRollup[] {
+): CohortComputeResult {
   const byCustomer = new Map<
     string,
     Array<{
       orderedAt: Date;
       amount: number;
       grossAmount: number | null;
-      lifetimeOrders: number | null;
+      lifetimeOrders: number | null | undefined;
     }>
   >();
 
   for (const o of orders) {
     if (!o.customerKey || o.customerKey === ORDER_FACT_GUEST_KEY) continue;
-    const lifetime =
-      o.lifetimeOrders != null && Number.isFinite(o.lifetimeOrders)
-        ? Math.max(0, Math.trunc(o.lifetimeOrders))
-        : null;
     const list = byCustomer.get(o.customerKey) ?? [];
     list.push({
       orderedAt: o.orderedAt,
@@ -392,7 +403,7 @@ export function computeCohortRollups(
         o.grossAmount != null && Number.isFinite(o.grossAmount)
           ? o.grossAmount
           : null,
-      lifetimeOrders: lifetime,
+      lifetimeOrders: parseCohortLifetime(o.lifetimeOrders),
     });
     byCustomer.set(o.customerKey, list);
   }
@@ -417,16 +428,26 @@ export function computeCohortRollups(
     }
   >();
 
+  let truncatedBuyers = 0;
+
   for (const list of byCustomer.values()) {
     list.sort((a, b) => a.orderedAt.getTime() - b.orderedAt.getTime());
     const first = list[0];
     if (!first) continue;
-    const lifetimeKnown = list
-      .map((row) => row.lifetimeOrders)
-      .filter((n): n is number => n != null);
-    const lifetimeOrders =
-      lifetimeKnown.length > 0 ? Math.max(...lifetimeKnown) : null;
-    if (lifetimeOrders != null && lifetimeOrders > list.length) {
+    let lifetime: number | null | undefined;
+    for (const row of list) {
+      const next = row.lifetimeOrders;
+      if (typeof next === "number") {
+        lifetime = typeof lifetime === "number" ? Math.max(lifetime, next) : next;
+      } else if (next === null && typeof lifetime !== "number") {
+        lifetime = null;
+      }
+    }
+    if (typeof lifetime === "number" && lifetime > list.length) {
+      truncatedBuyers += 1;
+      continue;
+    }
+    if (lifetime === null) {
       continue;
     }
     const cohortMonth = cohortMonthFromDate(first.orderedAt);
@@ -471,21 +492,24 @@ export function computeCohortRollups(
     byMonth.set(cohortMonth, row);
   }
 
-  return [...byMonth.values()]
-    .sort((a, b) => a.cohortMonth.localeCompare(b.cohortMonth))
-    .map((row) => ({
-      cohortMonth: row.cohortMonth,
-      customers: row.customers,
-      revenueD30: row.revenueD30,
-      revenueD90: row.revenueD90,
-      revenueD365: row.revenueD365,
-      grossRevenueD30: row.grossKnownD30 ? row.grossD30 : null,
-      grossRevenueD90: row.grossKnownD90 ? row.grossD90 : null,
-      grossRevenueD365: row.grossKnownD365 ? row.grossD365 : null,
-      ordersD30: row.ordersD30,
-      ordersD90: row.ordersD90,
-      ordersD365: row.ordersD365,
-    }));
+  return {
+    truncatedBuyers,
+    rollups: [...byMonth.values()]
+      .sort((a, b) => a.cohortMonth.localeCompare(b.cohortMonth))
+      .map((row) => ({
+        cohortMonth: row.cohortMonth,
+        customers: row.customers,
+        revenueD30: row.revenueD30,
+        revenueD90: row.revenueD90,
+        revenueD365: row.revenueD365,
+        grossRevenueD30: row.grossKnownD30 ? row.grossD30 : null,
+        grossRevenueD90: row.grossKnownD90 ? row.grossD90 : null,
+        grossRevenueD365: row.grossKnownD365 ? row.grossD365 : null,
+        ordersD30: row.ordersD30,
+        ordersD90: row.ordersD90,
+        ordersD365: row.ordersD365,
+      })),
+  };
 }
 
 async function upsertOrderFact(
@@ -574,7 +598,7 @@ export async function recomputeCohortFacts(
     },
   });
 
-  const rollups = computeCohortRollups(orders);
+  const { rollups } = computeCohortRollups(orders);
   const filter =
     months && months.length > 0 ? new Set(months) : null;
   const touched: string[] = [];
@@ -1149,8 +1173,63 @@ export async function loadOrderDepthRows(
 
 /**
  * Unique buyers whose first OrderFact falls inside `range` (till new-buyer count).
- * Returns null when no live OrderFacts exist yet.
+ * Returns null when no live OrderFacts exist yet, or when an in-range first
+ * order has a missing lifetime — never stuffed into first-time.
  */
+export function countNewBuyersFromOrders(
+  orders: Array<{
+    customerKey: string;
+    orderedAt: Date;
+    lifetimeOrders?: number | null;
+  }>,
+  range: { start: Date; end: Date },
+): number | null {
+  if (orders.length === 0) return null;
+
+  const firstByCustomer = new Map<
+    string,
+    { first: Date; lifetime: number | null | undefined; inWindow: number }
+  >();
+  for (const o of orders) {
+    if (!o.customerKey || o.customerKey === ORDER_FACT_GUEST_KEY) continue;
+    const prev = firstByCustomer.get(o.customerKey);
+    const lifetime = parseCohortLifetime(o.lifetimeOrders);
+    if (!prev) {
+      firstByCustomer.set(o.customerKey, {
+        first: o.orderedAt,
+        lifetime,
+        inWindow: 1,
+      });
+      continue;
+    }
+    prev.inWindow += 1;
+    if (o.orderedAt < prev.first) prev.first = o.orderedAt;
+    if (typeof lifetime === "number") {
+      prev.lifetime =
+        typeof prev.lifetime === "number"
+          ? Math.max(prev.lifetime, lifetime)
+          : lifetime;
+    } else if (lifetime === null && typeof prev.lifetime !== "number") {
+      prev.lifetime = null;
+    }
+  }
+  if (firstByCustomer.size === 0) return null;
+
+  let n = 0;
+  let unknown = false;
+  for (const row of firstByCustomer.values()) {
+    if (row.first < range.start || row.first > range.end) continue;
+    if (typeof row.lifetime === "number" && row.lifetime > row.inWindow) continue;
+    if (row.lifetime === null) {
+      unknown = true;
+      continue;
+    }
+    n += 1;
+  }
+  if (unknown) return null;
+  return n;
+}
+
 export async function countNewBuyersInRange(
   shopId: string,
   range: { start: Date; end: Date },
@@ -1164,39 +1243,7 @@ export async function countNewBuyersInRange(
     },
     select: { customerKey: true, orderedAt: true, lifetimeOrders: true },
   });
-  if (orders.length === 0) return null;
-
-  const firstByCustomer = new Map<
-    string,
-    { first: Date; lifetime: number | null; inWindow: number }
-  >();
-  for (const o of orders) {
-    const prev = firstByCustomer.get(o.customerKey);
-    const lifetime =
-      o.lifetimeOrders != null && Number.isFinite(o.lifetimeOrders)
-        ? Math.max(0, Math.trunc(o.lifetimeOrders))
-        : null;
-    if (!prev) {
-      firstByCustomer.set(o.customerKey, {
-        first: o.orderedAt,
-        lifetime,
-        inWindow: 1,
-      });
-      continue;
-    }
-    prev.inWindow += 1;
-    if (o.orderedAt < prev.first) prev.first = o.orderedAt;
-    if (lifetime != null) {
-      prev.lifetime = prev.lifetime == null ? lifetime : Math.max(prev.lifetime, lifetime);
-    }
-  }
-
-  let n = 0;
-  for (const row of firstByCustomer.values()) {
-    if (row.lifetime != null && row.lifetime > row.inWindow) continue;
-    if (row.first >= range.start && row.first <= range.end) n += 1;
-  }
-  return n;
+  return countNewBuyersFromOrders(orders, range);
 }
 
 /**

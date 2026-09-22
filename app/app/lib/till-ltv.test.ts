@@ -8,6 +8,7 @@ import {
   cashPaybackDays,
   customerWeightedAvgRevenue,
   summarizeTillLtvFromCohorts,
+  truncatedLifetimeLine,
   type TillLtvCohortRow,
 } from "./till-ltv.server";
 
@@ -136,6 +137,39 @@ describe("summarizeTillLtvFromCohorts", () => {
     });
     expect(summary.newBuyers).toBe(25);
     expect(summary.cashCac).toBeCloseTo(40, 5);
+    expect(summary.truncatedLifetimeBuyers).toBe(0);
+  });
+
+  it("names truncated regulars and withholds thin leftover LTV under the 8-buyer floor", () => {
+    const summary = summarizeTillLtvFromCohorts(
+      [
+        {
+          cohortMonth: "2026-09",
+          customers: 3,
+          revenueD30: 240,
+          revenueD90: 240,
+          revenueD365: 240,
+          ordersD30: 3,
+          ordersD90: 3,
+          ordersD365: 3,
+        },
+      ],
+      {
+        totalSpend: 0,
+        newCustomers: 0,
+        useSampleDesk: true,
+        truncatedLifetimeBuyers: 12,
+      },
+    );
+    expect(summary.truncatedLifetimeBuyers).toBe(12);
+    expect(truncatedLifetimeLine(summary.truncatedLifetimeBuyers)).toMatch(
+      /12 identified buyers have a longer Shopify life/,
+    );
+    expect(truncatedLifetimeLine(summary.truncatedLifetimeBuyers)).toMatch(
+      /orders on this desk only/,
+    );
+    expect(summary.avgRevenueD90).toBeNull();
+    expect(summary.available).toBe(true);
   });
 
   it("computes avgOrdersD90 customer-weighted (Σ ordersD90 / Σ customers)", () => {
@@ -267,7 +301,7 @@ describe("computeCohortRollups", () => {
     const d60 = new Date(first.getTime() + 60 * 86_400_000);
     const d200 = new Date(first.getTime() + 200 * 86_400_000);
 
-    const rollups = computeCohortRollups([
+    const { rollups } = computeCohortRollups([
       { customerKey: "gid://shopify/Customer/1", orderedAt: first, amount: 100 },
       { customerKey: "gid://shopify/Customer/1", orderedAt: d20, amount: 50 },
       { customerKey: "gid://shopify/Customer/1", orderedAt: d60, amount: 75 },
@@ -290,7 +324,7 @@ describe("computeCohortRollups", () => {
   it("aggregates multiple customers into the same cohort month", () => {
     const a = new Date("2026-03-01T00:00:00.000Z");
     const b = new Date("2026-03-20T00:00:00.000Z");
-    const rollups = computeCohortRollups([
+    const { rollups } = computeCohortRollups([
       { customerKey: "c1", orderedAt: a, amount: 40 },
       { customerKey: "c2", orderedAt: b, amount: 60 },
     ]);
@@ -305,7 +339,7 @@ describe("computeCohortRollups", () => {
     const first = new Date("2026-01-15T12:00:00.000Z");
     const inside90 = new Date(first.getTime() + 40 * 86_400_000);
     const insideYear = new Date(first.getTime() + 200 * 86_400_000);
-    const rollups = computeCohortRollups([
+    const { rollups } = computeCohortRollups([
       {
         customerKey: "c1",
         orderedAt: first,
@@ -338,13 +372,13 @@ describe("computeCohortRollups", () => {
     const unknown = computeCohortRollups([
       { customerKey: "c2", orderedAt: first, amount: 80 },
     ]);
-    expect(unknown[0]!.revenueD30).toBe(80);
-    expect(unknown[0]!.grossRevenueD30).toBeNull();
-    expect(unknown[0]!.grossRevenueD90).toBeNull();
+    expect(unknown.rollups[0]!.revenueD30).toBe(80);
+    expect(unknown.rollups[0]!.grossRevenueD30).toBeNull();
+    expect(unknown.rollups[0]!.grossRevenueD90).toBeNull();
   });
 
   it("ignores guest-only order lists", () => {
-    const rollups = computeCohortRollups([
+    const { rollups } = computeCohortRollups([
       {
         customerKey: ORDER_FACT_GUEST_KEY,
         orderedAt: new Date("2026-02-01T00:00:00.000Z"),
@@ -352,5 +386,18 @@ describe("computeCohortRollups", () => {
       },
     ]);
     expect(rollups).toHaveLength(0);
+  });
+
+  it("names truncated regulars and does not stuff them as a first-time cohort", () => {
+    const result = computeCohortRollups([
+      {
+        customerKey: "regular",
+        orderedAt: new Date("2026-09-01T12:00:00.000Z"),
+        amount: 80,
+        lifetimeOrders: 5,
+      },
+    ]);
+    expect(result.truncatedBuyers).toBe(1);
+    expect(result.rollups).toEqual([]);
   });
 });

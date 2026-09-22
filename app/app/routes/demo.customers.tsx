@@ -62,6 +62,7 @@ function demoLtvMetrics(data: PublicSamplePage): CustomersLtvMetrics {
       repeatRate: data.ltv.repeatRate,
       avgOrdersD90: data.ltv.avgOrdersD90,
       paybackDays: null,
+      truncatedLifetimeBuyers: data.customers.truncatedLifetimeBuyers,
     },
     totalSpend: spend,
     marginPct: data.marginPct,

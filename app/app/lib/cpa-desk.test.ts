@@ -184,6 +184,16 @@ describe("applyUniqueBuyerCounts", () => {
       applyUniqueBuyerCounts(base, { identified: null, newBuyers: null }),
     ).toEqual(base);
   });
+
+  it("keeps Cash CAC — when unique new buyers are unknown", () => {
+    const next = applyUniqueBuyerCounts(base, {
+      identified: 8,
+      newBuyers: null,
+    });
+    expect(next.identifiedBuyers).toBe(8);
+    expect(next.cashCac).toBeNull();
+    expect(next.newCustomers).toBe(0);
+  });
 });
 
 describe("applyLiveBuyerIndexToCpaDays", () => {

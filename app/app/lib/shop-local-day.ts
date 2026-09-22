@@ -129,3 +129,27 @@ export function utcMidnightFromDayKey(dateKey: string): Date {
   const [y, m, d] = dateKey.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d));
 }
+
+/**
+ * ISO Monday (YYYY-MM-DD) of a calendar day key. Arithmetic is on the key,
+ * never the host process timezone.
+ */
+export function mondayOfDayKey(dateKey: string): string {
+  const [year, mo, day] = dateKey.split("-").map(Number);
+  if (!Number.isFinite(year) || !Number.isFinite(mo) || !Number.isFinite(day)) {
+    return dateKey;
+  }
+  const date = new Date(Date.UTC(year, mo - 1, day));
+  const isoDow = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() - (isoDow - 1));
+  return date.toISOString().slice(0, 10);
+}
+
+/** `1/19` from `2026-01-19` — chart labels, not a host Date. */
+export function mixDayLabel(dateKey: string): string {
+  const parts = dateKey.split("-");
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (!Number.isFinite(month) || !Number.isFinite(day)) return dateKey;
+  return `${month}/${day}`;
+}

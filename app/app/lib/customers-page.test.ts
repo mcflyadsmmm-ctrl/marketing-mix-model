@@ -255,6 +255,16 @@ describe("Customers loader — full stored book for RFM, 90-day mix kept", () =>
     expect(analyticsLib).not.toContain("sales-facts");
     expect(mix).toContain("firstTimeBuyers");
     expect(mix).toContain("First-time buyers");
+    expect(mix).toContain("mixFirstTimePaint");
+    expect(analyticsLib).toContain("shopLocalDayKey");
+    expect(analyticsLib).not.toContain("utcDayStart");
+    expect(analyticsLoader).toContain("timeZone");
+    expect(analyticsLoader).toMatch(/ianaTimezone|deskPeriodTimeZone/);
+    expect(read("./public-sample-page.server.ts")).toContain("timeZone:");
+    expect(read("./public-sample-page.server.ts")).toContain("PUBLIC_SAMPLE_TZ");
+    expect(read("../routes/demo.customers.tsx")).toContain(
+      "truncatedLifetimeBuyers",
+    );
   });
 });
 

@@ -16,6 +16,7 @@ import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { flagshipDailyRead, type LtvFlagshipView } from "../lib/ltv-flagship";
+import { truncatedLifetimeLine } from "../lib/till-ltv";
 import {
   ltvPeekSlackInsight,
   pickShareableLtvPeek,
@@ -66,6 +67,7 @@ export type CustomersLtvTill = {
   repeatRate: number | null;
   avgOrdersD90: number | null;
   paybackDays: number | null;
+  truncatedLifetimeBuyers: number;
 };
 
 export type CustomersLtvMetrics = {
@@ -81,7 +83,10 @@ export type CustomersLtvMetrics = {
 
 type LtvPackProps = {
   metrics: CustomersLtvMetrics;
-  depth: LtvFlagshipView;
+  depth: LtvFlagshipView & {
+    truncatedLifetimeBuyers?: number;
+    truncatedLifetimeLine?: string | null;
+  };
   marginConfirmed: boolean;
   useSampleDesk: boolean;
   orderBackfillProgress?: { historyLimited?: boolean } | null;
@@ -128,6 +133,10 @@ function useCustomersLtvPack({
         windowLabel: shareableLtvWindowLabel(chartLtvPeek.days),
       }
     : null;
+  const truncatedLine =
+    truncatedLifetimeLine(ltv.truncatedLifetimeBuyers) ??
+    depth.truncatedLifetimeLine ??
+    truncatedLifetimeLine(depth.truncatedLifetimeBuyers);
   const custOk = metrics.customerMetricsAvailable;
   const newCount = custOk ? metrics.newCustomers : 0;
   const retCount = custOk ? metrics.returningCustomers : 0;
@@ -265,13 +274,15 @@ function useCustomersLtvPack({
   }).filter((row) => row.v !== "—");
 
   const emptyLine =
-    ltv.emptyReason === "no_timezone"
-      ? "Shop timezone needed before first orders can bucket by local day."
-      : ltv.emptyReason === "history_limited"
-        ? "First-year value is not on file yet — not enough buyers have lived a year. Not $0 LTV."
-        : orderBackfillProgress
-          ? "Orders still syncing — not $0. Refresh this page."
-          : "Orders still syncing — not $0.";
+    truncatedLine
+      ? truncatedLine
+      : ltv.emptyReason === "no_timezone"
+        ? "Shop timezone needed before first orders can bucket by local day."
+        : ltv.emptyReason === "history_limited"
+          ? "First-year value is not on file yet — not enough buyers have lived a year. Not $0 LTV."
+          : orderBackfillProgress
+            ? "Orders still syncing — not $0. Refresh this page."
+            : "Orders still syncing — not $0.";
 
   const depthHasAny = Boolean(
     depth.curves ||
@@ -320,6 +331,7 @@ function useCustomersLtvPack({
     depthHasAny,
     hasSpend,
     historyLimited,
+    truncatedLine,
   };
 }
 
@@ -334,6 +346,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
     chartTargetLine,
     emptyLine,
     worthSlack,
+    truncatedLine,
   } = useCustomersLtvPack(props);
   const { metrics, useSampleDesk, depth, shotMode = false } = props;
   const currency = useDeskCurrency();
@@ -342,6 +355,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
     <section className="mcfly-book" aria-label="What new customers spend">
       <p className="mcfly-book__lede">
         Shopify Analytics shows LTV reports, if any. This page shows first 90 days after the first order on file — not lifetime first when a year is not on file yet. {PRODUCT_NOUN.ltvNotInShopify}
+        {truncatedLine ? ` ${truncatedLine}` : ""}
       </p>
 
       {ltv.available && isNum(ltv.avgRevenueD90) && ltv.avgRevenueD90 > 0 ? (
@@ -409,7 +423,8 @@ export function CustomersLtvWindows(props: LtvPackProps) {
 
 /** LTV flagship depth pack — FOLD NEVER DELETE. */
 export function CustomersLtvDepth(props: LtvPackProps) {
-  const { chartTargetLine, depthHasAny, historyLimited } = useCustomersLtvPack(props);
+  const { chartTargetLine, depthHasAny, historyLimited, truncatedLine } =
+    useCustomersLtvPack(props);
   const { depth, useSampleDesk, shopLabel = "", shotMode = false } = props;
 
   return (
@@ -420,13 +435,14 @@ export function CustomersLtvDepth(props: LtvPackProps) {
             {useSampleDesk
               ? "What a new buyer is worth is from SAMPLE Snowdevil orders. Explorers below stay on that same book. Order history only, no spend."
               : "What a new buyer is worth, then the order-history explorers. Full history when it is on file. No spend required."}
+            {truncatedLine ? ` ${truncatedLine}` : ""}
           </p>
         </section>
       ) : !useSampleDesk ? (
         <p className="mcfly-book__lede">
-          Spend-build curves, who kept ordering, product journeys and best-customer
-          recency need more than a handful of identified buyers — not $0. They
-          fill as the order book deepens.
+          {truncatedLine
+            ? truncatedLine
+            : "Spend-build curves, who kept ordering, product journeys and best-customer recency need more than a handful of identified buyers — not $0. They fill as the order book deepens."}
         </p>
       ) : null}
 
