@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v408 / tip `d34b40c` (merge of #142 open-lane starter value) / Live PARKED. Smoke waived. Older v403–v406 lines below are wave history.
+**Tip Fly note:** v409 / tip `f0fa935` (merge of #143 spend honesty) / Live PARKED. Smoke waived. v408 was open-lane starter value.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v408 / tip `d34b40c` / Live PARKED |
+| Tip Fly SoT | v409 / tip `f0fa935` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,7 +12,7 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v408 / tip `d34b40c`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v409 / tip `f0fa935`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | DONE — COMPETE_COMPLAINTS_PACK.md (top pains vs native/Lifetimely/TW/Peel/TrueProfit/Putler; $39 flat wedge) |
 
