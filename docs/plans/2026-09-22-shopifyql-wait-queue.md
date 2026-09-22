@@ -2,15 +2,15 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Two merchant-visible ships, then stop. Spend can be filled from a paste and stay honest when it is empty. Customers LTV can say which kind of first order is worth more, on the lane that is already open.
+**Goal:** Two merchant-visible ships, then stop. The spend paste is already on the git tip. The remaining plan is Reviewer plus one Fly for that paste, then one Customers ship that puts starter value on the lane that is already open.
 
-**Architecture:** Each ship is one branch, one PR, one Reviewer pass, one Fly. Commits inside the branch can be small. Fly does not move for a pure function, a copy tweak, or a board that stays folded. Ship 2 starts only after Ship 1 is merged.
+**Architecture:** Ship 1 is merged as #138. Do not open another paste PR. Reviewer grades #138; a fail is a fix on that work before the single Fly. Ship 2 is one later branch from the tip after that Fly. Fly does not move for a pure function, a copy tweak, or a board that stays folded.
 
 **Tech Stack:** React Router app in `app/`, Vitest, Prisma `OrderFact`, `parseSpendCsv`, `classifyOrderSource`, Admin API `2025-10` (`ApiVersion.October25`). No new Shopify scope. No `read_reports`.
 
 ## Global Constraints
 
-- Branch from `cursor/spend-trust-recurring` after docs merge #136 (`627b365`). Product commit under that merge is `2107ea876cf86e8195f172e88415520b5a450ef9`. Fly stays **v406** until Ship 1 deploys. Live stays PARKED (`MCFLY_SAMPLE_ONLY=true`).
+- Git tip is `cursor/spend-trust-recurring` @ `5b33d67` (merge of #138). Scoreboard still says Fly **v406** / `2107ea8`. Live stays PARKED (`MCFLY_SAMPLE_ONLY=true`). Do not treat the scoreboard SHA as the branch tip.
 - Painted IA: `Overview → Orders → Customers → Spend → Goals`. Growth and LTV stay Customers chips. Do not add a tab or a chip.
 - Commercial lock: $39 flat / store / month, 7-day trial, unpaid Live ingest about 90 closed days.
 - Total ROAS = Shopify sales ÷ entered spend. Empty spend keeps Total ROAS, Cash CPA, and payback as `—`. Never `0×` and never `$0` CPA.
@@ -31,6 +31,26 @@ Target after this plan: **v407** and **v408**. Not a version per commit.
 | v408 | Starter value | On the open Customers LTV lane, see which first-order pattern is worth more: discount depth, Online / POS / Shop, and a discount code when Shopify stored one |
 
 Anything that does not change one of those two sentences does not get its own Fly.
+
+## Where planning is
+
+| Piece | State |
+|-------|--------|
+| Paste box, `previewSpendPaste`, unique Live buyers | On the tip via #138 (`c30d821`, `edcbe8c`). Do not rebuild. |
+| Reviewer on #138 | No review yet. The PR’s own test plan still has PASS and Fly unchecked. |
+| Fly | Scoreboard still **v406**. One deploy after Reviewer PASS, then the scoreboard tip note becomes that version and `5b33d67` (or the fix commit, if Reviewer sends one back). |
+| Ship 2 | Not started. This is the planning work left. |
+
+### The one Reviewer question on the paste
+
+`previewSpendPaste` already keeps Total ROAS null when any in-window pasted day has no sales fact, and it says how many days do have a fact. It then still computes Cash CPA from spend on every in-window pasted day, including the quiet ones.
+
+Reviewer chooses one:
+
+- **PASS** if the reason line is enough: ROAS stays `—`, and Cash CPA is allowed to use the full in-window spend because those dollars were really typed.
+- **FAIL** if a quiet day must blank Cash CPA and payback too, so a partial book cannot print a cost per buyer.
+
+A FAIL is a change inside `app/app/lib/spend-paste-preview.ts` and its test, on a follow-up to #138, before the one Fly. It is not a new ship and not a new tab.
 
 ## Already on the tip — do not rebuild
 
@@ -139,7 +159,25 @@ Deploy once, after that PASS. Record Fly v407 on `docs/ops/SCOREBOARD.md` in the
 
 **Merchant sentence:** On Customers → What a new buyer is worth, under the 30/90/365 windows, I can see which first orders are worth more: how deep the first discount was, whether that first order was Online, POS, or Shop, and the discount code when the order actually had one. Thin groups stay `—` with a count. Nothing here is an ad.
 
-**One PR after v407 is on the tip.** Three changes, one screen.
+**One PR after the paste Fly is on the tip.** Three changes, one screen. Do not also redesign Overview, Orders, Goals, or the folded whale lane.
+
+### How the open lane reads, top to bottom
+
+The lane is the `DeskLane` labeled "What a new buyer is worth" in `app/app/routes/app.customers.tsx`. Leave this order alone above the new block:
+
+1. `CustomersLtvWindows` — 30/90/365, value build, window triangle, `LtvFirstProductDrivers`, expected estimate.
+2. Then the starter block, still inside `CustomersLtvWindows`, immediately after `LtvFirstProductDrivers`.
+3. `CustomersLtvEconomics` stays under that, unchanged. It is spend next to worth. It is not where promo or source belongs.
+
+Starter block, in this order, one section `aria-label="Which first orders are worth more"`:
+
+1. One lede: "First order only. Discount depth and where the order was placed. Not which ad sent them."
+2. `LtvPromoBoard` — the component that already exists. Moved here from `CustomersLtvDepth`. Delete the old mount and the comment that says it sits after Product→LTV. Do not render it twice.
+3. Source rows from `ltvByFirstOrderSource`. Four lines, always, in order Online, POS, Shop, Other. Each line is the buyer count and either the order-history value per buyer or `—`. Under eight buyers the count shows and the value is `—`. `other` includes a blank `sourceName`.
+
+What stays folded in "Who the dollars sit with": whales, RFM, paths, curves, `LtvProductBoard`, `LtvFlagshipBoard`. Product→LTV already has a face on the open lane via `LtvFirstProductDrivers`. Do not move the whole depth pack up. That would be a different product and a crowded first scroll.
+
+SAMPLE and Live use the same section. SAMPLE keeps painting Snowdevil codes. Live paints depth bands from discount dollars today, and paints a code name only after `OrderFact.discountCode` is filled. Until then the board’s existing “code not on file” sentence remains. Do not add a second empty state.
 
 ### 2a. Move the promo answer onto the open lane
 
@@ -222,10 +260,9 @@ Deploy once, after that PASS. Record Fly v408. Then stop. The next craft idea wa
 
 ## Checklist
 
-- [ ] Ship 1 branch from `627b365`. Preview tests pass. Paste box is on the empty Live fold and absent on SAMPLE.
-- [ ] Reviewer PASS on the six bars, including blank and all-zero paste.
-- [ ] Merge, Fly v407, scoreboard line updated.
-- [ ] Ship 2 branch from that new tip. Promo board is on the open LTV lane once.
+- [x] Paste preview and empty-fold box merged (#138, tip `5b33d67`).
+- [ ] Reviewer grades #138, including the quiet-day Cash CPA question above.
+- [ ] One Fly after that PASS. Scoreboard tip note moves off v406 / `2107ea8`.
+- [ ] Ship 2 branch from that tip. Promo board mounts once, after `LtvFirstProductDrivers`.
 - [ ] Source LTV tests pass. Discount-code field is confirmed against the October 2025 schema before the orders query changes.
-- [ ] Reviewer PASS. Merge, Fly v408, scoreboard line updated.
-- [ ] No third Fly from this plan.
+- [ ] Reviewer PASS. One Fly. Scoreboard records it. Stop.
