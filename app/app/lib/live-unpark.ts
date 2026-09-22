@@ -11,11 +11,13 @@
  *
  * Commercial ingest is data depth, not a tab feature gate:
  *   unpaid / Shopify trial → {@link LIVE_UNPAID_INGEST_DAYS} closed days
- *   paid $39 → full desk history (Jan-1 × DESK_HISTORY_YEARS_BACK when
- *   `read_all_orders`). Flat $39 is the whole paid LTV book.
+ *   paid $39 → full Shopify-visible history, then the 24-month order-row
+ *   cap in live-ingest-depth. Flat $39 is the whole paid LTV book.
  *
- * Sync HARD-law clamp (one-shot + webhook) is not on tip yet — see
- * {@link LIVE_SYNC_LAW_PR_REF}. This file is the stub that PR must honor.
+ * The crawl enforces that slice: `resolveLiveIngestWindowDays` and
+ * `scheduleFirstSessionShopifyWindow` stop unpaid/trial at
+ * {@link LIVE_UNPAID_INGEST_DAYS}. Paid is not cut to that slice.
+ * One-shot + webhook context: {@link LIVE_SYNC_LAW_PR_REF}.
  */
 
 export const LIVE_UNPAID_INGEST_DAYS = 90;
@@ -119,16 +121,25 @@ export function liveIngestPolicy(input: {
   return { kind: "unpaid_slice", closedDays: LIVE_UNPAID_INGEST_DAYS };
 }
 
-/** True when OAuth / first-session may enqueue Shopify window jobs. */
-export function liveShopifyWindowShouldSchedule(
+export type LiveShopifyWindowSchedule =
+  | { schedule: false }
+  | { schedule: true; closedDays: number | null };
+
+/**
+ * Kick vs skip, plus the unpaid closed-day window.
+ * `closedDays` is null for paid — the crawl keeps the Shopify-visible
+ * window (order rows still stop at 24 months).
+ */
+export function liveShopifyWindowSchedule(
   policy: LiveIngestPolicy,
-): boolean {
+): LiveShopifyWindowSchedule {
   switch (policy.kind) {
     case "none":
-      return false;
+      return { schedule: false };
     case "unpaid_slice":
+      return { schedule: true, closedDays: policy.closedDays };
     case "paid_full":
-      return true;
+      return { schedule: true, closedDays: null };
     default: {
       const _never: never = policy;
       return _never;
@@ -136,9 +147,16 @@ export function liveShopifyWindowShouldSchedule(
   }
 }
 
+/** True when OAuth / first-session may enqueue Shopify window jobs. */
+export function liveShopifyWindowShouldSchedule(
+  policy: LiveIngestPolicy,
+): boolean {
+  return liveShopifyWindowSchedule(policy).schedule;
+}
+
 /**
- * Conservative stub: unknown / unpaid shops are not treated as paid-full.
- * The sync PR applies the closed-day clamp; this only decides kick vs skip.
+ * Unknown shops are not treated as paid-full. Callers that know billing
+ * pass `paid`. Unpaid/trial crawls stop at {@link LIVE_UNPAID_INGEST_DAYS}.
  */
 export function liveUnparkIngestPolicyFromEnv(
   env: NodeJS.ProcessEnv = process.env,

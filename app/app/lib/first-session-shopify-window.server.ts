@@ -3,17 +3,18 @@
  *
  * Product lock:
  * - Demo = SAMPLE full wow (this lane is Live ingest, not SAMPLE).
- * - Trial and paid share one order pull: 24 months of order rows.
+ * - Unpaid / Shopify trial Live ingest stops at LIVE_UNPAID_INGEST_DAYS closed days.
+ * - Paid keeps the Shopify-visible sales window. Order rows stop at 24 months.
  * - Daily sales totals come from ShopifyQL, not from paging those orders.
- * - Order rows stop at 24 months for trial and paid. See live-ingest-depth.
- * - Paid $39 does not extend order rows past 24 months.
+ * - See live-ingest-depth. Paid $39 does not extend order rows past 24 months.
  *
  * OAuth and first paint must not await the crawl. Enqueue resume jobs, then
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never
  * the timid maxDays: 2 that left a sealed thin book.
  *
  * Live unpark: skip enqueue while SAMPLE freeze / stage parked
- * (`liveUnparkIngestPolicyFromEnv`). Order crawl is 24 months, not five years.
+ * (`liveUnparkIngestPolicyFromEnv`). Unpaid/trial passes the closed-day
+ * window into the crawl. Paid order rows stop at 24 months, not five years.
  * One-shot contract lives in LIVE_SYNC_LAW_PR_REF.
  * One-shot after that full window seals: Live tabs skip enqueue/burst.
  * OAuth / first-session still kick while work remains. Refunds/cancels
@@ -23,8 +24,11 @@
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
 import { enqueueJob } from "./job-queue.server";
+import { isBillingEnabled } from "./billing-flag.server";
+import { shopMayIngestFullHistory } from "./live-ingest-depth";
+import { shopIsProForIngest } from "./live-ingest-depth.server";
 import {
-  liveShopifyWindowShouldSchedule,
+  liveShopifyWindowSchedule,
   liveUnparkIngestPolicyFromEnv,
 } from "./live-unpark";
 import {
@@ -155,18 +159,44 @@ export async function enqueueShopifyWindowBackfill(
 }
 
 /**
+ * Billing-aware policy. Host not charging counts as paid so local dev is
+ * not forced onto the unpaid slice. Unknown billing-on shops stay unpaid.
+ */
+async function scheduleIngestPolicy(shopId: string) {
+  const billingEnabled = isBillingEnabled();
+  const isPro = billingEnabled ? await shopIsProForIngest(shopId) : false;
+  return liveUnparkIngestPolicyFromEnv(process.env, {
+    paid: shopMayIngestFullHistory({ billingEnabled, isPro }),
+  });
+}
+
+/**
  * Fast: write resume jobs, then kick default-sized bursts without awaiting them.
  * Safe on OAuth and Overview — first paint stays facts-only / pending.
  * No-ops once the Shopify window is sealed.
+ * Unpaid / trial passes {@link LIVE_UNPAID_INGEST_DAYS} into both crawls.
  */
 export async function scheduleFirstSessionShopifyWindow(
   admin: AdminApiContext,
   shopId: string,
 ): Promise<void> {
-  const policy = liveUnparkIngestPolicyFromEnv();
-  if (!liveShopifyWindowShouldSchedule(policy)) return;
+  const decision = liveShopifyWindowSchedule(await scheduleIngestPolicy(shopId));
+  if (!decision.schedule) return;
   const enqueued = await enqueueShopifyWindowBackfill(shopId);
   if (!enqueued) return;
+  const unpaidWindow =
+    decision.closedDays != null
+      ? { windowDays: decision.closedDays }
+      : undefined;
+  if (unpaidWindow) {
+    void runSalesFactsBackfill(admin, shopId, unpaidWindow).catch(() => {
+      // Job tick resumes — never fail OAuth / first paint.
+    });
+    void runOrderFactsBackfill(admin, shopId, unpaidWindow).catch(() => {
+      // Job tick resumes.
+    });
+    return;
+  }
   void runSalesFactsBackfill(admin, shopId).catch(() => {
     // Job tick resumes — never fail OAuth / first paint.
   });

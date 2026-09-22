@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import { orderNetAmount } from "./shopify-sales.server";
 import { ORDER_FACT_PAGES_COST_SAFE_CAP } from "./shopify-graphql-cost.server";
 
@@ -25,6 +26,7 @@ const {
   enqueueJob,
   ensureShopMetadata,
   adminGraphqlJson,
+  shopIsProForIngest,
 } = vi.hoisted(() => ({
   deleteManyOrderFact: vi.fn(),
   countOrderFact: vi.fn(),
@@ -38,6 +40,7 @@ const {
   enqueueJob: vi.fn(),
   ensureShopMetadata: vi.fn(),
   adminGraphqlJson: vi.fn(),
+  shopIsProForIngest: vi.fn(),
 }));
 
 vi.mock("../db.server", () => ({
@@ -66,6 +69,10 @@ vi.mock("./job-queue.server", () => ({
 
 vi.mock("./shop-metadata.server", () => ({
   ensureShopMetadata: (...args: unknown[]) => ensureShopMetadata(...args),
+}));
+
+vi.mock("./live-ingest-depth.server", () => ({
+  shopIsProForIngest: (...args: unknown[]) => shopIsProForIngest(...args),
 }));
 
 vi.mock("./shopify-graphql-cost.server", async (importOriginal) => {
@@ -354,6 +361,8 @@ describe("truncated busy-day crawl", () => {
     enqueueJob.mockReset();
     ensureShopMetadata.mockReset();
     adminGraphqlJson.mockReset();
+    shopIsProForIngest.mockReset();
+    shopIsProForIngest.mockResolvedValue(false);
 
     countOrderFact.mockResolvedValue(0);
     findManyOrderFact.mockResolvedValue([]);
@@ -505,6 +514,52 @@ describe("truncated busy-day crawl", () => {
     expect(progress!.truncatedDay).toBe("2026-07-14");
     expect(progress!.remainingDays).toBeGreaterThan(0);
     expect(progress!.completeDays).toBe(0);
+  });
+
+  it("clamps unpaid order progress to 90 closed days when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(false);
+    findUniqueBackfill.mockResolvedValue({
+      historyLimited: false,
+      status: "idle",
+      cursor: null,
+    });
+    findManyOrderFact.mockResolvedValue([]);
+    try {
+      const progress = await getOrderBackfillProgress("shop_1", {
+        ianaTimezone: "UTC",
+        now: NOW,
+      });
+      expect(progress!.windowDays).toBe(LIVE_UNPAID_INGEST_DAYS);
+      expect(shopIsProForIngest).toHaveBeenCalledWith("shop_1");
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
+  });
+
+  it("keeps paid order progress on the 24-month window when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(true);
+    findUniqueBackfill.mockResolvedValue({
+      historyLimited: false,
+      status: "idle",
+      cursor: null,
+    });
+    findManyOrderFact.mockResolvedValue([]);
+    try {
+      const progress = await getOrderBackfillProgress("shop_1", {
+        ianaTimezone: "UTC",
+        now: NOW,
+      });
+      expect(progress!.windowDays).toBeGreaterThan(700);
+      expect(progress!.windowDays).toBeLessThan(750);
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
   });
 });
 

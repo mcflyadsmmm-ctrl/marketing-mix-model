@@ -9,6 +9,7 @@ const runOrderFactsBackfill = vi.fn();
 const getOrderBackfillProgress = vi.fn();
 const getSalesFactsWindowRemainingDays = vi.fn();
 const findUniqueShop = vi.fn();
+const shopIsProForIngest = vi.fn();
 
 vi.mock("./job-queue.server", () => ({
   enqueueJob: (...args: unknown[]) => enqueueJob(...args),
@@ -31,6 +32,9 @@ vi.mock("./sales-facts.server", async () => {
       getSalesFactsWindowRemainingDays(...args),
   };
 });
+vi.mock("./live-ingest-depth.server", () => ({
+  shopIsProForIngest: (...args: unknown[]) => shopIsProForIngest(...args),
+}));
 vi.mock("./order-facts.server", async () => {
   const actual = await vi.importActual<typeof import("./order-facts.server")>(
     "./order-facts.server",
@@ -54,6 +58,7 @@ import {
 } from "./first-session-shopify-window.server";
 import { BACKFILL_SALES_DAY_FACTS_JOB } from "./sales-facts.server";
 import { BACKFILL_ORDER_FACTS_JOB } from "./order-facts.server";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -72,6 +77,8 @@ describe("first-session Shopify window resume", () => {
     getOrderBackfillProgress.mockReset();
     getSalesFactsWindowRemainingDays.mockReset();
     findUniqueShop.mockReset();
+    shopIsProForIngest.mockReset();
+    shopIsProForIngest.mockResolvedValue(false);
     enqueueJob.mockResolvedValue({ jobId: "job_1", dedupeKey: "shop_1" });
     runSalesFactsBackfill.mockReturnValue(new Promise(() => {}));
     runOrderFactsBackfill.mockReturnValue(new Promise(() => {}));
@@ -177,6 +184,42 @@ describe("first-session Shopify window resume", () => {
     expect(runSalesFactsBackfill).toHaveBeenCalledWith(admin, "shop_1");
     expect(runOrderFactsBackfill).toHaveBeenCalledWith(admin, "shop_1");
     expect(runSalesFactsBackfill.mock.calls[0][2]?.maxDays).toBeUndefined();
+  });
+
+  it("passes the unpaid closed-day window into both crawls when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(false);
+    const admin = {} as never;
+    try {
+      await scheduleFirstSessionShopifyWindow(admin, "shop_1");
+      expect(runSalesFactsBackfill).toHaveBeenCalledWith(admin, "shop_1", {
+        windowDays: LIVE_UNPAID_INGEST_DAYS,
+      });
+      expect(runOrderFactsBackfill).toHaveBeenCalledWith(admin, "shop_1", {
+        windowDays: LIVE_UNPAID_INGEST_DAYS,
+      });
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
+  });
+
+  it("does not clamp the paid crawl when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(true);
+    const admin = {} as never;
+    try {
+      await scheduleFirstSessionShopifyWindow(admin, "shop_1");
+      expect(runSalesFactsBackfill).toHaveBeenCalledWith(admin, "shop_1");
+      expect(runOrderFactsBackfill).toHaveBeenCalledWith(admin, "shop_1");
+      expect(runSalesFactsBackfill.mock.calls[0]).toHaveLength(2);
+      expect(runOrderFactsBackfill.mock.calls[0]).toHaveLength(2);
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
   });
 
   it("skips enqueue while SAMPLE freeze or stage parked (kill switch)", async () => {
@@ -295,10 +338,13 @@ describe("first-session Shopify window resume", () => {
     expect(gate).toContain("Order rows stop at 24 months");
     expect(gate).toContain("live-ingest-depth");
     expect(sales).toContain("fetchShopifySalesDayTotals");
+    expect(sales).toContain("resolveLiveIngestWindowDays");
     expect(sales).not.toContain("resolveOrderRowWindowDays");
-    expect(orders).toContain("resolveOrderRowWindowDays");
+    expect(orders).toContain("resolveCommercialOrderWindowDays");
     expect(depth).toContain("ORDER_ROW_WINDOW_MONTHS = 24");
+    expect(depth).toContain("LIVE_UNPAID_INGEST_DAYS");
     expect(depth).not.toContain("TRIAL_LIVE_SLICE_DAYS = 90");
+    expect(gate).toContain("liveShopifyWindowSchedule");
   });
 
   it("order webhook enqueues OrderFact backfill after clearing the day seal", () => {
