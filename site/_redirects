@@ -1,7 +1,9 @@
-# v12 — public origin is Mcfly Analytics (Shopify app).
+# v13 — niche cleanup: public origin sells Mcfly Analytics ($39 Shopify desk) only.
 # www → apex is zone-level. Splat 404 last.
 # No /page ↔ /page.html rewrites (CF already handles).
-# Listing-trust paths stay 200: /demo /pricing /product /privacy /support /terms.
+# Listing-trust paths stay 200: /demo /pricing /product /privacy /support /terms /app /download.
+# Desk comparisons stay 200: /vs-attribution-suites /triple-whale-alternative.
+# Custom/agency/CRM/pixel landers 301 → / or /vs-attribution-suites (no rewrite into a second product).
 
 # --- Old homes / brand ---
 /home / 301
@@ -35,8 +37,9 @@
 /marketing-metric-contracts / 301
 /hire-shopify-ads-reconciliation / 301
 /month-end-paid-media-close / 301
-/google-ads-vs-shopify-sales / 301
-/tiktok-ads-vs-shopify-sales / 301
+# Google/TikTok landers still sell Custom $5–8K Inquire — park until desk-positioned.
+/google-ads-vs-shopify-sales /vs-attribution-suites 301
+/tiktok-ads-vs-shopify-sales /vs-attribution-suites 301
 /hubspot-ads-vs-pipeline / 301
 /salesforce-google-ads-cost-per-sql / 301
 /agency-reporting-offboarding / 301
@@ -44,7 +47,7 @@
 /shopify-ads-decision-desk / 301
 /replace-marketing-dashboard / 301
 
-# --- Old glossary / suite / MMM landers ---
+# --- Old glossary / suite / MMM / pixel / break-even landers ---
 /mmm / 301
 /mmm/ / 301
 /mmm-tools / 301
@@ -64,30 +67,37 @@
 /custom-marketing-mix-model/ /product 301
 /cash-mer / 301
 /cash-mer/ / 301
-/mer / 301
+/mer /mer-calculator 301
 /total-roas / 301
-/break-even /break-even-roas-calculator 301
+# Break-even ROAS as a public product fights the $39 desk niche → desk math only.
+/break-even /mer-calculator 301
+/break-even-roas-calculator /mer-calculator 301
+/break-even-roas-calculator/ /mer-calculator 301
 /glossary / 301
 /monday-close / 301
 /monday-close/ / 301
-/why-pixels / 301
-/why-pixels-fail / 301
-/why-pixels-fail/ / 301
-/vs-attribution-suites / 301
-/vs-triple-whale / 301
-/vs-northbeam / 301
-/vs-polar / 301
-/northbeam-alternative / 301
-/polar-alternative / 301
-/triple-whale-alternative / 301
-/triple-whale-alternative/ / 301
-/platform-variance / 301
-/platform-variance/ / 301
-/vs/profit-trackers / 301
-/app /product 301
-/app/ /product 301
-/download /demo 301
-/download/ /demo 301
+/why-pixels /vs-attribution-suites 301
+/why-pixels-fail /vs-attribution-suites 301
+/why-pixels-fail/ /vs-attribution-suites 301
+/vs-triple-whale /triple-whale-alternative 301
+/vs-northbeam /vs-attribution-suites 301
+/vs-polar /vs-attribution-suites 301
+/northbeam-alternative /vs-attribution-suites 301
+/polar-alternative /vs-attribution-suites 301
+/platform-variance /vs-attribution-suites 301
+/platform-variance/ /vs-attribution-suites 301
+/vs/profit-trackers /vs-attribution-suites 301
+
+# --- Draft MDS course (parked; also Disallow in robots.txt) ---
+/mds-made-easy / 301
+/mds-made-easy/ / 301
+/mds-made-easy/break-even /mer-calculator 301
+/mds-made-easy/total-roas / 301
+/mds-made-easy/glossary / 301
+/mds-made-easy/suites-and-custom / 301
+/mds-made-easy/monday-ritual / 301
+/mds-made-easy/import-export / 301
+/mds-made-easy/ai-prompts / 301
 
 # Homepage live slices deep-link into the Fly SAMPLE desk via /demo?tab=
 /demo/spend /demo?tab=spend 301
@@ -113,7 +123,7 @@
 /demo/settings /demo?tab=settings 301
 /demo/settings/ /demo?tab=settings 301
 
-# Keep calculators (app math)
+# Keep calculators (app math — MER = sales ÷ spend)
 /calculator /mer-calculator 301
 
 /* /404.html 404
