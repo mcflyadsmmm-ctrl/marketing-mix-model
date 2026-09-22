@@ -12,6 +12,8 @@
 import { medianOf, percentileOf } from "./shopify-depth-stats";
 
 export const RETENTION_GUEST_KEY = "guest";
+/** Same buyer floor as TT2 / RFM — a step stays — until 8 buyers have taken it. */
+export const ORDER_STEP_MIN_BUYERS = 8;
 const DAY_MS = 86_400_000;
 
 export type RetentionOrderRow = {
@@ -117,6 +119,24 @@ export type MixSummary = {
   firstTimeBuyers: number | null;
 };
 
+export const ORDER_STEP_IDS = ["first", "second", "third", "fourthPlus"] as const;
+export type OrderStepId = (typeof ORDER_STEP_IDS)[number];
+
+export type OrderStepRow = {
+  id: OrderStepId;
+  label: string;
+  /** Identified buyers who placed a stored order at this step. */
+  buyers: number;
+  /** Average Shopify Total Sales dollars (`amount`) at this step. Null until sealed. */
+  ticket: number | null;
+  /** Share of the previous step who reached this one. Null on 1st and until sealed. */
+  reach: number | null;
+  /** Median days since the previous stored order. Null on 1st and until sealed. */
+  waitDays: number | null;
+  /** True only when at least `ORDER_STEP_MIN_BUYERS` identified buyers took this step. */
+  sealed: boolean;
+};
+
 export type CustomerAnalytics = {
   available: boolean;
   /** Distinct identified (non-guest) buyers in the window. */
@@ -164,6 +184,11 @@ export type CustomerAnalytics = {
   mixWeekly: MixWeek[];
   /** Dollar-weighted returning-share across the window — the trend's rail. */
   mixReturningShareAvg: number | null;
+  /**
+   * Ticket, reach, and wait at 1st / 2nd / 3rd / 4th+ from the stored order
+   * book. Unsealed steps stay null — never a fake $0, 0%, or 0d.
+   */
+  orderSteps: OrderStepRow[];
 };
 
 function finite(n: number): number {
@@ -172,6 +197,231 @@ function finite(n: number): number {
 
 function ms(d: Date): number {
   return d instanceof Date ? d.getTime() : new Date(d).getTime();
+}
+
+const ORDER_STEP_LABELS: Record<OrderStepId, string> = {
+  first: "1st",
+  second: "2nd",
+  third: "3rd",
+  fourthPlus: "4th and later",
+};
+
+function orderStepLabel(id: OrderStepId): string {
+  switch (id) {
+    case "first":
+    case "second":
+    case "third":
+    case "fourthPlus":
+      return ORDER_STEP_LABELS[id];
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
+}
+
+function unsealedOrderStep(id: OrderStepId, buyers: number): OrderStepRow {
+  return {
+    id,
+    label: orderStepLabel(id),
+    buyers,
+    ticket: null,
+    reach: null,
+    waitDays: null,
+    sealed: false,
+  };
+}
+
+function meanOf(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((s, n) => s + n, 0) / values.length;
+}
+
+function sealOrderStep(input: {
+  id: OrderStepId;
+  buyers: number;
+  amounts: number[];
+  prevBuyers: number | null;
+  waits: number[] | null;
+}): OrderStepRow {
+  const { id, buyers, amounts, prevBuyers, waits } = input;
+  if (buyers < ORDER_STEP_MIN_BUYERS) return unsealedOrderStep(id, buyers);
+  const ticket = meanOf(amounts);
+  const reach =
+    id === "first" || prevBuyers == null || prevBuyers <= 0
+      ? null
+      : buyers / prevBuyers;
+  const waitDays =
+    id === "first" || waits == null || waits.length === 0
+      ? null
+      : medianOf(waits);
+  return {
+    id,
+    label: orderStepLabel(id),
+    buyers,
+    ticket,
+    reach,
+    waitDays,
+    sealed: true,
+  };
+}
+
+/**
+ * Ticket, reach, and wait at each repurchase step from stored orders.
+ * Guests out. Lifetime counts do not invent a step the book has not lived.
+ * 4th and later wait is 3rd→4th only.
+ */
+export function buildOrderSteps(rows: RetentionOrderRow[]): OrderStepRow[] {
+  const byCustomer = new Map<string, Array<{ t: number; amount: number }>>();
+  for (const row of rows) {
+    if (!row || !row.customerKey || row.customerKey === RETENTION_GUEST_KEY) {
+      continue;
+    }
+    if (!Number.isFinite(row.amount)) continue;
+    const t = ms(row.orderedAt);
+    if (!Number.isFinite(t)) continue;
+    const list = byCustomer.get(row.customerKey) ?? [];
+    list.push({ t, amount: row.amount });
+    byCustomer.set(row.customerKey, list);
+  }
+
+  const firstAmounts: number[] = [];
+  const secondAmounts: number[] = [];
+  const thirdAmounts: number[] = [];
+  const fourthPlusAmounts: number[] = [];
+  const waitSecond: number[] = [];
+  const waitThird: number[] = [];
+  const waitFourth: number[] = [];
+  let firstBuyers = 0;
+  let secondBuyers = 0;
+  let thirdBuyers = 0;
+  let fourthBuyers = 0;
+
+  for (const list of byCustomer.values()) {
+    const sorted = [...list].sort((a, b) => a.t - b.t);
+    const n = sorted.length;
+    if (n >= 1) {
+      firstBuyers += 1;
+      firstAmounts.push(sorted[0]!.amount);
+    }
+    if (n >= 2) {
+      secondBuyers += 1;
+      secondAmounts.push(sorted[1]!.amount);
+      const gap = (sorted[1]!.t - sorted[0]!.t) / DAY_MS;
+      if (gap >= 0 && Number.isFinite(gap)) waitSecond.push(gap);
+    }
+    if (n >= 3) {
+      thirdBuyers += 1;
+      thirdAmounts.push(sorted[2]!.amount);
+      const gap = (sorted[2]!.t - sorted[1]!.t) / DAY_MS;
+      if (gap >= 0 && Number.isFinite(gap)) waitThird.push(gap);
+    }
+    if (n >= 4) {
+      fourthBuyers += 1;
+      for (let i = 3; i < n; i += 1) {
+        fourthPlusAmounts.push(sorted[i]!.amount);
+      }
+      const gap = (sorted[3]!.t - sorted[2]!.t) / DAY_MS;
+      if (gap >= 0 && Number.isFinite(gap)) waitFourth.push(gap);
+    }
+  }
+
+  return [
+    sealOrderStep({
+      id: "first",
+      buyers: firstBuyers,
+      amounts: firstAmounts,
+      prevBuyers: null,
+      waits: null,
+    }),
+    sealOrderStep({
+      id: "second",
+      buyers: secondBuyers,
+      amounts: secondAmounts,
+      prevBuyers: firstBuyers,
+      waits: waitSecond,
+    }),
+    sealOrderStep({
+      id: "third",
+      buyers: thirdBuyers,
+      amounts: thirdAmounts,
+      prevBuyers: secondBuyers,
+      waits: waitThird,
+    }),
+    sealOrderStep({
+      id: "fourthPlus",
+      buyers: fourthBuyers,
+      amounts: fourthPlusAmounts,
+      prevBuyers: thirdBuyers,
+      waits: waitFourth,
+    }),
+  ];
+}
+
+export function orderStepTicketLabel(
+  row: OrderStepRow,
+  money: (amount: number) => string,
+): string {
+  if (!row.sealed || row.ticket == null || !Number.isFinite(row.ticket)) {
+    return "—";
+  }
+  return money(row.ticket);
+}
+
+export function orderStepReachLabel(row: OrderStepRow): string {
+  if (!row.sealed) return "—";
+  switch (row.id) {
+    case "first":
+      return row.buyers === 1 ? "1 buyer" : `${row.buyers.toLocaleString()} buyers`;
+    case "second":
+    case "third":
+    case "fourthPlus": {
+      if (row.reach == null || !Number.isFinite(row.reach)) return "—";
+      const whole = Math.round(row.reach * 100);
+      if (whole === 0 && row.reach !== 0) return "—";
+      return `${whole}%`;
+    }
+    default: {
+      const _never: never = row.id;
+      return _never;
+    }
+  }
+}
+
+export function orderStepWaitLabel(row: OrderStepRow): string {
+  switch (row.id) {
+    case "first":
+      return "—";
+    case "second":
+    case "third":
+    case "fourthPlus": {
+      if (!row.sealed || row.waitDays == null || !Number.isFinite(row.waitDays)) {
+        return "—";
+      }
+      return `${Math.round(row.waitDays)}d`;
+    }
+    default: {
+      const _never: never = row.id;
+      return _never;
+    }
+  }
+}
+
+export function orderStepFormula(id: OrderStepId): string {
+  switch (id) {
+    case "first":
+      return "A first order has no wait — not 0d. Ticket is average Shopify sales on first stored orders.";
+    case "second":
+      return "Typical days from the 1st order to the 2nd. Reach is the share of 1st-step buyers who placed a 2nd.";
+    case "third":
+      return "Typical days from the 2nd order to the 3rd. Reach is the share of 2nd-step buyers who placed a 3rd.";
+    case "fourthPlus":
+      return "Wait is days from the 3rd order to the 4th. Later waits stay off this row. Ticket averages stored orders at position 4 and after. Reach is the share of 3rd-step buyers who placed a 4th.";
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
 }
 
 /** UTC midnight of the calendar day containing `d`. */
@@ -607,6 +857,7 @@ export function buildCustomerAnalytics(
     mixDaily,
     mixWeekly,
     mixReturningShareAvg,
+    orderSteps: buildOrderSteps(options.orderBook ?? rows),
   };
 }
 

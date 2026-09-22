@@ -188,6 +188,7 @@ export default function PublicDemoCustomers() {
               useSampleDesk
               shopLabel={data.shopLabel}
               shotMode={data.shotMode}
+              orderSteps={data.customers.orderSteps}
             />
           </DeskLane>
         </div>

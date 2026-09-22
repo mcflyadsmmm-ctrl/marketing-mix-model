@@ -233,6 +233,7 @@ export default function CustomersPage() {
           useSampleDesk={useSampleDesk}
           shopLabel={shopLabel}
           shotMode={shotMode}
+          orderSteps={analytics.orderSteps}
         />
       </DeskLane>
       </div>
