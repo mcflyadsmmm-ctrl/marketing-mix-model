@@ -35,6 +35,9 @@ describe("CPA page", () => {
     expect(desk).toContain('this_month: "This month"');
     expect(desk).toContain('last_28: "Last 28 days"');
     expect(cards).toContain("window.rangeLabel");
+    expect(cards).toContain("mcfly-yoy__range");
+    expect(cards).toContain("mcfly-yoy--cpa");
+    expect(cards).not.toContain("mcfly-yoy--glance");
     expect(cpa).not.toContain("<PeriodControl");
   });
 

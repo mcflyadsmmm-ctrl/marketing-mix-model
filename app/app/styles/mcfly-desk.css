@@ -7331,6 +7331,62 @@
   color: var(--mcfly-accent-ink);
 }
 
+.mcfly-goals-month-stack {
+  margin: 0 0 0.75rem;
+  padding: 0.7rem 0.8rem 0.75rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 12px;
+  background: var(--mcfly-paper, #fff);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.mcfly-goals-month-stack__k {
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-goals-month-stack__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.mcfly-goals-month-stack__cell {
+  min-width: 0;
+}
+
+.mcfly-goals-month-stack__label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-goals-month-stack__value {
+  display: block;
+  margin: 0.15rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.05rem, 3.6vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.mcfly-desk--shot .mcfly-goals-month-stack {
+  display: none;
+}
+
 .mcfly-goals-month-bar {
   display: block;
   width: min(7.5rem, 100%);
@@ -13718,14 +13774,17 @@ button.mcfly-chart__month {
   overflow: hidden;
 }
 
-.mcfly-yoy--glance .mcfly-yoy__k .mcfly-icon {
+.mcfly-yoy--glance .mcfly-yoy__k .mcfly-icon,
+.mcfly-yoy--cpa .mcfly-yoy__k .mcfly-icon {
   display: none;
 }
 
 @media (max-width: 36rem) {
   .mcfly-yoy--glance .mcfly-yoy__grid,
   .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid,
-  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__grid {
+  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-yoy--cpa .mcfly-yoy__grid,
+  .mcfly-cpa__windows .mcfly-yoy__grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     flex-wrap: unset;
@@ -13738,7 +13797,9 @@ button.mcfly-chart__month {
 
   .mcfly-yoy--glance .mcfly-yoy__card,
   .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card,
-  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__card {
+  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-yoy--cpa .mcfly-yoy__card,
+  .mcfly-cpa__windows .mcfly-yoy__card {
     flex: none !important;
     min-width: 0 !important;
     width: 100% !important;
@@ -13752,18 +13813,32 @@ button.mcfly-chart__month {
     display: none;
   }
 
+  /* CPA keeps the date window. Overview glance may still hide range. */
+  .mcfly-cpa__windows .mcfly-yoy__range,
+  .mcfly-yoy--cpa .mcfly-yoy__range {
+    display: inline;
+  }
+
   .mcfly-yoy--glance .mcfly-yoy__prior {
     display: flex;
   }
 
-  .mcfly-yoy--glance .mcfly-yoy__k {
+  .mcfly-yoy--glance .mcfly-yoy__k,
+  .mcfly-yoy--cpa .mcfly-yoy__k {
     margin: 0;
     font-size: 0.62rem;
     letter-spacing: 0.02em;
     line-height: 1.25;
   }
 
-  .mcfly-yoy--glance .mcfly-yoy__v {
+  .mcfly-yoy--cpa .mcfly-yoy__k-main,
+  .mcfly-cpa__windows .mcfly-yoy__k-main {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__v,
+  .mcfly-yoy--cpa .mcfly-yoy__v {
     font-size: clamp(1.02rem, 4.6vw, 1.18rem);
     margin: 0.18rem 0 0;
     white-space: normal;
@@ -13790,7 +13865,9 @@ button.mcfly-chart__month {
 
 @media (max-width: 430px) {
   .mcfly-yoy--glance .mcfly-yoy__grid,
-  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid {
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-yoy--cpa .mcfly-yoy__grid,
+  .mcfly-cpa__windows .mcfly-yoy__grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     flex-wrap: unset;
@@ -13799,7 +13876,9 @@ button.mcfly-chart__month {
   }
 
   .mcfly-yoy--glance .mcfly-yoy__card,
-  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card {
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-yoy--cpa .mcfly-yoy__card,
+  .mcfly-cpa__windows .mcfly-yoy__card {
     flex: none !important;
     min-width: 0 !important;
     width: 100% !important;
@@ -13807,6 +13886,10 @@ button.mcfly-chart__month {
   }
 
   .mcfly-yoy--glance .mcfly-yoy__prior {
+    display: flex;
+  }
+
+  .mcfly-yoy--cpa .mcfly-yoy__prior {
     display: flex;
   }
 
@@ -17676,6 +17759,11 @@ button.mcfly-depth-legend__chip:focus-visible {
   .mcfly-cpa__payback-pair {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .mcfly-cpa__windows .mcfly-yoy__range,
+  .mcfly-yoy--cpa .mcfly-yoy__range {
+    display: inline;
+  }
 }
 
 /* =========================================================================
@@ -20736,6 +20824,7 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-lane--first .mcfly-kpi-grid--peeks-lead,
 .mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead,
 .mcfly-yoy--glance,
+.mcfly-yoy--cpa,
 .mcfly-chart--sales,
 .mcfly-chart--empty,
 .mcfly-book__glance--kpis,
@@ -20771,6 +20860,7 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-well .mcfly-kpi--soft,
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi--soft,
 .mcfly-yoy--glance .mcfly-yoy__card--soft,
+.mcfly-yoy--cpa .mcfly-yoy__card--soft,
 .mcfly-book__glance--kpis .mcfly-book__kpi--soft {
   background: var(--mcfly-well-bg-elev);
   border: 1px solid var(--mcfly-well-line);
@@ -20782,6 +20872,7 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi__label,
 .mcfly-well .mcfly-kpi__label,
 .mcfly-yoy--glance .mcfly-yoy__k,
+.mcfly-yoy--cpa .mcfly-yoy__k,
 .mcfly-book__glance--kpis .mcfly-book__kpi-k,
 .mcfly-chart--sales .mcfly-chart__title,
 .mcfly-chart--sales .mcfly-chart__serif {
@@ -20795,6 +20886,7 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi__value,
 .mcfly-well .mcfly-kpi__value,
 .mcfly-yoy--glance .mcfly-yoy__v,
+.mcfly-yoy--cpa .mcfly-yoy__v,
 .mcfly-book__glance--kpis .mcfly-book__kpi-v,
 .mcfly-chart--sales .mcfly-chart__hero {
   font-family: var(--mcfly-display);
@@ -20824,6 +20916,7 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi__sub,
 .mcfly-well .mcfly-kpi__sub,
 .mcfly-yoy--glance .mcfly-yoy__prior,
+.mcfly-yoy--cpa .mcfly-yoy__prior,
 .mcfly-book__glance--kpis .mcfly-book__kpi-hint {
   color: var(--mcfly-well-mute);
 }
@@ -21715,6 +21808,89 @@ button.mcfly-habit-goals__read:focus-visible {
   .mcfly-scoreboard--overview .mcfly-kpi-grid--windows .mcfly-kpi__value {
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+}
+
+/* Phone Goals board + chips + CPA dates — Admin iframe ≤36rem.
+   This month Goal / Actual / Prior stay on screen. Peek text wraps.
+   Customers chips are readable. CPA keeps rangeLabel. Overview glance
+   stacking from v411 is unchanged above. */
+@media (max-width: 36rem) {
+  .mcfly-goals-table,
+  .mcfly-goals-table--sales {
+    min-width: 0;
+  }
+
+  .mcfly-goals-table th,
+  .mcfly-goals-table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .mcfly-goals-month-stack__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mcfly-goals-month-stack__value {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .mcfly-score--orders-hero .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-score--customers-hero .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-score--growth-hero .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-desk .mcfly-score--orders-hero .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-desk .mcfly-score--customers-hero .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-desk .mcfly-score--growth-hero .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .mcfly-score--orders-hero .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-score--orders-hero .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+  .mcfly-score--customers-hero .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-score--customers-hero .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+  .mcfly-score--growth-hero .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-score--growth-hero .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+  .mcfly-desk .mcfly-score--orders-hero .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-desk .mcfly-score--orders-hero .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+  .mcfly-desk .mcfly-score--customers-hero .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-desk .mcfly-score--customers-hero .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+  .mcfly-desk .mcfly-score--growth-hero .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-desk .mcfly-score--growth-hero .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi {
+    flex: 1 1 100%;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .mcfly-score--orders-hero .mcfly-kpi--peek .mcfly-kpi__value,
+  .mcfly-score--customers-hero .mcfly-kpi--peek .mcfly-kpi__value,
+  .mcfly-score--growth-hero .mcfly-kpi--peek .mcfly-kpi__value,
+  .mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__value {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .mcfly-score--orders-hero .mcfly-kpi--peek .mcfly-kpi__label,
+  .mcfly-score--customers-hero .mcfly-kpi--peek .mcfly-kpi__label,
+  .mcfly-score--growth-hero .mcfly-kpi--peek .mcfly-kpi__label {
+    font-size: 0.78rem;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  .mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip,
+  .mcfly-desk-panel-rail__chip {
+    font-size: 0.88rem;
+    min-height: 2.75rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .mcfly-cpa__windows .mcfly-yoy__range,
+  .mcfly-yoy--cpa .mcfly-yoy__range {
+    display: inline;
   }
 }
 

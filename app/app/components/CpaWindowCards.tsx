@@ -29,7 +29,10 @@ export function CpaWindowCards({
   const ltvHref = deskHref("/app/customers?panel=ltv");
 
   return (
-    <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft mcfly-cpa__windows" aria-label="Cash CPA windows">
+    <section
+      className="mcfly-yoy mcfly-yoy--cpa mcfly-yoy--soft mcfly-cpa__windows"
+      aria-label="Cash CPA windows"
+    >
       <div className="mcfly-yoy__grid mcfly-cpa__window-grid">
         {windows.map((window) => {
           const selected = window.id === selectedId;
