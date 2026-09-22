@@ -46,10 +46,7 @@ import {
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { BILLING_HONESTY } from "../lib/entitlements";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
-import {
-  parseHabitGoalInput,
-  SAMPLE_HABIT_RETURNING_TARGET,
-} from "../lib/goals-habit";
+import { parseHabitGoalInput } from "../lib/goals-habit";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -545,14 +542,8 @@ export default function SettingsPage() {
                   <span className="mcfly-settings-field__hint">
                     Returning-buyer dollars in the Goals year. Guests stay
                     out. Same field as Goals. LTV Target Line is the
-                    observed average — not set here.
-                    {useSampleDesk &&
-                    !(
-                      settings.returningSalesTarget != null &&
-                      settings.returningSalesTarget > 0
-                    )
-                      ? ` Goals paints a Snowdevil stretch $${SAMPLE_HABIT_RETURNING_TARGET.toLocaleString("en-US")} SAMPLE example until you type your own — not a number you typed.`
-                      : ""}
+                    observed average — not set here. SAMPLE with no typed
+                    target stays unset, like Live.
                   </span>
                 </div>
                 <button

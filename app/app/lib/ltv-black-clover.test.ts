@@ -151,8 +151,9 @@ describe("LTV is order-led first; margin & Cash CAC only on spend", () => {
     );
   });
 
-  it("gates Kept after margin, Cash CAC and Value vs cost on typed spend", () => {
-    expect(ltv).toContain("showMarginKept && contrib90 != null && hasSpend");
+  it("does not paint Kept after margin; Cash CAC and Value vs cost stay on typed spend", () => {
+    expect(ltv).not.toContain("Kept after margin");
+    expect(ltv).not.toMatch(/showMarginKept = marginConfirmed \|\| useSampleDesk/);
     expect(ltv).toMatch(/hasSpend && cashCac != null/);
     expect(ltv).toContain("hasSpend && isNum(ltv.ltvCacRatio)");
   });

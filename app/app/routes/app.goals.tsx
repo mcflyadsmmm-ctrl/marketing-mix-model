@@ -894,9 +894,11 @@ export default function GoalsPage() {
             variant="book"
             heading="MTD · QTD · YTD"
             muted={
-              yearHasSpend
+              yearHasSpend && board.breakEvenMer != null
                 ? `Sales vs plan plus ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort}. The calendar tick is how much of the period has elapsed.`
-                : "Sales vs plan. The calendar tick is how much of the period has elapsed. Spend optional."
+                : yearHasSpend
+                  ? `Sales vs plan plus ${PRODUCT_NOUN.totalRoas}. The calendar tick is how much of the period has elapsed. Spend optional.`
+                  : "Sales vs plan. The calendar tick is how much of the period has elapsed. Spend optional."
             }
             targetMer={board.targetMer}
             breakEvenMer={board.breakEvenMer}

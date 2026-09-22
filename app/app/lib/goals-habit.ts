@@ -7,7 +7,7 @@
  *   Returning progress = year returning $ (guests out)
  *                     ÷ returning-$ target
  *                     — typed when the merchant set one;
- *                       SAMPLE Snowdevil stretch when unset (never “you typed”)
+ *                       SAMPLE with no typed target stays unset, like Live
  *
  * Thin shops stay honest empties (syncing / thin / young / unset). Floor is
  * 8 paid orders. Never a blank board, never a fake $0, never a fake year.
@@ -23,19 +23,12 @@ import {
 
 export const HABIT_GOALS_MIN_ORDERS = 8;
 
-/**
- * SAMPLE year returning-$ stretch. Snowdevil’s book is ~$4k/day; a mid-year
- * board should show real progress, not a met-on-day-one or a fake $0.
- * LTV has no SAMPLE stretch — Target Line is the observed average.
- */
-export const SAMPLE_HABIT_RETURNING_TARGET = 800_000;
-
 export const HABIT_LTV_FORMULA_EQ =
   "Target Line = observed first-window average";
 export const HABIT_RETURNING_FORMULA_EQ =
   "Returning $ progress = year returning $ ÷ your target";
 export const HABIT_RETURNING_SAMPLE_FORMULA_EQ =
-  "Returning $ progress = year returning $ ÷ Snowdevil stretch";
+  "Returning $ progress = year returning $ ÷ your target";
 
 export type HabitGoalKind = "ltv" | "returning";
 
@@ -62,8 +55,8 @@ export type HabitGoalTrack = {
   actual: number;
   target: number;
   /**
-   * Average Target Line (LTV), a number the merchant typed (returning $),
-   * or SAMPLE Snowdevil stretch (never merchant-entered).
+   * Average Target Line (LTV) or a number the merchant typed (returning $).
+   * SAMPLE does not invent a stretch target.
    */
   targetSource: HabitGoalTargetSource;
   remaining: number;
@@ -86,7 +79,7 @@ export type HabitGoalsView = {
   yearLabel: string;
   /** LTV Target Line — observed average, never a typed goal. */
   ltvTarget: number | null;
-  /** Resolved returning-$ target (SAMPLE overlay when unset). */
+  /** Resolved returning-$ target. Unset SAMPLE matches Live. */
   returningTarget: number | null;
 };
 
@@ -123,26 +116,22 @@ function wholePct(share: number): number {
 }
 
 /**
- * Typed target wins. SAMPLE paints a stretch when the merchant has not
- * typed one — so Snowdevil is never a blank / $0 board.
+ * Typed target wins. SAMPLE with no typed target stays unset, like Live.
  */
 export function resolveHabitTarget(
   typed: number | null | undefined,
-  sampleFallback: number,
-  sample: boolean,
+  _sampleFallback?: number,
+  _sample?: boolean,
 ): number | null {
-  const n = finitePositive(typed);
-  if (n != null) return n;
-  return sample ? sampleFallback : null;
+  return finitePositive(typed);
 }
 
-/** Typed wins. SAMPLE overlay is stretch — never “you typed.” */
+/** Typed wins. SAMPLE does not invent a stretch source. */
 export function resolveHabitReturningTargetSource(
   typed: number | null | undefined,
-  sample: boolean,
+  _sample?: boolean,
 ): HabitReturningTargetSource | null {
   if (finitePositive(typed) != null) return "typed";
-  if (sample) return "sample";
   return null;
 }
 
@@ -155,7 +144,7 @@ export function habitGoalTargetSourceLabel(
     case "typed":
       return "You typed";
     case "sample":
-      return "Snowdevil stretch";
+      return "SAMPLE example";
     default: {
       const _exhaustive: never = source;
       return _exhaustive;
@@ -186,8 +175,8 @@ export function habitReturningDailyLine(track: HabitGoalTrack): string {
   switch (track.targetSource) {
     case "sample":
       return track.met
-        ? `Returning buyers already carry ${actual} this year — at the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`
-        : `Returning buyers carry ${actual} this year — ${pct}% of the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`;
+        ? `Returning buyers already carry ${actual} this year — SAMPLE example, not a target you typed.`
+        : `Returning buyers carry ${actual} this year. No returning-$ target is typed.`;
     case "typed":
       return track.met
         ? `Returning buyers already carry ${actual} this year — at your ${target} target.`
@@ -331,14 +320,9 @@ export function buildHabitGoals(input: HabitGoalsInput): HabitGoalsView {
     Math.trunc(Number.isFinite(input.orderCount) ? input.orderCount : 0),
   );
   const yearLabel = String(input.year);
-  const returningTarget = resolveHabitTarget(
-    input.typedReturningTarget,
-    SAMPLE_HABIT_RETURNING_TARGET,
-    input.sample,
-  );
+  const returningTarget = resolveHabitTarget(input.typedReturningTarget);
   const returningSource = resolveHabitReturningTargetSource(
     input.typedReturningTarget,
-    input.sample,
   );
   const peek = pickShareableLtvPeek({
     revenue30: input.ltv30,

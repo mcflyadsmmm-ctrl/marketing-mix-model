@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db.server", () => ({
@@ -10,6 +13,7 @@ vi.mock("../db.server", () => ({
 
 vi.mock("./mer-dashboard.server", () => ({
   getOrCreateSettings: vi.fn(),
+  confirmedBreakEvenMer: vi.fn(() => null),
 }));
 
 import { impliedSpendCeiling, impliedSpendCeilingCaption } from "./implied-spend-ceiling";
@@ -385,6 +389,22 @@ describe("merVsRails", () => {
     expect(rails.label).toBe("—");
     expect(rails.vsTargetAbs).toBeNull();
     expect(rails.vsBeAbs).toBeNull();
+  });
+
+  it("does not invent SAMPLE profit — empty BE stays a dash, not vs break-even", () => {
+    const rails = merVsRails(3.5, 3.5, null);
+    expect(rails.label).not.toMatch(/break-even/i);
+    expect(rails.vsBeAbs).toBeNull();
+    const yearBoard = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "./sales-goals.server.ts"),
+      "utf8",
+    );
+    expect(yearBoard).not.toMatch(
+      /marginIsConfirmed\(settings\)\s*\|\|\s*settings\.useSampleDesk/,
+    );
+    expect(yearBoard).not.toMatch(
+      /settings\.useSampleDesk\s*\?\s*SAMPLE_DESK_MARGIN_PCT/,
+    );
   });
 });
 

@@ -1,9 +1,7 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
-import { calculateBreakEvenMer } from "@mcfly/mer-core";
 
 import { DeskBookPage } from "../components/DeskBookPage";
-import { formatMer } from "../lib/mer-format";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
@@ -20,7 +18,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function PublicDemoSettings() {
   const data = useLoaderData<typeof loader>();
-  const be = calculateBreakEvenMer(data.marginPct);
   return (
     <DeskBookPage
       heading="Settings"
@@ -44,11 +41,6 @@ export default function PublicDemoSettings() {
         <p>
           <strong>{PRODUCT_NOUN.totalRoas}</strong> · {NUMBER_HONESTY.formula}.
           Empty spend is —.
-        </p>
-        <p>
-          <strong>SAMPLE goal</strong> · {formatMer(data.targetMer)}× · break-even{" "}
-          {be != null ? `${formatMer(be)}×` : "—"} at{" "}
-          {Math.round(data.marginPct * 100)}% margin.
         </p>
         <p>
           <strong>Plan</strong> · 7-day trial, then $39/store/month.{" "}

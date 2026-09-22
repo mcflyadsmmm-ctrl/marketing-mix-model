@@ -46,7 +46,7 @@ describe("Profit-margin / COGS setup is parked", () => {
   it("does not ask LTV merchants to confirm a default margin", () => {
     const ltv = chrome("../components/CustomersLtvSection.tsx");
     expect(ltv).not.toMatch(/until you confirm in Settings/);
-    expect(ltv).toContain("showMarginKept");
+    expect(ltv).not.toContain("Kept after margin");
     expect(read("../routes/app.customers.tsx")).toContain("UnlockFullHistoryBanner");
   });
 

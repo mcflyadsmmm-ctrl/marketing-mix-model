@@ -56,8 +56,8 @@ describe("Settings page", () => {
     expect(settings).toContain("LTV Target Line is");
     expect(settings).toContain("observed average");
     expect(settings).toContain('href="/app/goals"');
-    expect(settings).toContain("Snowdevil stretch");
-    expect(settings).toContain("SAMPLE example");
+    expect(settings).not.toContain("Snowdevil stretch");
+    expect(settings).not.toContain("SAMPLE_HABIT_RETURNING_TARGET");
     expect(settings).not.toContain("? String(SAMPLE_HABIT_RETURNING_TARGET)");
   });
 

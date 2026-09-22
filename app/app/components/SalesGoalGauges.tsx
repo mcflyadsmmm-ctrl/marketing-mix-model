@@ -22,7 +22,8 @@ type Props = {
 };
 
 const DEFAULT_HEADING = "Goal progress";
-const DEFAULT_MUTED = `Sales vs plan plus ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} — Shopify sales goals do not overlay ad spend`;
+const DEFAULT_MUTED =
+  `Sales vs plan plus ${PRODUCT_NOUN.totalRoas}. Empty spend is —.`;
 
 function formatCashMerLine(
   period: SalesGoalPeriod,
