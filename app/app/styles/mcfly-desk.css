@@ -20081,11 +20081,35 @@ button.mcfly-depth-flag__empty:focus-visible {
   color: var(--mcfly-ink);
 }
 
+.mcfly-share-card__open {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-share-card__poster:focus-within {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--mcfly-accent) 35%, transparent);
+  outline-offset: 1px;
+}
+
 .mcfly-share-card__line {
   margin: 0.2rem 0 0;
   font-size: 0.8rem;
   line-height: 1.4;
   color: var(--mcfly-ink-soft);
+  user-select: text;
+  cursor: text;
 }
 
 .mcfly-share-card__formula {
@@ -20094,10 +20118,72 @@ button.mcfly-depth-flag__empty:focus-visible {
   font-weight: 650;
   line-height: 1.35;
   color: var(--mcfly-accent-ink);
+  user-select: text;
+  cursor: text;
 }
 
 .mcfly-share-card__trust {
   margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+  user-select: text;
+  cursor: text;
+}
+
+/* Slack quote — one insight, selectable, under the number it copies. */
+.mcfly-slack-insight {
+  margin: 0.45rem 0 0.75rem;
+  padding: 0.65rem 0.8rem 0.6rem;
+  max-width: 38rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-left: 3px solid color-mix(in srgb, var(--mcfly-accent) 70%, #fff);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mcfly-tint-sky) 28%, #fff);
+}
+
+.mcfly-slack-insight__k {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-slack-insight__label {
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-slack-insight__line,
+.mcfly-slack-insight__formula,
+.mcfly-slack-insight__trust {
+  user-select: text;
+  cursor: text;
+}
+
+.mcfly-slack-insight__line {
+  margin: 0.2rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-slack-insight__formula {
+  margin: 0.28rem 0 0;
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-slack-insight__trust {
+  margin: 0.12rem 0 0.45rem;
   font-size: 0.68rem;
   line-height: 1.35;
   color: var(--mcfly-mute);

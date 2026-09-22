@@ -96,6 +96,8 @@ export default function PublicDemoCustomers() {
     marginConfirmed: true,
     useSampleDesk: true,
     orderBackfillProgress: null,
+    shopLabel: data.shopLabel,
+    shotMode: data.shotMode,
   };
   const historyLimited = false;
   const daily = flagshipDailyRead(data.ltvDepth.windows, data.ltvDepth.predictive);
@@ -184,6 +186,8 @@ export default function PublicDemoCustomers() {
               avgOrdersD90={data.ltv.avgOrdersD90}
               salesPending={false}
               useSampleDesk
+              shopLabel={data.shopLabel}
+              shotMode={data.shotMode}
             />
           </DeskLane>
         </div>

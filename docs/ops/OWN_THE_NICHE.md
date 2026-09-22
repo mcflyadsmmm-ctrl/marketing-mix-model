@@ -80,6 +80,16 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | $39-alone | PASS | Overview now answers who carries the dollars and where the month lands, with typical / weekends / explorers kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
 
+## SCORECARD — Slack insight cards (P2-B)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | Copy one order-history sentence for Slack from the Growth or LTV chip, or from the Overview posters — not an export hunt |
+| Deeper LTV | PASS | Days-to-second, observed new-buyer worth, and best-customer mix from the stored book; year withheld when history is limited |
+| Habit-trust | PASS | Formula rides in the paste; guests out; a missing number is no card, never $0 |
+| $39-alone | PASS | A merchant can leave with a true number without leaving the desk |
+| Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
+
 ## SCORECARD — Shareable insight cards (this PR)
 
 | Criterion | Verdict | Line |

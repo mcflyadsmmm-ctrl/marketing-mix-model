@@ -52,14 +52,16 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(customers).toContain("flagshipDailyRead");
   });
 
-  it("paints 2–4 screenshot cards with formula, copy, and PNG", () => {
+  it("paints 2–4 screenshot cards with formula, Slack copy, and PNG", () => {
     expect(board).toContain("Share a number");
-    expect(board).toContain("Copy line");
+    expect(board).toContain("Copy for Slack");
     expect(board).toContain("Save PNG");
     expect(board).toContain("mcfly-share-card__poster");
     expect(board).toContain("mcfly-share-card__formula");
+    expect(board).toContain("mcfly-share-card__line");
     expect(board).toContain("downloadShareableInsightPng");
-    expect(board).toContain("copyInsightLine");
+    expect(board).toContain("copyDeskText");
+    expect(board).toContain("slackInsightFromCard");
     expect(lib).toContain("Returning $ ÷ (new $ + returning $)");
     expect(lib).toContain("median of paid orders");
     expect(lib).toContain("median first→second gap");
@@ -78,6 +80,37 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(lib).toContain("never a fake year");
     expect(css).toContain(".mcfly-share-card__poster");
     expect(css).toContain(".mcfly-share-cards__grid");
+    expect(css).toContain(".mcfly-slack-insight");
+    expect(css).toContain("user-select: text");
+  });
+
+  it("puts one Slack quote on Growth and LTV, not a new tab or the first fold", () => {
+    const growth = read("../components/CustomersGrowthSection.tsx");
+    const ltv = read("../components/CustomersLtvSection.tsx");
+    const whale = read("../components/LtvWhaleRecency.tsx");
+    const first = read("../components/OverviewFirstViewport.tsx");
+    expect(growth).toContain("<SlackInsightCard");
+    expect(growth.indexOf("<SlackInsightCard")).toBeGreaterThan(
+      growth.indexOf("<GrowthFirstViewport"),
+    );
+    expect(growth.indexOf("<SlackInsightCard")).toBeLessThan(
+      growth.indexOf("<GrowthComebackChart"),
+    );
+    expect(ltv).toContain("<SlackInsightCard");
+    expect(ltv.indexOf("<SlackInsightCard")).toBeGreaterThan(
+      ltv.indexOf("mcfly-book__hero"),
+    );
+    expect(ltv.indexOf("<SlackInsightCard")).toBeLessThan(
+      ltv.indexOf("<LtvValueBuild"),
+    );
+    expect(whale).toContain("whaleSlackInsight");
+    expect(whale).toContain("<SlackInsightCard");
+    expect(first).not.toContain("SlackInsightCard");
+    expect(overview.indexOf('rank="first"')).toBeLessThan(
+      overview.indexOf("<ShareableInsightCards"),
+    );
+    expect(customers).not.toContain('role="tab">Growth');
+    expect(customers).not.toContain('role="tab">LTV');
   });
 
   it("is full-history aware and withholds a fake year", () => {

@@ -5,6 +5,7 @@ import { LtvRetentionHeat } from "./LtvRetentionHeat";
 import { LtvTierTables } from "./LtvTierTables";
 import { LtvPathTable } from "./LtvPathTable";
 import { LtvWhaleRecency } from "./LtvWhaleRecency";
+import { SlackInsightCard } from "./SlackInsightCard";
 import { LtvFlagshipBoard } from "./LtvFlagshipBoard";
 import { LtvWindowTriangle } from "./LtvWindowTriangle";
 import { LtvFirstProductDrivers } from "./LtvFirstProductDrivers";
@@ -20,8 +21,10 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { flagshipDailyRead, type LtvFlagshipView } from "../lib/ltv-flagship";
 import {
+  ltvPeekSlackInsight,
   pickShareableLtvPeek,
   shareableLtvWindowLabel,
+  type SlackInsight,
 } from "../lib/shareable-insights";
 
 /** Stored month totals — desk LTV is per new customer. */
@@ -86,6 +89,8 @@ type LtvPackProps = {
   marginConfirmed: boolean;
   useSampleDesk: boolean;
   orderBackfillProgress?: { historyLimited?: boolean } | null;
+  shopLabel?: string;
+  shotMode?: boolean;
 };
 
 /**
@@ -99,6 +104,7 @@ function useCustomersLtvPack({
   marginConfirmed,
   useSampleDesk,
   orderBackfillProgress,
+  shopLabel = "",
 }: LtvPackProps) {
   const currency = useDeskCurrency();
   const ltv = metrics.tillLtv;
@@ -305,11 +311,20 @@ function useCustomersLtvPack({
       (depth.refunds && depth.refunds.orderCount > 0),
   );
 
-  void ltvPeek;
+  const worthSlack: SlackInsight | null = ltvPeekSlackInsight({
+    amount: ltvPeek?.amount ?? null,
+    days: ltvPeek?.days ?? null,
+    historyLimited,
+    shopLabel,
+    sample: useSampleDesk,
+    where: "On file",
+    money: (n) => formatCurrency(n, currency),
+  });
 
   return {
     ltv,
     currency,
+    worthSlack,
     yearOnFile,
     yearPending,
     buildWindows,
@@ -334,8 +349,9 @@ export function CustomersLtvWindows(props: LtvPackProps) {
     orderRows,
     chartTargetLine,
     emptyLine,
+    worthSlack,
   } = useCustomersLtvPack(props);
-  const { metrics, useSampleDesk, depth } = props;
+  const { metrics, useSampleDesk, depth, shotMode = false } = props;
   const currency = useDeskCurrency();
 
   return (
@@ -360,6 +376,8 @@ export function CustomersLtvWindows(props: LtvPackProps) {
       ) : (
         <p className="mcfly-book__lede">{emptyLine}</p>
       )}
+
+      <SlackInsightCard insight={worthSlack} shotMode={shotMode} />
 
       <LtvValueBuild
         windows={buildWindows}
@@ -404,7 +422,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
 /** LTV flagship depth pack — FOLD NEVER DELETE. */
 export function CustomersLtvDepth(props: LtvPackProps) {
   const { chartTargetLine, depthHasAny } = useCustomersLtvPack(props);
-  const { depth, useSampleDesk } = props;
+  const { depth, useSampleDesk, shopLabel = "", shotMode = false } = props;
 
   return (
     <>
@@ -441,7 +459,12 @@ export function CustomersLtvDepth(props: LtvPackProps) {
       <LtvRetentionHeat heat={depth.retention} buyers={depth.buyers} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />
       <LtvPathTable paths={depth.paths} clarity={depth.pathClarity} />
-      <LtvWhaleRecency whales={depth.whales} />
+      <LtvWhaleRecency
+        whales={depth.whales}
+        shopLabel={shopLabel}
+        sample={useSampleDesk}
+        shotMode={shotMode}
+      />
     </>
   );
 }

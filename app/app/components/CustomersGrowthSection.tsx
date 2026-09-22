@@ -2,13 +2,19 @@ import { GrowthComebackChart } from "./GrowthComebackChart";
 import { GrowthFirstViewport } from "./GrowthFirstViewport";
 import { GrowthScoreboard } from "./GrowthScoreboard";
 import { GrowthTt2Board } from "./GrowthTt2Board";
+import { SlackInsightCard } from "./SlackInsightCard";
 import {
   growthFirstOrderMonths,
   growthOrderDepthBars,
   type GrowthMonthBar,
 } from "../lib/growth-comeback";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import type { GrowthTt2View } from "../lib/growth-tt2";
+import {
+  growthTt2HistoryLine,
+  growthTt2Read,
+  type GrowthTt2View,
+} from "../lib/growth-tt2";
+import { daysToSecondSlackInsight } from "../lib/shareable-insights";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
@@ -29,6 +35,8 @@ export function CustomersGrowthSection({
   avgOrdersD90,
   salesPending,
   useSampleDesk,
+  shopLabel = "",
+  shotMode = false,
 }: {
   book: ShopifyNativePeriodStats;
   tt2: GrowthTt2View;
@@ -44,10 +52,20 @@ export function CustomersGrowthSection({
   avgOrdersD90: number | null;
   salesPending: boolean;
   useSampleDesk: boolean;
+  shopLabel?: string;
+  shotMode?: boolean;
 }) {
   const orderDepthBars = growthOrderDepthBars(depth);
   const firstOrderMonths =
     months ?? growthFirstOrderMonths(cohorts ?? []);
+  const read = salesPending && !tt2.available ? null : growthTt2Read(tt2);
+  const daysSlack = daysToSecondSlackInsight({
+    typicalDays: read?.typicalDays ?? null,
+    readLine: read?.line ?? null,
+    shopLabel,
+    sample: useSampleDesk,
+    where: growthTt2HistoryLine(tt2),
+  });
 
   return (
     <>
@@ -58,6 +76,7 @@ export function CustomersGrowthSection({
           salesPending={Boolean(salesPending)}
           useSampleDesk={useSampleDesk}
         />
+        <SlackInsightCard insight={daysSlack} shotMode={shotMode} />
       </div>
       <GrowthComebackChart
         depthBars={orderDepthBars}

@@ -1,8 +1,10 @@
 import { formatCurrency } from "../lib/mer-format";
-import { DeskIcon } from "./DeskIcon";
-import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 import type { WhaleRecency } from "../lib/ltv-depth";
+import { whaleSlackInsight } from "../lib/shareable-insights";
+import { DeskIcon } from "./DeskIcon";
+import { SlackInsightCard } from "./SlackInsightCard";
+import { useDeskDrill } from "./DeskDrill";
 
 function pct(share: number): string {
   return `${Math.round(share * 100)}%`;
@@ -13,10 +15,29 @@ function pct(share: number): string {
  * still here?" read Shopify Analytics does not surface. Soft KPI strip + recency
  * bars. Order history only, no email list.
  */
-export function LtvWhaleRecency({ whales }: { whales: WhaleRecency | null }) {
+export function LtvWhaleRecency({
+  whales,
+  shopLabel = "",
+  sample = false,
+  shotMode = false,
+}: {
+  whales: WhaleRecency | null;
+  shopLabel?: string;
+  sample?: boolean;
+  shotMode?: boolean;
+}) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   if (!whales) return null;
+  const whaleSlack = whaleSlackInsight({
+    whaleCount: whales.whaleCount,
+    salesShare: whales.salesShare,
+    medianLifetime: whales.medianLifetime,
+    shopLabel,
+    sample,
+    where: "On file",
+    money: (n) => formatCurrency(n, currency),
+  });
 
   const cards = [
     {
@@ -75,6 +96,8 @@ export function LtvWhaleRecency({ whales }: { whales: WhaleRecency | null }) {
           {whales.topProduct ? ` Most start with ${whales.topProduct}.` : ""}
         </p>
       </div>
+
+      <SlackInsightCard insight={whaleSlack} shotMode={shotMode} />
 
       <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft">
         {cards.map((card) => (

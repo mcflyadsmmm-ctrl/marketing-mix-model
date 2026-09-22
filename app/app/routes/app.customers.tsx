@@ -142,6 +142,8 @@ export default function CustomersPage() {
     marginConfirmed,
     useSampleDesk,
     orderBackfillProgress,
+    shopLabel,
+    shotMode,
   };
 
   return (
@@ -229,6 +231,8 @@ export default function CustomersPage() {
           avgOrdersD90={metrics.tillLtv.avgOrdersD90}
           salesPending={Boolean(metrics.salesPending)}
           useSampleDesk={useSampleDesk}
+          shopLabel={shopLabel}
+          shotMode={shotMode}
         />
       </DeskLane>
       </div>
