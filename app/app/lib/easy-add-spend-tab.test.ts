@@ -255,6 +255,17 @@ describe("Spend day card", () => {
     expect(ledgerAt).toBeGreaterThan(coverageAt);
     expect(spend).toContain("defaultOpen={false}");
     expect(spend).toContain("defaultOpen={Boolean(editing)}");
+
+    const addLaneOpen = spend.indexOf("label={SPEND_ADD_LANE_LABEL}");
+    const addLane = spend.slice(
+      addLaneOpen,
+      spend.indexOf("</DeskLane>", addLaneOpen),
+    );
+    expect(addLaneOpen).toBeGreaterThan(-1);
+    expect(addLane).not.toContain('id="mcfly-spend-coverage"');
+    expect(addLane).not.toContain('id="mcfly-spend-ledger"');
+    expect(addLane).not.toContain('id="mcfly-spend-rates"');
+    expect(addLane).not.toContain('id="mcfly-spend-recurring"');
   });
 
   it("shows the custom-channel name only when Something else is selected", () => {

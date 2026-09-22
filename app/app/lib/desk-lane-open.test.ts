@@ -56,5 +56,12 @@ describe("DeskLane component — later defaultOpen is the cook, not a prop grep"
     const body = { contains: () => false };
     const fold = { contains: (other: unknown) => other === body };
     expect(deskLaneTargetOpensFold(body, fold)).toBe(true);
+
+    const coverage = { contains: () => false, tagName: "DETAILS" };
+    const addFold = {
+      contains: (other: unknown) => other === coverage || other === body,
+    };
+    expect(deskLaneTargetOpensFold(coverage, addFold)).toBe(false);
+    expect(deskLaneTargetOpensFold(body, addFold)).toBe(true);
   });
 });

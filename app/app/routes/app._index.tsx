@@ -988,11 +988,12 @@ export default function Dashboard() {
                   />
                   <ShareableInsightCards view={insightView} shotMode={shotMode} />
                 </DeskLane>
+                </div>
                 <DeskLane
                   rank="more"
                   label="More order detail"
                   fold
-                  defaultOpen={shotMode || panel === "mix-close"}
+                  defaultOpen={shotMode}
                 >
                   <OverviewDepthPeeks
                     orderCount={metrics.orderCount}
@@ -1021,7 +1022,6 @@ export default function Dashboard() {
                     />
                   ) : null}
                 </DeskLane>
-                </div>
                 <DeskLane rank="more" label="Year board vs last year">
                   <OverviewYoyYearSection
                     {...yoyYearWorkspace}

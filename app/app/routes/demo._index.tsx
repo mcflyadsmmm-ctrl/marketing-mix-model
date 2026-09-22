@@ -276,11 +276,12 @@ export default function PublicDemoOverview() {
                   />
                   <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
                 </DeskLane>
+                </div>
                 <DeskLane
                   rank="more"
                   label="More order detail"
                   fold
-                  defaultOpen={data.shotMode || panel === "mix-close"}
+                  defaultOpen={data.shotMode}
                 >
                   <OverviewDepthPeeks
                     orderCount={data.sales.orderCount}
@@ -307,7 +308,6 @@ export default function PublicDemoOverview() {
                     peakWeekday={data.depth.peakWeekday}
                   />
                 </DeskLane>
-                </div>
                 <DeskLane rank="more" label="Year board vs last year">
                   <OverviewYoyYearSection
                     {...yoyYearWorkspace}
