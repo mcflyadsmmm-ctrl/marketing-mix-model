@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v34** Pages `ad054108` · Fly **437** · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v34** · Overview → Orders → Customers first · one Slack paste briefing · `/lab` 301 · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **437** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings · fly.dev `/` marketing **v34** |
-| **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
+| **Updated** | 2026-09-22 · America/Denver · Site **v35** Pages `53e0e964` · Fly **438** · occupancy **0/4** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v35** · Overview → Orders → Customers first · names native Reports Group-by + RCI from $59 · one Slack paste briefing · `/lab` 301 · `/demo` iframes Fly Remix SAMPLE desk |
+| **Fly** | https://mcfly-analytics.fly.dev · version **438** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings · fly.dev `/` marketing **v35** |
+| **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers package median ticket, returning dollars, and month/quarter/year on one board at **$0 spend**. Native Reports already Group by weekday. Repeat Customer Insights from $59 is the closer LTV/latency app. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · Cloud Agent env `CLOUDFLARE_API_TOKEN` (Pages Edit) + `CLOUDFLARE_ACCOUNT_ID` connected 2026-09-22 · deploy from **non-git** temp dir |
@@ -45,7 +45,7 @@ Restraint. Paper/sky. Original ribbon M. Phone = brand + hamburger.
 
 ## Product + SAMPLE lock
 
-App: deeper Shopify order analytics than Analytics Overview. Spend tools are their own pages after the Shopify five. Not pixels.  
+App: median ticket, returning dollars, month/quarter/year on one board. Native Reports already Group by weekday. Repeat Customer Insights from $59 is closer LTV/latency. Spend tools are their own pages after the Shopify five. Not pixels.  
 **Rebuild SoT:** [`plans/2026-09-16-snowdevil-sample-only.md`](./plans/2026-09-16-snowdevil-sample-only.md) (Grok paste: [`plans/2026-09-16-snowdevil-sample-only-PROMPT.md`](./plans/2026-09-16-snowdevil-sample-only-PROMPT.md)). Older save-the-desk plan still explains density. **2026-09-16 founder override:** Live path is **parked** until Marty agrees SAMPLE looks and calculates right. Next book is **Snowdevil**, not Harbor spend. No Live order seed. Grok Bot **may** `fly deploy` from this Mac; Marty remains Admin / Partner gate. Cursor does not Submit. Split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).  
 **Harbor SAMPLE (home, below the fold):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
