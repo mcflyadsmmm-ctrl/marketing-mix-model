@@ -3,11 +3,19 @@ import {
   buildCustomerAnalytics,
   bucketMixDays,
   bucketMixWeeks,
+  buildOrderSteps,
   buildReturningMixPlays,
   emptyCustomerAnalytics,
   mixSummary,
+  ORDER_STEP_MIN_BUYERS,
+  orderStepFormula,
+  orderStepReachLabel,
+  orderStepTicketLabel,
+  orderStepWaitLabel,
   resolveMixGrain,
   RETENTION_GUEST_KEY,
+  type OrderStepId,
+  type OrderStepRow,
   type RetentionOrderRow,
 } from "./customers-analytics";
 
@@ -457,5 +465,220 @@ describe("emptyCustomerAnalytics", () => {
     expect(e.everRepeatShare).toBeNull();
     expect(e.repurchaseTypicalDays).toBeNull();
     expect(e.winBackDay).toBeNull();
+    expect(e.orderSteps).toHaveLength(4);
+    for (const row of e.orderSteps) {
+      expect(row.sealed).toBe(false);
+      expect(row.ticket).toBeNull();
+      expect(row.reach).toBeNull();
+      expect(row.waitDays).toBeNull();
+    }
+  });
+});
+
+function usd(n: number): string {
+  return `$${Math.round(n)}`;
+}
+
+function stepOf(rows: OrderStepRow[], id: OrderStepId): OrderStepRow {
+  const row = rows.find((s) => s.id === id);
+  expect(row).toBeDefined();
+  return row!;
+}
+
+function ordersFor(
+  key: string,
+  steps: Array<{ daysBeforeEnd: number; amount: number }>,
+): RetentionOrderRow[] {
+  return steps.map((s) => ({
+    customerKey: key,
+    orderedAt: at(s.daysBeforeEnd),
+    amount: s.amount,
+  }));
+}
+
+describe("order steps — ticket, reach, wait from the stored book", () => {
+  it("keeps the same 8-buyer floor as TT2 / RFM", () => {
+    expect(ORDER_STEP_MIN_BUYERS).toBe(8);
+  });
+
+  it("leaves the 3rd row — when only 7 buyers took a 3rd (not a 7-buyer average)", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        ...ordersFor(`b-${i}`, [
+          { daysBeforeEnd: 80, amount: 40 },
+          { daysBeforeEnd: 50, amount: 60 },
+        ]),
+      );
+      if (i < 7) {
+        rows.push(...ordersFor(`b-${i}`, [{ daysBeforeEnd: 30, amount: 999 }]));
+      }
+    }
+    const third = stepOf(buildOrderSteps(rows), "third");
+    expect(third.buyers).toBe(7);
+    expect(third.sealed).toBe(false);
+    expect(third.ticket).toBeNull();
+    expect(third.reach).toBeNull();
+    expect(third.waitDays).toBeNull();
+    expect(orderStepTicketLabel(third, usd)).toBe("—");
+    expect(orderStepReachLabel(third)).toBe("—");
+    expect(orderStepWaitLabel(third)).toBe("—");
+  });
+
+  it("seals the 3rd with ticket, reach from 2nd, and median wait 2nd→3rd at 8 buyers", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        ...ordersFor(`b-${i}`, [
+          { daysBeforeEnd: 80, amount: 40 },
+          { daysBeforeEnd: 50, amount: 60 },
+        ]),
+      );
+      if (i < 8) {
+        rows.push(...ordersFor(`b-${i}`, [{ daysBeforeEnd: 30, amount: 80 }]));
+      }
+    }
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+    });
+    const third = stepOf(built.orderSteps, "third");
+    expect(third.sealed).toBe(true);
+    expect(third.buyers).toBe(8);
+    expect(third.ticket).toBe(80);
+    expect(third.reach).toBeCloseTo(8 / 10, 8);
+    expect(third.waitDays).toBe(20);
+    expect(orderStepTicketLabel(third, usd)).toBe("$80");
+    expect(orderStepReachLabel(third)).toBe("80%");
+    expect(orderStepWaitLabel(third)).toBe("20d");
+  });
+
+  it("never counts guests toward a step", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(80 - i), amount: 500 },
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(50 - i), amount: 500 },
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(20 - i), amount: 500 },
+      );
+      rows.push(...ordersFor(`one-${i}`, [{ daysBeforeEnd: 12, amount: 40 }]));
+    }
+    const steps = buildOrderSteps(rows);
+    const third = stepOf(steps, "third");
+    expect(third.buyers).toBe(0);
+    expect(third.sealed).toBe(false);
+    expect(third.ticket).toBeNull();
+    const first = stepOf(steps, "first");
+    expect(first.buyers).toBe(8);
+    expect(first.ticket).toBe(40);
+    expect(first.ticket).not.toBe(500);
+  });
+
+  it("does not invent a 3rd wait of 0d for a 2-order buyer", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        ...ordersFor(`rep-${i}`, [
+          { daysBeforeEnd: 40, amount: 30 },
+          { daysBeforeEnd: 10, amount: 45 },
+        ]),
+      );
+    }
+    const third = stepOf(buildOrderSteps(rows), "third");
+    expect(third.buyers).toBe(0);
+    expect(third.sealed).toBe(false);
+    expect(third.waitDays).toBeNull();
+    expect(orderStepWaitLabel(third)).toBe("—");
+    expect(orderStepWaitLabel(third)).not.toBe("0d");
+  });
+
+  it("uses 3rd→4th wait on 4th and later, not 1st→2nd or later gaps", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        ...ordersFor(`w-${i}`, [
+          { daysBeforeEnd: 80, amount: 10 },
+          { daysBeforeEnd: 70, amount: 20 },
+          { daysBeforeEnd: 50, amount: 30 },
+          { daysBeforeEnd: 43, amount: 100 },
+          { daysBeforeEnd: 10, amount: 200 },
+        ]),
+      );
+    }
+    const fourth = stepOf(buildOrderSteps(rows), "fourthPlus");
+    expect(fourth.sealed).toBe(true);
+    expect(fourth.buyers).toBe(8);
+    expect(fourth.waitDays).toBe(7);
+    expect(fourth.waitDays).not.toBe(10);
+    expect(fourth.ticket).toBe(150);
+    expect(fourth.reach).toBe(1);
+    expect(orderStepWaitLabel(fourth)).toBe("7d");
+    expect(orderStepFormula("fourthPlus")).toMatch(/3rd/i);
+    expect(orderStepFormula("fourthPlus")).toMatch(/4th/i);
+    expect(orderStepFormula("fourthPlus")).toMatch(/later waits stay off/i);
+  });
+
+  it("paints an em dash for 1st wait, never 0d", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(...ordersFor(`n-${i}`, [{ daysBeforeEnd: 5, amount: 25 }]));
+    }
+    const first = stepOf(buildOrderSteps(rows), "first");
+    expect(first.sealed).toBe(true);
+    expect(first.ticket).toBe(25);
+    expect(first.reach).toBeNull();
+    expect(first.waitDays).toBeNull();
+    expect(orderStepWaitLabel(first)).toBe("—");
+    expect(orderStepWaitLabel(first)).not.toBe("0d");
+    expect(orderStepReachLabel(first)).toBe("8 buyers");
+    expect(orderStepFormula("first")).toMatch(/not 0d/);
+  });
+
+  it("does not invent extra steps from a lifetime count the book has not lived", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push({
+        customerKey: `short-${i}`,
+        orderedAt: at(8),
+        amount: 55,
+        lifetimeOrders: 9,
+      });
+      rows.push({
+        customerKey: `short-${i}`,
+        orderedAt: at(3),
+        amount: 70,
+        lifetimeOrders: 9,
+      });
+    }
+    const steps = buildOrderSteps(rows);
+    expect(stepOf(steps, "second").sealed).toBe(true);
+    expect(stepOf(steps, "third").buyers).toBe(0);
+    expect(stepOf(steps, "third").waitDays).toBeNull();
+    expect(stepOf(steps, "fourthPlus").buyers).toBe(0);
+  });
+
+  it("walks the stored order book, not the 90-day mix slice", () => {
+    const windowRows: RetentionOrderRow[] = [];
+    const book: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      const full = ordersFor(`old-${i}`, [
+        { daysBeforeEnd: 200, amount: 20 },
+        { daysBeforeEnd: 120, amount: 30 },
+        { daysBeforeEnd: 10, amount: 90 },
+      ]);
+      book.push(...full);
+      windowRows.push(full[2]!);
+    }
+    const sliced = buildCustomerAnalytics(windowRows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: book,
+    });
+    const third = stepOf(sliced.orderSteps, "third");
+    expect(third.sealed).toBe(true);
+    expect(third.ticket).toBe(90);
+    expect(third.waitDays).toBe(110);
+    const windowOnly = buildOrderSteps(windowRows);
+    expect(stepOf(windowOnly, "third").sealed).toBe(false);
   });
 });

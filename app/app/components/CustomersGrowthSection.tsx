@@ -1,8 +1,10 @@
 import { GrowthComebackChart } from "./GrowthComebackChart";
 import { GrowthFirstViewport } from "./GrowthFirstViewport";
+import { GrowthOrderStepsBoard } from "./GrowthOrderStepsBoard";
 import { GrowthScoreboard } from "./GrowthScoreboard";
 import { GrowthTt2Board } from "./GrowthTt2Board";
 import { SlackInsightCard } from "./SlackInsightCard";
+import type { OrderStepRow } from "../lib/customers-analytics";
 import {
   growthFirstOrderMonths,
   growthOrderDepthBars,
@@ -37,6 +39,7 @@ export function CustomersGrowthSection({
   useSampleDesk,
   shopLabel = "",
   shotMode = false,
+  orderSteps,
 }: {
   book: ShopifyNativePeriodStats;
   tt2: GrowthTt2View;
@@ -54,6 +57,7 @@ export function CustomersGrowthSection({
   useSampleDesk: boolean;
   shopLabel?: string;
   shotMode?: boolean;
+  orderSteps: OrderStepRow[];
 }) {
   const orderDepthBars = growthOrderDepthBars(depth);
   const firstOrderMonths =
@@ -99,6 +103,7 @@ export function CustomersGrowthSection({
         ltvHref="#mcfly-ltv"
       />
       <GrowthTt2Board tt2={tt2} />
+      <GrowthOrderStepsBoard steps={orderSteps} />
     </>
   );
 }

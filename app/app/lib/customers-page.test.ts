@@ -94,6 +94,16 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).toContain("useSampleDesk");
     expect(customers).toContain("<ReviewAsk");
   });
+
+  it("demo customers still mounts Growth, including the step board", () => {
+    const demo = read("../routes/demo.customers.tsx");
+    expect(demo).toContain("<CustomersGrowthSection");
+    expect(demo).toContain('id="mcfly-growth"');
+    expect(demo).toContain("orderSteps=");
+    expect(customers).toContain("orderSteps=");
+    expect(analyticsLib).toContain("ORDER_STEP_MIN_BUYERS = 8");
+    expect(analyticsLib).toContain("buildOrderSteps");
+  });
 });
 
 describe("CustomersScoreboard — compact returning hero, not a six-tile wall", () => {

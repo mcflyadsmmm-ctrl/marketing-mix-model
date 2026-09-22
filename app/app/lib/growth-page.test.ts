@@ -65,6 +65,9 @@ describe("Growth page", () => {
     expect(section.indexOf("<GrowthScoreboard")).toBeLessThan(
       section.indexOf("<GrowthTt2Board"),
     );
+    expect(section.indexOf("<GrowthTt2Board")).toBeLessThan(
+      section.indexOf("<GrowthOrderStepsBoard"),
+    );
     expect(section).not.toContain("<ShopifyBookSection");
     expect(section).not.toContain("<BookFactGrid");
     expect(section).not.toContain("<CountBarsChart");
@@ -139,8 +142,12 @@ describe("Growth page", () => {
       expect(source).not.toContain("SpendExplorer");
     }
     const section = read("../components/CustomersGrowthSection.tsx");
+    const stepsBoard = read("../components/GrowthOrderStepsBoard.tsx");
     expect(section).not.toMatch(/ROAS/);
     expect(section).not.toContain("Spend Upload");
+    expect(stepsBoard).not.toMatch(/ROAS/);
+    expect(stepsBoard).not.toContain("Spend Upload");
+    expect(stepsBoard).not.toContain("cashCac");
     for (const source of [tt2Board, tt2Lib, loader, firstViewLib]) {
       expect(source).not.toContain("Total ROAS");
       expect(source).not.toContain("Spend Upload");
@@ -165,6 +172,27 @@ describe("Growth TT2 + win-back clock — habit, not a dump", () => {
     expect(tt2Board).toContain("Today’s read");
     expect(tt2Board).toContain("mcfly-cust-kpi--action");
     expect(tt2Board.match(/<ActionCard[\s\n]/g)?.length).toBe(3);
+  });
+
+  it("mounts ticket-and-wait steps under the days-to-second clock", () => {
+    const section = read("../components/CustomersGrowthSection.tsx");
+    const stepsBoard = read("../components/GrowthOrderStepsBoard.tsx");
+    expect(section).toContain("<GrowthOrderStepsBoard");
+    expect(section).toContain("steps={orderSteps}");
+    expect(section.indexOf("<GrowthTt2Board")).toBeLessThan(
+      section.indexOf("<GrowthOrderStepsBoard"),
+    );
+    expect(stepsBoard).toContain("Ticket and wait at each step");
+    expect(stepsBoard).toContain("The third order is where they stick");
+    expect(stepsBoard).toContain("1st");
+    expect(stepsBoard).toContain("2nd");
+    expect(stepsBoard).toContain("3rd");
+    expect(stepsBoard).toContain("4th and later");
+    expect(stepsBoard).toContain("Shopify sales");
+    expect(stepsBoard).toContain("3rd → 4th");
+    expect(stepsBoard).not.toContain("AOV vs Shopify");
+    expect(stepsBoard).not.toMatch(/\bCOGS\b/);
+    expect(stepsBoard).not.toMatch(/\bsessions?\b/i);
   });
 
   it("uses an ActionCard-shaped empty with the 8 × 30 floor", () => {
