@@ -20,12 +20,12 @@ describe("home SAMPLE Slack paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v34, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v35, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v34"');
-    expect(html).toContain("mcfly.css?v=20260922v34");
+    expect(html).toContain('content="v35"');
+    expect(html).toContain("mcfly.css?v=20260922v35");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -82,6 +82,11 @@ describe("home SAMPLE Slack paste board", () => {
     expect(html).not.toContain("/demo?tab=slack");
     expect(html).not.toContain("/demo?tab=paste");
     expect(overviewSlice).not.toMatch(/Total ROAS|Ad spend/i);
+    expect(html).not.toContain("last year next to this month");
+    expect(html).not.toContain("all-or-nothing Admin");
+    expect(html).toMatch(/compare to last year/);
+    expect(html).toMatch(/Reports already group sales by weekday/);
+    expect(html).toMatch(/ShopifyQL already has returning sales/);
   });
 
   it("wraps the paste board instead of a nowrap six-column table", () => {

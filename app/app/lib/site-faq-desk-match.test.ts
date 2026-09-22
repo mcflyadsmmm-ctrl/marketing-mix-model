@@ -151,6 +151,8 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
         "LTV 30/90/365",
         "Empty spend paints —",
         "never 0×",
+        "Reports can group sales by weekday",
+        "ShopifyQL has returning sales $",
       ],
       [
         "7-day trial, then $39/store/mo",
@@ -178,9 +180,9 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
       ],
       ["No.", "tracking pixels", "MTA", "true ROAS", "sales ÷ entered spend"],
       ["median ticket", "Shopify AOV is the mean"],
-      ["copy or Save PNG", "does not email or Slack"],
+      ["copy or Save PNG", "does not email or Slack", "Shopify staff with Analytics see every report"],
       ["No.", "No pixel", "$39 stays $39"],
-      ["No.", "reads orders in Admin"],
+      ["No.", "reads orders in Admin", "Shopify Admin can export Orders CSV"],
     ];
 
     visible.forEach((item, index) => {
