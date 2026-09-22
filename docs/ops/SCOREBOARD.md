@@ -1,18 +1,18 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v434 / PR #191 `fc9e618` / image `deployment-01M35BBAFG5GSNK1DN0GQVJJ0W` / Live PARKED. Health ok 2026-09-22T20:03Z. Parks `/lab` + Custom. Wrap CSS `3421267` is git-ahead of this image. Pages **v32** Direct Upload `2166ceed` live on mcflyads.com.
+**Tip Fly note:** v435 / PR #191 / image `deployment-01M35CPHP06D8T0BJEHVZNV4A0` / Live PARKED. Health ok 2026-09-22T20:28Z. Parks `/lab` + Custom. Wrap CSS `3421267` is on this image. Pages **v32** Direct Upload `2166ceed` live on mcflyads.com. Cloud Agent `CLOUDFLARE_API_TOKEN` Pages Edit proved (wrangler whoami + project PATCH).
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v434 / PR #191 `fc9e618` / Live PARKED |
+| Tip Fly SoT | v435 / PR #191 / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — mcflyads.com **v32** Pages `2166ceed`; fly.dev honest on v434 (`/lab` 301) |
-| Money prep | Listing paste #192; Pages live v32; tip Fly v434 / PR #191; Live PARKED |
+| Site P0 on box | DONE — mcflyads.com **v32** Pages `2166ceed`; fly.dev honest on v435 (`/lab` 301) |
+| Money prep | Listing paste #192; Pages live v32; tip Fly v435 / PR #191; Live PARKED; Cloudflare Pages Edit connected |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
 

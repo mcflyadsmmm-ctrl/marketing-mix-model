@@ -4,13 +4,13 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v32** Pages `2166ceed` · Fly **434** · occupancy **0/4** · ads **NO** |
+| **Updated** | 2026-09-22 · America/Denver · Site **v32** Pages `2166ceed` · Fly **435** · occupancy **0/4** · ads **NO** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v32** · Overview → Orders → Customers first · Slack paste board · `/lab` 301 · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **434** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings |
+| **Fly** | https://mcfly-analytics.fly.dev · version **435** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
-| **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
+| **Pages** | Cloudflare `mcflyads` · Direct Upload · Cloud Agent env `CLOUDFLARE_API_TOKEN` (Pages Edit) + `CLOUDFLARE_ACCOUNT_ID` connected 2026-09-22 · deploy from **non-git** temp dir |
 | **App code** | **UNFROZEN** 2026-08-29 · Fly + `app/**` open for App Store approval |
 | **Conductor** | One Cursor chat · read board + skill every turn · Mac-shell split [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
 
@@ -168,3 +168,4 @@ App + site are already live (Fly **331**, site **v19**). SAMPLE smoke **PASSed**
 | v25 | `b8adfd1a` | GUEST density · cropped hero · micro wells · typographic $39 |
 | v26 | `4a154f4d` | Demo P0 nav/CTA · Amp 5/7 shot grid · contain kept |
 | v27 | `97dd9597` | Opus v26 critic · complete hero cards · paper `#f2f5f8` · pricing ink |
+| v32 | `2166ceed` | Sales-first stack · Slack paste · Overview → Orders → Customers · `$39 stays $39 at $5M` · Direct Upload |

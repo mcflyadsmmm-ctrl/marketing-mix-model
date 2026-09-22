@@ -56,6 +56,8 @@ Home: kicker · H1 · lede · ≤2 CTAs. Do not billboard-duplicate the logo.
 
 ## Deploy
 
+Requires env `CLOUDFLARE_API_TOKEN` with **Cloudflare Pages Edit** plus `CLOUDFLARE_ACCOUNT_ID`. A create-tokens-only token will `whoami` and still fail `pages deploy` (API 10000). Never put the token in git or chat.
+
 ```bash
 bash scripts/site-sample-lock.sh
 # copy site/ (+ functions/) to a NON-git temp dir, then:
