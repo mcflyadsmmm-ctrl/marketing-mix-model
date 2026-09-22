@@ -386,7 +386,7 @@ export async function loadPublicSamplePage(
     newCustomerSales: day.newCustomerNetSales,
     buyersKnown: true,
   }));
-  const cpaWindowsDef = resolveCpaDeskWindows(now, PUBLIC_SAMPLE_TZ);
+  const cpaWindowsDef = resolveCpaDeskWindows(now, PUBLIC_SAMPLE_TZ, "paid_full");
   const cpaWindows = [
     buildCpaWindowSnapshot("this_month", cpaWindowsDef.thisMonth, cpaDays, PUBLIC_SAMPLE_TZ),
     buildCpaWindowSnapshot("last_28", cpaWindowsDef.last28, cpaDays, PUBLIC_SAMPLE_TZ),

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   applyExplorerMode,
@@ -20,9 +23,13 @@ import {
   parseExplorerShowSales,
   resolveExplorerWindow,
   explorerQueryMatchingScoreboard,
+  clampExplorerRangeToBook,
+  explorerRangeOptionsFor,
+  explorerYearChipNote,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   listRecentClosedShopLocalDays,
   shopLocalDayKey,
@@ -749,5 +756,59 @@ describe("compareExplorerBuckets", () => {
     expect(rows[0]?.hasPrior).toBe(false);
     expect(rows[0]?.priorKey).toBe("q:2025-Q4");
     expect(rows[0]?.spendDelta).toBeNull();
+  });
+});
+
+describe("unpaid explorer does not sell a finished year", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const lib = readFileSync(join(here, "./spend-explorer.ts"), "utf8");
+  const ui = readFileSync(join(here, "../components/SpendExplorer.tsx"), "utf8");
+  const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
+  const demo = readFileSync(join(here, "../routes/demo.spend.tsx"), "utf8");
+  const stack = readFileSync(join(here, "./desk-spend-stack.server.ts"), "utf8");
+
+  it("keep parsing YTD / 1y / All so paid and SAMPLE URLs still resolve", () => {
+    expect(parseExplorerRange("YTD")).toBe("YTD");
+    expect(parseExplorerRange("1y")).toBe("1y");
+    expect(parseExplorerRange("All")).toBe("All");
+  });
+
+  it("trial_slice hides This year / 1 year / All and clamps them to 90d", () => {
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+    const paid = explorerRangeOptionsFor("paid_full").map((opt) => opt.value);
+    expect(paid).toEqual(["14d", "30d", "90d", "YTD", "1y", "All"]);
+    const unpaid = explorerRangeOptionsFor("trial_slice").map((opt) => opt.value);
+    expect(unpaid).toEqual(["14d", "30d", "90d"]);
+    expect(clampExplorerRangeToBook("YTD", "trial_slice")).toBe("90d");
+    expect(clampExplorerRangeToBook("1y", "trial_slice")).toBe("90d");
+    expect(clampExplorerRangeToBook("All", "trial_slice")).toBe("90d");
+    expect(clampExplorerRangeToBook("YTD", "paid_full")).toBe("YTD");
+    expect(clampExplorerRangeToBook("90d", "trial_slice")).toBe("90d");
+    expect(explorerYearChipNote("paid_full")).toBeNull();
+    expect(explorerYearChipNote("trial_slice")).toMatch(
+      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
+    );
+    expect(explorerYearChipNote("trial_slice")).not.toMatch(/\$0/);
+  });
+
+  it("omit-path: chips and loader clamp year ranges on trial_slice", () => {
+    expect(lib).toContain("explorerRangeOptionsFor");
+    expect(lib).toContain("clampExplorerRangeToBook");
+    expect(lib).toMatch(
+      /export function explorerRangeOptionsFor\(\s*orderBookDepth: LiveIngestDepth/,
+    );
+    expect(lib).not.toMatch(/orderBookDepth:\s*LiveIngestDepth\s*=/);
+    expect(lib).toContain('case "trial_slice"');
+    expect(lib).toContain('case "paid_full"');
+    expect(lib).toMatch(/const _never: never = orderBookDepth/);
+    expect(ui).toContain("orderBookDepth: LiveIngestDepth");
+    expect(ui).not.toMatch(/orderBookDepth\?:/);
+    expect(ui).not.toMatch(/orderBookDepth\s*=\s*"paid_full"/);
+    expect(ui).toContain("explorerRangeOptionsFor(orderBookDepth)");
+    expect(ui).toContain("clampExplorerRangeToBook");
+    expect(spend).toMatch(/<SpendExplorer[\s\S]*orderBookDepth=\{orderBookDepth\}/);
+    expect(demo).toMatch(/<SpendExplorer[\s\S]*orderBookDepth="paid_full"/);
+    expect(stack).toContain("clampExplorerRangeToBook");
+    expect(spend).not.toContain("UnlockFullHistoryBanner");
   });
 });

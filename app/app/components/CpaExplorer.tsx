@@ -9,13 +9,16 @@ import {
 import { useChartHover } from "../lib/use-chart-hover";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
+  CPA_CLOSED_DAY_CLOCK,
   CPA_EXPLORER_LABEL,
   CPA_EXPLORER_LONG,
-  CPA_EXPLORER_RANGES,
+  CPA_TODAY_TRUNCATED,
   CPA_GRAIN_LABEL,
   CPA_GRAINS,
   bucketCpaDays,
   cpaExplorerActivityDays,
+  cpaExplorerRangesFor,
+  cpaYtdChipNote,
   filterCpaDays,
   typicalCpa,
   type CpaDayPoint,
@@ -23,6 +26,7 @@ import {
   type CpaGrain,
   type CpaWindowId,
 } from "../lib/cpa-desk";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import {
   overviewChartAxis,
   overviewChartLabelIndices,
@@ -99,14 +103,19 @@ export function CpaExplorer({
   ranges,
   selectedWindow,
   onSelectWindow,
+  orderBookDepth,
+  todaySalesTruncated,
 }: {
   days: CpaDayPoint[];
   ranges: Record<CpaExplorerRange, { fromKey: string; toKey: string }>;
   selectedWindow: CpaWindowId;
   onSelectWindow: (id: CpaWindowId) => void;
+  orderBookDepth: LiveIngestDepth;
+  todaySalesTruncated: boolean;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
+  const rangeOptions = cpaExplorerRangesFor(orderBookDepth);
   const [rangeId, setRangeId] = useState<CpaExplorerRange>(selectedWindow);
   const [grain, setGrain] = useState<CpaGrain>("day");
 
@@ -114,7 +123,10 @@ export function CpaExplorer({
     setRangeId(selectedWindow);
   }, [selectedWindow]);
 
-  const activeRange = rangeId;
+  const ytdNote = cpaYtdChipNote(orderBookDepth);
+  const activeRange: CpaExplorerRange = rangeOptions.some((id) => id === rangeId)
+    ? rangeId
+    : rangeOptions[0]!;
 
   const range = ranges[activeRange];
   const rangeDays = useMemo(
@@ -224,7 +236,9 @@ export function CpaExplorer({
           <h3 className="mcfly-chart__serif">Cash CPA explorer</h3>
           <p className="mcfly-chart__muted">
             {CPA_EXPLORER_LONG[activeRange]} · spend bars · Cash CPA line ·{" "}
-            {PRODUCT_NOUN.amer} stays off this chart
+            {PRODUCT_NOUN.amer} stays off this chart. {CPA_CLOSED_DAY_CLOCK}
+            {todaySalesTruncated ? ` ${CPA_TODAY_TRUNCATED}` : ""}
+            {ytdNote ? ` ${ytdNote}` : ""}
           </p>
         </div>
         {active ? (
@@ -281,7 +295,7 @@ export function CpaExplorer({
 
       <div className="mcfly-chart__controls">
         <div className="mcfly-period__group" role="group" aria-label="CPA range">
-          {CPA_EXPLORER_RANGES.map((option) => (
+          {rangeOptions.map((option) => (
             <button
               key={option}
               type="button"

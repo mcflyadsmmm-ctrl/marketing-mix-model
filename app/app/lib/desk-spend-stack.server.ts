@@ -95,6 +95,7 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  clampExplorerRangeToBook,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
@@ -302,9 +303,14 @@ async function loadSpendCpa(args: {
   dailyRows: ExplorerDailyRow[];
   dayKey: (instant: Date) => string;
   liveBuyerIndex: SpendPasteLiveIndex | null;
+  orderBookDepth: LiveIngestDepth;
 }): Promise<SpendCpaView> {
   const now = new Date();
-  const deskWindows = resolveCpaDeskWindows(now, args.deskTz);
+  const deskWindows = resolveCpaDeskWindows(
+    now,
+    args.deskTz,
+    args.orderBookDepth,
+  );
   const buyerDays = await loadBuyerDays(
     args.shopId,
     deskWindows.explorer,
@@ -410,6 +416,9 @@ export async function loadSpendAnalysis(args: {
   const settings = await getOrCreateSettings(args.shop.id);
   const now = new Date();
   const deskTz = deskPeriodTimeZone(args.useSampleDesk, args.shop.ianaTimezone);
+  const orderBookDepth: LiveIngestDepth = args.useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(args.shop.id);
   const range = resolvePeriod(preset, now, deskTz);
   const dayKey = (instant: Date) =>
     deskTz ? shopLocalDayKey(instant, deskTz) : dateKeyFromLocal(instant);
@@ -467,11 +476,14 @@ export async function loadSpendAnalysis(args: {
     explicitExplorerRange || historyFirstEmpty
       ? null
       : explorerQueryMatchingScoreboard(preset, range, deskTz);
-  const explorerRange = explicitExplorerRange
-    ? parseExplorerRange(explicitExplorerRange)
-    : historyFirstEmpty
-      ? parseExplorerRange("90d")
-      : (tiedExplorer?.range ?? "custom");
+  const explorerRange = clampExplorerRangeToBook(
+    explicitExplorerRange
+      ? parseExplorerRange(explicitExplorerRange)
+      : historyFirstEmpty
+        ? parseExplorerRange("90d")
+        : (tiedExplorer?.range ?? "custom"),
+    orderBookDepth,
+  );
   const explorerFrom = explicitExplorerRange
     ? parseExplorerDateParam(url.searchParams.get("exFrom"))
     : (tiedExplorer?.from ?? null);
@@ -496,7 +508,7 @@ export async function loadSpendAnalysis(args: {
     end: ytdRange.end,
     label: "Control",
   };
-  const cpaWindows = resolveCpaDeskWindows(now, deskTz);
+  const cpaWindows = resolveCpaDeskWindows(now, deskTz, orderBookDepth);
 
   const unionStart = minDate(
     minDate(explorerWindow.start, histWindow.start),
@@ -637,6 +649,7 @@ export async function loadSpendAnalysis(args: {
     dailyRows,
     dayKey,
     liveBuyerIndex: args.useSampleDesk ? null : liveBuyerIndex,
+    orderBookDepth,
   });
   if (!args.useSampleDesk) {
     cpa.salesError = salesError;
@@ -669,9 +682,6 @@ export async function loadSpendAnalysis(args: {
       )
       .map((row) => row.dateKey),
   });
-  const orderBookDepth: LiveIngestDepth = args.useSampleDesk
-    ? "paid_full"
-    : await shopLiveIngestDepth(args.shop.id);
 
   return {
     metrics,

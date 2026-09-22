@@ -10,7 +10,9 @@ import { useCoalescedCallback, useHeldChartSeries } from "../lib/use-chart-hover
 import {
   EXPLORER_GRANULARITY_OPTIONS,
   EXPLORER_MODE_OPTIONS,
-  EXPLORER_RANGE_OPTIONS,
+  clampExplorerRangeToBook,
+  explorerRangeOptionsFor,
+  explorerYearChipNote,
   compareExplorerBuckets,
   dateKeyFromLocal,
   explorerBucketDateRange,
@@ -27,6 +29,7 @@ import {
   type ExplorerRange,
   type ExplorerSummary,
 } from "../lib/spend-explorer";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
@@ -82,6 +85,8 @@ type SpendExplorerProps = {
    * and the range / grain rail. Chip clicks still set custom dates via the URL.
    */
   quiet?: boolean;
+  /** Unpaid live tills hide This year / 1 year / All. SAMPLE and paid keep them. */
+  orderBookDepth: LiveIngestDepth;
 };
 
 /** "overview" = full chrome (default); "spend" = compact embed. */
@@ -396,6 +401,7 @@ export function SpendExplorer({
   compare = false,
   variant = "overview",
   quiet = false,
+  orderBookDepth,
 }: SpendExplorerProps) {
   const currency = useDeskCurrency();
   const navigate = useNavigate();
@@ -419,7 +425,10 @@ export function SpendExplorer({
       showSales: series.showSales,
     },
     isRefreshing && navigation.location ? navigation.location.search : null,
+    orderBookDepth,
   );
+  const rangeOptions = explorerRangeOptionsFor(orderBookDepth);
+  const yearChipNote = explorerYearChipNote(orderBookDepth);
   const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
     series;
   const customChannelLabels = series.channelLabels;
@@ -742,12 +751,12 @@ export function SpendExplorer({
             role="group"
             aria-label="Explorer range"
           >
-            {EXPLORER_RANGE_OPTIONS.map(({ value, label }) => {
+            {rangeOptions.map(({ value, label }) => {
               const on = paint.range === value;
               return (
                 <Link
                   key={value}
-                  to={toExplorer({ range: value })}
+                  to={toExplorer({ range: clampExplorerRangeToBook(value, orderBookDepth) })}
                   preventScrollReset
                   className={`mcfly-explorer__btn${on ? " mcfly-explorer__btn--on" : ""}`}
                   aria-current={on ? "true" : undefined}
@@ -757,6 +766,9 @@ export function SpendExplorer({
               );
             })}
           </div>
+          {yearChipNote ? (
+            <p className="mcfly-panel__muted">{yearChipNote}</p>
+          ) : null}
 
           <form
             className="mcfly-explorer__dates"

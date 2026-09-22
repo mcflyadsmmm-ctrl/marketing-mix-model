@@ -5,6 +5,7 @@
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 
 /**
  * Every named platform plus typed extras (billboard, radio, …).
@@ -31,7 +32,7 @@ export const PRO_UPSELL = {
   priceLine: "$39 per store / month",
   /** One-line “what you get” for Settings. */
   includes:
-    "Whole desk: Spend, Overview, LTV, Goals. Sample data or Live data — billing is not a view.",
+    `Spend, Overview, LTV, Goals. Sample data or Live data — billing is not a view. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.`,
   channels:
     "Every named platform plus extras like billboard. Type a channel if we did not list it.",
   ltv: "Did this month’s new customers pay back the spend you logged? Mcfly follows them for 30 / 90 / 365 days. Shopify Analytics does not.",
@@ -47,7 +48,7 @@ export const PRO_UPSELL = {
 /** In-app only (never listing paste). Contrast GMV ladders and order overages. */
 export const BILLING_HONESTY = {
   flat:
-    "Mcfly Analytics is $39 per store / month after a 7-day full-access trial — not a percent of sales, not a per-order fee. The price does not rise with sales.",
+    `Mcfly Analytics is $39 per store / month after a 7-day trial — not a percent of sales, not a per-order fee. The price does not rise with sales. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months. One plan.`,
   cancel:
     "Shopify bills this app. Uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
 } as const;
@@ -60,5 +61,5 @@ export const DESK_FEATURE_BULLETS = [
   "Customer LTV and payback on your store",
   "Full-year Goals board",
   "Sample data to click around before Live data",
-  "7-day full-access trial, then $39 per store / month",
+  `7-day trial, then $39 per store / month. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months`,
 ] as const;

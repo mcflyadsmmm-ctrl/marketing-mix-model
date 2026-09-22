@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { SPEND_CHANNELS } from "@mcfly/mer-engine";
 import {
+  BILLING_HONESTY,
+  DESK_FEATURE_BULLETS,
+  PRO_UPSELL,
+} from "./entitlements";
+import {
   assertChannelsAllowed,
   canUseChannel,
   filterToAllowedChannels,
@@ -10,6 +15,7 @@ import {
   isProShop,
   parseProShopOverrideList,
 } from "./entitlements.server";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 
 const ORIG_PRO = process.env.MCFLY_PRO_SHOPS;
 const ORIG_BILLING = process.env.MCFLY_BILLING;
@@ -137,5 +143,27 @@ describe("entitlements whole-desk plan", () => {
     expect(e.isPro).toBe(true);
     // Paid changes billing state only — never which features resolve.
     expect(e.canUseAllChannels).toBe(true);
+  });
+});
+
+describe("entitlements plan copy names 90 vs 24", () => {
+  it("trial is not full-access — unpaid order rows stop at 90 closed days", () => {
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+    const bullets = DESK_FEATURE_BULLETS.join(" ");
+    expect(bullets).toMatch(new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`));
+    expect(bullets).toMatch(/24 months/);
+    expect(bullets).toMatch(/\$39/);
+    expect(bullets).toMatch(/7-day trial/);
+    expect(bullets).not.toMatch(/full-access/);
+    expect(BILLING_HONESTY.flat).toMatch(
+      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
+    );
+    expect(BILLING_HONESTY.flat).toMatch(/24 months/);
+    expect(BILLING_HONESTY.flat).not.toMatch(/full-access/);
+    expect(PRO_UPSELL.includes).toMatch(
+      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
+    );
+    expect(PRO_UPSELL.includes).toMatch(/24 months/);
+    expect(PRO_UPSELL.includes).toMatch(/view/i);
   });
 });

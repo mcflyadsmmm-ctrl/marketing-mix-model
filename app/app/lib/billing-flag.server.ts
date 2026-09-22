@@ -1,8 +1,11 @@
 /**
- * Shopify App Pricing — one plan $39 after a 7-day whole-desk trial.
+ * Shopify App Pricing — one plan $39 after a 7-day trial.
  * Production Fly has MCFLY_BILLING=1. Billing is not a desk mode.
- * Never claim Free+Pro feature gates while the whole desk is on trial/paid.
+ * Unpaid order rows stop at {@link LIVE_UNPAID_INGEST_DAYS} closed days.
+ * Paid is up to 24 months. Never claim Free+Pro feature gates.
  */
+
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 
 export function isBillingEnabled(): boolean {
   return process.env.MCFLY_BILLING === "1";
@@ -18,7 +21,7 @@ export function freeSpendImportDailyCap(): number {
 
 export type BillingTier = "free" | "pro";
 
-/** Founder lock 2026-08-26: $39/store/mo after 7-day full-access trial. */
+/** Founder lock 2026-08-26: $39/store/mo after 7-day trial. Unpaid order rows are 90 closed days; paid is 24 months. */
 export const PRO_PLAN = {
   name: "Mcfly Analytics",
   amount: 39,
@@ -59,6 +62,6 @@ export function billingStatusCopy(billingEnabled: boolean): {
     tier: "pro",
     headline: "7-day trial · then $39/store/mo",
     detail:
-      "7-day full-access trial, then $39 per store / month for the whole desk — not a percent of sales, not a per-order fee. Shopify bills this app; uninstall in Admin to stop the next 30-day cycle (the current cycle may still charge).",
+      `7-day trial, then $39 per store / month. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months. One plan — not a percent of sales, not a per-order fee. Shopify bills this app; uninstall in Admin to stop the next 30-day cycle (the current cycle may still charge).`,
   };
 }
