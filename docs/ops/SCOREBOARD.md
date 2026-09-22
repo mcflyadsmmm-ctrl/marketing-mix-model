@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v431 / tip `54840ce` (merge of #188 site trial leftover) / image `deployment-01M3524TFKJWR4SM47YKG92N4X` / Live PARKED. Health ok 2026-09-22T17:22Z. v430 was truncated-today leftover.
+**Tip Fly note:** v432 / tip `1abfa7e` (merge of #189 spend leftover honesty) / image `deployment-01M354B2VDV7WTAHA4SCEBMC7B` / Live PARKED. Health ok 2026-09-22T18:00Z. v431 was site trial leftover.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v431 / tip `54840ce` / Live PARKED |
+| Tip Fly SoT | v432 / tip `1abfa7e` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — fly.dev static site honest on v431; Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v431 / tip `54840ce`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v432 / tip `1abfa7e`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 5 of that queue is the only cook. |
+| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 6 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Spend leftover honesty.** “I pasted yesterday on Spend import from a Denver laptop; the shop is Asia/Tokyo; the row landed on the wrong closed day. Coverage is still the host calendar. SAMPLE import still drew a 35% break-even rail. The pair said Online `$` ÷ typed spend — I typed Meta plus a retainer and read 2.1× as ads ROAS. Monday is 2.1× and Sunday looks like 8× because we do not buy ads; the explorer has no weekday grain.”
+**Wrong-lane leftover.** “I tapped Coverage to fill an empty day. The Add-a-day fold opened too, and the coverage calendar also snapped open. On Overview, Mix close still opens weekday.”
 
-Spend import · coverage strip · first-fold Online line · explorer. Import `todayKey` uses `deskPeriodTimeZone` + `shopLocalDayKey`. Coverage / explorer / closed-day keys same shop IANA. SAMPLE import `breakEvenMer` null unless Live Settings confirmed a margin (Settings has no margin field — so null). Online multiple names all-typed-dollar denominator or withholds when non-online spend is on file. Explorer weekday grain shop-local. Copyable this-week / this-month Shopify Total Sales and weekday-shifted last year `$` (or previous week when last year is not on file). Never `0×`. Never fake `$0`. Do not recook rank 3 year chips / CPA YTD. Do not recook rank 8 payback day-0. Do not unpark Live. Do not change the 90.
+Spend Add-spend fold · Overview mix close. Public `/demo` and Admin `/app`. Coverage / recurring / ledger hashes must open only that `<details>` (or a dedicated fold), not the parent Add-spend `DeskLane`. Mix close must not set `defaultOpen` on the weekday fold. Do not recook v422’s later-`defaultOpen` contract. Do not recook spend leftover honesty. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/spend-leftover-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 6–8 and 10–14 of the third-queue stay queued. Do not rebuild site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/wrong-lane-leftover-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 7–8 and 10–14 of the third-queue stay queued. Do not rebuild spend leftover honesty, site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 5. After PASS, stamp wrong-lane leftover (`cursor/wrong-lane-leftover-5bc6`), not rank 7.
+Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 6. After PASS, stamp phone six-figure wrap (`cursor/phone-six-figure-wrap-5bc6`), not rank 8.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
