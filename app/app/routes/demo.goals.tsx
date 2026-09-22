@@ -7,15 +7,19 @@ import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OrderHistoryGoalsBoard } from "../components/OrderHistoryGoalsBoard";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { useDeskCurrency } from "../lib/desk-currency";
-import { formatCurrency, formatMer } from "../lib/mer-format";
+import { formatCurrency, formatMer, formatMoneyOrDash } from "../lib/mer-format";
+import { impliedSpendCeiling } from "../lib/implied-spend-ceiling";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { PUBLIC_SAMPLE_TZ } from "../lib/public-sample-constants";
 import { loadPublicSampleBook } from "../lib/public-sample-book.server";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
+import { returningSalesByMonthFromOrders } from "../lib/sales-goals";
 import {
+  buildGoalMonthRows,
   buildSalesGoalPeriods,
   salesByMonthFromDayMap,
+  type GoalMonthRow,
 } from "../lib/sales-goals.server";
 import { shopLocalYmd } from "../lib/shop-local-day";
 
@@ -58,9 +62,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const value = priorSalesByMonth.get(i + 1);
     return Number.isFinite(value) ? (value as number) : null;
   });
+  const sampleYearGoals: Array<number | null> = Array.from(
+    { length: 12 },
+    () => null,
+  );
+  const returningByMonth = returningSalesByMonthFromOrders(ymd.y, book.orders);
+  const yearRows = buildGoalMonthRows({
+    year: ymd.y,
+    goals: sampleYearGoals,
+    salesByMonth,
+    spendByMonth,
+    returningByMonth,
+    targetMer: page.targetMer,
+    breakEvenMer: null,
+    now,
+    ianaTimezone: PUBLIC_SAMPLE_TZ,
+  });
   const goalPeriods = buildSalesGoalPeriods({
     year: ymd.y,
-    goals: Array.from({ length: 12 }, () => 0),
+    goals: sampleYearGoals,
     salesByMonth,
     spendByMonth,
     priorYearMonthly,
@@ -69,8 +89,90 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     targetMer: page.targetMer,
     breakEvenMer: null,
   });
-  return { ...page, goalPeriods };
+  return { ...page, goalPeriods, yearRows, priorYearMonthly };
 };
+
+function yoyPct(actual: number | null, prior: number | null): number | null {
+  if (
+    actual == null ||
+    prior == null ||
+    !Number.isFinite(actual) ||
+    !Number.isFinite(prior) ||
+    !(prior > 0)
+  ) {
+    return null;
+  }
+  return ((actual - prior) / prior) * 100;
+}
+
+function formatYoyPct(pct: number | null): string {
+  if (pct == null) return "—";
+  const sign = pct > 0 ? "+" : "";
+  return `${sign}${pct.toFixed(0)}%`;
+}
+
+function SampleYearPlanRow({
+  row,
+  prior,
+  showSpend,
+  targetMer,
+  currency,
+}: {
+  row: GoalMonthRow;
+  prior: number | null;
+  showSpend: boolean;
+  targetMer: number;
+  currency: string;
+}) {
+  const hasGoal = row.salesGoal != null && Number.isFinite(row.salesGoal);
+  const spendCeiling =
+    row.salesGoal != null
+      ? impliedSpendCeiling(row.salesGoal, targetMer)
+      : null;
+  const rowClass = [
+    "mcfly-goals-table__row",
+    row.isCurrent ? "mcfly-goals-table__row--current" : "",
+    row.isFuture ? "mcfly-goals-table__row--future" : "",
+    hasGoal && !row.isFuture
+      ? `mcfly-goals-table__row--${row.pace.tone}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const pct = yoyPct(row.actual, prior);
+
+  return (
+    <tr className={rowClass}>
+      <th scope="row">
+        {row.monthShort}
+        {row.isCurrent ? (
+          <span className="mcfly-goals-table__now"> MTD</span>
+        ) : null}
+      </th>
+      <td>{formatMoneyOrDash(row.salesGoal, currency)}</td>
+      <td>{formatMoneyOrDash(row.actual, currency)}</td>
+      <td>{formatMoneyOrDash(row.returningActual, currency)}</td>
+      {showSpend ? (
+        <>
+          <td>{row.spend > 0 ? formatCurrency(row.spend, currency) : "—"}</td>
+          <td>
+            {spendCeiling != null ? formatCurrency(spendCeiling, currency) : "—"}
+          </td>
+          <td>
+            {row.spend > 0 && row.mer != null ? formatMer(row.mer) : "—"}
+          </td>
+        </>
+      ) : null}
+      <td>{formatMoneyOrDash(prior, currency)}</td>
+      <td>{formatYoyPct(pct)}</td>
+      <td>
+        <span className={`mcfly-goals-pace mcfly-goals-pace--${row.pace.tone}`}>
+          {row.pace.label}
+        </span>
+      </td>
+    </tr>
+  );
+}
 
 export default function PublicDemoGoals() {
   const data = useLoaderData<typeof loader>();
@@ -78,6 +180,7 @@ export default function PublicDemoGoals() {
   const navigation = useNavigation();
   const periodHasSpend = data.spend > 0;
   const yearHasSpend =
+    data.yearRows.some((row) => row.spend > 0) ||
     data.goalPeriods.mtd.spend > 0 ||
     data.goalPeriods.qtd.spend > 0 ||
     data.goalPeriods.ytd.spend > 0;
@@ -95,7 +198,7 @@ export default function PublicDemoGoals() {
       retryHref="/demo/goals"
     >
       <p className="mcfly-book__lede">
-        Read-only SAMPLE. Same year plan as Admin Goals. Spend is the second
+        Read-only SAMPLE year plan. Empty months stay —. Spend is the second
         chapter.
       </p>
       <OrderHistoryGoalsBoard
@@ -155,6 +258,48 @@ export default function PublicDemoGoals() {
         targetMer={data.targetMer}
         breakEvenMer={null}
       />
+      <section
+        className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense mcfly-goals-panel--soft"
+        aria-label="Monthly plan"
+      >
+        <p className="mcfly-book__lede">
+          SAMPLE months as typed or empty. Empty stays —. Not a $0 year plan.
+        </p>
+        <div className="mcfly-goals-table-wrap">
+          <table className="mcfly-goals-table mcfly-goals-table--sales">
+            <thead>
+              <tr>
+                <th scope="col">Month</th>
+                <th scope="col">Goal</th>
+                <th scope="col">{PRODUCT_NOUN.salesBasisShort}</th>
+                <th scope="col">Returning $</th>
+                {yearHasSpend ? (
+                  <>
+                    <th scope="col">Spend</th>
+                    <th scope="col">Ceiling</th>
+                    <th scope="col">MER</th>
+                  </>
+                ) : null}
+                <th scope="col">Prior {PRODUCT_NOUN.salesBasisShort}</th>
+                <th scope="col">YoY</th>
+                <th scope="col">Pace</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.yearRows.map((row) => (
+                <SampleYearPlanRow
+                  key={row.month}
+                  row={row}
+                  prior={data.priorYearMonthly[row.month - 1] ?? null}
+                  showSpend={yearHasSpend}
+                  targetMer={data.targetMer}
+                  currency={currency}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </DeskBookPage>
   );
 }

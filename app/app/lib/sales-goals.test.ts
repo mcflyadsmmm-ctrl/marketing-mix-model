@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db.server", () => ({
@@ -18,6 +20,9 @@ vi.mock("./mer-dashboard.server", () => ({
 
 import { impliedSpendCeiling, impliedSpendCeilingCaption } from "./implied-spend-ceiling";
 import { FORECAST_MIN_DAYS } from "./overview-mix-forecast";
+import { SalesGoalGauges } from "../components/SalesGoalGauges";
+import { DeskCurrencyContext } from "./desk-currency";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   formatGoalInput,
   goalsAtYoyGrowth,
@@ -25,6 +30,8 @@ import {
   IMPLIED_IDENTIFIED_BUYERS_MIN_ORDERS,
   parseGoalInput,
   returningSalesByMonthFromOrders,
+  thisMonthPlanCopyText,
+  typedGoalAmount,
 } from "./sales-goals";
 import {
   buildMonthCloseForecast,
@@ -38,6 +45,8 @@ import {
   spendByMonthMap,
   upsertYearSalesGoals,
   yearDateRange,
+  type SalesGoalPeriod,
+  type SalesGoalPeriods,
 } from "./sales-goals.server";
 import { shopLocalDayKey, shopLocalDayRange, shopLocalYmd } from "./shop-local-day";
 import prisma from "../db.server";
@@ -532,7 +541,11 @@ describe("cleared months stay out of YTD goal sums", () => {
       now,
     });
     expect(skipped.ytd.goal).toBe(600_000);
+    expect(skipped.ytd.actual).toBe(60_000);
+    expect(skipped.ytd.progressPct).toBe(10);
     expect(skipped.mtd.goal).toBe(100_000);
+    expect(skipped.ytd.yoy.priorActual).toBeNull();
+    expect(skipped.ytd.yoy.pct).toBeNull();
 
     const typedZero = [...goals];
     typedZero[1] = 0;
@@ -544,12 +557,217 @@ describe("cleared months stay out of YTD goal sums", () => {
       now,
     });
     expect(withZero.ytd.goal).toBe(600_000);
+    expect(withZero.ytd.actual).toBe(70_000);
+    expect(withZero.ytd.progressPct).toBeCloseTo((70_000 / 600_000) * 100, 5);
     expect(goalsAtYoyGrowth([90_000, null, 0, 80_000], 10)).toEqual([
       99_000,
       null,
       null,
       88_000,
     ]);
+  });
+
+  it("does not paint YTD ahead from Feb sales when February is blank", () => {
+    const now = new Date(2026, 2, 15);
+    const salesByMonth = new Map<number, number>([
+      [1, 100_000],
+      [2, 80_000],
+      [3, 50_000],
+    ]);
+    const goals: Array<number | null> = [
+      100_000,
+      null,
+      100_000,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ];
+    const periods = buildSalesGoalPeriods({
+      year: 2026,
+      goals,
+      salesByMonth,
+      priorYearMonthly: Array.from({ length: 12 }, () => null),
+      now,
+    });
+    expect(periods.ytd.actual).toBe(150_000);
+    expect(periods.ytd.goal).toBe(200_000);
+    expect(periods.qtd.actual).toBe(150_000);
+    expect(periods.qtd.goal).toBe(200_000);
+    expect(periods.ytd.progressPct).toBe(75);
+    expect(periods.ytd.pace.kind).not.toBe("ahead");
+    const janDays = daysInCalendarMonth(2026, 1);
+    const marDays = daysInCalendarMonth(2026, 3);
+    expect(periods.ytd.calendarPct).toBeCloseTo(
+      ((janDays + 15) / (janDays + marDays)) * 100,
+      5,
+    );
+    expect(periods.qtd.calendarPct).toBeCloseTo(periods.ytd.calendarPct, 5);
+    const inflatedTick =
+      ((janDays + daysInCalendarMonth(2026, 2) + 15) /
+        (janDays + daysInCalendarMonth(2026, 2) + marDays)) *
+      100;
+    expect(periods.ytd.calendarPct).not.toBeCloseTo(inflatedTick, 5);
+    expect(periods.ytd.yoy.pct).toBeNull();
+  });
+});
+
+describe("typed $0 vs a cleared month", () => {
+  it("keeps typed $0 as a plan amount and treats a cleared month as not on file", () => {
+    expect(typedGoalAmount(0)).toBe(0);
+    expect(typedGoalAmount(null)).toBeNull();
+    expect(typedGoalAmount(undefined)).toBeNull();
+    expect(typedGoalAmount(1200)).toBe(1200);
+    expect(formatGoalInput(0)).toBe("0");
+    expect(formatGoalInput(null)).toBe("");
+  });
+
+  it("copies Goal / Shopify Total Sales / Prior and never $0s a missing last year", () => {
+    expect(
+      thisMonthPlanCopyText({
+        goal: null,
+        actual: 50_000,
+        prior: 40_000,
+        currency: "USD",
+      }),
+    ).toBeNull();
+    const missingPrior = thisMonthPlanCopyText({
+      goal: 100_000,
+      actual: 52_000,
+      prior: null,
+      currency: "USD",
+    });
+    expect(missingPrior).toMatch(/versus/i);
+    expect(missingPrior).toMatch(/not on file/i);
+    expect(missingPrior).not.toMatch(/last year \$0/i);
+    const typedZero = thisMonthPlanCopyText({
+      goal: 0,
+      actual: 0,
+      prior: null,
+      currency: "USD",
+    });
+    expect(typedZero).toMatch(/\$0/);
+    expect(typedZero).toMatch(/not on file/i);
+    expect(
+      thisMonthPlanCopyText({
+        goal: 100_000,
+        actual: 52_000,
+        prior: 48_000,
+        currency: "USD",
+      }),
+    ).toMatch(/\$48,000/);
+  });
+});
+
+describe("SalesGoalGauges — null actual is not 0%", () => {
+  function period(
+    overrides: Partial<SalesGoalPeriod> & Pick<SalesGoalPeriod, "key" | "label">,
+  ): SalesGoalPeriod {
+    return {
+      periodHint: "Mar 2026",
+      actual: null,
+      goal: 100_000,
+      spend: 0,
+      mer: null,
+      merRails: { vsTargetAbs: null, vsBeAbs: null, tone: "flat", label: "—" },
+      progressPct: null,
+      calendarPct: 48,
+      pace: { kind: "none", label: "—", tone: "flat" },
+      yoy: { priorActual: null, pct: null, tone: "flat" },
+      ...overrides,
+    };
+  }
+
+  function renderGauges(periods: SalesGoalPeriods): string {
+    return renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(SalesGoalGauges, { periods, variant: "book" }),
+      ),
+    );
+  }
+
+  it("keeps an empty bar and — when actual is missing, and allows 0% on certified $0", () => {
+    const missing = renderGauges({
+      mtd: period({ key: "mtd", label: "This month" }),
+      qtd: period({ key: "qtd", label: "This quarter", periodHint: "Q1 2026" }),
+      ytd: period({ key: "ytd", label: "This year", periodHint: "2026" }),
+    });
+    expect(missing).toContain("— / $100,000");
+    expect(missing).not.toMatch(/aria-valuenow="0"/);
+    expect(missing).not.toMatch(/>0%</);
+    expect(missing).not.toContain("no goal set");
+    const ytdPct = missing.match(
+      /This year[\s\S]{0,400}mcfly-goal-row__pct[^>]*>([^<]+)</,
+    );
+    expect(ytdPct?.[1]?.trim()).toBe("—");
+
+    const certified = renderGauges({
+      mtd: period({
+        key: "mtd",
+        label: "This month",
+        actual: 0,
+        progressPct: 0,
+        pace: { kind: "miss", label: "Miss", tone: "down" },
+      }),
+      qtd: period({
+        key: "qtd",
+        label: "This quarter",
+        actual: 0,
+        progressPct: 0,
+        pace: { kind: "miss", label: "Miss", tone: "down" },
+      }),
+      ytd: period({
+        key: "ytd",
+        label: "This year",
+        actual: 0,
+        progressPct: 0,
+        pace: { kind: "miss", label: "Miss", tone: "down" },
+      }),
+    });
+    expect(certified).toMatch(/aria-valuenow="0"/);
+    expect(certified).toContain("0%");
+    expect(certified).toContain("$0 / $100,000");
+  });
+});
+
+describe("Goals leftover honesty locks", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+
+  function read(rel: string): string {
+    return readFileSync(join(here, rel), "utf8");
+  }
+
+  it("does not lengthen the unpaid crawl past 90 closed days", () => {
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+    expect(read("./live-unpark.ts")).toMatch(/LIVE_UNPAID_INGEST_DAYS = 90/);
+  });
+
+  it("does not mount a fake twelve-month $0 Admin plan on public demo Goals", () => {
+    const demo = read("../routes/demo.goals.tsx");
+    expect(demo).not.toMatch(/Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/);
+    expect(demo).toContain("mcfly-goals-table");
+    expect(demo).toContain("buildGoalMonthRows");
+    expect(demo).not.toMatch(/Same year plan as Admin/);
+    expect(demo).not.toMatch(/\$800k/);
+    expect(demo).not.toMatch(/800_000/);
+  });
+
+  it("keeps ThisMonthPlanStack copy on Admin and habit copy on the order-history board", () => {
+    const goals = read("../routes/app.goals.tsx");
+    const board = read("../components/OrderHistoryGoalsBoard.tsx");
+    expect(goals).toContain("ThisMonthPlanStack");
+    expect(goals).toContain("thisMonthPlanCopyText");
+    expect(goals).toContain("typedGoalAmount");
+    expect(goals).toContain("Copy plan");
+    expect(board).toContain("CopyMorningSentence");
+    expect(board).toContain("morningSentence");
   });
 });
 

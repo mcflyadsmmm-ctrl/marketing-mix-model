@@ -1,4 +1,4 @@
-import { useEffect, useId } from "react";
+import { useEffect, useId, useState } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
@@ -61,6 +61,8 @@ import {
   impliedIdentifiedBuyers,
   parseGoalInput,
   returningSalesByMonthFromOrders,
+  thisMonthPlanCopyText,
+  typedGoalAmount,
 } from "../lib/sales-goals";
 import {
   buildSalesGoalPeriods,
@@ -84,6 +86,7 @@ import { BookFactGrid } from "../components/ShopifyBookSection";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { SalesLoadError } from "../components/SalesLoadError";
+import { copyDeskText } from "../components/SlackInsightCard";
 import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
 
@@ -672,12 +675,14 @@ export default function GoalsPage() {
     (v): v is number => v != null && Number.isFinite(v) && v > 0,
   );
   const priorYearSales = knownPriorMonths.reduce((a, b) => a + b, 0);
-  const previewTenPct = goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
+  const previewTenPct = goalsAtYoyGrowth(priorYearMonthly, 10).reduce<number>(
     (a, b) => a + (b ?? 0),
     0,
   );
   const canGrowFromPrior = knownPriorMonths.length > 0;
-  const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
+  const noGoalsYet = board.rows.every(
+    (r) => typedGoalAmount(r.salesGoal) == null,
+  );
   const currentMonthRow = board.rows.find((row) => row.isCurrent) ?? null;
   const currentMonthPrior = currentMonthRow
     ? (priorYearMonthly[currentMonthRow.month - 1] ?? null)
@@ -1406,7 +1411,7 @@ function GoalRow({
   targetMer: number;
 }) {
   const currency = useDeskCurrency();
-  const hasGoal = row.salesGoal != null && row.salesGoal > 0;
+  const hasGoal = typedGoalAmount(row.salesGoal) != null;
   const spendCeiling =
     row.salesGoal != null
       ? impliedSpendCeiling(row.salesGoal, targetMer)
@@ -1487,6 +1492,27 @@ function GoalRow({
   );
 }
 
+function CopyThisMonthPlan({ text }: { text: string | null }) {
+  const [copied, setCopied] = useState(false);
+  if (!text) return null;
+
+  return (
+    <button
+      type="button"
+      className="mcfly-share-card__btn mcfly-morning-copy"
+      onClick={() => {
+        void copyDeskText(text).then((ok) => {
+          if (!ok) return;
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 1600);
+        });
+      }}
+    >
+      {copied ? "Copied" : "Copy plan"}
+    </button>
+  );
+}
+
 function ThisMonthPlanStack({
   row,
   prior,
@@ -1499,10 +1525,17 @@ function ThisMonthPlanStack({
   impliedBuyers: number | null;
 }) {
   const currency = useDeskCurrency();
+  const goalAmount = showGoal ? typedGoalAmount(row.salesGoal) : null;
   const goal =
-    showGoal && row.salesGoal > 0
-      ? formatCurrency(row.salesGoal ?? 0, currency)
-      : "—";
+    goalAmount != null ? formatCurrency(goalAmount, currency) : "—";
+  const copyText = showGoal
+    ? thisMonthPlanCopyText({
+        goal: row.salesGoal,
+        actual: row.actual,
+        prior,
+        currency,
+      })
+    : null;
   return (
     <section
       className="mcfly-goals-month-stack"
@@ -1548,6 +1581,7 @@ function ThisMonthPlanStack({
           </div>
         ) : null}
       </div>
+      <CopyThisMonthPlan text={copyText} />
       {showGoal ? (
         <p className="mcfly-panel__muted">
           {impliedBuyers != null
