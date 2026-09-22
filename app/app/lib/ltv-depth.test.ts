@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   aovTiers,
   basketTiers,
@@ -284,5 +287,15 @@ describe("buildLtvDepth", () => {
     expect(view.productsKnown).toBe(false);
     expect(view.paths).toEqual([]);
     expect(view.buyers).toBe(25);
+  });
+});
+
+describe("LTV depth withholds a longer Shopify life", () => {
+  it("maps lifetimeOrders and names truncated buyers instead of treating the stored book as the life", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const page = readFileSync(join(here, "ltv-depth-page.server.ts"), "utf8");
+    expect(page).toContain("lifetimeOrders");
+    expect(page).toContain("truncatedLifetimeBuyers");
+    expect(page).toMatch(/orders on this desk only|longer Shopify life/);
   });
 });

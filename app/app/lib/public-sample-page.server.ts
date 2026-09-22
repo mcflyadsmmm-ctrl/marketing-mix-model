@@ -131,6 +131,7 @@ function toRetention(orders: SampleOrderFactRow[]): RetentionOrderRow[] {
     orderedAt: row.orderedAt,
     amount: row.amount,
     lifetimeOrders: row.lifetimeOrders,
+    shopLocalDate: row.shopLocalDate,
   }));
 }
 
@@ -345,6 +346,7 @@ export async function loadPublicSamplePage(
       periodStart: range.start,
       periodEnd: range.end,
       historyLimited: false,
+      timeZone: PUBLIC_SAMPLE_TZ,
     }),
     rfm: buildCustomerRfm(retention, { windowEnd: now, historyLimited: false }),
   };

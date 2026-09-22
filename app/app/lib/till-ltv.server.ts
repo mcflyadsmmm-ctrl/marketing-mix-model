@@ -2,10 +2,15 @@ import {
   getCohortFacts,
   getOrderBackfillHistoryLimited,
   getOrderBackfillProgress,
+  loadOrderDepthRows,
+  computeCohortRollups,
+  ORDER_FACT_SOURCE,
 } from "./order-facts.server";
 import { cashPaybackDays } from "./cash-payback";
+import { ORDER_STEP_MIN_BUYERS } from "./customers-analytics";
 
 export { cashPaybackDays } from "./cash-payback";
+export { truncatedLifetimeLine } from "./till-ltv";
 
 export interface TillLtvCohortRow {
   cohortMonth: string;
@@ -59,6 +64,11 @@ export interface TillLtvSummary {
    */
   paybackDays: number | null;
   periodLabel: string | null;
+  /**
+   * Identified buyers whose Shopify life is longer than this desk stored.
+   * Named — never a silent skip.
+   */
+  truncatedLifetimeBuyers: number;
 }
 
 /**
@@ -103,6 +113,7 @@ export function summarizeTillLtvFromCohorts(
     limitedWindowExhausted?: boolean;
     useSampleDesk?: boolean;
     ianaTimezone?: string | null;
+    truncatedLifetimeBuyers?: number;
   },
 ): TillLtvSummary {
   const withCustomers = allCohorts.filter((c) => c.customers > 0);
@@ -118,24 +129,29 @@ export function summarizeTillLtvFromCohorts(
   }));
 
   const historyLimited = Boolean(options.historyLimited);
+  const truncatedLifetimeBuyers = Math.max(
+    0,
+    Math.trunc(options.truncatedLifetimeBuyers ?? 0),
+  );
+  const identifiedOnBook = withCustomers.reduce((sum, row) => sum + row.customers, 0);
+  const sealLtv =
+    truncatedLifetimeBuyers <= 0 || identifiedOnBook >= ORDER_STEP_MIN_BUYERS;
 
   // CohortFact.revenueD* are shop-currency **totals** (dollars). Divide once.
-  const avgRevenueD30 = customerWeightedAvgRevenue(
-    withCustomers,
-    (r) => r.revenueD30,
-  );
-  const avgRevenueD90 = customerWeightedAvgRevenue(
-    withCustomers,
-    (r) => r.revenueD90,
-  );
+  const avgRevenueD30 = sealLtv
+    ? customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD30)
+    : null;
+  const avgRevenueD90 = sealLtv
+    ? customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD90)
+    : null;
   // ~60-day `read_orders` is not a calendar year — never seal 365 as a dollar.
-  const avgRevenueD365 = historyLimited
-    ? null
-    : customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD365);
-  const avgOrdersD90 = customerWeightedAvgRevenue(
-    withCustomers,
-    (r) => r.ordersD90,
-  );
+  const avgRevenueD365 =
+    !sealLtv || historyLimited
+      ? null
+      : customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD365);
+  const avgOrdersD90 = sealLtv
+    ? customerWeightedAvgRevenue(withCustomers, (r) => r.ordersD90)
+    : null;
 
   const newBuyers = Math.max(0, Math.floor(options.newCustomers));
   const cashCac =
@@ -155,7 +171,7 @@ export function summarizeTillLtvFromCohorts(
     custSum += r.customers;
     extraOrders += Math.max(0, r.ordersD90 - r.customers);
   }
-  if (custSum > 0) {
+  if (custSum > 0 && sealLtv) {
     repeatRate = extraOrders / custSum;
   }
 
@@ -166,7 +182,7 @@ export function summarizeTillLtvFromCohorts(
     avgRevenueD365,
   );
 
-  const available = withCustomers.length > 0;
+  const available = withCustomers.length > 0 || truncatedLifetimeBuyers > 0;
   let emptyReason: TillLtvEmptyReason = null;
   if (!available) {
     if (!options.useSampleDesk && !options.ianaTimezone) {
@@ -194,6 +210,7 @@ export function summarizeTillLtvFromCohorts(
     avgOrdersD90,
     paybackDays,
     periodLabel: options.periodLabel ?? null,
+    truncatedLifetimeBuyers,
   };
 }
 
@@ -213,7 +230,8 @@ export async function buildTillLtvSummary(
     ianaTimezone?: string | null;
   },
 ): Promise<TillLtvSummary> {
-  const [allCohorts, historyLimited, progress] = await Promise.all([
+  const source = options.useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
+  const [allCohorts, historyLimited, progress, depthRows] = await Promise.all([
     getCohortFacts(shopId, {
       limit: 24,
       sample: Boolean(options.useSampleDesk),
@@ -226,7 +244,10 @@ export async function buildTillLtvSummary(
       : getOrderBackfillProgress(shopId, {
           ianaTimezone: options.ianaTimezone,
         }),
+    loadOrderDepthRows(shopId, { end: new Date() }, source),
   ]);
+
+  const truncatedLifetimeBuyers = computeCohortRollups(depthRows).truncatedBuyers;
 
   return summarizeTillLtvFromCohorts(
     allCohorts.map((c) => ({
@@ -250,6 +271,7 @@ export async function buildTillLtvSummary(
         progress.remainingDays === 0,
       useSampleDesk: options.useSampleDesk,
       ianaTimezone: options.ianaTimezone,
+      truncatedLifetimeBuyers,
     },
   );
 }

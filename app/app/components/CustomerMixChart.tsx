@@ -19,6 +19,7 @@ import {
   bucketMixDays,
   bucketMixWeeks,
   buildReturningMixPlays,
+  mixFirstTimePaint,
   mixSummary,
   resolveMixGrain,
   type CustomerAnalytics,
@@ -60,6 +61,16 @@ function firstTimeBuyerLabel(count: number | null): string {
   if (count == null || !Number.isFinite(count)) return "—";
   const noun = count === 1 ? "first-time buyer" : "first-time buyers";
   return `${count.toLocaleString()} ${noun}`;
+}
+
+function mixMoney(amount: number | null, currency: string): string {
+  if (amount == null || !Number.isFinite(amount)) return "—";
+  return formatCurrency(amount, currency);
+}
+
+function truncatedMixNote(bucket: MixBucket): string | null {
+  if (!(bucket.truncatedDollars > 0)) return null;
+  return "Earlier orders exist off this till — not stuffed into returning dollars.";
 }
 
 function MixEmptyFrame({ pending }: { pending: boolean }) {
@@ -340,14 +351,17 @@ export function CustomerMixChart({
       kicker: `${sharePct(b.returningShare)} of the ${noun}'s dollars are returning`,
       blocks: [
         { k: "Returning dollars", v: formatCurrency(b.returningDollars, currency) },
-        { k: "First-time dollars", v: formatCurrency(b.newDollars, currency) },
+        { k: "First-time dollars", v: mixMoney(mixFirstTimePaint(b), currency) },
         { k: "First-time buyers", v: firstTimeBuyerLabel(b.firstTimeBuyers) },
         { k: `Total this ${noun}`, v: formatCurrency(b.total, currency) },
+        truncatedMixNote(b)
+          ? { k: "Off this till", v: truncatedMixNote(b)! }
+          : null,
         {
           k: "What this is",
-          v: "Returning = a buyer who already had an order on the stored book, including before this 90-day slice. First-time buyers are counted from those orders. Guests stay in first-time dollars and out of the buyer count.",
+          v: "Returning = a later stored order for that buyer. A missing lifetime stays — , never stuffed into first-time $. Earlier Shopify orders off this till stay their own empty. Guests stay in first-time dollars and out of the buyer count.",
         },
-      ],
+      ].filter((block): block is { k: string; v: string } => block != null),
       next: "Win-back cards under this chart name who to reach — order history only.",
     });
 
@@ -364,7 +378,7 @@ export function CustomerMixChart({
     },
     {
       k: "First-time $",
-      v: formatCurrency(summary.newDollars, currency),
+      v: mixMoney(mixFirstTimePaint(summary), currency),
       sub: firstTimeBuyerLabel(summary.firstTimeBuyers),
     },
     {
@@ -401,7 +415,7 @@ export function CustomerMixChart({
           </p>
           <p className="mcfly-cust-mix__readsub">
             {sharePct(active.returningShare)} returning · first-time{" "}
-            {formatCurrency(active.newDollars, currency)} ·{" "}
+            {mixMoney(mixFirstTimePaint(active), currency)} ·{" "}
             {firstTimeBuyerLabel(active.firstTimeBuyers)}
           </p>
         </div>
@@ -557,7 +571,7 @@ export function CustomerMixChart({
               height={PLOT_H}
               tabIndex={0}
               role="button"
-              aria-label={`${b.label}: returning ${formatCurrency(b.returningDollars, currency)}, first-time ${formatCurrency(b.newDollars, currency)}, ${firstTimeBuyerLabel(b.firstTimeBuyers)}`}
+              aria-label={`${b.label}: returning ${formatCurrency(b.returningDollars, currency)}, first-time ${mixMoney(mixFirstTimePaint(b), currency)}, ${firstTimeBuyerLabel(b.firstTimeBuyers)}`}
               onMouseEnter={() => setHoverIndex(i)}
               onFocus={() => setHoverIndex(i)}
               onBlur={onPlotPointerLeave}
@@ -643,7 +657,7 @@ export function CustomerMixChart({
               <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--new" />
               <span className="mcfly-chart__tip-k">First-time</span>
               <span className="mcfly-chart__tip-v">
-                {formatCurrency(active.newDollars, currency)}
+                {mixMoney(mixFirstTimePaint(active), currency)}
               </span>
             </li>
             <li className="mcfly-chart__tip-row">

@@ -10,6 +10,12 @@
  */
 
 import { medianOf, percentileOf } from "./shopify-depth-stats";
+import {
+  mondayOfDayKey,
+  mixDayLabel,
+  shopLocalDayKey,
+  utcMidnightFromDayKey,
+} from "./shop-local-day";
 
 export const RETENTION_GUEST_KEY = "guest";
 /** Same buyer floor as TT2 / RFM — a step stays — until 8 buyers have taken it. */
@@ -26,6 +32,11 @@ export type RetentionOrderRow = {
    * the first-time count stays unknown, never a fake zero.
    */
   lifetimeOrders?: number | null;
+  /**
+   * Shop-local calendar day (UTC midnight of that local date). Prefer this
+   * over converting `orderedAt` with a host Date.
+   */
+  shopLocalDate?: Date | null;
 };
 
 export type FrequencyBucket = { label: string; min: number; max: number | null; customers: number };
@@ -48,6 +59,10 @@ export type MixWeek = {
   returningShare: number | null;
   /** Identified first-time buyers that week. Null when a lifetime count is missing. */
   firstTimeBuyers: number | null;
+  /** First-on-file $ with a missing lifetime — withheld from first-time $, never stuffed. */
+  unknownDollars: number;
+  /** First stored order whose Shopify life is longer than this book. Own empty. */
+  truncatedDollars: number;
 };
 
 /** Grain the marquee explorer can roll the weekly mix up to. */
@@ -56,7 +71,7 @@ export type MixGrain = "week" | "month";
 /** Front-door explorer grain — day is its own series, not a week rollup. */
 export type MixExplorerGrain = "day" | MixGrain;
 
-/** One UTC day of new vs returning order dollars. */
+/** One shop-local day of new vs returning order dollars. */
 export type MixDay = {
   key: string;
   label: string;
@@ -67,6 +82,8 @@ export type MixDay = {
   returningShare: number | null;
   /** Identified first-time buyers that day. Null when a lifetime count is missing. */
   firstTimeBuyers: number | null;
+  unknownDollars: number;
+  truncatedDollars: number;
 };
 
 export type MixDeltaTone = "up" | "down" | "flat";
@@ -106,6 +123,8 @@ export type MixBucket = {
   returningShare: number | null;
   /** Identified first-time buyers in the column. Null when a lifetime count is missing. */
   firstTimeBuyers: number | null;
+  unknownDollars: number;
+  truncatedDollars: number;
 };
 
 /** Window roll-up powering the marquee's KPI strip and its average-share rail. */
@@ -117,6 +136,8 @@ export type MixSummary = {
   bestReturning: MixBucket | null;
   /** Sum of known weekly counts. Null when any column's count is unknown — never a fake 0. */
   firstTimeBuyers: number | null;
+  unknownDollars: number;
+  truncatedDollars: number;
 };
 
 export const ORDER_STEP_IDS = ["first", "second", "third", "fourthPlus"] as const;
@@ -211,12 +232,17 @@ export type CustomerAnalytics = {
   whaleCount: number;
   whaleRecency: RecencyBucket[];
   whaleRecencyTruncatedAt: number | null;
-  /** New vs returning dollars by UTC day — the daily explorer grain. */
+  /** New vs returning dollars by shop-local day. Empty when the mix clock is missing. */
   mixDaily: MixDay[];
-  /** New vs returning dollars by ISO week (Mon start) — a trend, not a snapshot. */
+  /** New vs returning dollars by shop-local ISO week (Mon start). */
   mixWeekly: MixWeek[];
   /** Dollar-weighted returning-share across the window — the trend's rail. */
   mixReturningShareAvg: number | null;
+  /**
+   * Identified buyers whose Shopify `numberOfOrders` is longer than the stored
+   * book. Named — never a silent skip, never stuffed into returning $.
+   */
+  truncatedLifetimeBuyers: number;
   /**
    * Ticket, reach, and wait at 1st / 2nd / 3rd / 4th+ from the stored order
    * book. Unsealed steps stay null — never a fake $0, 0%, or 0d.
@@ -655,17 +681,20 @@ export function buyerLifetimeSpanLine(span: BuyerLifetimeSpan): string | null {
   return `Full stored book · last ~${span.historyDays} days.`;
 }
 
-/** UTC midnight of the calendar day containing `d`. */
-function utcDayStart(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-}
-
-/** Monday (UTC) of the week containing `d` — ISO week start for the mix trend. */
-function mondayUtc(d: Date): Date {
-  const x = utcDayStart(d);
-  const mondayIndex = (x.getUTCDay() + 6) % 7;
-  x.setUTCDate(x.getUTCDate() - mondayIndex);
-  return x;
+/**
+ * First-time $ the mix may paint. Unknown lifetime and truncated-only
+ * buckets stay — , never `$0` and never stuffed into first-time dollars.
+ */
+export function mixFirstTimePaint(bucket: {
+  newDollars: number;
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number | null {
+  const unknown = bucket.unknownDollars ?? 0;
+  const truncated = bucket.truncatedDollars ?? 0;
+  if (unknown > 0) return null;
+  if (truncated > 0 && !(bucket.newDollars > 0)) return null;
+  return bucket.newDollars;
 }
 
 const SPEND_BANDS: Array<{ label: string; min: number; max: number | null }> = [
@@ -721,12 +750,17 @@ type BuyerFile = {
   stored: number;
   /** `undefined` = not on the row. `null` = stored and missing. */
   lifetime: number | null | undefined;
+  firstLocal: Date | null;
 };
+
+type MixKind = "guest" | "new" | "returning" | "unknown" | "truncated";
 
 type MixAcc = {
   start: number;
   newD: number;
   retD: number;
+  unknownD: number;
+  truncatedD: number;
   newBuyers: number;
   unknownNew: boolean;
 };
@@ -762,29 +796,116 @@ function buyerFiles(rows: RetentionOrderRow[]): Map<string, BuyerFile> {
     const lifetime = knownLifetime(row.lifetimeOrders);
     const prev = files.get(row.customerKey);
     if (!prev) {
-      files.set(row.customerKey, { first: t, stored: 1, lifetime });
+      files.set(row.customerKey, {
+        first: t,
+        stored: 1,
+        lifetime,
+        firstLocal: row.shopLocalDate ?? null,
+      });
       continue;
     }
     prev.stored += 1;
-    if (t < prev.first) prev.first = t;
+    if (t < prev.first) {
+      prev.first = t;
+      prev.firstLocal = row.shopLocalDate ?? null;
+    }
     prev.lifetime = mergeLifetime(prev.lifetime, lifetime);
   }
   return files;
 }
 
-function orderIsReturning(row: RetentionOrderRow, file: BuyerFile | undefined): boolean {
-  if (!row.customerKey || row.customerKey === RETENTION_GUEST_KEY) return false;
-  if (!file) return false;
-  if (ms(row.orderedAt) > file.first) return true;
-  return typeof file.lifetime === "number" && file.lifetime > file.stored;
+function orderMixKind(row: RetentionOrderRow, file: BuyerFile | undefined): MixKind {
+  if (!row.customerKey || row.customerKey === RETENTION_GUEST_KEY) return "guest";
+  if (!file) return "unknown";
+  if (ms(row.orderedAt) > file.first) return "returning";
+  if (typeof file.lifetime === "number" && file.lifetime > file.stored) {
+    return "truncated";
+  }
+  if (file.lifetime === null) return "unknown";
+  return "new";
 }
 
 function freshMixAcc(start: number): MixAcc {
-  return { start, newD: 0, retD: 0, newBuyers: 0, unknownNew: false };
+  return {
+    start,
+    newD: 0,
+    retD: 0,
+    unknownD: 0,
+    truncatedD: 0,
+    newBuyers: 0,
+    unknownNew: false,
+  };
 }
 
 function firstTimeCount(acc: MixAcc): number | null {
   return acc.unknownNew ? null : acc.newBuyers;
+}
+
+function mixCalendarKey(
+  orderedAt: Date,
+  shopLocalDate: Date | null | undefined,
+  timeZone: string | null | undefined,
+): string | null {
+  if (shopLocalDate instanceof Date && Number.isFinite(shopLocalDate.getTime())) {
+    const key = shopLocalDate.toISOString().slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return key;
+  }
+  const tz = typeof timeZone === "string" ? timeZone.trim() : "";
+  if (!tz) return null;
+  const key = shopLocalDayKey(orderedAt, tz);
+  return key || null;
+}
+
+function mixShare(acc: MixAcc): number | null {
+  if (acc.unknownD > 0 || acc.truncatedD > 0) return null;
+  const total = acc.newD + acc.retD;
+  return total > 0 ? acc.retD / total : null;
+}
+
+function paintMixColumn(
+  acc: MixAcc,
+  key: string,
+  label: string,
+  start: number,
+): MixDay {
+  const newDollars = Math.round(acc.newD);
+  const returningDollars = Math.round(acc.retD);
+  const unknownDollars = Math.round(acc.unknownD);
+  const truncatedDollars = Math.round(acc.truncatedD);
+  return {
+    key,
+    label,
+    dayStart: start,
+    newDollars,
+    returningDollars,
+    total: newDollars + returningDollars,
+    returningShare: mixShare(acc),
+    firstTimeBuyers: firstTimeCount(acc),
+    unknownDollars,
+    truncatedDollars,
+  };
+}
+
+function addMixAmount(acc: MixAcc, kind: MixKind, amount: number): void {
+  switch (kind) {
+    case "guest":
+    case "new":
+      acc.newD += amount;
+      return;
+    case "returning":
+      acc.retD += amount;
+      return;
+    case "unknown":
+      acc.unknownD += amount;
+      return;
+    case "truncated":
+      acc.truncatedD += amount;
+      return;
+    default: {
+      const _never: never = kind;
+      return _never;
+    }
+  }
 }
 
 const RECENCY_BUCKETS: Array<{ label: string; min: number; max: number | null }> = [
@@ -815,6 +936,11 @@ export function buildCustomerAnalytics(
     periodEnd?: Date;
     /** Unpaid / truncated book — first→last is not a fake short life. */
     historyLimited?: boolean;
+    /**
+     * Shop IANA timezone for mix day keys. Missing TZ stays — unless the
+     * row already carries `shopLocalDate`. Never a host Date.
+     */
+    timeZone?: string | null;
   },
 ): CustomerAnalytics {
   const clean = rows.filter((r) => r && Number.isFinite(r.amount));
@@ -937,10 +1063,17 @@ export function buildCustomerAnalytics(
     collectable.length < DAYS_BUCKETS.length ? historyDays : null;
 
   // New vs returning dollars: an order is returning when the stored book has an
-  // earlier order, or a known lifetime count above the orders on file. Guests
-  // stay first-time dollars. Weekly first-time counts use that same book plus
-  // lifetimeOrders — not SalesDayFact newCustomers (that column is 0).
+  // earlier order (`orderedAt` sequence). A known lifetime above the stored
+  // count is its own empty — earlier orders exist off this till. Guests stay
+  // first-time dollars. A missing lifetime stays unknown, never stuffed into
+  // first-time $. Mix days follow shop-local keys, not UTC host dates.
   const files = buyerFiles(options.orderBook ?? rows);
+  let truncatedLifetimeBuyers = 0;
+  for (const file of files.values()) {
+    if (typeof file.lifetime === "number" && file.lifetime > file.stored) {
+      truncatedLifetimeBuyers += 1;
+    }
+  }
   const windowEarliest = new Map<string, number>();
   for (const r of identified) {
     const t = ms(r.orderedAt);
@@ -950,20 +1083,17 @@ export function buildCustomerAnalytics(
   const dayMap = new Map<string, MixAcc>();
   const weekMap = new Map<string, MixAcc>();
   for (const r of clean) {
-    const day = utcDayStart(r.orderedAt);
-    const monday = mondayUtc(r.orderedAt);
-    const dayKey = day.toISOString().slice(0, 10);
-    const weekKey = monday.toISOString().slice(0, 10);
-    const dayRec = dayMap.get(dayKey) ?? freshMixAcc(day.getTime());
-    const weekRec = weekMap.get(weekKey) ?? freshMixAcc(monday.getTime());
-    const isReturning = orderIsReturning(r, files.get(r.customerKey));
-    if (isReturning) {
-      dayRec.retD += finite(r.amount);
-      weekRec.retD += finite(r.amount);
-    } else {
-      dayRec.newD += finite(r.amount);
-      weekRec.newD += finite(r.amount);
-    }
+    const dayKey = mixCalendarKey(r.orderedAt, r.shopLocalDate, options.timeZone);
+    if (!dayKey) continue;
+    const weekKey = mondayOfDayKey(dayKey);
+    const dayStart = utcMidnightFromDayKey(dayKey).getTime();
+    const weekStart = utcMidnightFromDayKey(weekKey).getTime();
+    const dayRec = dayMap.get(dayKey) ?? freshMixAcc(dayStart);
+    const weekRec = weekMap.get(weekKey) ?? freshMixAcc(weekStart);
+    const kind = orderMixKind(r, files.get(r.customerKey));
+    const amount = finite(r.amount);
+    addMixAmount(dayRec, kind, amount);
+    addMixAmount(weekRec, kind, amount);
     dayMap.set(dayKey, dayRec);
     weekMap.set(weekKey, weekRec);
   }
@@ -971,9 +1101,13 @@ export function buildCustomerAnalytics(
     const earliestInWindow = windowEarliest.get(key);
     if (earliestInWindow == null || earliestInWindow !== file.first) continue;
     if (typeof file.lifetime === "number" && file.lifetime > file.stored) continue;
-    const firstAt = new Date(file.first);
-    const dayKey = utcDayStart(firstAt).toISOString().slice(0, 10);
-    const weekKey = mondayUtc(firstAt).toISOString().slice(0, 10);
+    const dayKey = mixCalendarKey(
+      new Date(file.first),
+      file.firstLocal,
+      options.timeZone,
+    );
+    if (!dayKey) continue;
+    const weekKey = mondayOfDayKey(dayKey);
     const unknown = file.lifetime === null;
     const dayRec = dayMap.get(dayKey);
     const weekRec = weekMap.get(weekKey);
@@ -986,49 +1120,48 @@ export function buildCustomerAnalytics(
       else weekRec.newBuyers += 1;
     }
   }
-  const mixDaily: MixDay[] = [...dayMap.values()]
-    .sort((a, b) => a.start - b.start)
-    .map((d) => {
-      const day = new Date(d.start);
-      const newDollars = Math.round(d.newD);
-      const returningDollars = Math.round(d.retD);
-      const total = newDollars + returningDollars;
+  const mixDaily: MixDay[] = [...dayMap.entries()]
+    .sort((a, b) => a[1].start - b[1].start)
+    .map(([key, d]) =>
+      paintMixColumn(d, key, mixDayLabel(key), d.start),
+    );
+  const mixWeekly: MixWeek[] = [...weekMap.entries()]
+    .sort((a, b) => a[1].start - b[1].start)
+    .map(([key, w]) => {
+      const painted = paintMixColumn(
+        w,
+        key,
+        `Wk ${mixDayLabel(key)}`,
+        w.start,
+      );
       return {
-        key: day.toISOString().slice(0, 10),
-        label: `${day.getUTCMonth() + 1}/${day.getUTCDate()}`,
-        dayStart: d.start,
-        newDollars,
-        returningDollars,
-        total,
-        returningShare: total > 0 ? returningDollars / total : null,
-        firstTimeBuyers: firstTimeCount(d),
-      };
-    });
-  const mixWeekly: MixWeek[] = [...weekMap.values()]
-    .sort((a, b) => a.start - b.start)
-    .map((w) => {
-      const monday = new Date(w.start);
-      // Round the parts first, then sum — independent rounding of `total`
-      // can make "$10 + $10 = $21" on the #73 marquee tooltip/drill.
-      const newDollars = Math.round(w.newD);
-      const returningDollars = Math.round(w.retD);
-      const total = newDollars + returningDollars;
-      return {
-        key: monday.toISOString().slice(0, 10),
-        label: `Wk ${monday.getUTCMonth() + 1}/${monday.getUTCDate()}`,
-        weekStart: w.start,
-        newDollars,
-        returningDollars,
-        total,
-        returningShare: total > 0 ? returningDollars / total : null,
-        firstTimeBuyers: firstTimeCount(w),
+        key: painted.key,
+        label: painted.label,
+        weekStart: painted.dayStart,
+        newDollars: painted.newDollars,
+        returningDollars: painted.returningDollars,
+        total: painted.total,
+        returningShare: painted.returningShare,
+        firstTimeBuyers: painted.firstTimeBuyers,
+        unknownDollars: painted.unknownDollars,
+        truncatedDollars: painted.truncatedDollars,
       };
     });
   const mixTotals = mixWeekly.reduce(
-    (acc, w) => ({ ret: acc.ret + w.returningDollars, all: acc.all + w.total }),
-    { ret: 0, all: 0 },
+    (acc, w) => ({
+      ret: acc.ret + w.returningDollars,
+      all: acc.all + w.total,
+      unknown: acc.unknown + w.unknownDollars,
+      truncated: acc.truncated + w.truncatedDollars,
+    }),
+    { ret: 0, all: 0, unknown: 0, truncated: 0 },
   );
-  const mixReturningShareAvg = mixTotals.all > 0 ? mixTotals.ret / mixTotals.all : null;
+  const mixReturningShareAvg =
+    mixTotals.unknown > 0 || mixTotals.truncated > 0
+      ? null
+      : mixTotals.all > 0
+        ? mixTotals.ret / mixTotals.all
+        : null;
 
   const recencyCollectable = RECENCY_BUCKETS.filter((b) => b.min <= historyDays);
   const whaleRecency: RecencyBucket[] = recencyCollectable.map((b, i) => ({
@@ -1112,6 +1245,7 @@ export function buildCustomerAnalytics(
     mixDaily,
     mixWeekly,
     mixReturningShareAvg,
+    truncatedLifetimeBuyers,
     orderSteps: buildOrderSteps(storedBook),
     quietBack,
     comebackWait,
@@ -1150,11 +1284,21 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
       total: w.total,
       returningShare: w.returningShare,
       firstTimeBuyers: w.firstTimeBuyers,
+      unknownDollars: w.unknownDollars,
+      truncatedDollars: w.truncatedDollars,
     }));
   }
   const byMonth = new Map<
     string,
-    { start: number; newD: number; retD: number; month: number; buyers: number | null }
+    {
+      start: number;
+      newD: number;
+      retD: number;
+      unknownD: number;
+      truncatedD: number;
+      month: number;
+      buyers: number | null;
+    }
   >();
   for (const w of weeks) {
     const d = new Date(w.weekStart);
@@ -1165,11 +1309,15 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
       start: Date.UTC(year, month, 1),
       newD: 0,
       retD: 0,
+      unknownD: 0,
+      truncatedD: 0,
       month,
       buyers: 0,
     };
     rec.newD += w.newDollars;
     rec.retD += w.returningDollars;
+    rec.unknownD += w.unknownDollars;
+    rec.truncatedD += w.truncatedDollars;
     if (w.firstTimeBuyers == null) rec.buyers = null;
     else if (rec.buyers != null) rec.buyers += w.firstTimeBuyers;
     byMonth.set(key, rec);
@@ -1185,8 +1333,15 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
         newDollars: rec.newD,
         returningDollars: rec.retD,
         total,
-        returningShare: total > 0 ? rec.retD / total : null,
+        returningShare:
+          rec.unknownD > 0 || rec.truncatedD > 0
+            ? null
+            : total > 0
+              ? rec.retD / total
+              : null,
         firstTimeBuyers: rec.buyers,
+        unknownDollars: rec.unknownD,
+        truncatedDollars: rec.truncatedD,
       };
     });
 }
@@ -1195,11 +1350,15 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
 export function mixSummary(buckets: MixBucket[]): MixSummary {
   let returningDollars = 0;
   let newDollars = 0;
+  let unknownDollars = 0;
+  let truncatedDollars = 0;
   let bestReturning: MixBucket | null = null;
   let firstTimeBuyers: number | null = buckets.length === 0 ? null : 0;
   for (const b of buckets) {
     returningDollars += b.returningDollars;
     newDollars += b.newDollars;
+    unknownDollars += b.unknownDollars;
+    truncatedDollars += b.truncatedDollars;
     if (b.firstTimeBuyers == null) firstTimeBuyers = null;
     else if (firstTimeBuyers != null) firstTimeBuyers += b.firstTimeBuyers;
     if (
@@ -1214,9 +1373,16 @@ export function mixSummary(buckets: MixBucket[]): MixSummary {
     returningDollars,
     newDollars,
     total,
-    returningShareAvg: total > 0 ? returningDollars / total : null,
+    returningShareAvg:
+      unknownDollars > 0 || truncatedDollars > 0
+        ? null
+        : total > 0
+          ? returningDollars / total
+          : null,
     bestReturning,
     firstTimeBuyers,
+    unknownDollars,
+    truncatedDollars,
   };
 }
 
@@ -1231,6 +1397,8 @@ export function bucketMixDays(days: MixDay[]): MixBucket[] {
     total: d.total,
     returningShare: d.returningShare,
     firstTimeBuyers: d.firstTimeBuyers,
+    unknownDollars: d.unknownDollars,
+    truncatedDollars: d.truncatedDollars,
   }));
 }
 

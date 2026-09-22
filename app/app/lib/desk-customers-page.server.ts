@@ -21,6 +21,7 @@ import {
   ORDER_FACT_SOURCE,
 } from "./order-facts.server";
 import { requireAdmin } from "./public-app-gate.server";
+import { deskPeriodTimeZone } from "./periods";
 import {
   buildCustomerAnalytics,
   type CustomerAnalytics,
@@ -43,6 +44,7 @@ function toRetentionRows(
     orderedAt: Date;
     amount: number;
     lifetimeOrders: number | null;
+    shopLocalDate: Date;
   }>,
 ): RetentionOrderRow[] {
   return rows.map((row) => ({
@@ -50,6 +52,7 @@ function toRetentionRows(
     orderedAt: row.orderedAt,
     amount: row.amount,
     lifetimeOrders: row.lifetimeOrders,
+    shopLocalDate: row.shopLocalDate,
   }));
 }
 
@@ -80,6 +83,7 @@ export async function loadCustomerAnalytics(
   const historyLimited = options.useSampleDesk
     ? false
     : await getOrderBackfillHistoryLimited(shop.id);
+  const timeZone = deskPeriodTimeZone(options.useSampleDesk, shop.ianaTimezone);
 
   return {
     ...buildCustomerAnalytics(recent, {
@@ -89,6 +93,7 @@ export async function loadCustomerAnalytics(
       periodStart: options.periodStart,
       periodEnd: options.periodEnd,
       historyLimited,
+      timeZone,
     }),
     rfm: buildCustomerRfm(mapped, { windowEnd: end, historyLimited }),
   };

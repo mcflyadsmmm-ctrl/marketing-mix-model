@@ -10,6 +10,7 @@ import {
   buildReturningMixPlays,
   buyerLifetimeSpanLine,
   emptyCustomerAnalytics,
+  mixFirstTimePaint,
   mixSummary,
   ORDER_STEP_MIN_BUYERS,
   orderStepFormula,
@@ -52,6 +53,7 @@ describe("buildCustomerAnalytics", () => {
   const a = buildCustomerAnalytics(buildFixture(), {
     windowEnd: WINDOW_END,
     historyWindowDays: 90,
+    timeZone: "UTC",
   });
 
   it("counts identified buyers, guests, and orders from history only", () => {
@@ -118,6 +120,7 @@ describe("new vs returning weekly mix", () => {
   const a = buildCustomerAnalytics(buildFixture(), {
     windowEnd: WINDOW_END,
     historyWindowDays: 90,
+    timeZone: "UTC",
   });
 
   it("splits weekly dollars into first-time vs returning (guests are first-time)", () => {
@@ -171,6 +174,7 @@ describe("new vs returning weekly mix", () => {
       windowEnd: WINDOW_END,
       historyWindowDays: 90,
       orderBook: book,
+      timeZone: "UTC",
     });
     const newSum = built.mixWeekly.reduce((s, w) => s + w.newDollars, 0);
     const retSum = built.mixWeekly.reduce((s, w) => s + w.returningDollars, 0);
@@ -202,15 +206,22 @@ describe("new vs returning weekly mix", () => {
       windowEnd: WINDOW_END,
       historyWindowDays: 90,
       orderBook: rows,
+      timeZone: "UTC",
     });
     expect(built.mixWeekly).toHaveLength(1);
-    expect(built.mixWeekly[0]!.newDollars).toBe(30);
-    expect(built.mixWeekly[0]!.returningDollars).toBe(0);
-    expect(built.mixWeekly[0]!.firstTimeBuyers).toBeNull();
+    const week = built.mixWeekly[0]!;
+    expect(week.newDollars).not.toBe(30);
+    expect(week.unknownDollars).toBe(30);
+    expect(week.returningDollars).toBe(0);
+    expect(week.returningShare).toBeNull();
+    expect(week.firstTimeBuyers).toBeNull();
+    expect(mixFirstTimePaint(week)).toBeNull();
     expect(built.mixDaily[0]!.firstTimeBuyers).toBeNull();
+    expect(mixFirstTimePaint(built.mixDaily[0]!)).toBeNull();
     const summary = mixSummary(bucketMixWeeks(built.mixWeekly, "week"));
     expect(summary.firstTimeBuyers).toBeNull();
-    expect(summary.newDollars).toBe(30);
+    expect(summary.unknownDollars).toBe(30);
+    expect(mixFirstTimePaint(summary)).toBeNull();
   });
 
   it("does not call a buyer new when stored lifetime orders exceed the book", () => {
@@ -221,10 +232,15 @@ describe("new vs returning weekly mix", () => {
       windowEnd: WINDOW_END,
       historyWindowDays: 90,
       orderBook: rows,
+      timeZone: "UTC",
     });
-    expect(built.mixWeekly[0]!.newDollars).toBe(0);
-    expect(built.mixWeekly[0]!.returningDollars).toBe(70);
-    expect(built.mixWeekly[0]!.firstTimeBuyers).toBe(0);
+    const week = built.mixWeekly[0]!;
+    expect(week.newDollars).not.toBe(70);
+    expect(week.returningDollars).not.toBe(70);
+    expect(week.truncatedDollars).toBe(70);
+    expect(week.returningShare).toBeNull();
+    expect(mixFirstTimePaint(week)).toBeNull();
+    expect(built.truncatedLifetimeBuyers).toBe(1);
   });
 
   it("keeps guests out of returning and out of the first-time buyer count", () => {
@@ -240,10 +256,75 @@ describe("new vs returning weekly mix", () => {
       windowEnd: WINDOW_END,
       historyWindowDays: 90,
       orderBook: rows,
+      timeZone: "UTC",
     });
     expect(built.mixWeekly[0]!.newDollars).toBe(15);
     expect(built.mixWeekly[0]!.returningDollars).toBe(0);
+    expect(built.mixWeekly[0]!.unknownDollars).toBe(0);
     expect(built.mixWeekly[0]!.firstTimeBuyers).toBe(0);
+    expect(mixFirstTimePaint(built.mixWeekly[0]!)).toBe(15);
+  });
+
+  it("buckets mix days on the shop-local calendar, not the UTC host date", () => {
+    const eveningAfterUtcMidnight = new Date("2026-01-20T02:00:00.000Z");
+    const rows: RetentionOrderRow[] = [
+      {
+        customerKey: "pos",
+        orderedAt: eveningAfterUtcMidnight,
+        amount: 40,
+        lifetimeOrders: 1,
+      },
+    ];
+    const denver = buildCustomerAnalytics(rows, {
+      windowEnd: new Date("2026-01-21T12:00:00.000Z"),
+      historyWindowDays: 90,
+      timeZone: "America/Denver",
+    });
+    expect(denver.mixDaily.map((d) => d.key)).toEqual(["2026-01-19"]);
+    expect(denver.mixWeekly.map((w) => w.key)).toEqual(["2026-01-19"]);
+    const utc = buildCustomerAnalytics(rows, {
+      windowEnd: new Date("2026-01-21T12:00:00.000Z"),
+      historyWindowDays: 90,
+      timeZone: "UTC",
+    });
+    expect(utc.mixDaily.map((d) => d.key)).toEqual(["2026-01-20"]);
+  });
+
+  it("uses shopLocalDate when present even if the host Date already rolled UTC", () => {
+    const rows: RetentionOrderRow[] = [
+      {
+        customerKey: "pos",
+        orderedAt: new Date("2026-01-20T02:00:00.000Z"),
+        shopLocalDate: new Date("2026-01-19T00:00:00.000Z"),
+        amount: 22,
+        lifetimeOrders: 1,
+      },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: new Date("2026-01-21T12:00:00.000Z"),
+      historyWindowDays: 90,
+    });
+    expect(built.mixDaily.map((d) => d.key)).toEqual(["2026-01-19"]);
+  });
+
+  it("withholds mix days when timezone and shopLocalDate are missing — never a host Date", () => {
+    const built = buildCustomerAnalytics(
+      [
+        {
+          customerKey: "pos",
+          orderedAt: new Date("2026-01-20T02:00:00.000Z"),
+          amount: 40,
+          lifetimeOrders: 1,
+        },
+      ],
+      {
+        windowEnd: new Date("2026-01-21T12:00:00.000Z"),
+        historyWindowDays: 90,
+      },
+    );
+    expect(built.mixDaily).toEqual([]);
+    expect(built.mixWeekly).toEqual([]);
+    expect(built.mixReturningShareAvg).toBeNull();
   });
 });
 
@@ -251,6 +332,7 @@ describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
   const a = buildCustomerAnalytics(buildFixture(), {
     windowEnd: WINDOW_END,
     historyWindowDays: 90,
+    timeZone: "UTC",
   });
 
   it("passes weekly buckets through 1:1 at week grain", () => {
@@ -305,6 +387,7 @@ describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
     const a = buildCustomerAnalytics(rows, {
       windowEnd: WINDOW_END,
       historyWindowDays: 90,
+      timeZone: "UTC",
     });
     expect(a.mixWeekly.length).toBeGreaterThan(0);
     for (const w of a.mixWeekly) {
@@ -327,6 +410,7 @@ describe("returning $ mix plays — daily/weekly habit, not a days-to-second dum
     const built = buildCustomerAnalytics(rows, {
       windowEnd: new Date("2026-09-16T00:00:00Z"),
       historyWindowDays: 90,
+      timeZone: "UTC",
     });
     const weekly = bucketMixWeeks(built.mixWeekly, "week");
     const plays = buildReturningMixPlays({
@@ -382,6 +466,7 @@ describe("returning $ mix plays — daily/weekly habit, not a days-to-second dum
     const built = buildCustomerAnalytics(rows, {
       windowEnd: new Date("2026-09-16T00:00:00Z"),
       historyWindowDays: 120,
+      timeZone: "UTC",
     });
     const weekly = bucketMixWeeks(built.mixWeekly, "week");
     const plays = buildReturningMixPlays({
@@ -410,6 +495,7 @@ describe("returning $ mix plays — daily/weekly habit, not a days-to-second dum
     const built = buildCustomerAnalytics(rows, {
       windowEnd: new Date("2026-09-16T00:00:00Z"),
       historyWindowDays: 90,
+      timeZone: "UTC",
     });
     const plays = buildReturningMixPlays({
       buckets: bucketMixDays(built.mixDaily),
@@ -684,6 +770,7 @@ describe("order steps — ticket, reach, wait from the stored book", () => {
       windowEnd: WINDOW_END,
       historyWindowDays: 90,
       orderBook: book,
+      timeZone: "UTC",
     });
     const third = stepOf(sliced.orderSteps, "third");
     expect(third.sealed).toBe(true);
@@ -920,6 +1007,12 @@ describe("first→last span and inter-order gap", () => {
     expect(built.firstToLastDays).toBe(70);
     expect(built.interOrderGapDays).toBe(70);
     expect(buyerLifetimeSpanLine(built)).toMatch(/not a fake short life/);
+  });
+
+  it("locks the 8-buyer floor and the 90-day unpaid book", async () => {
+    expect(ORDER_STEP_MIN_BUYERS).toBe(8);
+    const { LIVE_UNPAID_INGEST_DAYS } = await import("./live-unpark");
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
   });
 
   it("stays — under 8, keeps guests out, and does not invent a short life", () => {

@@ -92,6 +92,7 @@ import {
   ORDER_FACT_SOURCE,
   clearOrderFactDayCompleteSeal,
   computeCohortRollups,
+  countNewBuyersFromOrders,
   getOrderBackfillProgress,
   orderFactDayCompleteMarkerId,
   orderFactPageCursorMarker,
@@ -522,6 +523,7 @@ describe("truncated busy-day crawl", () => {
   });
 
   it("clamps unpaid order progress to 90 closed days when billing is on", async () => {
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
     shopIsProForIngest.mockResolvedValue(false);
@@ -569,8 +571,8 @@ describe("truncated busy-day crawl", () => {
 });
 
 describe("computeCohortRollups", () => {
-  it("does not treat a returning buyer as a new 90-day cohort", () => {
-    const rollups = computeCohortRollups([
+  it("names a truncated lifetime instead of skipping it as a finished first-time $", () => {
+    const result = computeCohortRollups([
       {
         customerKey: "gid://shopify/Customer/1",
         orderedAt: new Date("2026-09-01T12:00:00.000Z"),
@@ -578,11 +580,13 @@ describe("computeCohortRollups", () => {
         lifetimeOrders: 5,
       },
     ]);
-    expect(rollups).toEqual([]);
+    expect(result.rollups).toEqual([]);
+    expect(result.truncatedBuyers).toBe(1);
+    expect(result.rollups.some((row) => row.revenueD90 === 80)).toBe(false);
   });
 
   it("keeps a true first-time buyer whose lifetime count matches in-window orders", () => {
-    const rollups = computeCohortRollups([
+    const result = computeCohortRollups([
       {
         customerKey: "gid://shopify/Customer/2",
         orderedAt: new Date("2026-09-01T12:00:00.000Z"),
@@ -590,9 +594,86 @@ describe("computeCohortRollups", () => {
         lifetimeOrders: 1,
       },
     ]);
-    expect(rollups).toHaveLength(1);
-    expect(rollups[0]?.customers).toBe(1);
-    expect(rollups[0]?.revenueD90).toBe(80);
+    expect(result.rollups).toHaveLength(1);
+    expect(result.rollups[0]?.customers).toBe(1);
+    expect(result.rollups[0]?.revenueD90).toBe(80);
+    expect(result.truncatedBuyers).toBe(0);
+  });
+});
+
+describe("countNewBuyersFromOrders", () => {
+  const range = {
+    start: new Date("2026-09-01T00:00:00.000Z"),
+    end: new Date("2026-09-30T23:59:59.999Z"),
+  };
+
+  it("returns null when there are no identified orders", () => {
+    expect(countNewBuyersFromOrders([], range)).toBeNull();
+  });
+
+  it("withholds a null lifetime as — instead of stuffing it into new buyers", () => {
+    expect(
+      countNewBuyersFromOrders(
+        [
+          {
+            customerKey: "unsure",
+            orderedAt: new Date("2026-09-08T12:00:00.000Z"),
+            lifetimeOrders: null,
+          },
+        ],
+        range,
+      ),
+    ).toBeNull();
+  });
+
+  it("does not count a truncated lifetime as a first-time buyer", () => {
+    expect(
+      countNewBuyersFromOrders(
+        [
+          {
+            customerKey: "prior",
+            orderedAt: new Date("2026-09-08T12:00:00.000Z"),
+            lifetimeOrders: 5,
+          },
+        ],
+        range,
+      ),
+    ).toBe(0);
+  });
+
+  it("counts a true first-time buyer whose lifetime matches the stored book", () => {
+    expect(
+      countNewBuyersFromOrders(
+        [
+          {
+            customerKey: "fresh",
+            orderedAt: new Date("2026-09-08T12:00:00.000Z"),
+            lifetimeOrders: 1,
+          },
+        ],
+        range,
+      ),
+    ).toBe(1);
+  });
+
+  it("withholds the whole new-buyer count when any in-range first order is unknown", () => {
+    expect(
+      countNewBuyersFromOrders(
+        [
+          {
+            customerKey: "fresh",
+            orderedAt: new Date("2026-09-08T12:00:00.000Z"),
+            lifetimeOrders: 1,
+          },
+          {
+            customerKey: "unsure",
+            orderedAt: new Date("2026-09-09T12:00:00.000Z"),
+            lifetimeOrders: null,
+          },
+        ],
+        range,
+      ),
+    ).toBeNull();
   });
 });
 
