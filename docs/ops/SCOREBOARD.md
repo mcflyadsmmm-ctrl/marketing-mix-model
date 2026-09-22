@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v414 / tip `12c9950` (merge of #156 orders month board) / image `deployment-01M345SQV30P8SXVBS6P7GZR06` / Live PARKED. Health ok 2026-09-22T09:06Z. v413 was new-buyer truth.
+**Tip Fly note:** v415 / tip `dd865c3` (merge of #157 same-clock compare) / image `deployment-01M348CVSXVK1H26JA6GE5W6W5` / Live PARKED. Health ok 2026-09-22T09:52Z. v414 was the orders month board.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v414 / tip `12c9950` / Live PARKED |
+| Tip Fly SoT | v415 / tip `dd865c3` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v414 / tip `12c9950`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v415 / tip `dd865c3`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | DONE — four notes on #148–#151, ranked in the enterprise cook queue. Do not re-run that wave. |
+| Niche intel | Next-pass megaprompt #158. Five read-only scouts. Do not cook from them until rank 6 lands. |
 
 ## Next significant ship (the only craft allowed)
 
-**Same clock, those dates last year.** “Are we on track through this hour versus the same weekday last year, and how did this launch week do against those dates?”
+**The third order is where they stick.** “The third order is where they stick. Show me the ticket and the wait at each step, not only how long the second order took.”
 
-Overview. Use the hour grain Orders already keeps. Not a new tab. Not a new hour store. This span compares to the same dates last year, labeled Shopify Total Sales. A custom from/to reads those dates one year earlier, not only the equal-length span immediately before (`overviewPriorWindow`). Month, quarter, and year cards already exist. Month close stays `so far + remaining days × typical day`. It is not this compare, and it is not Shopify’s forecast. A missing last year stays a dash / not on file, never $0. The chart’s full-width number stays the hovered or last bucket. The compare is a labeled line. It does not replace the period-total hero.
+Customers → Growth, under the repurchase clock that is already there. Rows are 1st, 2nd, 3rd, and 4th and later. Each sealed row shows average ticket, the share of the previous step who reached this step, and the typical days since the previous order. Seal a step only when at least 8 buyers have taken it. Guests out. A step the book has not lived is —. No industry norm beside it. Public `/demo` and Admin `/app` mount the same board. Do not paint Repeat Customer Insights’ example-store figures.
 
-Branch `cursor/same-clock-compare-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Rank 6 stays queued. Do not rebuild the orders month board, new-buyer truth, the catalog empty, the period total, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/third-order-steps-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Do not rebuild the same-clock compare, the orders month board, new-buyer truth, the catalog empty, the period total, or the morning sentence. Do not start phone-chip CSS, DeskLane, payback, or compete rows 2–8. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 5.
+Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 6.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
