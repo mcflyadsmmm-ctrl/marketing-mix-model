@@ -334,8 +334,7 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     expect(view.predictive!.formula90).toContain("average first order");
     expect(view.refunds.brokenOut).toBe(true);
     expect(view.refunds.refundedDollars).toBeGreaterThan(0);
-    expect(view.pathClarity).not.toBeNull();
-    expect(view.pathClarity!.lift).toBeGreaterThan(1);
+    expect(view.pathClarity).toBeNull();
     expect(view.whales!.ltvMultiple).toBeGreaterThan(1);
     const daily = flagshipDailyRead(view.windows, view.predictive)!;
     expect(daily.worthDays).toBe(90);
@@ -347,12 +346,11 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     expect(windowAddedAfterPrior(view.windows!.points, 365)?.added).toBeGreaterThan(
       0,
     );
-    expect(view.productLtv.empty).toBeNull();
-    expect(view.productLtv.best).not.toBeNull();
-    expect(view.productLtv.best!.day90Ltv).toBeGreaterThan(0);
-    expect(view.productLtv.best!.day365Ltv).toBeGreaterThan(0);
-    expect(view.productLtv.best!.formula90).toContain("average first order");
-    expect(view.productLtv.read?.worthDays).toBe(90);
+    expect(view.productLtv.productsKnown).toBe(false);
+    expect(view.productLtv.rows).toEqual([]);
+    expect(view.productLtv.best).toBeNull();
+    expect(view.productLtv.read).toBeNull();
+    expect(view.productLtv.empty?.kind).toBe("titles");
     expect(view.promoLtv.empty).toBeNull();
     expect(view.promoLtv.best).not.toBeNull();
     expect(view.promoLtv.codesKnown).toBe(true);

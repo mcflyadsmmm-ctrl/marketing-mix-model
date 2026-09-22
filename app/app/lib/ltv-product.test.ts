@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { rollUpCustomers, type DepthOrder } from "./ltv-depth";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import {
+  FIRST_PRODUCT_TITLES_COPY,
+  FIRST_PRODUCT_TITLES_VERB,
+} from "./ltv-first-product";
+import {
   buildProductLtv,
   productLtvEmptyState,
   PRODUCT_MIN_BUYERS,
@@ -147,14 +151,16 @@ describe("productLtvEmptyState", () => {
         sealed: false,
       })?.kind,
     ).toBe("syncing");
-    expect(
-      productLtvEmptyState({
-        buyers: 20,
-        namedBuyers: 0,
-        productsKnown: false,
-        sealed: false,
-      })?.kind,
-    ).toBe("titles");
+    const titles = productLtvEmptyState({
+      buyers: 20,
+      namedBuyers: 0,
+      productsKnown: false,
+      sealed: false,
+    });
+    expect(titles?.kind).toBe("titles");
+    expect(titles?.copy).toBe(FIRST_PRODUCT_TITLES_COPY);
+    expect(titles?.verb).toBe(FIRST_PRODUCT_TITLES_VERB);
+    expect(titles?.copy).not.toMatch(/coming|titled line items|next sync/i);
     expect(
       productLtvEmptyState({
         buyers: 12,
@@ -195,31 +201,21 @@ describe("productLtvEmptyState", () => {
   });
 });
 
-describe("SAMPLE Snowdevil first-product LTV is dense", () => {
+describe("SAMPLE Snowdevil does not invent a first-product catalog", () => {
   const NOW = new Date("2026-09-17T00:00:00Z");
-  const view = buildProductLtv(generateSnowdevilDepthOrders(NOW), NOW);
+  const orders = generateSnowdevilDepthOrders(NOW);
+  const view = buildProductLtv(orders, NOW);
 
-  it("seals 90-day and year product LTV with a written-out formula and a path", () => {
-    expect(view.productsKnown).toBe(true);
-    expect(view.empty).toBeNull();
-    expect(view.rows.length).toBeGreaterThanOrEqual(2);
-    expect(view.best).not.toBeNull();
-    expect(view.best!.day90Ltv).toBeGreaterThan(0);
-    expect(view.best!.day365Ltv).toBeGreaterThan(view.best!.day90Ltv ?? 0);
-    expect(view.best!.formula90).toContain("average first order");
-    expect(view.best!.lift90).toBeGreaterThan(1);
-    expect(view.best!.nextProduct).toBeTruthy();
-    expect(view.read?.worthDays).toBe(90);
-    expect(view.read?.yearPending).toBe(false);
-    expect(view.read?.lift).toBeGreaterThan(1);
-    const customers = rollUpCustomers(generateSnowdevilDepthOrders(NOW));
-    expect(customers.every((c) => c.firstProduct)).toBe(true);
-  });
-
-  it("keeps a lower-LTV first product on the board so the lift is a comparison", () => {
-    expect(view.rows.length).toBeGreaterThanOrEqual(2);
-    const worst = view.rows[view.rows.length - 1]!;
-    expect(worst.day90Ltv).not.toBeNull();
-    expect(worst.day90Ltv!).toBeLessThan(view.best!.day90Ltv!);
+  it("keeps the sales book and leaves first product untitled", () => {
+    expect(orders.length).toBeGreaterThan(3000);
+    expect(orders.every((order) => order.product == null)).toBe(true);
+    expect(view.productsKnown).toBe(false);
+    expect(view.rows).toEqual([]);
+    expect(view.best).toBeNull();
+    expect(view.read).toBeNull();
+    expect(view.empty?.kind).toBe("titles");
+    const customers = rollUpCustomers(orders);
+    expect(customers.every((customer) => !customer.firstProduct)).toBe(true);
+    expect(JSON.stringify(view.rows)).not.toMatch(/goggle|wax|board/i);
   });
 });

@@ -1,5 +1,9 @@
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
+import {
+  FIRST_PRODUCT_TITLES_COPY,
+  FIRST_PRODUCT_TITLES_VERB,
+} from "../lib/ltv-first-product";
 import { useDeskDrill } from "./DeskDrill";
 import { DeskIcon } from "./DeskIcon";
 import type {
@@ -18,7 +22,7 @@ function emptyValue(empty: ProductEmpty): string {
     case "syncing":
       return "Waiting on orders";
     case "titles":
-      return `${empty.buyers.toLocaleString()} on file`;
+      return FIRST_PRODUCT_TITLES_COPY;
     case "thin":
     case "young":
       return `${empty.namedBuyers.toLocaleString()} named`;
@@ -29,15 +33,61 @@ function emptyValue(empty: ProductEmpty): string {
   }
 }
 
+function emptyVerb(empty: ProductEmpty): string {
+  switch (empty.kind) {
+    case "titles":
+      return FIRST_PRODUCT_TITLES_VERB;
+    case "syncing":
+    case "thin":
+    case "young":
+      return empty.verb;
+    default: {
+      const _exhaustive: never = empty.kind;
+      return _exhaustive;
+    }
+  }
+}
+
+function emptyCopy(empty: ProductEmpty): string {
+  switch (empty.kind) {
+    case "titles":
+      return FIRST_PRODUCT_TITLES_COPY;
+    case "syncing":
+    case "thin":
+    case "young":
+      return empty.copy;
+    default: {
+      const _exhaustive: never = empty.kind;
+      return _exhaustive;
+    }
+  }
+}
+
 function emptyFloor(kind: ProductEmptyKind, need: number): string {
   switch (kind) {
-    case "syncing":
     case "titles":
+      return FIRST_PRODUCT_TITLES_COPY;
+    case "syncing":
     case "thin":
     case "young":
       return `Floor: ${need} buyers who started with the same named product × 30 days, then 90, then the first year. Not $0.`;
     default: {
       const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+function emptyFillsNext(empty: ProductEmpty): string {
+  switch (empty.kind) {
+    case "titles":
+      return FIRST_PRODUCT_TITLES_COPY;
+    case "syncing":
+    case "thin":
+    case "young":
+      return `Floor: ${empty.need} buyers who started with the same named first-line item and have lived 30 days. Then 90 days, then the first year. Same math — no spend required.`;
+    default: {
+      const _exhaustive: never = empty.kind;
       return _exhaustive;
     }
   }
@@ -93,9 +143,9 @@ export function LtvProductBoard({
           First product → LTV
         </h3>
         <p className="mcfly-chart__muted">
-          Which first product starts the higher-value path. Titled line items
-          on the first order, then 30 / 90 / first year among those starters.
-          A dash is not $0. No spend required.
+          {empty?.kind === "titles"
+            ? FIRST_PRODUCT_TITLES_COPY
+            : "Which first product starts the higher-value path. Titled line items on the first order, then 30 / 90 / first year among those starters. A dash is not $0. No spend required."}
         </p>
       </div>
 
@@ -108,12 +158,12 @@ export function LtvProductBoard({
             drill?.openDrill({
               title: "First product",
               value: emptyValue(empty),
-              kicker: empty.verb,
+              kicker: emptyVerb(empty),
               blocks: [
-                { k: "What this is", v: empty.copy },
+                { k: "What this is", v: emptyCopy(empty) },
                 {
                   k: "What fills next",
-                  v: `Floor: ${empty.need} buyers who started with the same named first-line item and have lived 30 days. Then 90 days, then the first year. Same math — no spend required.`,
+                  v: emptyFillsNext(empty),
                 },
               ],
               next: "Averages from order history — not a promise, not email.",
@@ -121,12 +171,16 @@ export function LtvProductBoard({
           }
         >
           <span className="mcfly-depth-flag__empty-k">First product</span>
-          <span className="mcfly-depth-flag__empty-verb">{empty.verb}</span>
+          <span className="mcfly-depth-flag__empty-verb">{emptyVerb(empty)}</span>
           <span className="mcfly-depth-flag__empty-v">{emptyValue(empty)}</span>
-          <span className="mcfly-depth-flag__empty-line">{empty.copy}</span>
-          <span className="mcfly-depth-flag__empty-line">
-            {emptyFloor(empty.kind, empty.need)}
-          </span>
+          {empty.kind === "titles" ? null : (
+            <>
+              <span className="mcfly-depth-flag__empty-line">{emptyCopy(empty)}</span>
+              <span className="mcfly-depth-flag__empty-line">
+                {emptyFloor(empty.kind, empty.need)}
+              </span>
+            </>
+          )}
         </button>
       ) : null}
 

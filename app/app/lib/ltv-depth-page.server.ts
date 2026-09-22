@@ -4,14 +4,14 @@
  * size tiers, and best-customer recency) over the order-history window —
  * independent of the hidden period slicer, like Growth's come-back window.
  *
- * SAMPLE reads the deterministic Snowdevil order book (products + first-order
- * promo codes on file). Live reads the full stored OrderFact book (no product
- * titles — journeys and first-product LTV stay honest empties; discount $ is
- * on file so Promo→LTV can split promo vs full-price first; codes fill when
- * Shopify stored one on the order — never invented; sourceName cohorts
- * Online / POS / Shop) so year / long windows can seal. Thin shops
- * get empty-state craft, never a fake year. Order history only — no spend,
- * no ROAS.
+ * SAMPLE reads the deterministic Snowdevil order book (first-order promo
+ * codes and dollars on file, no product title). Live reads the full stored
+ * OrderFact book (no product titles — journeys and first-product LTV stay
+ * honest empties). Discount $ is on file so Promo→LTV can split promo vs
+ * full-price first; codes fill when Shopify stored one on the order — never
+ * invented. sourceName cohorts Online / POS / Shop so year / long windows
+ * can seal. Thin shops get empty-state craft, never a fake year. Order
+ * history only — no spend, no ROAS.
  */
 
 import {
@@ -32,8 +32,9 @@ export const LTV_DEPTH_WINDOW_DAYS = 420;
 /**
  * Build the depth view for one shop. `asOf` anchors maturity and recency
  * (defaults to now); pass it in tests. On SAMPLE the Snowdevil book is
- * generated; on live, real OrderFacts are mapped to opaque depth rows with no
- * product name so product journeys stay empty rather than guessed.
+ * generated with no product title. On live, real OrderFacts are mapped to
+ * opaque depth rows with no product name so a missing title stays an empty
+ * rather than a guessed catalog.
  */
 export async function loadLtvDepth(options: {
   shopId: string;
