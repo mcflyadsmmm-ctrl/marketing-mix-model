@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v34** Pages `ad054108` · Fly **436** · occupancy **0/4** · ads **NO** |
+| **Updated** | 2026-09-22 · America/Denver · Site **v34** Pages `ad054108` · Fly **437** · occupancy **0/4** · ads **NO** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v34** · Overview → Orders → Customers first · one Slack paste briefing · `/lab` 301 · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **436** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings · fly.dev `/` marketing still v33 until wrap |
+| **Fly** | https://mcfly-analytics.fly.dev · version **437** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings · fly.dev `/` marketing **v34** |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
