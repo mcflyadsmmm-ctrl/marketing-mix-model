@@ -56,6 +56,9 @@ describe("public /demo greets with Shopify numbers first", () => {
     expect(html).toContain("empty = —");
     expect(html).toMatch(/Live book only|Live-only/);
     expect(html).toContain("no Sample|Live toggle");
+    expect(html).toContain("SAMPLE Snowdevil is this page");
+    expect(html).toContain("when unparked");
+    expect(html).toMatch(/Live Admin is this shop/);
     expect(html).toContain("Install");
     expect(html).toContain("Open the full Snowdevil desk");
     expect(html).toContain("Pricing");
@@ -63,6 +66,42 @@ describe("public /demo greets with Shopify numbers first", () => {
     expect(html).not.toContain("Northline Supply");
     expect(html).not.toMatch(/\$98,?500/);
     expect(html).not.toMatch(/4\.19×/);
+  });
+
+  it("hero is two CTAs — Install + Open desk — Pricing is not a third fold button", () => {
+    const hero = heroBlock(html);
+    const actions =
+      hero.match(/<div class="cta-row demo-hero-actions">[\s\S]*?<\/div>/)?.[0] ??
+      "";
+    const hrefs = [...actions.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+    expect(hrefs).toEqual([
+      "https://apps.shopify.com/mcfly-analytics-public",
+      "#live-desk",
+    ]);
+    expect(actions).not.toContain("/pricing");
+    expect(hero.match(/<a class="link-cta/g)?.length).toBe(2);
+    expect(hero).not.toContain('href="/pricing"');
+    expect(html).toMatch(/<a href="\/pricing">Pricing<\/a>/);
+  });
+
+  it("captions Overview same-clock on the iframe as this hour vs last year $, not a full day", () => {
+    const caption = html.match(
+      /Overview same-clock[\s\S]{0,280}full-day compare/,
+    )?.[0];
+    expect(caption, "same-clock caption near the desk").toBeTruthy();
+    expect(caption).toMatch(/this hour vs last year \$/);
+    expect(caption).not.toContain("$68,457");
+    expect(caption).not.toContain("$19,023");
+    expect(html).toMatch(
+      /href="#live-desk">desk in the iframe<\/a>/,
+    );
+    expect(html).toContain('id="live-desk"');
+    expect(html).toContain('class="demo-live-frame"');
+    expect(html).toContain(
+      'src="https://mcfly-analytics.fly.dev/demo?hosted=1"',
+    );
+    expect(html).toContain('get("tab")');
+    expect(html).toContain("/demo/spend");
   });
 
   it("meta description is sales-first while still allowed to name SAMPLE spend dollars", () => {
