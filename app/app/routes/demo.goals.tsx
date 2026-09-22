@@ -91,6 +91,7 @@ export default function PublicDemoGoals() {
       shotMode={data.shotMode}
       useSampleDesk
       isLoading={navigation.state === "loading"}
+      orderBookDepth="paid_full"
       retryHref="/demo/goals"
     >
       <p className="mcfly-book__lede">

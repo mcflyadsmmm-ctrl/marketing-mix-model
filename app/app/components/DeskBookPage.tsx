@@ -4,8 +4,10 @@ import { MorningHabitStrip } from "./MorningHabitStrip";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import {
   orderHistoryProgressMessage,
+  truncatedOrderFactsMessage,
   type OrderHistoryProgressInput,
 } from "../lib/cash-trust-copy";
 import type { PeriodPreset } from "../lib/periods";
@@ -18,6 +20,7 @@ export function DeskBookPage({
   useSampleDesk,
   isLoading,
   showPeriod = true,
+  orderBookDepth,
   orderFactsTruncated = false,
   orderBackfillProgress = null,
   todaySalesTruncated = false,
@@ -37,6 +40,8 @@ export function DeskBookPage({
   isLoading: boolean;
   /** False when clocks are baked into the cards (YoY this / last / last year). */
   showPeriod?: boolean;
+  /** Unpaid = 90 closed days. Paid / SAMPLE = up to 24 months. Required even when compact. */
+  orderBookDepth: LiveIngestDepth;
   /** Closed-day OrderFact crawl still running — typical order / LTV are not $0. */
   orderFactsTruncated?: boolean;
   /** Closed-day OrderFact crawl progress — X of Y when days remain. */
@@ -81,6 +86,7 @@ export function DeskBookPage({
     !shotMode && !shopifyOrderWindowLimited && orderBackfillProgress
       ? orderHistoryProgressMessage(orderBackfillProgress)
       : null;
+  const truncatedClosedDay = truncatedOrderFactsMessage();
 
   return (
     <s-page heading={shotMode ? undefined : heading} inlineSize="large">
@@ -107,7 +113,12 @@ export function DeskBookPage({
           <div className="mcfly-ctx__main">
             <span className="mcfly-ctx__asof">{tillLabel}</span>
             {showPeriod ? (
-              <PeriodControl preset={preset} shotMode={shotMode} compact />
+              <PeriodControl
+                preset={preset}
+                shotMode={shotMode}
+                compact
+                orderBookDepth={orderBookDepth}
+              />
             ) : null}
           </div>
         </div>
@@ -134,11 +145,7 @@ export function DeskBookPage({
         !orderProgress &&
         !shotMode &&
         !shopifyOrderWindowLimited ? (
-          <p className="mcfly-book__lede">
-            Order history still loading — incomplete typical order, returning
-            dollars, and LTV are not $0. Shopify shares about 60 days of orders
-            on this install. Refresh in a few minutes.
-          </p>
+          <p className="mcfly-book__lede">{truncatedClosedDay.body}</p>
         ) : null}
 
         {salesError && !shotMode && retryHref ? (

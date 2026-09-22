@@ -27,6 +27,7 @@ export default function PublicDemoSettings() {
       useSampleDesk
       isLoading={false}
       showPeriod={false}
+      orderBookDepth="paid_full"
       retryHref="/demo/settings"
     >
       <p className="mcfly-book__lede">

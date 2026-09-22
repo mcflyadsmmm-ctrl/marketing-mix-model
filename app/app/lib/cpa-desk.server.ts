@@ -21,6 +21,7 @@ import {
   type CpaWindowSnapshot,
 } from "./cpa-desk";
 import { deskPeriodTillLabel } from "./desk-history";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
 import {
   buildDailyRowsForWindow,
   buildDashboardMetrics,
@@ -304,6 +305,9 @@ export async function loadCpaDesk(
     salesError,
     blockedMockAsLive: metrics?.blockedMockAsLive ?? false,
     salesSource: metrics?.salesSource ?? "shopify",
+    orderBookDepth: useSampleDesk
+      ? "paid_full"
+      : await shopLiveIngestDepth(shop.id),
   });
 
   const explorerRanges = {

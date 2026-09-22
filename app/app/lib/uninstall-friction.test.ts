@@ -59,8 +59,11 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
     expect(ltvLaneAt).toBeGreaterThan(-1);
     expect(unlockAt).toBeGreaterThan(ltvLaneAt);
     expect(valueAt).toBeGreaterThan(unlockAt);
-    expect(unlock).toContain("24 months of orders");
+    expect(unlock).toContain("LIVE_UNPAID_INGEST_DAYS");
+    expect(unlock).toMatch(/closed days of order rows/);
+    expect(unlock).toMatch(/up to 24 months of orders/);
     expect(unlock).not.toContain("~90 days");
+    expect(unlock).not.toMatch(/already on this desk/);
   });
 
   it("5) Settings is Live-only with Snowdevil honesty and a human support path", () => {

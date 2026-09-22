@@ -1,3 +1,5 @@
+import { deskHistoryCaption } from "./desk-history";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
@@ -8,8 +10,17 @@ import { resolveSalesReadiness } from "./sales-pending";
  * Marketing tabs own entered cash later.
  */
 
-export const OVERVIEW_COVERAGE_LINE =
-  "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included";
+export function overviewCoverageLine(depth: LiveIngestDepth): string {
+  return deskHistoryCaption(new Date(), "sales", depth);
+}
+
+export const OVERVIEW_COVERAGE_LINE = overviewCoverageLine("paid_full");
+
+export const OVERVIEW_PENDING_IN_TOTAL_SALES =
+  "Pending, authorized, COD, and Klarna sit in this Shopify Total Sales.";
+
+export const OVERVIEW_SHOP_NOT_COMPANY =
+  "This is Shopify Total Sales for orders on this shop — not the company book.";
 
 export const OVERVIEW_PENDING_LINE =
   "Waiting on reports scope / sales totals ingest — not $0.";

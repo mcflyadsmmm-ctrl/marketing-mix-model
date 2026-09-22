@@ -33,9 +33,8 @@ describe("CashTrustBanners today honesty", () => {
 
   it("discloses truncated closed-day OrderFact crawls as still loading, not $0", () => {
     expect(source).toContain("orderFactsTruncated");
-    expect(source).toMatch(/Order history still loading/i);
-    expect(source).toMatch(/incomplete sales are not\s+\$0/i);
-    expect(source).toMatch(/60 days of orders/i);
+    expect(source).toContain("truncatedOrderFactsMessage");
+    expect(source).not.toMatch(/about 60 days/i);
     expect(source).not.toMatch(/5-star|five.?star/i);
     expect(source).not.toContain("ReviewAsk");
   });

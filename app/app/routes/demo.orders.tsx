@@ -101,12 +101,14 @@ export default function PublicDemoOrders() {
       useSampleDesk
       isLoading={navigation.state === "loading"}
       showPeriod={false}
+      orderBookDepth="paid_full"
       retryHref="/demo/orders"
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--orders">
         <p className="mcfly-book__lede">
           {deskBookLede(
             "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS.",
+            "paid_full",
           )}
         </p>
         <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL}>

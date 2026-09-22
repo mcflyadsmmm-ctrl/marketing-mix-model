@@ -10,6 +10,7 @@ import {
 } from "../lib/overview-first-viewport";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import { CopyYtdSales } from "./MorningHabitStrip";
 import {
   OVERVIEW_YOY_ANALYTICS_LEDE,
   OVERVIEW_YOY_IDS,
@@ -22,6 +23,7 @@ import {
   overviewYoyDeltaPct,
   overviewYoyZone,
   overviewYoyZoneLabel,
+  overviewYtdCopyText,
   type OverviewYoyCard,
   type OverviewYoyId,
   type OverviewYoyZone,
@@ -148,6 +150,12 @@ export function OverviewYoyCards({
 
   const allMissingPrior = cards.every((card) => card.missingPrior);
   const sameWindow = overviewWindowsCollapsed(cards);
+  const ytd = cards.find((card) => card.id === "ytd") ?? null;
+  const ytdCopy = overviewYtdCopyText({
+    salesPending,
+    amount: ytd?.sales ?? null,
+    currency,
+  });
 
   return (
     <section
@@ -230,6 +238,14 @@ export function OverviewYoyCards({
           );
         })}
       </div>
+      {ytdCopy && ytd ? (
+        <div className="mcfly-spend-pair-copy-row">
+          <p className="mcfly-yoy__note">
+            Shopify Total Sales YTD {formatCurrency(ytd.sales, currency)}
+          </p>
+          <CopyYtdSales text={ytdCopy} />
+        </div>
+      ) : null}
       {sameWindow ? (
         <p className="mcfly-yoy__note">{OVERVIEW_YOY_SAME_WINDOW}</p>
       ) : allMissingPrior ? (

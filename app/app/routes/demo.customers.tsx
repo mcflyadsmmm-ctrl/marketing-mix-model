@@ -137,6 +137,7 @@ export default function PublicDemoCustomers() {
       useSampleDesk
       isLoading={navigation.state === "loading"}
       showPeriod={false}
+      orderBookDepth="paid_full"
       retryHref="/demo/customers"
     >
       <p className="mcfly-book__lede">
@@ -147,6 +148,7 @@ export default function PublicDemoCustomers() {
         <p className="mcfly-book__lede">
           {deskBookLede(
             "Shopify Analytics Customers is a customer list. Deeper: returning dollars vs new, dollars per buyer, then LTV, growth, and who the dollars sit with.",
+            "paid_full",
           )}
         </p>
         <div id="mcfly-returning">

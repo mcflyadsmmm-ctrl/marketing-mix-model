@@ -27,6 +27,7 @@ import {
 import { CpaExplorer } from "../components/CpaExplorer";
 import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
 import { CopySpendPair } from "../components/MorningHabitStrip";
+import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
 import { ensureShop } from "../lib/mer-dashboard.server";
@@ -530,6 +531,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     factsIncomplete: analysis.factsIncomplete,
     shopifyOrderWindowLimited: analysis.shopifyOrderWindowLimited,
     pairCoverage: analysis.pairCoverage,
+    orderBookDepth: analysis.orderBookDepth,
   };
 };
 
@@ -738,6 +740,7 @@ export default function SpendEntryPage() {
     salesFactsIncomplete,
     shopifyOrderWindowLimited,
     pairCoverage,
+    orderBookDepth,
   } = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const [searchParams] = useSearchParams();
@@ -983,6 +986,7 @@ export default function SpendEntryPage() {
                 preset={preset}
                 shotMode={shotMode}
                 language="spend"
+                orderBookDepth={orderBookDepth}
               />
             </div>
           </div>
@@ -1037,9 +1041,12 @@ export default function SpendEntryPage() {
                 {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
               </p>
               <p className="mcfly-book__kpi-hint">
-                {metrics.salesPending
-                  ? "Still loading — not $0"
-                  : metrics.period.label}
+                {spendFirstFoldSalesHint({
+                  salesPending: Boolean(metrics.salesPending),
+                  periodLabel: metrics.period.label,
+                  todaySalesTruncated,
+                  todaySalesUnavailable,
+                })}
               </p>
             </div>
             <div className="mcfly-book__kpi mcfly-book__kpi--soft">

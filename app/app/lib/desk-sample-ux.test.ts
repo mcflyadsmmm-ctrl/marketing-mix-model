@@ -233,7 +233,8 @@ describe("Sample data | Live data UX", () => {
     expect(deskPage).toContain("getOrderBackfillProgress");
     const bookPage = read("../components/DeskBookPage.tsx");
     expect(bookPage).toContain("orderFactsTruncated");
-    expect(bookPage).toMatch(/incomplete typical order[\s\S]*not \$0/);
+    expect(bookPage).toContain("truncatedOrderFactsMessage");
+    expect(bookPage).not.toMatch(/about 60 days/);
     expect(buyers).toContain('throw redirect(`/app/customers');
     expect(timing).toContain('throw redirect(`/app/orders');
   });
