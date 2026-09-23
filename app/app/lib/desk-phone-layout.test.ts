@@ -189,13 +189,9 @@ describe("Admin desk phone / narrow iframe", () => {
     const fixture = read("./desk-phone-pending-fixture.html");
     expect(fixture).toContain("still loading — not $0");
     expect(fixture).toContain("This month");
-    expect(fixture).toContain("This quarter");
-    expect(fixture).toContain("This year");
-    expect(fixture).toContain(">Overview<");
-    expect(fixture).toContain(">Orders<");
-    expect(fixture).toContain(">Customers<");
-    expect(fixture).toContain(">Spend<");
-    expect(fixture).toContain(">Goals<");
+    expect(fixture).toContain("0 of 23 days");
+    expect(fixture).toContain("mcfly-overview-plane__value");
+    expect(fixture).not.toContain("mcfly-chart--empty");
     expect(fixture).not.toContain("Spend Upload");
     expect(fixture).not.toContain("Channel Allocation");
     expect(fixture).not.toContain("Total ROAS");

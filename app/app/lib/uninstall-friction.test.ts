@@ -34,11 +34,13 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
 
   it("2) pending / thin empties stay copy, not a blank chart wall", () => {
     expect(firstView).toContain("OVERVIEW_PENDING_LINE");
-    expect(pending).toContain("mcfly-chart--empty");
+    expect(pending).toContain("0 of 23 days");
+    expect(pending).not.toContain("mcfly-chart--empty");
     expect(pending).toContain("not $0");
     expect(pending).not.toContain("0.00×");
     expect(overview).toContain("emptyOverviewMixForecast");
     expect(overview).toContain("emptyShareableInsights");
+    expect(overview).toContain("showOverviewChartBeat");
   });
 
   it("3) first-run sync shows 0-of-N sales + order progress above the glance", () => {
@@ -46,7 +48,8 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
     expect(overview).toContain("salesFactsIncomplete");
     expect(overview).toContain("expectedClosedDays > 0");
     expect(overview).not.toContain("metrics.orderCount > 0 || metrics.sales > 0");
-    expect(trust).toContain("orderHistoryProgressMessage");
+    expect(trust).toContain("homePendingBannerMessage");
+    expect(trust).toContain("singlePendingSurface");
     expect(trust).toContain("hasSpend");
     expect(pending).toContain("0 of 23 days");
   });

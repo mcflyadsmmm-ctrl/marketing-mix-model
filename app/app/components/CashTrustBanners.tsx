@@ -13,6 +13,7 @@ import {
 } from "../lib/mer-trust";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import {
+  homePendingBannerMessage,
   orderHistoryProgressMessage,
   salesFactsIncompleteMessage,
   truncatedOrderFactsMessage,
@@ -70,6 +71,11 @@ type Props = {
   marginStale?: boolean;
   /** Cold-path next step when advice is locked (spend missing). */
   onboarding?: { settingsSaved: boolean; hasSpend: boolean } | null;
+  /**
+   * Overview Home — collapse sales-facts, order-history, and today banners
+   * into a single pending surface. Spend / Goals keep the full stack.
+   */
+  singlePendingSurface?: boolean;
 };
 
 export function CashTrustBanners({
@@ -89,6 +95,7 @@ export function CashTrustBanners({
   belowBreakEven = null,
   marginStale: _marginStale = false,
   onboarding = null,
+  singlePendingSurface = false,
 }: Props) {
   const currency = useDeskCurrency();
   if (shotMode) return null;
@@ -101,32 +108,36 @@ export function CashTrustBanners({
     Number.isFinite(belowBreakEven.mer) &&
     belowBreakEven.mer < belowBreakEven.breakEvenMer;
 
+  const homePending =
+    singlePendingSurface && !shopifyOrderWindowLimited
+      ? homePendingBannerMessage({
+          periodLabel,
+          hasSpend,
+          salesFactsIncomplete,
+          orderBackfillProgress,
+          orderFactsTruncated,
+          todaySalesTruncated,
+          todaySalesUnavailable,
+        })
+      : null;
+
   const salesFactsCopy =
+    !singlePendingSurface &&
     salesFactsIncomplete &&
     salesFactsIncomplete.expectedClosedDays > 0 &&
     !shopifyOrderWindowLimited
-      ? (() => {
-          const base = salesFactsIncompleteMessage({
-            factDays: salesFactsIncomplete.factDays,
-            expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
-            periodLabel,
-            hasSpend,
-          });
-          // Sales totals are ShopifyQL ingest — not an orders crawl for day totals.
-          const ingest =
-            " Waiting on reports scope / sales totals ingest — not an orders crawl for sales totals.";
-          return {
-            heading:
-              salesFactsIncomplete.factDays <= 0
-                ? "Waiting on sales totals ingest"
-                : base.heading,
-            body: `${base.body}${ingest}`,
-          };
-        })()
+      ? salesFactsIncompleteMessage({
+          factDays: salesFactsIncomplete.factDays,
+          expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
+          periodLabel,
+          hasSpend,
+        })
       : null;
 
   const orderProgressCopy =
-    !shopifyOrderWindowLimited && orderBackfillProgress
+    !singlePendingSurface &&
+    !shopifyOrderWindowLimited &&
+    orderBackfillProgress
       ? orderHistoryProgressMessage(orderBackfillProgress)
       : null;
   const truncatedClosedDay = truncatedOrderFactsMessage();
@@ -154,13 +165,19 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
+      {homePending ? (
+        <s-banner tone="info" heading={homePending.heading}>
+          <s-paragraph>{homePending.body}</s-paragraph>
+        </s-banner>
+      ) : null}
+
       {salesFactsCopy ? (
         <s-banner tone="info" heading={salesFactsCopy.heading}>
           <s-paragraph>{salesFactsCopy.body}</s-paragraph>
         </s-banner>
       ) : null}
 
-      {todaySalesTruncated ? (
+      {!singlePendingSurface && todaySalesTruncated ? (
         <s-banner tone="warning" heading="Today’s sales may be incomplete">
           <s-paragraph>
             Live today is capped at ~100 orders for a fast desk load. High-volume
@@ -176,13 +193,16 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {orderFactsTruncated && !orderProgressCopy && !shopifyOrderWindowLimited ? (
+      {!singlePendingSurface &&
+      orderFactsTruncated &&
+      !orderProgressCopy &&
+      !shopifyOrderWindowLimited ? (
         <s-banner tone="info" heading={truncatedClosedDay.heading}>
           <s-paragraph>{truncatedClosedDay.body}</s-paragraph>
         </s-banner>
       ) : null}
 
-      {todaySalesUnavailable && !todaySalesTruncated ? (
+      {!singlePendingSurface && todaySalesUnavailable && !todaySalesTruncated ? (
         <s-banner tone="warning" heading="Today’s sales unavailable">
           <s-paragraph>
             Couldn’t refresh today’s live orders. Closed-day sales facts still

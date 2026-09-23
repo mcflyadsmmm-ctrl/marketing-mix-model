@@ -13,11 +13,10 @@ export const OVERVIEW_YOY_LABELS: Record<OverviewYoyId, string> = {
 
 /** Honest empty — never paint missing last year as $0. */
 export const OVERVIEW_YOY_MISSING =
-  "Same days last year not on file yet. Waiting on sales day totals (reports scope) — not $0.";
+  "Same days last year not on file yet. Orders still loading — not $0.";
 
 /** Pending sales — never paint this year as a finished $0. */
-export const OVERVIEW_YOY_PENDING =
-  "Waiting on reports scope / sales totals ingest — not $0.";
+export const OVERVIEW_YOY_PENDING = "Orders still loading — not $0.";
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
 export const OVERVIEW_YOY_ANALYTICS_LEDE = "Same days last year";

@@ -81,11 +81,12 @@ describe("buildOverviewYoyCards", () => {
     ]);
     expect(month?.missingPrior).toBe(true);
     expect(month?.delta).toBeNull();
-    expect(OVERVIEW_YOY_MISSING).toMatch(/reports scope|sales day totals/i);
+    expect(OVERVIEW_YOY_MISSING).toMatch(/not on file yet/i);
     expect(OVERVIEW_YOY_MISSING).not.toMatch(/60 days/);
     expect(OVERVIEW_YOY_MISSING).not.toMatch(/\$0 last year/);
-    expect(OVERVIEW_YOY_PENDING).toMatch(/reports scope|sales totals ingest/i);
+    expect(OVERVIEW_YOY_PENDING).toMatch(/Orders still loading/i);
     expect(OVERVIEW_YOY_PENDING).toMatch(/not \$0/);
+    expect(OVERVIEW_YOY_PENDING).not.toMatch(/reports scope|sales totals ingest/i);
   });
 
   it("flags three windows that collapsed to the same dollars", () => {
