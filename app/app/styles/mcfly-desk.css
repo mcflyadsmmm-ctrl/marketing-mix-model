@@ -22276,3 +22276,94 @@ button.mcfly-habit-goals__read:focus-visible {
   align-items: center;
   gap: 0.4rem 0.45rem;
 }
+
+/* Phone six-figure wrap — LTV 30/90/year tiles, open-lane triangle, weekly ledger.
+   Under 36rem the flagship tiles stack one column, the way Goals / Orders / Growth
+   already wrap. Sealed triangle dollars stay on screen and may wrap. Unsealed
+   stays the hatch. Codes and Returns leave the ledger row and stay in the drill.
+   APPEND ONLY. Do not unpark Live. */
+@media (max-width: 36rem) {
+  .mcfly-depth-flag .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-desk .mcfly-depth-flag .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .mcfly-depth-flag .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-depth-flag .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+  .mcfly-desk .mcfly-depth-flag .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+  .mcfly-desk .mcfly-depth-flag .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi {
+    flex: 1 1 100%;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .mcfly-depth-flag .mcfly-kpi--peek .mcfly-kpi__value,
+  .mcfly-depth-flag .mcfly-depth-windows__sub,
+  .mcfly-depth-flag .mcfly-depth-windows__add {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .mcfly-window-triangle .mcfly-depth-tablewrap {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .mcfly-window-triangle .mcfly-depth-table--heat {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .mcfly-window-triangle .mcfly-depth-table th,
+  .mcfly-window-triangle .mcfly-depth-table td,
+  .mcfly-window-triangle .mcfly-depth-heat__btn {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  .mcfly-window-triangle .mcfly-depth-heat__btn {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  .mcfly-window-triangle .mcfly-depth-heat__cell--none {
+    color: var(--mcfly-mute);
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      var(--mcfly-line-soft) 4px,
+      var(--mcfly-line-soft) 5px
+    );
+  }
+
+  .mcfly-orders-ledger__wrap {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .mcfly-orders-ledger__table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .mcfly-orders-ledger__table th,
+  .mcfly-orders-ledger__table td,
+  .mcfly-orders-ledger__lh,
+  .mcfly-orders-ledger__sales,
+  .mcfly-orders-ledger__aov {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  .mcfly-orders-ledger__park {
+    display: none;
+  }
+}
