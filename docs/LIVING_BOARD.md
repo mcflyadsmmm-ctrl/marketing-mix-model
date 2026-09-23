@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` (privacy L2-aligned) · Fly **455** · SHA `a38b462` · occupancy **0/4** · ads **NO** · **L2 paste pack ready** — Marty Partner Submit only · no `read_reports` until Approved |
+| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` (privacy L2-aligned) · Fly **not redeployed this ship** · occupancy **0/4** · ads **NO** · **PCD L2 Approved** (Name, Email, Phone, Address) · git `read_reports` · `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE` **true** · SAMPLE desk does not paint QL clocks · SAMPLE_ONLY **true** · LIVE_STAGE **parked** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v45** · quality-rescue · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · home → Open the SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **455** · image `deployment-01M36GMR1NV39E2Z70WVQ8099T` · PCD L2 privacy + SAMPLE polish · `/health` 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · scopes no `read_reports` |
+| **Fly** | https://mcfly-analytics.fly.dev · last stamp **v456** (scoreboard; not this ship) · `/health` was 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · LIVE_STAGE **parked** · running process unchanged until Marty deploys · git `SCOPES` = `read_orders,read_customers,read_all_orders,read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -94,7 +94,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Site v30 + Fly 396** — five analysis tabs plus Settings (fold never delete). Overview YoY year board · Customers returning $ + Growth/LTV · Spend MER + mix + CPA. Pages `83cfac91`. Journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md).
 - [x] **Site v43 + Fly 446** — rebuild-v43 PR #204 · order-book Overview · Fly marketing 301 · Opus Ship · smoke PASS · Pages `d0791d6b` · SHA `49bb8ef` · critic [`research/2026-09-22-revamp/PHASE_D_CRITIC.md`](./research/2026-09-22-revamp/PHASE_D_CRITIC.md).
 - [x] **Site v44 + Fly 447** — aesthetic-v44 PR #205 · light+sky first folds · Overview panel chips gone · Opus Ship · smoke PASS · Pages `c5af633e` · SHA `7d1d95e` · critic [`research/2026-09-22-revamp/AESTHETIC_CRITIC.md`](./research/2026-09-22-revamp/AESTHETIC_CRITIC.md).
-- [ ] **PCD Level 2** — paste pack [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md) (+ incident / access-DLP). **Marty Submit only.** No `read_reports` until Approved.
+- [x] **PCD Level 2 Approved** — Name, Email, Phone, Address on the Public app. Git: `read_reports` + `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE=true`. No OrderFact GraphQL for those fields. No Fly deploy, no unpark, no Partner Submit in this ship. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
 - [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (90-day trial / 24-month paid · From orders). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v44** before paste.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
@@ -116,7 +116,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** **L2 pack ready** — Marty Partner PCD Submit ([`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)). Listing Save · `support@` MX · FUNNEL week · **unpark**. No `read_reports` until L2 Approved. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
+**Next:** Listing Save · `support@` MX · FUNNEL week · **unpark** (Marty). Fly deploy of `read_reports` is Marty — not this PR. Reviews **0**. Ads **NO**. Cursor does not Partner Submit. Live stays parked. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
 
 ---
 

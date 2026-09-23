@@ -192,16 +192,18 @@ describe("Shopify App Store source verification", () => {
     expect(login).not.toMatch(/<input\b/i);
   });
 
-  it("3.2.1 public configs request Partner-approved full order history", () => {
+  it("3.2.1 app configs request full order history plus read_reports", () => {
     for (const path of [
       "app/shopify.app.toml",
       "app/shopify.app.public.toml",
+      "app/shopify.app.custom.toml",
     ]) {
       const scopes = publicScopes(readRepo(path));
       expect(scopes, path).toEqual([
         "read_orders",
         "read_customers",
         "read_all_orders",
+        "read_reports",
       ]);
     }
   });
@@ -209,7 +211,7 @@ describe("Shopify App Store source verification", () => {
   /*
    * The TOML is only half the story: SCOPES in a deploy config or env sample is
    * what the running app actually requests. Drift there asks the merchant to
-   * approve a scope Partner has not approved, and install fails.
+   * approve a different set than the app config, and install fails.
    */
   it("3.2.1 deploy configs request the same scopes as the public TOML", () => {
     for (const path of ["railway.toml", "fly.toml", "app/.env.example"]) {
@@ -229,6 +231,7 @@ describe("Shopify App Store source verification", () => {
           "read_orders",
           "read_customers",
           "read_all_orders",
+          "read_reports",
         ]);
       }
     }
@@ -273,7 +276,7 @@ describe("Shopify App Store source verification", () => {
     expect(documents.length).toBeGreaterThan(0);
     expect(customerBlocks.length).toBeGreaterThan(0);
     expect(documentSurface).not.toMatch(
-      /\b(?:email|phone|firstName|lastName|addresses?|defaultAddress|shippingAddress|billingAddress)\b/,
+      /\b(?:email|phone|firstName|lastName|displayName|addresses?|defaultAddress|shippingAddress|billingAddress)\b/,
     );
     for (const block of customerBlocks) {
       expect(block).toMatch(/\bid\b/);
@@ -281,7 +284,8 @@ describe("Shopify App Store source verification", () => {
     }
   });
 
-  it("OrderFact GraphQL selects only customer id and numberOfOrders — never SKU/title/email", () => {
+  it("OrderFact GraphQL selects only customer id and numberOfOrders — never L2 PII, SKU, or title", () => {
+    // PCD L2 Approved does not authorize name/email/phone/address on this query.
     const factsSource = readRepo("app/app/lib/order-facts.server.ts");
     const documents = graphqlDocuments(factsSource);
     const documentSurface = documents.join("\n");
@@ -294,7 +298,7 @@ describe("Shopify App Store source verification", () => {
     expect(documentSurface).toContain("sourceName");
     expect(documentSurface).toContain("currentSubtotalLineItemsQuantity");
     expect(documentSurface).not.toMatch(
-      /\b(?:email|phone|firstName|lastName|addresses?|sku|title|vendor|lineItems)\b/,
+      /\b(?:email|phone|firstName|lastName|displayName|addresses?|address1|address2|defaultAddress|shippingAddress|billingAddress|sku|title|vendor|lineItems)\b/,
     );
     expect(customerBlocks.length).toBeGreaterThan(0);
     for (const block of customerBlocks) {
@@ -302,5 +306,12 @@ describe("Shopify App Store source verification", () => {
       expect(block).toMatch(/\bnumberOfOrders\b/);
       expect(block.trim()).toMatch(/^id\s+numberOfOrders\s*$/);
     }
+
+    const schema = readRepo("app/prisma/schema.prisma");
+    const orderFact = schema.match(/model OrderFact \{[\s\S]*?\n\}/)?.[0] ?? "";
+    expect(orderFact).toContain("customerKey");
+    expect(orderFact).not.toMatch(
+      /\b(?:email|phone|firstName|lastName|displayName|address)\b/,
+    );
   });
 });

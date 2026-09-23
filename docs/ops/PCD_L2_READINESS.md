@@ -1,6 +1,6 @@
 # PCD Level 2 readiness — Mcfly Analytics (2026-09-23)
 
-**Status:** Ready for **Marty** to complete Partner Dashboard L2 request + questionnaire. Cursor does **not** Submit.
+**Status:** **Approved** — Public app, fields **Name, Email, Phone, Address**. This ship adds `read_reports` and sets `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = true`. SAMPLE still does not paint QL day totals as Live. `MCFLY_SAMPLE_ONLY` stays `true`. `MCFLY_LIVE_STAGE` stays `parked`. Cursor does **not** Fly deploy, Partner Submit, or unpark.
 
 **Product truth:** Core desk works at **L1** (order totals + opaque `customer.id` / `numberOfOrders`). L2 is requested **only** because Shopify’s `shopifyqlQuery` field requires Level 2 fields even for aggregate `FROM sales` totals. We will **not** store, display, export, or email name / address / phone / email.
 
@@ -18,7 +18,7 @@
 4. Complete **Data protection details** using answers in § Questionnaire  
 5. Confirm privacy URL is live and matches  
 6. **Submit for review** (Marty only)  
-7. After **Approved**: tell Conductor → add `read_reports` + flip `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE` (separate ship). Do **not** add GraphQL selections for name/email/phone/address
+7. After **Approved**: Conductor adds `read_reports` + flips `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE`. **Done in git.** Do **not** add GraphQL selections for name/email/phone/address. Fly deploy and merchant re-auth stay Marty.
 
 ---
 
@@ -77,13 +77,13 @@ If a question asks “do you log access to personal data?” → **Yes** for sho
 
 ---
 
-## Code locks until L2 approved + Conductor ship
+## Code locks (L2 Approved + this ship)
 
 - [x] No `name` / `email` / `phone` / `address` in OrderFact GraphQL (tests enforce)  
 - [x] Compliance webhooks registered  
 - [x] Level-1 data_request package (opaque)  
-- [ ] `read_reports` in toml — **only after L2 Approved**  
-- [ ] `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = true` — only after L2 + tests  
+- [x] `read_reports` in `shopify.app.toml`, `shopify.app.public.toml`, `shopify.app.custom.toml`, and Fly `SCOPES` — `read_orders,read_customers,read_all_orders,read_reports`  
+- [x] `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = true` — SAMPLE stays false via `deskAnalyticsDayTotalsLive(true)`  
 
 ---
 
@@ -95,4 +95,4 @@ SAMPLE desk on Fly **455+**: Home · Customers · Spend, SAMPLE watermark, Spend
 
 ## Refuse
 
-Inventing that we “need email for support” · storing L2 fields “just in case” · Partner Submit by Cursor · claiming Analytics parity before QL live
+Inventing that we “need email for support” · storing L2 fields “just in case” · Partner Submit by Cursor · Fly deploy or unpark from this ship · claiming Analytics parity because the flag is on (Accuracy F stays HOLD until a measured compare)
