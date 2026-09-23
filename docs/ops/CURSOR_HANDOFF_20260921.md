@@ -7,7 +7,7 @@
 [`CURSOR_FLEET_HANDOFF_FULL.md`](./CURSOR_FLEET_HANDOFF_FULL.md)  
 *(repo target: `docs/ops/CURSOR_FLEET_HANDOFF_FULL.md`)*
 
-This short file is tip-state only. Do not invent roles or Fly versions beyond the table below — use the FULL doc.
+This short file is the 2026-09-21 tip-state snapshot. Do not invent roles. **Current runtime (2026-09-23 America/Denver)** is on `docs/LIVING_BOARD.md` and `docs/ops/SCOREBOARD.md`: Fly secrets unparked to `overview_orders` (`MCFLY_SAMPLE_ONLY=false`), recent release **~v460**, health **200** at 22:22Z, `read_reports` shipped, PCD L2 Approved, Customers/LTV locked, ads **NO**, reviews **0**. Git kill-switch stays parked; secrets override; Marty re-asserts after deploy. The PARKED row below is that day’s history.
 
 ---
 

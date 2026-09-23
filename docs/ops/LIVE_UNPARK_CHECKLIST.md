@@ -1,8 +1,9 @@
 # Live unpark — one glance
 
 **Audience:** Marty, before any real-data demo claim.  
-**Tip:** `cursor/spend-trust-recurring` · Fly **v364 SAMPLE Done** · `MCFLY_SAMPLE_ONLY=true` (do **not** flip in git).  
-**This PR does not go Live wide.** It parks the path so tomorrow’s unpark is progressive, honest, and cheap.
+**Tip:** `cursor/spend-trust-recurring` · git kill-switch in `fly.toml` stays `MCFLY_SAMPLE_ONLY=true` and `MCFLY_LIVE_STAGE=parked` (do **not** flip in git).  
+**Production 2026-09-23 America/Denver:** Fly secrets override that default — `MCFLY_SAMPLE_ONLY=false`, `MCFLY_LIVE_STAGE=overview_orders`. Health **200** at 22:22Z (`db: up`). Recent release **~v460**. Customers and LTV stay locked. SAMPLE book stays. After a deploy, Marty re-asserts those secrets so `[env]` does not park production again.  
+**This page is the ladder.** It does not deploy and it does not change secrets. It does not go Live wide (`customers` / `ltv`).
 
 | Kill switch | Keep SAMPLE | No fake Live |
 | --- | --- | --- |
@@ -16,9 +17,9 @@
 
 | Step | Action | Stop if |
 | ---: | --- | --- |
-| 0 | Leave Fly at `MCFLY_SAMPLE_ONLY=true`. Confirm `/health` 200. SAMPLE watermark on. | Health not 200 |
+| 0 | Parked rung. Freeze on (`MCFLY_SAMPLE_ONLY=true` or stage `parked`) means the SAMPLE watermark and no Live ingest. Confirm `/health` 200 before any stage change. Production on 2026-09-23 is **past** this rung (`overview_orders` via secrets). | Health not 200 |
 | 1 | One-shop **accuracy scorecard** (§4) on a real shop in Admin — SAMPLE still on is fine for the *path*; Live numbers need Live mode. | Any §4 row FAIL |
-| 2 | Human: `MCFLY_SAMPLE_ONLY=false` **and** `MCFLY_LIVE_STAGE=overview_orders` on Fly. Do not set `ltv` yet. | You skipped §4 |
+| 2 | Overview + Orders rung. Production secrets are already `MCFLY_SAMPLE_ONLY=false` and `MCFLY_LIVE_STAGE=overview_orders` (2026-09-23). Do not set `customers` or `ltv`. Re-assert the same secrets after a deploy. | You skipped §4 before calling it a real-data demo |
 | 3 | Overview + Orders vs Admin (sales, typical ticket, refunds, shop TZ). | Numbers disagree |
 | 4 | `MCFLY_LIVE_STAGE=customers` — returning $, guests, whales. | SAMPLE mixed in |
 | 5 | `MCFLY_LIVE_STAGE=ltv` — first-90 on file; **year / full LTV only if paid $39**. | Year painted as $0 |
@@ -34,8 +35,8 @@ Code: `app/app/lib/live-unpark.ts`. Env: `MCFLY_LIVE_STAGE`.
 
 | Stage | Env | Live tabs | What you are proving |
 | --- | --- | --- | --- |
-| **parked** | freeze on, **or** `MCFLY_LIVE_STAGE=parked` | none | Current Fly. SAMPLE only. |
-| **overview_orders** | freeze **off** + `overview_orders` (also the default if freeze is off and stage is unset) | Overview · Orders | Sales / typical ticket / clock vs Admin |
+| **parked** | freeze on, **or** `MCFLY_LIVE_STAGE=parked` | none | SAMPLE only. Git `[env]` default. Not current production. |
+| **overview_orders** | freeze **off** + `overview_orders` (also the default if freeze is off and stage is unset) | Overview · Orders | **Current production** (Fly secrets, 2026-09-23). Sales / typical ticket / clock vs Admin. |
 | **customers** | `customers` | + Customers · Growth | Returning $, guests out, win-back |
 | **ltv** | `ltv` | + LTV | Paid $39 = full history LTV. Unpaid/trial Live = **90 closed days** (honest empties, not $0 year) |
 
@@ -106,7 +107,7 @@ Prior SAMPLE-only audits (v336 / v339) are **not** a Live pass.
 
 | Hook | File | Behavior now |
 | --- | --- | --- |
-| Freeze | `isSampleOnlyFreeze()` / `fly.toml` | `MCFLY_SAMPLE_ONLY=true` — **unchanged** |
+| Freeze | `isSampleOnlyFreeze()` / `fly.toml` | Git default `MCFLY_SAMPLE_ONLY=true`. Production secrets are `false` and override `[env]`. Do not flip the git default in a PR. |
 | Stage + commercial policy | `app/app/lib/live-unpark.ts` | parked → no Live ingest; unpaid/trial = 90 closed days; paid = full Shopify-visible |
 | Ingest depth | `resolveLiveIngestWindowDays` | Unpaid/trial crawl stops at 90 closed days; paid keeps the granted window |
 | Order rows | `resolveCommercialOrderWindowDays` | After the unpaid slice, rows still stop at 24 months |

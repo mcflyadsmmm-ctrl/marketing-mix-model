@@ -4,6 +4,8 @@
 **Written:** 2026-09-21 · America/Denver (MT)  
 **Purpose:** Recreate the entire Mcfly operating fleet **cold** inside Cursor — no Grok required.
 
+**Runtime stamp 2026-09-23 (supersedes “keep Live PARKED” in the one-liner below):** Fly secrets `MCFLY_SAMPLE_ONLY=false`, `MCFLY_LIVE_STAGE=overview_orders`. Recent release **~v460**. Health **200** at 22:22Z. `read_reports` + ShopifyQL flag shipped. PCD L2 Approved. Customers/LTV not unlocked. Ads **NO**. Reviews **0**. Git `fly.toml` kill-switch stays true/parked; secrets override; Marty re-asserts after deploy. Current SoT: `docs/LIVING_BOARD.md` + `docs/ops/SCOREBOARD.md`. The v406 paragraph is 2026-09-21 history.
+
 **SoT pointer:** This file is the full handoff. Short tip-state summary lives in `CURSOR_HANDOFF_20260921.md` (points here).
 
 ---

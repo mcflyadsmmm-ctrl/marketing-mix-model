@@ -1,6 +1,6 @@
 # PCD Level 2 readiness — Mcfly Analytics (2026-09-23)
 
-**Status:** **Approved** — Public app, fields **Name, Email, Phone, Address**. This ship adds `read_reports` and sets `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = true`. SAMPLE still does not paint QL day totals as Live. `MCFLY_SAMPLE_ONLY` stays `true`. `MCFLY_LIVE_STAGE` stays `parked`. Cursor does **not** Fly deploy, Partner Submit, or unpark.
+**Status:** **Approved** — Public app, fields **Name, Email, Phone, Address**. `read_reports` and `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = true` are **shipped**. SAMPLE still does not paint QL day totals as Live. Production Fly secrets (2026-09-23 America/Denver) are `MCFLY_SAMPLE_ONLY=false` and `MCFLY_LIVE_STAGE=overview_orders` (recent release **~v460**; health **200** at 22:22Z). The SAMPLE toggle still exists. Customers and LTV stages are not unlocked. Git `[env]` stays `true` / `parked`; secrets override; Marty re-asserts after deploy. Cursor does **not** Fly deploy, change secrets, or Partner Submit.
 
 **Product truth:** Core desk works at **L1** (order totals + opaque `customer.id` / `numberOfOrders`). L2 is requested **only** because Shopify’s `shopifyqlQuery` field requires Level 2 fields even for aggregate `FROM sales` totals. We will **not** store, display, export, or email name / address / phone / email.
 
@@ -18,7 +18,7 @@
 4. Complete **Data protection details** using answers in § Questionnaire  
 5. Confirm privacy URL is live and matches  
 6. **Submit for review** (Marty only)  
-7. After **Approved**: Conductor adds `read_reports` + flips `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE`. **Done in git.** Do **not** add GraphQL selections for name/email/phone/address. Fly deploy and merchant re-auth stay Marty.
+7. After **Approved**: Conductor adds `read_reports` + flips `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE`. **Shipped** (git + recent Fly). Do **not** add GraphQL selections for name/email/phone/address. Merchant re-auth, if a shop has not granted `read_reports`, stays Marty. This stamp does not deploy.
 
 ---
 
@@ -89,10 +89,10 @@ If a question asks “do you log access to personal data?” → **Yes** for sho
 
 ## Reviewer Admin view
 
-SAMPLE desk on Fly **455+**: Home · Customers · Spend, SAMPLE watermark, Spend cash chips. Live path parked (`SAMPLE_ONLY`). Privacy live on Fly `/privacy` + mcflyads.com/privacy (L2 gate honesty). Site aesthetic ops held.
+SAMPLE desk still exists (watermark on SAMPLE). Live path on production is `overview_orders` via secrets, not parked. Customers / LTV stages stay locked. Privacy live on Fly `/privacy` + mcflyads.com/privacy (L2 gate honesty). Site aesthetic ops held.
 
 ---
 
 ## Refuse
 
-Inventing that we “need email for support” · storing L2 fields “just in case” · Partner Submit by Cursor · Fly deploy or unpark from this ship · claiming Analytics parity because the flag is on (Accuracy F stays HOLD until a measured compare)
+Inventing that we “need email for support” · storing L2 fields “just in case” · Partner Submit by Cursor · Fly deploy or secret changes from this doc · claiming Analytics parity because the flag is on (Accuracy F stays HOLD until a measured compare) · unlocking Customers / LTV from this doc

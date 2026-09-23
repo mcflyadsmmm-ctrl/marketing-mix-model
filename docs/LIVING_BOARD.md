@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` (privacy L2-aligned) · Fly **not redeployed this ship** · occupancy **0/4** · ads **NO** · **PCD L2 Approved** (Name, Email, Phone, Address) · git `read_reports` · `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE` **true** · SAMPLE desk does not paint QL clocks · SAMPLE_ONLY **true** · LIVE_STAGE **parked** |
+| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` (privacy L2-aligned) · occupancy **0/4** · ads **NO** · reviews **0** · **PCD L2 Approved** (Name, Email, Phone, Address) · `read_reports` + `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE` **shipped** · SAMPLE desk does not paint QL clocks · SAMPLE toggle **still exists** · Fly secrets **unparked** `MCFLY_SAMPLE_ONLY=false` · `MCFLY_LIVE_STAGE=overview_orders` · Customers / LTV **not unlocked** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v45** · quality-rescue · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · home → Open the SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · last stamp **v456** (scoreboard; not this ship) · `/health` was 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · LIVE_STAGE **parked** · running process unchanged until Marty deploys · git `SCOPES` = `read_orders,read_customers,read_all_orders,read_reports` |
+| **Fly** | https://mcfly-analytics.fly.dev · recent release **~v460** · `/health` **200** probed 2026-09-23T22:22:09Z (`ok`, `db: up`) · `/` **301** → mcflyads.com · runtime secrets `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=overview_orders` · git `[env]` kill-switch stays `true` / `parked` (secrets override; Marty re-asserts after deploy) · git `SCOPES` = `read_orders,read_customers,read_all_orders,read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -46,7 +46,8 @@ Restraint. Paper/sky. Original ribbon M. Phone = brand + hamburger.
 ## Product + SAMPLE lock
 
 App: deeper Shopify order analytics than Analytics Overview. Spend tools are their own pages after the Shopify five. Not pixels.  
-**Rebuild SoT:** [`plans/2026-09-16-snowdevil-sample-only.md`](./plans/2026-09-16-snowdevil-sample-only.md) (Grok paste: [`plans/2026-09-16-snowdevil-sample-only-PROMPT.md`](./plans/2026-09-16-snowdevil-sample-only-PROMPT.md)). Older save-the-desk plan still explains density. **2026-09-16 founder override:** Live path is **parked** until Marty agrees SAMPLE looks and calculates right. Next book is **Snowdevil**, not Harbor spend. No Live order seed. Grok Bot **may** `fly deploy` from this Mac; Marty remains Admin / Partner gate. Cursor does not Submit. Split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).  
+**Rebuild SoT:** [`plans/2026-09-16-snowdevil-sample-only.md`](./plans/2026-09-16-snowdevil-sample-only.md) (Grok paste: [`plans/2026-09-16-snowdevil-sample-only-PROMPT.md`](./plans/2026-09-16-snowdevil-sample-only-PROMPT.md)). Older save-the-desk plan still explains density. **2026-09-16 founder override (historical):** Live path was parked until Marty agreed SAMPLE looks and calculates right. Next book is **Snowdevil**, not Harbor spend. No Live order seed. Grok Bot **may** `fly deploy` from this Mac; Marty remains Admin / Partner gate. Cursor does not Submit. Split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).  
+**2026-09-23 runtime (current; beats the parked sentence above):** PCD L2 **Approved**. `read_reports` and the ShopifyQL day-totals flag are **shipped**. Fly secrets unparked Live to **`overview_orders`** (`MCFLY_SAMPLE_ONLY=false`). The SAMPLE toggle still exists. Customers and LTV stages are **not** unlocked. Ads **NO**. Reviews **0**. `fly.toml` `[env]` stays the git kill-switch (`true` / `parked`). Secrets override production. Marty re-asserts those secrets after any deploy. This stamp does not deploy and does not change secrets.  
 **Harbor SAMPLE (home, below the fold):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
 Voice bans: Monday / cash desk / beats SaaS / 500-seat theater / aMER / till / cohort / ARPU / p25-p75 in chrome.  
@@ -94,7 +95,8 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Site v30 + Fly 396** — five analysis tabs plus Settings (fold never delete). Overview YoY year board · Customers returning $ + Growth/LTV · Spend MER + mix + CPA. Pages `83cfac91`. Journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md).
 - [x] **Site v43 + Fly 446** — rebuild-v43 PR #204 · order-book Overview · Fly marketing 301 · Opus Ship · smoke PASS · Pages `d0791d6b` · SHA `49bb8ef` · critic [`research/2026-09-22-revamp/PHASE_D_CRITIC.md`](./research/2026-09-22-revamp/PHASE_D_CRITIC.md).
 - [x] **Site v44 + Fly 447** — aesthetic-v44 PR #205 · light+sky first folds · Overview panel chips gone · Opus Ship · smoke PASS · Pages `c5af633e` · SHA `7d1d95e` · critic [`research/2026-09-22-revamp/AESTHETIC_CRITIC.md`](./research/2026-09-22-revamp/AESTHETIC_CRITIC.md).
-- [x] **PCD Level 2 Approved** — Name, Email, Phone, Address on the Public app. Git: `read_reports` + `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE=true`. No OrderFact GraphQL for those fields. No Fly deploy, no unpark, no Partner Submit in this ship. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
+- [x] **PCD Level 2 Approved** — Name, Email, Phone, Address on the Public app. `read_reports` + `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE=true` shipped. No OrderFact GraphQL for those fields. Cursor does not Partner Submit. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
+- [x] **Live runtime `overview_orders`** — 2026-09-23 America/Denver. Fly secrets `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=overview_orders`. Health **200** at 22:22Z. Recent Fly **~v460**. Git kill-switch still parked. SAMPLE toggle remains. Customers / LTV not unlocked. Ads **NO**. Reviews **0**. Docs stamp only — no deploy, no secret change.
 - [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (90-day trial / 24-month paid · From orders). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v44** before paste.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
@@ -116,7 +118,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Listing Save · `support@` MX · FUNNEL week · **unpark** (Marty). Fly deploy of `read_reports` is Marty — not this PR. Reviews **0**. Ads **NO**. Cursor does not Partner Submit. Live stays parked. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
+**Next:** Listing Save · `support@` MX · FUNNEL week · one-shop accuracy on **`overview_orders`** (Customers / LTV stay locked). Reviews **0**. Ads **NO**. Cursor does not Partner Submit, Fly deploy, or change secrets. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
 
 ---
 

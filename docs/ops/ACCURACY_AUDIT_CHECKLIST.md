@@ -2,8 +2,8 @@
 
 **Owner:** Mcfly Live Accuracy (independent — never self-approves craft)  
 **Audience:** Galaxy Master + product on Live unpark / post-merge / weekly trust sweep  
-**Mode until unpark:** STANDBY — checklist ready; do not claim Live PASS  
-**Tip smoke SoT (Galaxy 2026-09-21):** Fly **v403** — no craft / no Fly from this lane  
+**Mode:** Production secrets are `overview_orders` (2026-09-23 America/Denver, recent Fly **~v460**). Do not claim Live PASS until a measured Admin compare. Customers / LTV stay locked.  
+**Tip smoke SoT (Galaxy 2026-09-21):** Fly **v403** — historical for that lane. Current runtime is Living Board + SCOREBOARD. No craft / no Fly from this lane.  
 **Companion sheets:** `LIVE_SYNC_LAW.md` · `SAMPLE_TO_LIVE.md` · `PASS_BAR.md` · `PRICING_TRIAL_LAW.md` · repo `docs/ops/ACCURACY_ONE_SHOP_SCORECARD.md` · `docs/ops/LIVE_UNPARK_CHECKLIST.md`
 
 **Verdict rule:** PASS only with proof (Admin $ + desk $ + formula/screenshot path). Soft status = failure. HOLD ≠ FAIL. SAMPLE desk audits (v336/v339/sample-math) are **not** a Live pass.
@@ -14,13 +14,13 @@
 
 ## First Live shop — run order (one page)
 
-**When:** Marty/Galaxy unparks Live on **one** real shop. Tip smoke SoT stays Fly **v403** until renamed. PCD L2 is Approved and `read_reports` is in git; F1–F4 stay **HOLD** until a measured compare (does not block this run, and the flag flip is not a parity PASS).
+**When:** one real shop. Production stage is already `overview_orders` via Fly secrets. PCD L2 is Approved and `read_reports` is **shipped**; F1–F4 stay **HOLD** until a measured compare (the flag flip is not a parity PASS). Customers and LTV are not unlocked.
 
 | Step | Do | Stop / advance |
 | ---: | --- | --- |
 | 0 | Fill header (shop · IANA TZ · paid $39? · stage · freeze). Hard refresh. | Wrong tip → stop |
 | 1 | **A Preflight** — watermark / kill switch / $39 / refuse list | Any A FAIL → Block Live |
-| 2 | Human: freeze off + `MCFLY_LIVE_STAGE=overview_orders` (not `ltv` yet) | Skipped §4 path → stop |
+| 2 | Confirm freeze is off and stage is `overview_orders` (not `customers` or `ltv`) | Stage jumped or freeze still on → stop |
 | 3 | **B Admin totals** — same period: sales · orders · median typical · one refund · empty≠$0 | Any B FAIL → Block Live; revert freeze |
 | 4 | Spot **D sync law** — 1× backfill then incremental; unpaid hard-stop; pending≠year | D FAIL → Block “Live done” |
 | 5 | Advance `customers` → **C1–C2** (returning $ · Growth chip) | FAIL → hold stage |
@@ -142,7 +142,7 @@ Prove in product/code or live crawl behavior — not vibes.
 
 | # | Check | Admin / ShopifyQL | Mcfly | ☐ |
 | ---: | --- | --- | --- | --- |
-| F0 | L2 / `read_reports` in git? | Approved + this ship | F1–F4 still HOLD. Live parked. | ☑ |
+| F0 | L2 / `read_reports` shipped? | Approved + shipped | F1–F4 still HOLD. Stage is `overview_orders`, not customers/ltv. | ☑ |
 | F1 | Total sales same period | ShopifyQL / Analytics | Overview | ☐ |
 | F2 | Orders / AOV same basis | Analytics | Overview / Orders | ☐ |
 | F3 | Returning $ vs any Analytics contrast documented | Note headcount vs $ | Desk stays $ | ☐ |
@@ -170,7 +170,7 @@ Do not jump stages to impress a demo.
 | 3 | → `customers` | C1–C2 |
 | 4 | → `ltv` | C3–C6 · D3–D4 |
 | 5 | “Real-data demo” claim | B + applicable C + D PASS |
-| 6 | ShopifyQL claim | F when L2 lands |
+| 6 | ShopifyQL claim | F1–F4 measured. L2 + `read_reports` are already shipped; the flag is not a PASS. |
 
 **Revert any time:** `MCFLY_SAMPLE_ONLY=true` and/or `MCFLY_LIVE_STAGE=parked`.
 
