@@ -29,6 +29,7 @@ import {
 } from "../components/OverviewYoyYearSection";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
+import { OverviewLivePeriodClock } from "../components/OverviewLivePeriodClock";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { DeskLane } from "../components/DeskLane";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -120,7 +121,13 @@ import {
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
 import { yearDateRange } from "../lib/sales-goals.server";
-import { shopLocalDayKey, shopLocalYmd } from "../lib/shop-local-day";
+import { shopLocalDayKey, shopLocalYmd, spendDeskClosedAsOfKey } from "../lib/shop-local-day";
+import { deskAnalyticsDayTotalsLive } from "../lib/shopify-analytics-totals";
+import {
+  buildOverviewShopifyPeriodClock,
+  overviewShopifyFactsPending,
+  periodRangeIncludesShopToday,
+} from "../lib/overview-live-period-clock";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { parseYoyYear } from "../lib/yoy-workspace";
 import {
@@ -421,6 +428,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       sales: value.sales,
       orders: value.orders,
     }));
+  // ShopifyQL SalesDayFact days for the Live period clock. SAMPLE stays empty
+  // so order/sample bars cannot be labeled Shopify Total Sales.
+  const analyticsExplorerDays = useSampleDesk ? [] : explorerDays;
   const monthPrefix = `${ymd.y}-${String(ymd.m).padStart(2, "0")}`;
   const clock = overviewMonthClock(ymd.y, ymd.m, ymd.d);
   const mtdFromChip = cashControl?.chips.find((chip) => chip.id === "mtd")?.sales;
@@ -476,6 +486,34 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     firstByCustomer: new Map(),
   });
   let orderExplorerDays = explorerDays;
+  let priorDayKey: string | null = null;
+  let priorDayOnFile = false;
+  let priorDaySales: number | null = null;
+  if (!useSampleDesk) {
+    priorDayKey = spendDeskClosedAsOfKey(deskTz, now);
+    try {
+      const [year, month, day] = priorDayKey.split("-").map(Number);
+      if (
+        Number.isFinite(year) &&
+        Number.isFinite(month) &&
+        Number.isFinite(day)
+      ) {
+        const stamp = new Date(Date.UTC(year, month - 1, day));
+        const dayMap = await getSalesFactsByDay(
+          shop.id,
+          { start: stamp, end: stamp },
+          { now },
+        );
+        if (dayMap.has(priorDayKey)) {
+          priorDayOnFile = true;
+          priorDaySales = dayMap.get(priorDayKey) ?? null;
+        }
+      }
+    } catch {
+      priorDayOnFile = false;
+      priorDaySales = null;
+    }
+  }
   try {
     const [windowRows, priorRows, historyRows] = await Promise.all([
       loadOrderDepthRows(shop.id, range, orderFactSource),
@@ -519,6 +557,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
   }
 
+  const factsPending = overviewShopifyFactsPending({
+    useSampleDesk,
+    salesError: salesError != null,
+    coverage: salesFactsCoverageForBanner,
+  });
+  const shopifyPeriodClock = buildOverviewShopifyPeriodClock({
+    useSampleDesk,
+    coverageComplete: salesFactsCoverageForBanner?.complete === true,
+    periodExceedsFactWindow:
+      salesFactsCoverageForBanner?.periodExceedsFactWindow === true,
+    shopifyPeriodTotal:
+      useSampleDesk || salesError != null ? null : sales.totalSales,
+    periodIncludesToday: periodRangeIncludesShopToday(range, deskTz, now),
+    todayShopifyTotalKnown: salesError == null && !todaySalesUnavailable,
+    factsPending,
+    priorDayKey,
+    priorDayOnFile,
+    priorDaySales,
+  });
+
   return {
     metrics,
     salesError,
@@ -542,6 +600,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         spend: spendByDay.get(dateKey) ?? 0,
       })),
     salesExplorerDays: orderExplorerDays,
+    analyticsExplorerDays,
+    shopifyPeriodClock,
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
@@ -583,6 +643,8 @@ export default function Dashboard() {
     shopLabel,
     salesDays = [],
     salesExplorerDays = [],
+    analyticsExplorerDays = [],
+    shopifyPeriodClock = null,
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
@@ -969,6 +1031,16 @@ export default function Dashboard() {
                     orderBackfillLine={orderBackfillResumeLine}
                     hideInlinePending={syncNeedsTop}
                   />
+                  {shopifyPeriodClock ? (
+                    <OverviewLivePeriodClock
+                      clock={shopifyPeriodClock}
+                      periodLabel={
+                        metrics.period.label === "Month to date"
+                          ? "This month"
+                          : metrics.period.label
+                      }
+                    />
+                  ) : null}
                   {showOverviewChartBeat ? (
                     <OverviewYoyCards
                       cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
@@ -995,6 +1067,17 @@ export default function Dashboard() {
                         ordersHref={ordersHref}
                         salesPending={greetingPending}
                         typicalDay={metrics.shopifyDepth.medianDailySales}
+                        shopifyTotalsLive={deskAnalyticsDayTotalsLive(useSampleDesk)}
+                        shopifyDayTotals={
+                          deskAnalyticsDayTotalsLive(useSampleDesk)
+                            ? analyticsExplorerDays
+                            : null
+                        }
+                        shopifyTotalsPending={overviewShopifyFactsPending({
+                          useSampleDesk,
+                          salesError: salesError != null,
+                          coverage: salesFactsCoverage,
+                        })}
                       />
                     </div>
                   ) : null}

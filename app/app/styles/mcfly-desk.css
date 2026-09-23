@@ -21805,6 +21805,46 @@ button.mcfly-habit-goals__read:focus-visible {
   color: var(--mcfly-mute, #64748b);
 }
 
+/* Live ShopifyQL period clock — separate from the From orders hero. */
+.mcfly-overview-clock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0.15rem 0 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--mcfly-line, #e2e8f0);
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-overview-clock__k {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent, #0284c7);
+}
+
+.mcfly-overview-clock__v {
+  margin: 0;
+  font-family: var(--mcfly-serif, "Fraunces", Georgia, serif);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.mcfly-overview-clock__meta,
+.mcfly-overview-clock__prior {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute, #64748b);
+}
+
 .mcfly-overview-plane__sr,
 .mcfly-chart__sr,
 .mcfly-yoy__sr {

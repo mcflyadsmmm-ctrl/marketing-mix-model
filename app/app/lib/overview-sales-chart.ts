@@ -597,16 +597,53 @@ function honestDeltaTail(delta: OverviewDelta | null): string {
   }
 }
 
+/**
+ * Sum of certified day totals across every civil day in the span.
+ * A missing day is null — never filled with $0 and never a partial sum.
+ * A stored 0 on every required day is a real zero.
+ */
+export function overviewCertifiedSpanSales(
+  days: readonly SalesDayInput[],
+  fromKey: string,
+  toKey: string,
+): number | null {
+  const lo = fromKey <= toKey ? fromKey : toKey;
+  const hi = fromKey <= toKey ? toKey : fromKey;
+  const span = overviewDaySpan(lo, hi);
+  if (span <= 0) return null;
+  const byKey = new Map<string, number>();
+  for (const day of days) {
+    if (!Number.isFinite(day.sales)) continue;
+    if (!byKey.has(day.dateKey)) byKey.set(day.dateKey, day.sales);
+  }
+  let sum = 0;
+  let cursor = lo;
+  for (let index = 0; index < span; index += 1) {
+    if (!byKey.has(cursor)) return null;
+    sum += byKey.get(cursor)!;
+    cursor = overviewShiftDayKey(cursor, 1);
+  }
+  return sum;
+}
+
 /** Labeled line for a custom range versus those dates last year. */
 export function overviewSameDatesSentence(input: {
   fromKey: string;
   toKey: string;
-  sales: number;
+  /** Null when ShopifyQL day totals are pending or not on file — never an OrderFact sum. */
+  sales: number | null;
   priorSales: number | null;
   money: (amount: number) => string;
+  pending?: boolean;
 }): string {
   const label = sameDatesRangeLabel(input.fromKey, input.toKey);
-  if (input.priorSales == null || !Number.isFinite(input.sales)) {
+  if (input.sales == null || !Number.isFinite(input.sales)) {
+    if (input.pending) {
+      return `Shopify Total Sales for ${label} is still loading — not $0.`;
+    }
+    return `Shopify Total Sales for ${label} is — ${OVERVIEW_LAST_YEAR_NOT_ON_FILE}.`;
+  }
+  if (input.priorSales == null) {
     return `Shopify Total Sales for ${label} versus those dates last year is — ${OVERVIEW_LAST_YEAR_NOT_ON_FILE}.`;
   }
   const delta = overviewDeltaPct(input.sales, input.priorSales);
