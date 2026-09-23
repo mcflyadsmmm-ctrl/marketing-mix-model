@@ -403,7 +403,7 @@ describe("Orders page craft lock", () => {
     for (const phrase of ORDERS_REQUIRED) {
       expect(blob.toLowerCase()).toContain(phrase.toLowerCase());
     }
-    expect(firstView).toContain("mcfly-kpi--peek");
+    expect(firstView).toContain("OrdersTicketBand");
     expect(scoreboard).toContain("mcfly-kpi--peek");
     expect(scoreboard).not.toContain("<details");
     expect(scoreboard).not.toContain("Click a card below for detail");

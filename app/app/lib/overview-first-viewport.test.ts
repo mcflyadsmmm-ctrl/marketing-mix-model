@@ -140,7 +140,7 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_PENDING_ASOF).toMatch(/not \$0/);
   });
 
-  it("Overview home is order-book hero, then chart, then YoY below the fold", () => {
+  it("Overview home is hero + YoY glance, then chart, then mix below", () => {
     const overview = read("../routes/app._index.tsx");
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
@@ -151,9 +151,10 @@ describe("overview first viewport", () => {
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
     const yearAt = overview.indexOf("<OverviewYoyYearSection");
     expect(viewportAt).toBeGreaterThan(-1);
+    expect(yoyAt).toBeGreaterThan(viewportAt);
+    expect(yoyAt).toBeLessThan(chartAt);
     expect(chartAt).toBeGreaterThan(viewportAt);
-    // YoY glance sits after the first-fold chart — not a soft card row above it.
-    expect(yoyAt).toBeGreaterThan(chartAt);
+    expect(overview).toContain("mcfly-overview-first-beat");
     expect(mixAt).toBeGreaterThan(yoyAt);
     expect(shareAt).toBeGreaterThan(mixAt);
     expect(depthAt).toBeGreaterThan(shareAt);
@@ -224,6 +225,8 @@ describe("overview first viewport", () => {
     expect(cards).toContain("overviewWindowRange");
     expect(cards).toContain("overviewYoyZone");
     expect(cards).toContain("mcfly-yoy--glance");
+    expect(cards).toContain("mcfly-yoy--plane");
+    expect(cards).not.toContain("mcfly-yoy--soft");
     expect(cards).toContain("OVERVIEW_YOY_GLANCE_ID");
     expect(cards).toContain("OVERVIEW_YOY_YEAR_PANEL");
     expect(cards).not.toContain('deskHref("/app/yoy")');

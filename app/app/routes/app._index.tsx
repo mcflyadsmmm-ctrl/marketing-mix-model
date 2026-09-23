@@ -910,6 +910,7 @@ export default function Dashboard() {
                 id={DESK_SECTION.overview}
               >
                 <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
+                  <div className="mcfly-overview-first-beat">
                   <OverviewFirstViewport
                     orderCount={orderHero.orderCount}
                     typicalOrder={orderHero.typicalOrder}
@@ -958,7 +959,13 @@ export default function Dashboard() {
                     orderBookDepth={orderBookDepth}
                     orderBackfillLine={orderBackfillResumeLine}
                   />
-                  <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
+                  <OverviewYoyCards
+                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                    salesPending={greetingPending}
+                    yoyHref={yoyHref}
+                  />
+                  </div>
+                  <div className="mcfly-desk-anchor mcfly-overview-chart-beat" id={DESK_SECTION.chart}>
                     <OverviewSalesChart
                       days={
                         salesExplorerDays.length >= 2
@@ -974,13 +981,6 @@ export default function Dashboard() {
                       typicalDay={metrics.shopifyDepth.medianDailySales}
                     />
                   </div>
-                </DeskLane>
-                <DeskLane rank="next" label="Same days last year">
-                  <OverviewYoyCards
-                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                    salesPending={greetingPending}
-                    yoyHref={yoyHref}
-                  />
                 </DeskLane>
                 <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                 <DeskLane rank="next" label="Mix and month close">
