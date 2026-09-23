@@ -164,14 +164,15 @@ async function run() {
 
   app.use((req, res, next) => {
     if (req.method !== "GET" && req.method !== "HEAD") return next();
+    // App / demo / auth / health / __manifest first — never 302-loop to /app.
+    if (isShopifyAppPath(req.path)) return next();
+    if (isFlyTrustPath(req.path)) return next();
+    if (req.path.startsWith("/assets/")) return next();
     // Open app / install / billing return: App URL is `/` with shop+host.
     if (shouldSkipMarketingSite(req)) {
       res.setHeader("Cache-Control", "private, no-store");
       return res.redirect(302, embeddedAppRedirectLocation(req));
     }
-    if (isShopifyAppPath(req.path)) return next();
-    if (isFlyTrustPath(req.path)) return next();
-    if (req.path.startsWith("/assets/")) return next();
     const location = marketingSiteRedirectLocation(
       req.originalUrl || req.url || "/",
     );

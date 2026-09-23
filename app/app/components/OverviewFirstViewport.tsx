@@ -5,9 +5,7 @@ import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import {
-  OVERVIEW_PENDING_IN_TOTAL_SALES,
   OVERVIEW_PENDING_LINE,
-  OVERVIEW_SHOP_NOT_COMPANY,
   OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
   overviewCoverageLine,
@@ -374,9 +372,6 @@ export function OverviewFirstViewport({
       {empty && !useSampleDesk ? (
         <p className="mcfly-overview-plane__note">{OVERVIEW_THIN_EMPTY_LINE}</p>
       ) : null}
-      <p className="mcfly-overview-plane__trust" hidden>
-        {OVERVIEW_PENDING_IN_TOTAL_SALES} {OVERVIEW_SHOP_NOT_COMPANY}
-      </p>
     </section>
   );
 }

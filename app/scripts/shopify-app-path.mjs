@@ -38,7 +38,23 @@ export function isShopifyAppPath(pathname) {
   if (p === "/api" || p.startsWith("/api/")) return true;
   if (p === "/v1" || p.startsWith("/v1/")) return true;
   if (p === "/webhooks" || p.startsWith("/webhooks")) return true;
+  // React Router lazy route discovery — must stay on Fly, not mcflyads.com.
+  if (p === "/__manifest" || p.startsWith("/__manifest")) return true;
   return false;
+}
+
+/**
+ * Pure Fly front-door decision for tests (Phase D critic B1).
+ * @returns {"next"|"app302"|"marketing301"}
+ */
+export function flyRouteDecision(pathname, query, headers) {
+  const path = String(pathname || "/");
+  if (isShopifyAppPath(path)) return "next";
+  if (isFlyTrustPath(path)) return "next";
+  if (path.startsWith("/assets/")) return "next";
+  const req = { path, query: query ?? {}, originalUrl: path, headers: headers ?? {} };
+  if (shouldSkipMarketingSite(req)) return "app302";
+  return "marketing301";
 }
 
 /**
@@ -129,12 +145,11 @@ export function requestSearch(req) {
 }
 
 /**
- * Marketing `site/` must not win these requests. `/app` and `/auth` fall
- * through to Remix; every other path redirects to `/app` + the same query.
+ * Marketing must not win embedded App URL entry on `/` (shop/host/iframe).
+ * App paths (`/app`, `/demo`, `/health`, …) are handled by `isShopifyAppPath`
+ * in serve-with-site — do not redirect those through this helper (redirect loop).
  */
 export function shouldSkipMarketingSite(req) {
-  const path = String(req?.path || "/");
-  if (isShopifyAppPath(path)) return true;
   if (isShopifyEmbeddedSearch(req?.query)) return true;
   if (isShopifyEmbeddedSearch(requestSearch(req))) return true;
   if (isShopifyAdminFrame(req)) return true;

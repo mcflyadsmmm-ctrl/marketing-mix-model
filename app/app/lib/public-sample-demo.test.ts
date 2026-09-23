@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { isShopifyAppPath, shouldSkipMarketingSite } from "../../scripts/shopify-app-path.mjs";
+import { flyRouteDecision, isShopifyAppPath } from "../../scripts/shopify-app-path.mjs";
 import { withDeskBase } from "./desk-base-path";
 import {
   isPublicDemoPath,
@@ -25,9 +25,9 @@ describe("public Remix SAMPLE desk", () => {
     expect(isShopifyAppPath("/demo")).toBe(true);
     expect(isShopifyAppPath("/demo/roas")).toBe(true);
     expect(isShopifyAppPath("/demo.data")).toBe(true);
-    expect(
-      shouldSkipMarketingSite({ path: "/demo", query: {}, originalUrl: "/demo" }),
-    ).toBe(true);
+    // serve-with-site checks isShopifyAppPath first — not shouldSkipMarketingSite.
+    expect(flyRouteDecision("/demo", {}, {})).toBe("next");
+    expect(flyRouteDecision("/demo/roas", {}, {})).toBe("next");
   });
 
   it("maps Admin /app paths onto /demo", () => {

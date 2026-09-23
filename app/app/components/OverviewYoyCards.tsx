@@ -241,7 +241,7 @@ export function OverviewYoyCards({
       {ytdCopy && ytd ? (
         <div className="mcfly-spend-pair-copy-row">
           <p className="mcfly-yoy__note">
-            Shopify Total Sales YTD {formatCurrency(ytd.sales, currency)}
+            Orders YTD {formatCurrency(ytd.sales, currency)} — from orders
           </p>
           <CopyYtdSales text={ytdCopy} />
         </div>

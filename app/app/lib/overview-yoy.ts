@@ -187,5 +187,5 @@ export function overviewYtdCopyText(input: {
 }): string | null {
   if (input.salesPending) return null;
   if (input.amount == null || !Number.isFinite(input.amount)) return null;
-  return `Shopify Total Sales YTD ${formatCurrency(input.amount, input.currency)} — this shop’s orders, not the company book.`;
+  return `Orders YTD ${formatCurrency(input.amount, input.currency)} — from orders on this shop.`;
 }

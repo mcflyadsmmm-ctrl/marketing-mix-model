@@ -13,6 +13,7 @@ import {
 } from "./public-origin";
 import {
   MARKETING_SITE_ORIGIN,
+  flyRouteDecision,
   isFlyTrustPath,
   isShopifyAppPath,
   marketingSiteRedirectLocation,
@@ -146,6 +147,19 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(isShopifyAppPath("/app/spend")).toBe(true);
     expect(isShopifyAppPath("/auth/login")).toBe(true);
     expect(isShopifyAppPath("/webhooks/app/uninstalled")).toBe(true);
+    expect(isShopifyAppPath("/__manifest")).toBe(true);
+
+    expect(flyRouteDecision("/", {}, {})).toBe("marketing301");
+    expect(flyRouteDecision("/pricing", {}, {})).toBe("marketing301");
+    expect(flyRouteDecision("/app", {}, {})).toBe("next");
+    expect(flyRouteDecision("/health", {}, {})).toBe("next");
+    expect(flyRouteDecision("/demo", {}, {})).toBe("next");
+    expect(flyRouteDecision("/demo/orders", {}, {})).toBe("next");
+    expect(flyRouteDecision("/__manifest", {}, {})).toBe("next");
+    expect(flyRouteDecision("/privacy", {}, {})).toBe("next");
+    expect(
+      flyRouteDecision("/", { shop: "example.myshopify.com", host: "abc" }, {}),
+    ).toBe("app302");
 
     expect(serve).toContain("301 to");
     expect(serve).toContain("mcflyads.com");
@@ -158,11 +172,18 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(serve).toContain("embeddedAppRedirectLocation");
     expect(serve).toContain('res.redirect(302, embeddedAppRedirectLocation(req))');
     expect(serve).toContain('res.redirect(301, location)');
+    // App paths must be checked before shouldSkipMarketingSite (no /app loop).
+    const appPathIdx = serve.indexOf("if (isShopifyAppPath(req.path)) return next();");
+    const skipIdx = serve.indexOf("if (shouldSkipMarketingSite(req))");
+    expect(appPathIdx).toBeGreaterThan(-1);
+    expect(skipIdx).toBeGreaterThan(appPathIdx);
     expect(paths).toContain("isFlyTrustPath");
     expect(paths).toContain("MARKETING_SITE_ORIGIN");
     expect(paths).toContain('p === "/app"');
     expect(paths).toContain("isShopifyEmbeddedSearch");
     expect(paths).toContain("isShopifyAdminFrame");
+    expect(paths).toContain("flyRouteDecision");
+    expect(paths).toContain("/__manifest");
 
     expect(indexRoute).toContain("https://mcflyads.com");
     expect(indexRoute).toContain("throw redirect");
