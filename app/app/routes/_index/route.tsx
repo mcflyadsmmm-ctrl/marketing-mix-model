@@ -29,7 +29,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw redirect(qs ? `/app?${qs}` : "/app");
   }
 
-  return null;
+  const pathQuery = `${url.pathname}${url.search}`;
+  throw redirect(`https://mcflyads.com${pathQuery}`);
 };
 
 export default function AppLanding() {

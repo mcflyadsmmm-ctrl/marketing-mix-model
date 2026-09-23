@@ -7,6 +7,22 @@
  * query strings and would paint the marketing landing inside the iframe.
  */
 
+/** Public marketing site — Fly GETs redirect here (Phase D15). */
+export const MARKETING_SITE_ORIGIN = "https://mcflyads.com";
+
+/** App Store trust URLs stay on Fly (Remix OriginShell), not mcflyads.com. */
+export function isFlyTrustPath(pathname) {
+  const p = appRoutePath(pathname);
+  return p === "/privacy" || p === "/support" || p === "/terms";
+}
+
+/** 301 target for marketing paths: same path + query on mcflyads.com. */
+export function marketingSiteRedirectLocation(originalUrl) {
+  const raw = String(originalUrl ?? "/");
+  const pathQuery = raw.startsWith("/") ? raw : `/${raw}`;
+  return `${MARKETING_SITE_ORIGIN}${pathQuery}`;
+}
+
 /** React Router data requests use `/app.data` — same route as `/app`. */
 export function appRoutePath(pathname) {
   const p = (pathname.split("?")[0] || "/").replaceAll("\\", "/");

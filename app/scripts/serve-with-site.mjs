@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 /**
- * Production server: marketing site (`site/`) on public paths + Remix app.
+ * Production server: Remix app on Fly + App Store trust pages on Fly.
  *
- * App Store Website / Privacy / Support / Terms hit this origin. Serving the
- * polished `site/` HTML here means reviewers never see stale Cloudflare Pages
- * waitlist copy when Partner URLs point at Fly.
- *
- * Shopify app paths (`/app`, `/auth`, `/api`, `/v1`, `/webhooks`, `/health`)
- * always go to Remix. Missing `site/` files fall through to Remix
- * (OriginShell trust pages).
+ * GET/HEAD for marketing paths (/, /pricing, /faq, other site pages) 301 to
+ * https://mcflyads.com<same path+query>. Stays on Fly: /privacy, /support,
+ * /terms, /health, /demo, /app*, /auth*, /webhooks*, build assets, and
+ * embedded App URL entry (shouldSkipMarketingSite → /app).
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -22,7 +19,9 @@ import morgan from "morgan";
 import sourceMapSupport from "source-map-support";
 import {
   embeddedAppRedirectLocation,
+  isFlyTrustPath,
   isShopifyAppPath,
+  marketingSiteRedirectLocation,
   shouldSkipMarketingSite,
 } from "./shopify-app-path.mjs";
 
@@ -163,26 +162,22 @@ async function run() {
     app.use(compression());
   }
 
-  if (siteMounted) {
-    const siteStatic = express.static(siteRoot, {
-      extensions: ["html"],
-      index: "index.html",
-      fallthrough: true,
-      maxAge: "1h",
-      dotfiles: "ignore",
-    });
-    app.use((req, res, next) => {
-      if (req.method !== "GET" && req.method !== "HEAD") return next();
-      if (isShopifyAppPath(req.path)) return next();
-      // Open app / install / billing return: App URL is `/` with shop+host.
-      // Static index.html ignores the query and would iframe the marketing site.
-      if (shouldSkipMarketingSite(req)) {
-        res.setHeader("Cache-Control", "private, no-store");
-        return res.redirect(302, embeddedAppRedirectLocation(req));
-      }
-      return siteStatic(req, res, next);
-    });
-  }
+  app.use((req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    // Open app / install / billing return: App URL is `/` with shop+host.
+    if (shouldSkipMarketingSite(req)) {
+      res.setHeader("Cache-Control", "private, no-store");
+      return res.redirect(302, embeddedAppRedirectLocation(req));
+    }
+    if (isShopifyAppPath(req.path)) return next();
+    if (isFlyTrustPath(req.path)) return next();
+    if (req.path.startsWith("/assets/")) return next();
+    const location = marketingSiteRedirectLocation(
+      req.originalUrl || req.url || "/",
+    );
+    res.setHeader("Cache-Control", "public, max-age=300");
+    return res.redirect(301, location);
+  });
 
   app.use(
     path.posix.join(build.publicPath, "assets"),

@@ -11,7 +11,12 @@ import {
   isPublicOriginPath,
   isShopifyEmbeddedPath,
 } from "./public-origin";
-import { isShopifyAppPath } from "../../scripts/shopify-app-path.mjs";
+import {
+  MARKETING_SITE_ORIGIN,
+  isFlyTrustPath,
+  isShopifyAppPath,
+  marketingSiteRedirectLocation,
+} from "../../scripts/shopify-app-path.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const routes = join(here, "../routes");
@@ -113,21 +118,55 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(settings).not.toContain("https://mcflyads.com/support");
   });
 
-  it("production server mounts repo site/ on Fly for listing Website URLs", () => {
+  it("Fly GET marketing paths 301 to mcflyads.com; trust + app stay on Fly", () => {
     const serve = readRepo("app/scripts/serve-with-site.mjs");
     const paths = readRepo("app/scripts/shopify-app-path.mjs");
+    const indexRoute = readRepo("app/app/routes/_index/route.tsx");
     const docker = readRepo("app/Dockerfile");
     const pkg = JSON.parse(readRepo("app/package.json"));
-    expect(serve).toContain("MCFLY_SITE_ROOT");
-    expect(serve).toContain("express.static(siteRoot");
+
+    expect(MARKETING_SITE_ORIGIN).toBe("https://mcflyads.com");
+    expect(marketingSiteRedirectLocation("/")).toBe("https://mcflyads.com/");
+    expect(marketingSiteRedirectLocation("/pricing?ref=fly")).toBe(
+      "https://mcflyads.com/pricing?ref=fly",
+    );
+    expect(marketingSiteRedirectLocation("/index.html")).toBe(
+      "https://mcflyads.com/index.html",
+    );
+
+    expect(isFlyTrustPath("/privacy")).toBe(true);
+    expect(isFlyTrustPath("/support")).toBe(true);
+    expect(isFlyTrustPath("/terms")).toBe(true);
+    expect(isFlyTrustPath("/pricing")).toBe(false);
+    expect(isFlyTrustPath("/")).toBe(false);
+
+    expect(isShopifyAppPath("/health")).toBe(true);
+    expect(isShopifyAppPath("/demo")).toBe(true);
+    expect(isShopifyAppPath("/demo/spend")).toBe(true);
+    expect(isShopifyAppPath("/app/spend")).toBe(true);
+    expect(isShopifyAppPath("/auth/login")).toBe(true);
+    expect(isShopifyAppPath("/webhooks/app/uninstalled")).toBe(true);
+
+    expect(serve).toContain("301 to");
+    expect(serve).toContain("mcflyads.com");
+    expect(serve).toContain("isFlyTrustPath");
+    expect(serve).toContain("marketingSiteRedirectLocation");
+    expect(serve).not.toContain("express.static(siteRoot");
     expect(serve).toContain('app.set("trust proxy", true)');
     expect(serve).toContain("admin.shopify.com");
-    expect(paths).toContain('p === "/app"');
     expect(serve).toContain("shouldSkipMarketingSite");
     expect(serve).toContain("embeddedAppRedirectLocation");
     expect(serve).toContain('res.redirect(302, embeddedAppRedirectLocation(req))');
+    expect(serve).toContain('res.redirect(301, location)');
+    expect(paths).toContain("isFlyTrustPath");
+    expect(paths).toContain("MARKETING_SITE_ORIGIN");
+    expect(paths).toContain('p === "/app"');
     expect(paths).toContain("isShopifyEmbeddedSearch");
     expect(paths).toContain("isShopifyAdminFrame");
+
+    expect(indexRoute).toContain("https://mcflyads.com");
+    expect(indexRoute).toContain("throw redirect");
+
     expect(docker).toContain("COPY site /repo/site");
     expect(docker).toContain("MCFLY_SITE_ROOT=/repo/site");
     const dockerignore = readRepo(".dockerignore");
