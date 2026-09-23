@@ -148,15 +148,8 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     }
     const orders = read("../routes/app.orders.tsx");
     const firstView = read("../components/OrdersFirstViewport.tsx");
-    expect(orders).toContain("ORDERS_FIRST_LANE_LABEL");
-    expect(orders).toContain("ORDERS_CLOCK_LANE_LABEL");
-    expect(orders).toContain("<OrdersFirstViewport");
-    expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
-      orders.indexOf("<OrdersScoreboard"),
-    );
-    expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
-      orders.indexOf("<OrdersIntelligence"),
-    );
+    expect(orders).toContain("OrdersRedirect");
+    expect(orders).toContain("throw redirect");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("mcfly-orders-plane");
     expect(firstView).toContain("OrdersTicketBand");
@@ -172,38 +165,21 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).not.toContain("<s-section");
     for (const ban of ORDERS_SPEND_BANS) {
       expect(firstView).not.toContain(ban);
-      expect(orders).not.toContain(ban);
     }
-    expect(orders).not.toContain("/app/spend");
-    expect(orders).not.toContain("Total ROAS");
+    expect(firstView).not.toContain("/app/spend");
+    expect(firstView).not.toContain("Total ROAS");
   });
 });
 
-describe("Uninstall FAIL #3 SCORECARD — first Orders lane is typical-order hero only", () => {
-  it("PASS when Total Sales clock and OrdersIntelligence sit below the first fold", () => {
+describe("Uninstall FAIL #3 SCORECARD — Orders tab retired on SAMPLE L2", () => {
+  it("PASS when Orders routes redirect Home and the kit still refuses spend heroes", () => {
     const orders = read("../routes/app.orders.tsx");
-    const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
-    expect(firstStart).toBeGreaterThan(-1);
-    expect(firstEnd).toBeGreaterThan(firstStart);
-    const firstLane = orders.slice(firstStart, firstEnd);
-    expect(firstLane).toContain("ORDERS_FIRST_LANE_LABEL");
-    expect(firstLane).toContain("<OrdersFirstViewport");
-    expect(firstLane).not.toContain("<OrdersScoreboard");
-    expect(firstLane).not.toContain("<OrdersIntelligence");
-    expect(firstLane).not.toContain("mcfly-book__clock");
-    expect(firstLane).not.toContain("totalSalesDisplay");
-
-    const moreLane = orders.slice(firstEnd);
-    expect(moreLane).toContain("ORDERS_CLOCK_LANE_LABEL");
-    expect(moreLane).toContain("<OrdersScoreboard");
-    expect(moreLane).toContain("<OrdersIntelligence");
-    expect(orders.indexOf("<OrdersTimingChart")).toBeLessThan(
-      orders.indexOf('rank="more"'),
-    );
-    expect(orders.indexOf("<OrdersCompareGlance")).toBeLessThan(
-      orders.indexOf("<OrdersTimingChart"),
-    );
+    const firstView = read("../components/OrdersFirstViewport.tsx");
+    expect(orders).toContain("OrdersRedirect");
+    expect(orders).toContain("throw redirect");
     expect(orders).not.toContain("mcfly-book__lede");
+    expect(firstView).toContain("OrdersTicketBand");
+    expect(firstView).not.toContain("Total ROAS");
+    expect(firstView).not.toContain("SpendExplorer");
   });
 });

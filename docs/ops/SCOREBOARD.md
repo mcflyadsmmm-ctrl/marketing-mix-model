@@ -12,21 +12,17 @@
 | App Store reviews | 0 |
 | PCD L2 | Approved (Name, Email, Phone, Address). Git: `read_reports` + day-totals flag. Not deployed. Live PARKED. |
 | Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v456 / tip `b57b472`; Live PARKED |
+| Money prep | Ad-ready GO filed; Listing paste ready; Phase G git ready; Fly deploy + Listing Save = Marty; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Phone six-figure wrap.** “On my phone I cannot read first 30 / 90 / first year — they sit three across. The LTV triangle is a nowrap heat table. The Orders weekly ledger is eight nowrap columns.”
+**Ad-ready GO.** PCD L2 Approved. Phase G (`read_reports` + ShopifyQL day-totals flag) is in git. Fix L2 Orders-route craft locks so tip tests match the three-tab nav. Founder taps: merge → shopify app deploy → Fly deploy → re-auth → Listing Save → Admin smoke → FUNNEL. See [`AD_READY_GO.md`](./AD_READY_GO.md).
 
-Customers → LTV (flagship tiles + open-lane triangle) · Orders weekly ledger. Public `/demo` and Admin `/app`. Under 36rem, 30 / 90 / first year stack the way Goals / Orders / Growth already wrap. Triangle sealed six-figure dollars stay on screen; unsealed stays — / hatch, never `$0` / `0%`. Ledger keeps Week + Sales (+ AOV) on screen; park Codes / Returns in the existing drill. Missing prior stays —. Dollar may wrap. Never a fake `$0`. Do not recook whale 430px. Do not edit the morning-habit block. Do not recook wrong-lane leftover. Do not unpark Live. Do not change the 90.
+Do **not** densify micro-PRs. Do **not** unpark Live. Do **not** buy ads. Do **not** invent reviews. Accuracy F1–F4 stay HOLD until after Fly deploy + one Live shop.
 
-Branch `cursor/phone-six-figure-wrap-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 8 and 10–14 of the third-queue stay queued. Do not rebuild wrong-lane leftover, spend leftover honesty, site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
-
-Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 7. After PASS, stamp first-90 honesty (`cursor/ltv-first90-honesty-5bc6`), not rank 10.
-
-A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
+A Fly requires Marty. Cursor does not Partner Submit.
 
 ## Accepted work log
 - Enterprise tip cooks through v387 wave + tip advanced to v403

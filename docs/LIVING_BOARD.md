@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` (privacy L2-aligned) · Fly **not redeployed this ship** · occupancy **0/4** · ads **NO** · **PCD L2 Approved** (Name, Email, Phone, Address) · git `read_reports` · `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE` **true** · SAMPLE desk does not paint QL clocks · SAMPLE_ONLY **true** · LIVE_STAGE **parked** |
+| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` · Fly **awaiting Marty deploy** of Phase G · occupancy **0/4** · ads **NO** (founder taps in [`ops/AD_READY_GO.md`](./ops/AD_READY_GO.md)) · **PCD L2 Approved** · git `read_reports` + QL day-totals flag · SAMPLE_ONLY **true** · LIVE_STAGE **parked** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v45** · quality-rescue · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · home → Open the SAMPLE desk |
 | **Fly** | https://mcfly-analytics.fly.dev · last stamp **v456** (scoreboard; not this ship) · `/health` was 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · LIVE_STAGE **parked** · running process unchanged until Marty deploys · git `SCOPES` = `read_orders,read_customers,read_all_orders,read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
@@ -116,7 +116,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Listing Save · `support@` MX · FUNNEL week · **unpark** (Marty). Fly deploy of `read_reports` is Marty — not this PR. Reviews **0**. Ads **NO**. Cursor does not Partner Submit. Live stays parked. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
+**Next:** **Ad-ready GO** — [`ops/AD_READY_GO.md`](./ops/AD_READY_GO.md). Marty: merge → `shopify app deploy` → Fly deploy → re-auth → Listing Save → Admin smoke → FUNNEL paste. Reviews **0**. Ads **NO** until founder clears gates (or accepts App Store 0-review risk). Cursor does not buy ads / Submit / unpark. [`ops/PCD_L2_READINESS.md`](./ops/PCD_L2_READINESS.md)
 
 ---
 

@@ -327,35 +327,27 @@ describe("orders visuals", () => {
 
 describe("Orders page craft lock", () => {
   const orders = read("../routes/app.orders.tsx");
+  const demoOrders = read("../routes/demo.orders.tsx");
   const scoreboard = read("../components/OrdersScoreboard.tsx");
   const firstView = read("../components/OrdersFirstViewport.tsx");
   const chart = read("../components/OrdersTimingChart.tsx");
   const visuals = read("../components/OrdersVisuals.tsx");
 
-  it("is a Black Clover scoreboard — first-fold typical, clock, depth, timing, then the open chart", () => {
-    const firstAt = orders.indexOf("<OrdersFirstViewport");
-    const compareAt = orders.indexOf("<OrdersCompareGlance");
-    const chartAt = orders.indexOf("<OrdersTimingChart");
-    const firstLaneAt = orders.indexOf('<DeskLane rank="first"');
-    const moreAt = orders.indexOf('rank="more"', firstLaneAt + 1);
-    const heroAt = orders.indexOf("<OrdersScoreboard");
-    const intelAt = orders.indexOf("<OrdersIntelligence");
-    expect(firstAt).toBeGreaterThan(-1);
-    expect(compareAt).toBeGreaterThan(firstAt);
-    expect(chartAt).toBeGreaterThan(compareAt);
-    expect(moreAt).toBeGreaterThan(chartAt);
-    expect(heroAt).toBeGreaterThan(moreAt);
-    expect(intelAt).toBeGreaterThan(heroAt);
-    expect(orders).toContain("mcfly-scoreboard--orders");
-    expect(orders).toContain("ORDERS_FIRST_LANE_LABEL");
-    expect(orders).toContain("ORDERS_CLOCK_LANE_LABEL");
-    expect(orders).toContain("salesPending");
-    expect(`${firstView}\n${chart}`).toContain("not $0");
-    expect(orders).not.toContain("if (metrics.salesPending) return");
+  it("SAMPLE L2 retires the Orders tab — app + demo routes redirect Home", () => {
+    expect(orders).toContain("OrdersRedirect");
+    expect(orders).toContain("throw redirect");
+    expect(orders).not.toContain("<OrdersFirstViewport");
+    expect(orders).not.toContain("<OrdersIntelligence");
+    expect(demoOrders).toContain("DemoOrdersRedirect");
+    expect(demoOrders).toContain("throw redirect");
+  });
+
+  it("keeps the Black Clover Orders kit in components for Home fold reuse", () => {
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("buildOrdersHero");
     expect(firstView).toContain("<OrdersTicketBand");
+    expect(`${firstView}\n${chart}`).toContain("not $0");
     expect(scoreboard).toContain("mcfly-book__clock");
     expect(scoreboard).toContain("mcfly-kpi-grid--orders-depth");
     expect(scoreboard).toContain("mcfly-kpi-grid--orders-timing");
@@ -430,13 +422,12 @@ describe("Orders page craft lock", () => {
     }
   });
 
-  it("ships Black Clover order intelligence — KPI strip, dual-axis explorer, audit table, frequency", () => {
+  it("ships Black Clover order intelligence kit — KPI strip, dual-axis explorer, audit table, frequency", () => {
     const intel = read("../components/OrdersIntelligence.tsx");
     const freq = read("../components/OrdersFrequencyChart.tsx");
     const css = read("../styles/mcfly-desk.css");
-    expect(orders).toContain("<OrdersIntelligence");
-    expect(orders).toContain("<OrdersFrequencyChart");
-    expect(orders).toContain("includeOrdersIntelligence");
+    // Route no longer mounts intel (L2 redirect). Kit stays for Home reuse.
+    expect(orders).not.toContain("<OrdersIntelligence");
     expect(intel).toContain("mcfly-orders-intel__kpis");
     expect(intel).toContain("vs prior");
     expect(intel).toContain("mcfly-chart--dual");
@@ -479,10 +470,10 @@ describe("Orders page craft lock", () => {
   });
 
   it("contrasts typical/median with Shopify Analytics average", () => {
-    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/Shopify Analytics/);
-    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/average/i);
-    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/typical/i);
-    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/median/i);
-    expect(`${orders}\n${scoreboard}`).toMatch(/Online vs POS/);
+    expect(`${firstView}\n${scoreboard}`).toMatch(/Shopify Analytics/);
+    expect(`${firstView}\n${scoreboard}`).toMatch(/average/i);
+    expect(`${firstView}\n${scoreboard}`).toMatch(/typical/i);
+    expect(`${firstView}\n${scoreboard}`).toMatch(/median/i);
+    expect(scoreboard).toMatch(/Online vs POS/);
   });
 });
