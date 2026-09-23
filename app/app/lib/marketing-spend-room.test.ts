@@ -84,8 +84,11 @@ describe("Marketing spend room", () => {
   });
 
   it("mounts full spend room on Spend with certified chips", () => {
+    const viewport = read("../components/SpendFirstViewport.tsx");
     expect(spend).toContain("<MarketingSpendRoom");
     expect(spend).toContain("<CertifiedScoreboard");
+    expect(viewport).toContain('placement="firstFold"');
+    expect(spend).toContain("cashChips=");
     expect(spend).not.toContain("intelOnly");
     expect(room).toContain("intelOnly = false");
   });

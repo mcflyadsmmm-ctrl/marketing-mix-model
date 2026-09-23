@@ -45,10 +45,13 @@ export function CertifiedScoreboard({
   chips,
   targetMer,
   plan,
+  placement = "depth",
 }: {
   chips: CashChip[];
   targetMer: number;
   plan: MonthClosePlan | null;
+  /** First fold: Black Clover row under Total ROAS hero — no month-close plan block. */
+  placement?: "depth" | "firstFold";
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -59,12 +62,29 @@ export function CertifiedScoreboard({
       ? `At goal vs Settings (${formatMer(targetMer)}×)`
       : "Set a goal in Settings";
 
+  const firstFold = placement === "firstFold";
+
   return (
     <section
-      className="mcfly-well mcfly-well--scoreboard mcfly-scoreboard mcfly-scoreboard--soft mcfly-scoreboard--certified"
+      className={[
+        "mcfly-well",
+        "mcfly-well--scoreboard",
+        "mcfly-scoreboard",
+        "mcfly-scoreboard--soft",
+        "mcfly-scoreboard--certified",
+        firstFold ? "mcfly-scoreboard--first-fold" : null,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-label="Certified Total ROAS"
     >
-      <p className="mcfly-scoreboard__kicker">
+      <p
+        className={
+          firstFold
+            ? "mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr"
+            : "mcfly-scoreboard__kicker"
+        }
+      >
         {CERTIFIED_WINDOWS_KICKER} · {goal}
       </p>
       <div className="mcfly-scoreboard__row">
@@ -128,7 +148,7 @@ export function CertifiedScoreboard({
                   ? `${formatCurrency(chip.sales, currency)} sales · ${formatCurrency(chip.spend, currency)} spend`
                   : `${formatCurrency(chip.sales, currency)} sales · no spend`}
               </span>
-              {yoy ? (
+              {yoy && !firstFold ? (
                 <span
                   className={`mcfly-scoreboard__delta${
                     chip.yoySalesPct == null || chip.yoySalesPct === 0
@@ -141,12 +161,14 @@ export function CertifiedScoreboard({
                   {yoy}
                 </span>
               ) : null}
-              <span className="mcfly-kpi__hint">Click for detail</span>
+              {!firstFold ? (
+                <span className="mcfly-kpi__hint">Click for detail</span>
+              ) : null}
             </button>
           );
         })}
       </div>
-      {plan ? (
+      {plan && !firstFold ? (
         <p className="mcfly-scoreboard__plan">
           {plan.cannotHit
             ? "Spend left at goal is already used. Freeze paid. Email stays as-is."

@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   SPEND_ANALYTICS_CONTRAST,
+  SPEND_FIRST_FOLD_CHIP_MARKER,
   SPEND_FIRST_FOLD_HEROES,
   SPEND_FIRST_LANE_LABEL,
   buildSpendCompareKpis,
@@ -24,6 +25,8 @@ describe("Spend first-fold SCORECARD vs free Shopify Analytics", () => {
     }
     expect(SPEND_ANALYTICS_CONTRAST).toMatch(/spend ledger/i);
     expect(SPEND_FIRST_LANE_LABEL).toMatch(/Total ROAS/i);
+    expect(SPEND_FIRST_FOLD_HEROES).toContain("cashWindows");
+    expect(SPEND_FIRST_FOLD_CHIP_MARKER).toBe("mcfly-scoreboard--first-fold");
   });
 });
 
@@ -41,10 +44,13 @@ describe("Spend craft wiring", () => {
     expect(viewport).toContain('className="mcfly-overview-plane mcfly-spend-plane"');
     expect(viewport).toContain("SPEND_ANALYTICS_SR_LINE");
     expect(viewport).not.toContain("mcfly-book__lede");
+    expect(viewport).toContain("<CertifiedScoreboard");
+    expect(viewport).toContain('placement="firstFold"');
     const firstStart = spend.indexOf('<DeskLane rank="first"');
     const firstEnd = spend.indexOf("<DeskLane", firstStart + 1);
     const firstLane = spend.slice(firstStart, firstEnd);
     expect(firstLane).toContain("<SpendFirstViewport");
+    expect(firstLane).toContain("cashChips=");
     expect(firstLane).toContain("<SpendExplorer");
     expect(firstLane).not.toContain("<SpendMixSection");
     expect(firstLane).not.toContain("<CpaExplorer");
