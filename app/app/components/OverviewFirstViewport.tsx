@@ -21,7 +21,6 @@ import {
   OVERVIEW_ORDERS_EMPTY_LINE,
   OVERVIEW_PRIOR_MISSING_LINE,
   overviewOrderDeltaLabel,
-  overviewOrderHeroSentence,
   type OverviewOrderBookHero,
 } from "../lib/overview-order-book";
 import { useDeskCurrency } from "../lib/desk-currency";
@@ -292,13 +291,6 @@ export function OverviewFirstViewport({
       ? money(hero.sales)
       : null;
   const missingPrior = hero == null || hero.priorSales == null;
-  const sentence = overviewOrderHeroSentence({
-    periodLabel,
-    salesLabel,
-    yoyPct: hero?.yoyPct ?? null,
-    empty,
-    missingPrior,
-  });
   const delta = overviewOrderDeltaLabel({
     yoyPct: hero?.yoyPct ?? null,
     missingPrior,
@@ -328,8 +320,6 @@ export function OverviewFirstViewport({
       aria-label={ariaLabel}
       data-sample={useSampleDesk ? "true" : undefined}
     >
-      <p className="mcfly-overview-plane__sentence">{sentence}</p>
-
       <div className={`mcfly-overview-plane__hero mcfly-overview-plane__hero--${zone}`}>
         <div className="mcfly-overview-plane__hero-top">
           <p className="mcfly-overview-plane__period">{periodLabel}</p>
@@ -343,13 +333,16 @@ export function OverviewFirstViewport({
             </p>
           )}
         </div>
-        <p className="mcfly-overview-plane__value">{salesLabel ?? "—"}</p>
-        <p className="mcfly-overview-plane__prior">
-          {missingPrior || hero?.priorSales == null
-            ? OVERVIEW_PRIOR_MISSING_LINE
-            : `same days last year ${money(hero.priorSales)}`}
+                  <p className="mcfly-overview-plane__value">{salesLabel ?? "—"}</p>
+        <p className="mcfly-overview-plane__meta">
+          <span className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</span>
+          <span aria-hidden="true"> · </span>
+          <span className="mcfly-overview-plane__prior">
+            {missingPrior || hero?.priorSales == null
+              ? OVERVIEW_PRIOR_MISSING_LINE
+              : `same days last year ${money(hero.priorSales)}`}
+          </span>
         </p>
-        <p className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</p>
         <p className="mcfly-overview-plane__coverage">
           {overviewCoverageLine(orderBookDepth)}
         </p>

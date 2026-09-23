@@ -537,7 +537,8 @@ describe("month close and the period hero stay put", () => {
       "utf8",
     );
     expect(first).toContain("OVERVIEW_FROM_ORDERS_LABEL");
-    expect(first).toContain("overviewOrderHeroSentence");
+    expect(first).toContain("mcfly-overview-plane__meta");
+    expect(first).not.toContain("overviewOrderHeroSentence");
     expect(first).not.toContain("overviewClockSentenceFromPayload");
     const chart = readFileSync(
       join(here, "../components/OverviewSalesChart.tsx"),

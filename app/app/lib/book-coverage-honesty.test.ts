@@ -202,7 +202,7 @@ describe("book coverage honesty — Overview names the book", () => {
     expect(firstView).not.toContain("Shopify Total Sales");
   });
 
-  it("YTD from orders is named and copyable on the year card", () => {
+  it("YTD copy helper stays honest; Overview YoY cards stay quiet (no essay row)", () => {
     const copy = overviewYtdCopyText({
       salesPending: false,
       amount: 417_392,
@@ -230,9 +230,9 @@ describe("book coverage honesty — Overview names the book", () => {
     ).toBeNull();
 
     const cards = read("../components/OverviewYoyCards.tsx");
-    expect(cards).toContain("CopyYtdSales");
-    expect(cards).toContain("overviewYtdCopyText");
-    expect(cards).toMatch(/Orders YTD/);
+    expect(cards).not.toContain("CopyYtdSales");
+    expect(cards).not.toContain("overviewYtdCopyText");
+    expect(cards).not.toMatch(/Orders YTD/);
     expect(cards).not.toMatch(/Shopify Total Sales YTD/);
     expect(cards).not.toMatch(/Shopify fees|payout date|bank match/i);
     const strip = read("../components/MorningHabitStrip.tsx");

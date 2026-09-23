@@ -230,7 +230,8 @@ describe("overview first viewport", () => {
     expect(cards).toContain("OVERVIEW_YOY_GLANCE_ID");
     expect(cards).toContain("OVERVIEW_YOY_YEAR_PANEL");
     expect(cards).not.toContain('deskHref("/app/yoy")');
-    expect(cards).toContain("overviewYoyDeltaPct");
+    expect(cards).not.toContain("overviewYoyDeltaPct");
+    expect(cards).not.toContain("overviewYoyZoneLabel");
     expect(cards).not.toContain("Click for detail");
   });
 
@@ -238,7 +239,8 @@ describe("overview first viewport", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
-    expect(firstView).toContain("overviewOrderHeroSentence");
+    expect(firstView).toContain("mcfly-overview-plane__meta");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(firstView).toContain("orderHero");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-4");
@@ -329,7 +331,8 @@ describe("overview first viewport", () => {
     expect(chart).toContain("mcfly-chart__sales-line");
     expect(chart).not.toContain("mcfly-chart__spend-line");
     expect(yoy).toContain("OVERVIEW_YOY_LABELS");
-    expect(yoy).toContain("overviewYoyZoneLabel");
+    expect(yoy).toContain("overviewYoyZone");
+    expect(yoy).not.toContain("overviewYoyZoneLabel");
   });
 
   it("maps Overview panel=yoy-year onto the year board id", () => {
@@ -615,7 +618,8 @@ describe("Overview first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(overview).toContain("monthClose={mixView.forecast?.projected ?? null}");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
-    expect(firstView).toContain("overviewOrderHeroSentence");
+    expect(firstView).toContain("mcfly-overview-plane__meta");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(firstView).not.toContain('label="Total Sales"');
     expect(firstView).not.toContain("Sessions");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-4");
