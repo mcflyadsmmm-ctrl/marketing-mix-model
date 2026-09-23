@@ -175,6 +175,7 @@ export default function PublicDemoOverview() {
         {onHome ? (
           <div className="mcfly-desk-anchor mcfly-scoreboard--overview" id={DESK_SECTION.overview}>
             <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
+              <div className="mcfly-overview-first-beat">
               {embed === "yoy" ? null : (
                 <OverviewFirstViewport
                   orderCount={data.orderHero.orderCount}
@@ -214,8 +215,16 @@ export default function PublicDemoOverview() {
                   orderBookDepth="paid_full"
                 />
               )}
+              {embed ? null : (
+                <OverviewYoyCards
+                  cards={data.yoyCards}
+                  salesPending={false}
+                  yoyHref={yoyHref}
+                />
+              )}
+              </div>
               {embed === "typical" ? null : (
-                <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
+                <div className="mcfly-desk-anchor mcfly-overview-chart-beat" id={DESK_SECTION.chart}>
                   <OverviewSalesChart
                     days={data.explorerDays}
                     ordersHref={ordersHref}
@@ -227,13 +236,6 @@ export default function PublicDemoOverview() {
             </DeskLane>
             {embed ? null : (
               <>
-                <DeskLane rank="next" label="Same days last year">
-                  <OverviewYoyCards
-                    cards={data.yoyCards}
-                    salesPending={false}
-                    yoyHref={yoyHref}
-                  />
-                </DeskLane>
                 <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                 <DeskLane rank="next" label="Mix and month close">
                   <OverviewMixForecast

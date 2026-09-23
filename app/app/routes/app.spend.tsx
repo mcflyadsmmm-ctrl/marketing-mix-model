@@ -86,11 +86,7 @@ import {
   recurringFillPreviewCopy,
 } from "../lib/recurring-fill-preview";
 import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
-import {
-  HONEST_MER_LINE,
-  spendUploadEmptyFinding,
-  totalRoasEmptySpendFinding,
-} from "../lib/spend-upload-findings";
+import { HONEST_MER_LINE, spendUploadEmptyFinding } from "../lib/spend-upload-findings";
 import { loadSpendAnalysis } from "../lib/desk-spend-stack.server";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
@@ -1022,99 +1018,77 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL}>
+        <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
         <section
           id="mcfly-roas"
-          className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-book--soft mcfly-roas-book--soft"
+          className="mcfly-spend-plane"
           aria-label="Sales, spend, and Total ROAS"
         >
-          <p className="mcfly-book__lede">
-            Shopify Analytics shows sales, not {PRODUCT_NOUN.totalRoas}. This page shows {PRODUCT_NOUN.definition} — {HONEST_MER_LINE} Empty spend paints —, never 0×.
+          <p className="mcfly-spend-plane__label">{PRODUCT_NOUN.totalRoas}</p>
+          <p
+            className="mcfly-spend-plane__value"
+            data-empty={roasValue === "—" ? "true" : undefined}
+          >
+            {roasValue}
           </p>
-          <div className="mcfly-book__glance mcfly-book__glance--kpis mcfly-book__glance--soft">
-            <div className="mcfly-book__kpi mcfly-book__kpi--soft">
-              <p className="mcfly-book__kpi-k">Sales</p>
-              <p className="mcfly-book__kpi-v">
-                {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
-              </p>
-              <p className="mcfly-book__kpi-hint">
-                {spendFirstFoldSalesHint({
-                  salesPending: Boolean(metrics.salesPending),
-                  periodLabel: metrics.period.label,
-                  todaySalesTruncated,
-                  todaySalesUnavailable,
-                })}
-              </p>
+          {hasSpend && pairEquation ? (
+            <div className="mcfly-spend-pair-copy-row">
+              <p className="mcfly-spend-plane__equation">{pairEquation}</p>
+              <CopySpendPair text={pairCopyText} />
             </div>
-            <div className="mcfly-book__kpi mcfly-book__kpi--soft">
-              <p className="mcfly-book__kpi-k">Spend</p>
-              <p
-                className="mcfly-book__kpi-v"
-                data-empty={
-                  formatSpendOnFile(metrics.totalSpend, currency) === "—"
-                    ? "true"
-                    : undefined
-                }
-              >
-                {formatSpendOnFile(metrics.totalSpend, currency)}
-              </p>
-              <p className="mcfly-book__kpi-hint">
-                {spendOnFileHint(metrics.totalSpend)}
-              </p>
-            </div>
-            <div className="mcfly-book__kpi mcfly-book__kpi--soft mcfly-book__kpi--lead">
-              <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.totalRoas}</p>
-              <p
-                className="mcfly-book__kpi-v"
-                data-empty={roasValue === "—" ? "true" : undefined}
-              >
-                {roasValue}
-              </p>
-              {hasSpend ? (
-                pairEquation ? (
-                  <div className="mcfly-spend-pair-copy-row">
-                    <p className="mcfly-book__kpi-hint">{pairEquation}</p>
-                    <CopySpendPair text={pairCopyText} />
-                  </div>
-                ) : null
-              ) : (
-                <p className="mcfly-book__kpi-hint">
-                  <s-link href="#mcfly-spend-add">{PRODUCT_NOUN.uploadSpend}</s-link>
-                </p>
-              )}
-            </div>
-          </div>
+          ) : null}
           {hasSpend ? (
-            <p className="mcfly-book__kpi-hint">{pairCoverage.caption}</p>
+            <p className="mcfly-spend-plane__hint">{PRODUCT_NOUN.definition}</p>
+          ) : (
+            <p className="mcfly-spend-plane__hint">{HONEST_MER_LINE}</p>
+          )}
+          <p className="mcfly-spend-plane__pair">
+            <span>
+              Sales{" "}
+              {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
+            </span>
+            <span aria-hidden="true"> · </span>
+            <span
+              data-empty={
+                formatSpendOnFile(metrics.totalSpend, currency) === "—"
+                  ? "true"
+                  : undefined
+              }
+            >
+              Spend {formatSpendOnFile(metrics.totalSpend, currency)}
+            </span>
+          </p>
+          <p className="mcfly-spend-plane__hint">
+            {spendFirstFoldSalesHint({
+              salesPending: Boolean(metrics.salesPending),
+              periodLabel: metrics.period.label,
+              todaySalesTruncated,
+              todaySalesUnavailable,
+            })}
+            {hasSpend ? ` · ${spendOnFileHint(metrics.totalSpend)}` : null}
+          </p>
+          {!hasSpend && !shotMode ? (
+            <p className="mcfly-spend-plane__cta">
+              <s-link href="#mcfly-spend-add">{PRODUCT_NOUN.uploadSpend}</s-link>
+            </p>
+          ) : null}
+          {hasSpend ? (
+            <p className="mcfly-spend-plane__hint">{pairCoverage.caption}</p>
           ) : null}
           {hasSpend && onlineLine ? (
-            <p className="mcfly-book__kpi-hint">{onlineLine}</p>
+            <p className="mcfly-spend-plane__hint">{onlineLine}</p>
           ) : null}
           {explorer.weekMonthCopy ? (
             <div className="mcfly-spend-pair-copy-row">
-              <p className="mcfly-book__kpi-hint" style={{ whiteSpace: "pre-wrap" }}>
+              <p className="mcfly-spend-plane__hint" style={{ whiteSpace: "pre-wrap" }}>
                 {explorer.weekMonthCopy}
               </p>
               <CopyWeekMonthSales text={explorer.weekMonthCopy} />
             </div>
           ) : null}
-          {!hasSpend && !shotMode ? (
-            <SpendFindingStrip finding={totalRoasEmptySpendFinding()} />
-          ) : null}
         </section>
         {emptyLiveSpend ? (
           <>
-            <p className="mcfly-spend-helper mcfly-spend-helper--soft">
-              Shopify sales are already here. Empty spend is not a certified $0 —
-              add a day or paste. A deleted day stays $0. Empty spend is never 0×
-              {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
-              {strangerEmpty
-                ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
-                : ". Sales ÷ spend is the pair above. This section records typed, uploaded, or daily-rate spend."}
-            </p>
-            {strangerEmpty ? (
-              <SpendFindingStrip finding={spendUploadEmptyFinding()} />
-            ) : null}
             <section
               id="mcfly-spend-add"
               className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft mcfly-spend-add--hero"

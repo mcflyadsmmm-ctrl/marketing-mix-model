@@ -21803,6 +21803,122 @@ button.mcfly-habit-goals__read:focus-visible {
   color: var(--mcfly-mute, #64748b);
 }
 
+.mcfly-overview-first-beat {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(0.75rem, 2.5vw, 1.35rem);
+  align-items: start;
+}
+
+.mcfly-overview-first-beat .mcfly-yoy--plane {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mcfly-overview-first-beat .mcfly-yoy--plane .mcfly-yoy__grid {
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
+}
+
+.mcfly-overview-first-beat .mcfly-yoy__card--plane {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.35rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 10%, transparent);
+}
+
+.mcfly-overview-first-beat .mcfly-yoy__lede--quiet {
+  display: none;
+}
+
+.mcfly-overview-chart-beat {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 12%, transparent);
+}
+
+.mcfly-yoy--plane .mcfly-yoy__v {
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
+}
+
+.mcfly-spend-plane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.15rem 0 0.35rem;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-spend-plane__label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-spend-plane__value {
+  margin: 0;
+  font-family: var(--mcfly-serif, "Fraunces", Georgia, serif);
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-spend-plane__value[data-empty="true"] {
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-spend-plane__equation,
+.mcfly-spend-plane__pair,
+.mcfly-spend-plane__hint {
+  margin: 0;
+  font-size: clamp(0.92rem, 1.5vw, 1.02rem);
+  line-height: 1.4;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-spend-plane__pair {
+  color: var(--mcfly-ink, #1e293b);
+  padding-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 12%, transparent);
+}
+
+.mcfly-spend-plane__cta {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.mcfly-score--orders-hero .mcfly-orders-hero,
+.mcfly-score--customers-hero .mcfly-customers-hero {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mcfly-score--orders-hero .mcfly-orders-hero__v,
+.mcfly-score--customers-hero .mcfly-customers-hero__v {
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
+}
+
+@media (max-width: 52rem) {
+  .mcfly-overview-first-beat {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .mcfly-orders-under {
   display: flex;
   flex-direction: column;

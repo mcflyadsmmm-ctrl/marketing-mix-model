@@ -14,12 +14,7 @@ function chip(id: string, label: string): DeskPanelChip {
 export const DESK_PANEL_RAIL_BY_ADMIN_PATH: Readonly<
   Record<string, readonly DeskPanelChip[]>
 > = {
-  "/app": [
-    chip("mcfly-yoy-glance", "YoY glance"),
-    chip("mcfly-chart", "Chart"),
-    chip("mcfly-mix-close", "Mix close"),
-    chip("mcfly-yoy-year", "YoY year"),
-  ],
+  "/app": [],
   "/app/orders": [
     chip("mcfly-typical", "Typical"),
     chip("mcfly-clock", "Clock"),

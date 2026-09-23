@@ -11,8 +11,9 @@
 | `04-NATIVE_AND_SURFACES.md` | Wave R agent | done |
 | `REBUILD_SPEC.md` | Conductor | implement after Phase 0 reconcile |
 | `ENTERPRISE_PLAN.md` | Conductor | superseded for execution order by CURSOR_OPTIMAL_PLAN |
-| `CURSOR_OPTIMAL_PLAN.md` | Opus 5.5 + Conductor probe | **SoT for the next Conductor — start at Phase 0** |
-| `../plans/` or `docs/plans/` implementation plan | Conductor after S approval | pending |
+| `CURSOR_OPTIMAL_PLAN.md` | Opus 5.5 + Conductor probe | Product/money SoT for Phase 0–G (Phase D **live** 2026-09-22) |
+| `AESTHETIC_PLAN.md` | Conductor · light + sky thesis | **SoT for craft ship v44** — no research fleet; ≤2 Opus Ships |
+| `PHASE_D_CRITIC.md` | Opus | Phase D re-Ship record |
 
 **Religion:** Total ROAS = Shopify sales ÷ entered spend. No pixels/MTA. Flat $39 + 7-day.  
 **L2 PCD:** Pending — may research ShopifyQL; do not claim Analytics parity as shippable now.  

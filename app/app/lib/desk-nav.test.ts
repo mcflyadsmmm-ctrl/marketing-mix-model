@@ -209,15 +209,10 @@ describe("DESK_PRIMARY_NAV", () => {
 });
 
 describe("DeskPanelRail map", () => {
-  it("maps analysis paths to chips and omits Goals", () => {
-    expect(
-      DESK_PANEL_RAIL_BY_ADMIN_PATH["/app"]?.map((c) => c.id),
-    ).toEqual([
-      "mcfly-yoy-glance",
-      "mcfly-chart",
-      "mcfly-mix-close",
-      "mcfly-yoy-year",
-    ]);
+  it("maps analysis paths to chips and omits Overview + Goals", () => {
+    expect(DESK_PANEL_RAIL_BY_ADMIN_PATH["/app"]).toEqual([]);
+    expect(deskPanelChipsForPath("/app")).toEqual([]);
+    expect(deskPanelChipsForPath("/demo")).toEqual([]);
     expect(
       deskPanelChipsForPath("/app/orders").map((c) => c.panel),
     ).toEqual(["typical", "clock", "timing"]);

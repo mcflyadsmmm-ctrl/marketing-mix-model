@@ -72,7 +72,7 @@ function PendingYoyShell({
   prior?: string;
 }) {
   return (
-    <article className="mcfly-yoy__card mcfly-yoy__card--empty mcfly-yoy__card--soft" key={id}>
+    <article className="mcfly-yoy__card mcfly-yoy__card--empty mcfly-yoy__card--plane" key={id}>
       <p className="mcfly-yoy__k">
         <DeskIcon name="yoy" />
         {OVERVIEW_YOY_LABELS[id]}
@@ -112,11 +112,11 @@ export function OverviewYoyCards({
   if (salesPending) {
     return (
       <section
-        className="mcfly-desk-anchor mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft"
+        className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane"
         id={OVERVIEW_YOY_GLANCE_ID}
         aria-label="Sales versus last year"
       >
-        <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
+        <p className="mcfly-yoy__lede mcfly-yoy__lede--quiet">{OVERVIEW_YOY_PENDING}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
             <PendingYoyShell id={id} key={id} />
@@ -129,11 +129,11 @@ export function OverviewYoyCards({
   if (cards.length === 0) {
     return (
       <section
-        className="mcfly-desk-anchor mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft"
+        className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane"
         id={OVERVIEW_YOY_GLANCE_ID}
         aria-label="Sales versus last year"
       >
-        <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
+        <p className="mcfly-yoy__lede mcfly-yoy__lede--quiet">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
             <PendingYoyShell
@@ -159,11 +159,11 @@ export function OverviewYoyCards({
 
   return (
     <section
-      className="mcfly-desk-anchor mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft"
+      className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane"
       id={OVERVIEW_YOY_GLANCE_ID}
       aria-label="Sales versus last year"
     >
-      <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
+      <p className="mcfly-yoy__lede mcfly-yoy__lede--quiet">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
@@ -179,7 +179,7 @@ export function OverviewYoyCards({
           return (
             <button
               type="button"
-              className={`mcfly-yoy__card mcfly-yoy__card--drill mcfly-yoy__card--soft ${zoneClass(zone)}`}
+              className={`mcfly-yoy__card mcfly-yoy__card--drill mcfly-yoy__card--plane ${zoneClass(zone)}`}
               key={card.id}
               onClick={() =>
                 drill?.openDrill({

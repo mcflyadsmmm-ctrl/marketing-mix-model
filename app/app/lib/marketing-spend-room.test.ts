@@ -100,11 +100,11 @@ describe("Spend MER desk", () => {
 
   it("contrasts Shopify Analytics vs sales÷typed spend, not platform ROAS", () => {
     expect(spend).toContain("Shopify Analytics shows sales");
-    expect(spend).toContain("This page shows");
+    expect(spend).toContain("This page records");
     expect(spend).toContain("PRODUCT_NOUN.definition");
     expect(spend).toContain("HONEST_MER_LINE");
     expect(spend).toContain("SpendFindingStrip");
-    expect(spend).toContain("totalRoasEmptySpendFinding");
+    expect(spend).toContain("spendUploadEmptyFinding");
     expect(spend).toMatch(/never 0×/);
   });
 

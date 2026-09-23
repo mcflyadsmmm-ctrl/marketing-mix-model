@@ -101,7 +101,7 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("<MarketingSnapSection");
     expect(spend).not.toContain("MarketingSnapSection");
     expect(spend).toContain('aria-label="Sales, spend, and Total ROAS"');
-    expect(spend).toContain("mcfly-book__glance");
+    expect(spend).toContain("mcfly-spend-plane");
     expect(spend).not.toContain('id="mcfly-spend-mix"');
   });
 
@@ -163,13 +163,13 @@ describe("Spend day card", () => {
     expect(spend).toMatch(/>\s*Edit\s*</);
     expect(spend).toContain('name="intent" value="delete-entry"');
     expect(spend).toContain("Delete");
-    const helperAt = spend.indexOf("mcfly-spend-helper");
+    const planeAt = spend.indexOf("mcfly-spend-plane");
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
-    expect(helperAt).toBeGreaterThan(-1);
-    expect(spend).toContain("mcfly-spend-helper--soft");
-    expect(addAt).toBeGreaterThan(helperAt);
+    expect(planeAt).toBeGreaterThan(-1);
+    expect(addAt).toBeGreaterThan(planeAt);
     expect(backfillAt).toBeGreaterThan(addAt);
+    expect(spend).toContain("mcfly-spend-helper--soft");
   });
 
   it("holds coverage and status back until a day of spend exists", () => {
@@ -199,7 +199,7 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("hasPeriodSpend");
     expect(spend).not.toContain("strangerEmpty || !metrics");
     expect(spend).toContain('aria-label="Sales, spend, and Total ROAS"');
-    expect(spend).toContain("mcfly-book__glance");
+    expect(spend).toContain("mcfly-spend-plane");
     expect(spend).not.toContain('id="mcfly-spend-mix"');
     expect(spend).not.toContain("<NumberHonestyPanel");
     expect(spend).toContain("SAMPLE_LEDGER_HANDOFF");
@@ -403,6 +403,7 @@ describe("Total ROAS page", () => {
     expect(spend).toContain("<DualCloseLine");
     expect(spend).toContain("<MonthlyPacing");
     expect(spend).toContain("PRODUCT_NOUN.definition");
+    expect(spend).toContain("formatTotalRoasEquation");
     expect(spend).toContain("HONEST_MER_LINE");
     expect(spend).toContain("SpendFindingStrip");
     expect(spend).toContain("quiet={false}");

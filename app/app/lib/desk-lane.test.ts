@@ -93,8 +93,8 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
     const order = [
       'rank="first"',
       "<OverviewFirstViewport",
-      "<OverviewSalesChart",
       "<OverviewYoyCards",
+      "<OverviewSalesChart",
       'rank="next" label="Mix and month close"',
       "<OverviewMixForecast",
       "<ShareableInsightCards",

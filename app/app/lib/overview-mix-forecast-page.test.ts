@@ -19,8 +19,8 @@ describe("Overview mix + month close — habit, not a dump", () => {
   it("sits after the sales chart in the mix-close fold", () => {
     const order = [
       "<OverviewFirstViewport",
-      "<OverviewSalesChart",
       "<OverviewYoyCards",
+      "<OverviewSalesChart",
       "<OverviewMixForecast",
       "<ShareableInsightCards",
       "<OverviewDepthPeeks",
