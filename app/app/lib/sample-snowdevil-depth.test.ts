@@ -313,7 +313,7 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     });
     const hero = buildCustomersHero(native);
     const peeks = buildCustomersLeadPeeks(native);
-    expect(greeting).toMatch(/Shopify Analytics Customers is a customer list/);
+    expect(greeting).toMatch(/Returning \d+% · New \d+%/);
     expect(hero?.kind).toBe("returningDollars");
     expect(hero?.amount).toBeGreaterThan(0);
     expect(peeks.map((peek) => peek.hero)).toEqual(

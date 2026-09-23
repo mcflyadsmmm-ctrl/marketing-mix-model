@@ -140,7 +140,8 @@ describe("Growth page", () => {
   });
 
   it("labels SAMPLE Snowdevil order history in-page", () => {
-    expect(customers).toContain("SAMPLE Snowdevil");
+    const firstView = read("../components/CustomersFirstViewport.tsx");
+    expect(firstView).toContain("SAMPLE_CUSTOMERS_DOOR");
     expect(customers).toContain("useSampleDesk");
   });
 

@@ -31,6 +31,7 @@ import {
   type ReturningMixDelta,
   type ReturningMixPlay,
 } from "../lib/customers-analytics";
+import { CUSTOMERS_MIX_SECTION_LABEL } from "../lib/customers-first-viewport";
 
 // SVG paints the shapes; crisp HTML overlays paint axis text + the dark tooltip
 // so type never shrinks with the viewBox on a 390–430px Admin iframe.
@@ -407,13 +408,12 @@ export function CustomerMixChart({
       aria-label={`New vs returning dollars by ${noun}`}
     >
       <div className="mcfly-chart__board">
-        <div className="mcfly-chart__masthead">
-          <h3 className="mcfly-chart__serif">
-            <DeskIcon name="chart" /> New vs returning dollars
+        <div className="mcfly-chart__head mcfly-chart__board">
+          <h3 className="mcfly-chart__h">
+            <DeskIcon name="chart" /> {CUSTOMERS_MIX_SECTION_LABEL}
           </h3>
           <p className="mcfly-chart__muted">
-            {sharePct(avg)} returning · {mixMoney(mixTotalPaint(summary), currency)}{" "}
-            over last ~{analytics.historyDays} days
+            {sharePct(avg)} returning · last ~{analytics.historyDays} days
           </p>
         </div>
         <div className="mcfly-chart__readout" role="status">

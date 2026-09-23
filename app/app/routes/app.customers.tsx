@@ -13,6 +13,7 @@ import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskLane } from "../components/DeskLane";
+import { CustomersCompareGlance } from "../components/CustomersCompareGlance";
 import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
 import { CustomersGrowthSection } from "../components/CustomersGrowthSection";
 import {
@@ -22,7 +23,7 @@ import {
 } from "../components/CustomersLtvSection";
 import { UnlockFullHistoryBanner } from "../components/UnlockFullHistoryBanner";
 import { ReviewAsk } from "../components/ReviewAsk";
-import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
+import { deskPeriodTillLabel } from "../lib/desk-history";
 import { loadCustomersStackPage } from "../lib/desk-customers-stack.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
@@ -36,9 +37,6 @@ import {
   emptyShareableInsights,
   pickShareableLtvPeek,
 } from "../lib/shareable-insights";
-
-const CUSTOMERS_CONTRAST =
-  "Shopify Analytics Customers is a customer list. Deeper: returning dollars vs new, dollars per buyer, then LTV, growth, and who the dollars sit with.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadCustomersStackPage(request);
@@ -188,37 +186,34 @@ export default function CustomersPage() {
       salesErrorBody="Sales didn’t load. Retry to see returning dollars."
       retryHref={`/app/customers?period=${preset}`}
     >
-      {metrics.salesPending ? (
-        <p className="mcfly-book__lede">
-          Sales for closed days are still loading — not $0.
-        </p>
-      ) : null}
-
-      {useSampleDesk && !shotMode ? (
-        <p className="mcfly-book__lede">
-          Customer depth below reads SAMPLE Snowdevil order history — not this
-          shop’s Shopify orders.
-        </p>
-      ) : null}
-
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
-      <p className="mcfly-book__lede">
-        {deskBookLede(CUSTOMERS_CONTRAST, orderBookDepth)}
-      </p>
-
       <div id="mcfly-returning">
-      <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL}>
-        <CustomersFirstViewport
-          analytics={analytics}
-          book={book}
-          salesPending={metrics.salesPending}
-          useSampleDesk={useSampleDesk}
-          todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
-        />
+      <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL} hint="">
+        <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
+          <CustomersFirstViewport
+            analytics={analytics}
+            book={book}
+            salesPending={Boolean(metrics.salesPending)}
+            useSampleDesk={useSampleDesk}
+            todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+            periodLabel={
+              metrics.period.label === "Month to date"
+                ? "This month"
+                : metrics.period.label
+            }
+          />
+          <CustomersCompareGlance
+            book={book}
+            lastYear={analytics.lastYearMix}
+            salesPending={Boolean(metrics.salesPending)}
+          />
+        </div>
+        <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
+      </DeskLane>
+      <DeskLane rank="next" label="Returning mix and facts">
         {returningInsight.cards.length > 0 ? (
           <ShareableInsightCards view={returningInsight} shotMode={shotMode} />
         ) : null}
-        <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
         <CustomersScoreboard
           book={book}
           depth={metrics.shopifyDepth}
@@ -285,7 +280,7 @@ export default function CustomersPage() {
       </div>
 
       {!metrics.customerMetricsAvailable ? (
-        <p className="mcfly-book__lede">
+        <p className="mcfly-state__copy">
           Returning dollars need identified buyers in this window — not $0.
         </p>
       ) : null}

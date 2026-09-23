@@ -21840,14 +21840,20 @@ button.mcfly-habit-goals__read:focus-visible {
   color: var(--mcfly-mute, #64748b);
 }
 
-.mcfly-orders-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics {
+.mcfly-orders-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics,
+.mcfly-customers-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.35rem 0.65rem;
 }
 
-.mcfly-orders-first-beat .mcfly-yoy__card--plane {
+.mcfly-orders-first-beat .mcfly-yoy__card--plane,
+.mcfly-customers-first-beat .mcfly-yoy__card--plane {
   border-bottom: 0;
   padding: 0.35rem 0;
+}
+
+.mcfly-scoreboard--customers .mcfly-customers-plane .mcfly-split {
+  margin-top: 0.15rem;
 }
 
 .mcfly-scoreboard--orders .mcfly-orders-plane .mcfly-orders-band {
