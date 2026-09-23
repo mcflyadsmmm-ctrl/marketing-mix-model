@@ -21880,10 +21880,6 @@ button.mcfly-habit-goals__read:focus-visible {
   margin: 0.2rem 0 0;
   font-size: 0.82rem;
 }
-  box-shadow: none;
-  padding: 0.35rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 10%, transparent);
-}
 
 .mcfly-overview-first-beat .mcfly-yoy__lede--quiet {
   display: none;
