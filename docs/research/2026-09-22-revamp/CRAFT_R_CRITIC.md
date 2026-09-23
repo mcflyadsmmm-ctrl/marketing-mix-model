@@ -1,10 +1,26 @@
 # Craft R (v46) — Outside critic
 
-**Branch:** `cursor/craft-v46` @ `6fe8eb8` vs `origin/cursor/spend-trust-recurring`
+**Branch:** `cursor/craft-v46` @ `f2dd043` (first review @ `6fe8eb8`) vs `origin/cursor/spend-trust-recurring`
 **Plan:** `APP_CRAFT_PLAN.md` § Ship R · `CRAFT_R_NOTES.md`
-**Verdict:** **HOLD → fixed** on branch tip (B1: `s-section` → native `<section>` + visible `<h3>`; tests flipped)
+**Verdict:** **SHIP** (re-check @ `f2dd043`; B1 fixed)
 
-**Verdict (pre-fix):** **HOLD** (one blocker; small fix, no re-plan)
+## Re-check @ f2dd043
+
+| Check | Result |
+| --- | --- |
+| No `<s-section` in `OverviewYoyCards` / `OverviewSalesChart` | PASS: native `<section className=… aria-label=…>` in all 3 YoY branches and on the chart root |
+| Visible headings | PASS: `<h3 className="mcfly-yoy__h">Vs last year</h3>` (new compact muted caps style) and chart `<h3>` with `OVERVIEW_CHART_CAPTION` |
+| Tests guard the regression | PASS: both suites now assert `not.toContain("<s-section")` |
+| `npm test` | PASS: 169 files, 2004 tests |
+| CSS parses | PASS |
+| From orders / no `read_reports` / no Total Sales first fold | PASS (unchanged: label `"From orders"`, scopes `read_orders,read_customers,read_all_orders` in all three tomls, `label="Total Sales"` absent) |
+| Fix scope | Only the 2 components, 2 tests, a 9-line CSS addition, and this doc |
+
+**Before publish (Conductor, not blocking Ship):** screenshot the first 2 viewports of `/demo` at 1280×720 and check that the compact YoY list and chart well render styled (N3 below). The critic did not take this screenshot. The chart `<h3>` reuses `mcfly-chart__serif`, which has no global rule, only one scoped to `.mcfly-cust-mix`. It will inherit well heading styles, so eyeball its size in that screenshot.
+
+---
+
+## Original review @ 6fe8eb8: HOLD
 
 ## Checks
 
