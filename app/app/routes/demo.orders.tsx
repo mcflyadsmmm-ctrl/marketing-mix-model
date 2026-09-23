@@ -1,5 +1,6 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { redirect, useLoaderData, useNavigation } from "react-router";
+import { deskBaseFromPathname, withDeskBase } from "../lib/desk-base-path";
 
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskLane } from "../components/DeskLane";
@@ -65,6 +66,10 @@ function ordersBetween(
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const home = withDeskBase("/app", deskBaseFromPathname(url.pathname));
+  const qs = url.searchParams.toString();
+  throw redirect(`${home}${qs ? `?${qs}` : ""}`);
   const page = await loadPublicSamplePage(request);
   const url = new URL(request.url);
   const preset = parsePeriodPreset(url.searchParams.get("period"));

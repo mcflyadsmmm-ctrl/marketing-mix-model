@@ -22,25 +22,21 @@ describe("Admin desk phone / narrow iframe", () => {
   const css = read("../styles/mcfly-desk.css");
   const phone = lastBlock(css, PHONE_MARK);
 
-  it("keeps 5 analysis tabs + Settings and does not invent a 6th analysis tab", () => {
+  it("keeps 3 analysis tabs + Settings and does not invent a 4th analysis tab", () => {
     const nav = read("./desk-nav.ts");
     const tabs = read("../components/DeskTopTabs.tsx");
     expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
-      "Overview",
-      "Orders",
+      "Home",
       "Customers",
       "Spend",
-      "Goals",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
-      "Overview",
-      "Orders",
+      "Home",
       "Customers",
       "Spend",
-      "Goals",
       "Settings",
     ]);
-    expect(DESK_IFRAME_NAV).toHaveLength(5);
+    expect(DESK_IFRAME_NAV).toHaveLength(3);
     expect(nav).toContain("DESK_PRIMARY_NAV");
     expect(tabs).toContain("DESK_IFRAME_NAV");
     expect(tabs).toContain("mcfly-desk-tabs--pills");
@@ -151,7 +147,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain("overflow-x: hidden");
   });
 
-  it("wraps 5 analysis tabs as small spaced pills — never a smooshed nowrap strip", () => {
+  it("wraps 3 analysis tabs as small spaced pills — never a smooshed nowrap strip", () => {
     expect(phone).toMatch(/@media \(max-width: 640px\)/);
     const tabsStart = phone.indexOf(".mcfly-desk-tabs,");
     expect(tabsStart).toBeGreaterThan(-1);
@@ -208,7 +204,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("Click for detail");
   });
 
-  it("ships a 390px fixture with Snowdevil SAMPLE dollars and the 5-tab rail", () => {
+  it("ships a 390px fixture with Snowdevil SAMPLE dollars and the 3-tab rail", () => {
     const fixture = read("./desk-phone-fixture.html");
     expect(fixture).toContain("$68,457");
     expect(fixture).toContain("$631");
@@ -233,11 +229,12 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("3.51×");
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("Edit spend");
-    expect(fixture).toContain("Overview");
-    expect(fixture).toContain(">Orders<");
+    expect(fixture).toContain(">Home<");
     expect(fixture).toContain(">Customers<");
     expect(fixture).toContain(">Spend<");
-    expect(fixture).toContain(">Goals<");
+    expect(fixture).not.toContain('href="#orders"');
+    expect(fixture).not.toContain('href="#goals"');
+    expect(fixture).not.toContain('href="#overview"');
     expect(fixture).not.toContain("Channel Allocation");
     expect(fixture).not.toContain("Spend Upload");
     expect(fixture).not.toContain(">Growth<");

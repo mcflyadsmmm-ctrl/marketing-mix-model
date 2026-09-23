@@ -39,10 +39,11 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(settings).toContain("Order-history targets");
     expect(settings).toContain("LTV Target Line is");
     expect(settings).toContain("observed average");
-    expect(settings).toContain('href="/app/goals"');
+    expect(settings).not.toContain('href="/app/goals"');
     expect(settings).not.toContain('name="ltvTarget"');
-    expect(nav).toContain('{ path: "/app/goals", label: "Goals" }');
+    expect(nav).not.toContain('{ path: "/app/goals", label: "Goals" }');
     expect(nav).toContain('{ path: "/app/customers", label: "Customers" }');
+    expect(nav).toContain('{ path: "/app", label: "Home" }');
     expect(nav).not.toContain('{ path: "/app/ltv", label: "LTV" }');
     expect(board).toContain('"/app/customers?panel=ltv"');
     expect(goals).not.toContain('href="/app/habit"');

@@ -497,8 +497,8 @@ export default function SettingsPage() {
               Order-history targets
             </h2>
             <p className="mcfly-settings-template__copy">
-              Year returning $ — tracked from order history on{" "}
-              <s-link href="/app/goals">Goals</s-link>. LTV Target Line is
+              Year returning $ — tracked from order history in Desk targets
+              below. LTV Target Line is
               the observed average there and on LTV — no typing. No spend,
               CPA, or ROAS. Leave blank to unset returning $.
             </p>

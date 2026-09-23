@@ -12,9 +12,10 @@ import {
 const SETTINGS_TAB: DeskNavItem = { path: "/app/settings", label: "Settings" };
 
 /**
- * Multi-row spaced pills. Five analysis tabs; Settings only when asked
- * (public /demo). No SCOREBOARD / RETAIN chips, no Meta-ROAS hero, no
- * single-row scroll strip. Active = ink fill. Panel rail sits below.
+ * Multi-row spaced pills. Three analysis tabs (Home · Customers · Spend);
+ * Settings only when asked (public /demo). No SCOREBOARD / RETAIN chips,
+ * no Meta-ROAS hero, no single-row scroll strip. Active = ink fill.
+ * Panel rail sits below.
  */
 export function DeskTopTabs({
   shotMode = false,
