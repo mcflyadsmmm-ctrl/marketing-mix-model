@@ -15,7 +15,9 @@ automatically_update_urls_on_dev = false
 
 [access_scopes]
 # Partner-approved: full order history so Live year / long LTV can seal.
-scopes = "read_orders,read_customers,read_all_orders"
+# read_reports: ShopifyQL aggregate FROM sales only. PCD L2 Approved
+# (Name, Email, Phone, Address). Do not select those fields on OrderFact.
+scopes = "read_orders,read_customers,read_all_orders,read_reports"
 
 [webhooks]
 api_version = "2025-10"

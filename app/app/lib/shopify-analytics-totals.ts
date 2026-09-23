@@ -1,18 +1,17 @@
 /**
  * Shopify Analytics day totals (Total / Net / Gross, QL New/Returning $).
- * Off until PCD Level 2 + `read_reports` — desk heroes stay order-book first.
+ * PCD Level 2 is Approved and `read_reports` is requested so Live can paint
+ * ShopifyQL day totals. SAMPLE desks never do — order-book first there.
  */
+import type { ShopifyNativePeriodStats } from "./shopify-native-stats";
 
-/** Flip when L2 lands and SalesDayFact rows are ShopifyQL-sourced. */
-export const SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = false;
+/** On after PCD L2 Approved. SAMPLE still returns false from {@link deskAnalyticsDayTotalsLive}. */
+export const SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE = true;
 
 export function deskAnalyticsDayTotalsLive(useSampleDesk: boolean): boolean {
   if (useSampleDesk) return false;
   return SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE;
 }
-
-/** Analytics sales clock — em dash until {@link deskAnalyticsDayTotalsLive}. */
-import type { ShopifyNativePeriodStats } from "./shopify-native-stats";
 
 export function deskAnalyticsSalesClockValues(input: {
   useSampleDesk: boolean;
@@ -46,7 +45,7 @@ export function deskAnalyticsSalesClockValues(input: {
   };
 }
 
-/** Hide ShopifyQL New/Returning $ until L2 — order-book split stays on Customers. */
+/** SAMPLE withholds ShopifyQL New/Returning $. Live returns the book when the flag is on. */
 export function deskAnalyticsNativeBook(
   book: ShopifyNativePeriodStats,
   useSampleDesk: boolean,

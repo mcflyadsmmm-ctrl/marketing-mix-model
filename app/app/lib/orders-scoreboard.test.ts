@@ -129,24 +129,29 @@ describe("orders scoreboard helpers", () => {
     expect(hero.def).toMatch(/108/);
   });
 
-  it("sales clock stays em dash until ShopifyQL L2", () => {
-    const clock = buildOrdersClock(
-      {
-        gross: 72_827,
-        grossKnown: true,
-        total: 68_457,
-        net: 60_242,
-        netKnown: true,
-      },
-      "USD",
-      false,
-    );
-    expect(clock.map((item) => item.k)).toEqual([
+  it("SAMPLE sales clock stays em dash; Live paints ShopifyQL clocks", () => {
+    const clocks = {
+      gross: 72_827,
+      grossKnown: true,
+      total: 68_457,
+      net: 60_242,
+      netKnown: true,
+    };
+    const sample = buildOrdersClock(clocks, "USD", true);
+    expect(sample.map((item) => item.k)).toEqual([
       "Gross sales",
       "Total Sales",
       "Net Sales",
     ]);
-    expect(clock.map((item) => item.v)).toEqual(["—", "—", "—"]);
+    expect(sample.map((item) => item.v)).toEqual(["—", "—", "—"]);
+
+    const live = buildOrdersClock(clocks, "USD", false);
+    expect(live.map((item) => item.k)).toEqual([
+      "Original",
+      "After returns",
+      "Product only",
+    ]);
+    expect(live.map((item) => item.v)).toEqual(["$72,827", "$68,457", "$60,242"]);
   });
 
   it("depth rows cover ticket, day, discount, returns — basket peeks live on the first fold", () => {

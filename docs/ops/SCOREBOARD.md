@@ -10,7 +10,7 @@
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
-| PCD L2 | Submitted (not SAMPLE blocker) |
+| PCD L2 | Approved (Name, Email, Phone, Address). Git: `read_reports` + day-totals flag. Not deployed. Live PARKED. |
 | Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
 | Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v456 / tip `b57b472`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |

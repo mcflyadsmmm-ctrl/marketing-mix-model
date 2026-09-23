@@ -14,7 +14,7 @@
 
 ## First Live shop — run order (one page)
 
-**When:** Marty/Galaxy unparks Live on **one** real shop. Tip smoke SoT stays Fly **v403** until renamed. ShopifyQL/L2 = **HOLD** (does not block this run).
+**When:** Marty/Galaxy unparks Live on **one** real shop. Tip smoke SoT stays Fly **v403** until renamed. PCD L2 is Approved and `read_reports` is in git; F1–F4 stay **HOLD** until a measured compare (does not block this run, and the flag flip is not a parity PASS).
 
 | Step | Do | Stop / advance |
 | ---: | --- | --- |
@@ -28,7 +28,7 @@
 | 7 | **E parity** — no SAMPLE mix; kill switch still works | Contamination → revert |
 | 8 | Paste **Result block** to Galaxy Master + product. Claim “real-data demo” only if B+D (+C if unlocked) PASS | Soft status = failure |
 
-**Out of this run:** craft/Fly · Partner paste · inventing metrics · ShopifyQL until L2 · Spend gates order-history PASS.
+**Out of this run:** craft/Fly · Partner paste · inventing metrics · treating the ShopifyQL flag as Analytics parity (F1–F4 still HOLD) · Spend gates order-history PASS.
 
 ## Fill header (every run)
 
@@ -136,13 +136,13 @@ Prove in product/code or live crawl behavior — not vibes.
 
 ---
 
-## F. ShopifyQL / Analytics parity (when `read_reports` + PCD L2 land)
+## F. ShopifyQL / Analytics parity (`read_reports` + PCD L2)
 
-**Until L2:** mark **HOLD** — “waiting on reports” ≠ order-history LTV failure.
+**L2 Approved (2026-09-23)** and `read_reports` is in toml / Fly `SCOPES`. F1–F4 stay **HOLD** until a measured Admin compare. The flag flip is not Analytics parity. “Waiting on reports” is no longer the gate; an unmeasured clock still is not a PASS.
 
 | # | Check | Admin / ShopifyQL | Mcfly | ☐ |
 | ---: | --- | --- | --- | --- |
-| F0 | L2 / `read_reports` available? | ☐ no → HOLD all F | ☐ yes → run | |
+| F0 | L2 / `read_reports` in git? | Approved + this ship | F1–F4 still HOLD. Live parked. | ☑ |
 | F1 | Total sales same period | ShopifyQL / Analytics | Overview | ☐ |
 | F2 | Orders / AOV same basis | Analytics | Overview / Orders | ☐ |
 | F3 | Returning $ vs any Analytics contrast documented | Note headcount vs $ | Desk stays $ | ☐ |

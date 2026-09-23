@@ -13,7 +13,7 @@ Billing is not a desk mode and **nothing is feature-gated**. Trial and paid both
 
 Installed Admin is **Live shop only**. Snowdevil SAMPLE stays on the public site demo and the ops freeze kill-switch — not a merchant Sample | Live toggle.
 
-**Live ingest depth (not a feature gate):** unpaid / Shopify trial Live stops at 90 closed days. Paid $39 keeps the Shopify-visible window; order rows still stop at 24 months. Until PCD Level 2, day sales come from orders on file. ShopifyQL day totals (`read_reports`) come after L2. SAMPLE stays full wow. Price does not rise with sales. A host with billing off uses the paid window.
+**Live ingest depth (not a feature gate):** unpaid / Shopify trial Live stops at 90 closed days. Paid $39 keeps the Shopify-visible window; order rows still stop at 24 months. PCD Level 2 is Approved. `read_reports` is in scopes so Live can call ShopifyQL for aggregate day totals. We still do not store name, email, phone, or address. SAMPLE does not paint those QL clocks. Live stays parked (`MCFLY_SAMPLE_ONLY`). SAMPLE stays full wow. Price does not rise with sales. A host with billing off uses the paid window.
 
 Do **not** reintroduce a Free tier or a Pro gate in the app. `entitlements.server.ts` allows every channel and every surface on every plan; `desk-claims-guard.test.ts` fails the build if plan-gate vocabulary returns.
 
