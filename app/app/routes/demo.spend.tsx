@@ -11,7 +11,6 @@ import { DualCloseLine } from "../components/DualCloseLine";
 import { DeskLane } from "../components/DeskLane";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
 import { PeriodControl } from "../components/PeriodControl";
-import { SpendCompareGlance } from "../components/SpendCompareGlance";
 import { SpendExplorer } from "../components/SpendExplorer";
 import { SpendFirstViewport } from "../components/SpendFirstViewport";
 import {
@@ -250,15 +249,8 @@ export default function PublicDemoSpend() {
               pairCopyText={hasSpend && pairCopyText ? pairCopyText : null}
               shotMode={data.shotMode}
             />
-            <SpendCompareGlance
-              deltas={null}
-              salesPending={false}
-              sales={data.sales.totalSales}
-              spend={data.spend}
-              mer={paintedMer}
-            />
           </div>
-          <section id="mcfly-explorer" aria-label="Certified windows and spend explorer">
+          <section id="mcfly-explorer" aria-label="Spend explorer">
             <SpendExplorer
               series={explorer}
               period={data.preset}

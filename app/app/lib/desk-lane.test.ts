@@ -265,7 +265,9 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("<DeskLane");
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
     expect(spend).toContain("emptyLiveSpend");
-    expect(spend).toContain("defaultOpen={shotMode}");
+    expect(spend).toMatch(
+      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+    );
     expect(spend).toContain("<CertifiedScoreboard");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<CpaExplorer");

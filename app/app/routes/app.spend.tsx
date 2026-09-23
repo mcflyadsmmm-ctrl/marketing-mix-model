@@ -1043,7 +1043,7 @@ export default function SpendEntryPage() {
             mer={paintedMer}
           />
         </div>
-        <section id="mcfly-explorer" aria-label="Certified windows and spend explorer">
+        <section id="mcfly-explorer" aria-label="Spend explorer">
           <SpendExplorer
             series={explorer}
             period={preset}
@@ -1189,7 +1189,9 @@ export default function SpendEntryPage() {
           rank="more"
           label={SPEND_DEPTH_LANE_LABEL}
           fold
-          defaultOpen={shotMode}
+          defaultOpen={
+            shotMode || spendPanel === "mix" || spendPanel === "cpa"
+          }
         >
         <section id="mcfly-explorer-depth" aria-label="Certified windows and spend analysis">
           {cashControl && cashControl.chips.length > 0 ? (

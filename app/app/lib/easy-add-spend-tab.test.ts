@@ -48,7 +48,9 @@ describe("Spend day card", () => {
     expect(spend).toContain("emptyLiveSpend");
     expect(spend).toContain("<DeskLane");
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
-    expect(spend).toContain("defaultOpen={shotMode}");
+    expect(spend).toMatch(
+      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+    );
     expect(spend).toContain('rank="more"');
     const firstAdd = spend.indexOf('id="mcfly-spend-add"');
     const mixAt = spend.indexOf("<SpendMixSection");

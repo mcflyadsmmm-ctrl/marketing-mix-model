@@ -50,14 +50,17 @@ describe("Spend craft wiring", () => {
     expect(firstLane).not.toContain("<CpaExplorer");
   });
 
-  it("folds mix, CPA, and certified depth at rank more with shotMode default", () => {
+  it("folds mix, CPA, and certified depth at rank more with panel-aware open", () => {
     expect(spend).toContain('rank="more"');
     expect(spend).toContain("SPEND_DEPTH_LANE_LABEL");
-    expect(spend).toContain("defaultOpen={shotMode}");
+    expect(spend).toMatch(
+      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+    );
     expect(spend).toContain("<SpendMixSection");
     expect(spend).toContain('id="mcfly-cpa"');
     expect(demo).toContain("<DeskLane");
     expect(demo).toContain("<SpendFirstViewport");
+    expect(demo).not.toContain("<SpendCompareGlance");
   });
 
   it("never paints 0× for empty spend in the hero", () => {
