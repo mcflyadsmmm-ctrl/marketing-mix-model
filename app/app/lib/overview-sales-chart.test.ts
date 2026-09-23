@@ -238,13 +238,14 @@ describe("overview sales chart labels + buckets", () => {
     expect(chart).toContain("mcfly-chart__grid");
     expect(chart).toContain("mcfly-chart__tip-foot");
     expect(chart).toContain("mcfly-chart__stats");
-    expect(chart).toContain("mcfly-chart__bars");
+    expect(chart).not.toContain("mcfly-chart__bars");
     expect(chart).toContain("mcfly-chart__legend");
     expect(chart).toContain("mcfly-chart__hero");
     expect(chart).toContain("mcfly-chart__board");
-    // Monthly-pacing soft-card language: serif title + muted subtitle.
-    expect(chart).toContain("mcfly-chart__serif");
     expect(chart).toContain("mcfly-chart__muted");
+    expect(chart).toContain("<s-section");
+    expect(chart).not.toContain("mcfly-chart__bars");
+    expect(chart).not.toContain("mcfly-yoy__lede");
     expect(chart).toContain("Tap a bar");
     // Zero spend on Overview — the whole point of this tab.
     expect(chart).not.toContain("mcfly-chart__hint");

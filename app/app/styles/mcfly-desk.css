@@ -21805,6 +21805,88 @@ button.mcfly-habit-goals__read:focus-visible {
   color: var(--mcfly-mute, #64748b);
 }
 
+.mcfly-overview-plane__sr,
+.mcfly-chart__sr,
+.mcfly-yoy__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mcfly-yoy--metrics .mcfly-yoy__grid--metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--mcfly-line, #e2e8f0);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--mcfly-surface, #fff);
+}
+
+.mcfly-overview-first-beat .mcfly-yoy--metrics .mcfly-yoy__card--plane,
+.mcfly-yoy--metrics .mcfly-yoy__card--plane {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--mcfly-line, #e2e8f0);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.mcfly-yoy--metrics .mcfly-yoy__card--plane:last-child {
+  border-bottom: 0;
+}
+
+.mcfly-yoy--metrics .mcfly-yoy__k {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-yoy--metrics .mcfly-yoy__v {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  justify-self: end;
+}
+
+.mcfly-yoy--metrics .mcfly-yoy__prior {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.78rem;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-yoy__note--quiet {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-chart--sales .mcfly-chart__masthead {
+  min-width: 0;
+}
+
+.mcfly-chart--sales .mcfly-chart__masthead .mcfly-chart__muted {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
 .mcfly-overview-plane__strip {
   margin: 0;
   padding-top: 0.65rem;

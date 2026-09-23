@@ -34,16 +34,21 @@ const css = read("../styles/mcfly-desk.css");
 const pills = read("../components/DeskTopTabs.tsx");
 const sample = read("../components/SampleDeskBanner.tsx");
 
-function mixCloseWrapClosesBeforeWeekday(src: string): boolean {
-  const mixIdAt = src.indexOf("id={OVERVIEW_MIX_CLOSE_ID}");
+function mixCloseFoldBeforeWeekday(src: string): boolean {
+  const mixLabelAt = src.indexOf('label="Mix and month close"');
   const weekdayAt = src.indexOf('label="More order detail"');
-  if (mixIdAt < 0 || weekdayAt < 0) return false;
-  const wrapCloseAt = src.lastIndexOf("</div>", weekdayAt);
-  if (wrapCloseAt <= mixIdAt || wrapCloseAt >= weekdayAt) return false;
-  const wrap = src.slice(mixIdAt, wrapCloseAt);
+  const mixIdAt = src.indexOf("id={OVERVIEW_MIX_CLOSE_ID}");
+  if (mixLabelAt < 0 || weekdayAt < 0 || mixIdAt < 0) return false;
+  const mixLaneHead = src.slice(
+    src.lastIndexOf("<DeskLane", mixLabelAt),
+    src.indexOf(">", mixLabelAt) + 1,
+  );
   return (
-    wrap.includes('label="Mix and month close"') &&
-    !wrap.includes('label="More order detail"')
+    mixLabelAt < weekdayAt &&
+    mixIdAt > mixLabelAt &&
+    mixIdAt < weekdayAt &&
+    mixLaneHead.includes('rank="more"') &&
+    mixLaneHead.includes("fold")
   );
 }
 
@@ -95,10 +100,10 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
       "<OverviewFirstViewport",
       "<OverviewYoyCards",
       "<OverviewSalesChart",
-      'rank="next" label="Mix and month close"',
+      'label="Mix and month close"',
       "<OverviewMixForecast",
       "<ShareableInsightCards",
-      'rank="more"',
+      'label="More order detail"',
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",
     ].map((tag) => overview.indexOf(tag));
@@ -112,8 +117,10 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
     expect(overview).toContain("defaultOpen={shotMode");
     expect(demoOverview).toContain('label="More order detail"');
     expect(demoOverview).toContain("defaultOpen={data.shotMode");
-    expect(mixCloseWrapClosesBeforeWeekday(overview)).toBe(true);
-    expect(mixCloseWrapClosesBeforeWeekday(demoOverview)).toBe(true);
+    expect(demoOverview).toContain('label="Mix and month close"');
+    expect(demoOverview).toContain("fold");
+    expect(mixCloseFoldBeforeWeekday(overview)).toBe(true);
+    expect(mixCloseFoldBeforeWeekday(demoOverview)).toBe(true);
     expect(weekdayFoldDefaultOpen(overview)).toBe("defaultOpen={shotMode}");
     expect(weekdayFoldDefaultOpen(demoOverview)).toBe(
       "defaultOpen={data.shotMode}",

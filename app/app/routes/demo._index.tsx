@@ -236,8 +236,13 @@ export default function PublicDemoOverview() {
             </DeskLane>
             {embed ? null : (
               <>
+                <DeskLane
+                  rank="more"
+                  label="Mix and month close"
+                  fold
+                  defaultOpen={data.shotMode}
+                >
                 <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
-                <DeskLane rank="next" label="Mix and month close">
                   <OverviewMixForecast
                     view={mixView}
                     customersHref={customersHref}
@@ -248,8 +253,8 @@ export default function PublicDemoOverview() {
                     goalsHref={goalsHref}
                   />
                   <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
-                </DeskLane>
                 </div>
+                </DeskLane>
                 <DeskLane
                   rank="more"
                   label="More order detail"
