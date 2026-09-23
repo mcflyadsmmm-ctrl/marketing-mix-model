@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v43** Pages `d0791d6b` · Fly **446** · SHA `49bb8ef` · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v43** · rebuild-first-screen · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · `/demo` iframes Fly Remix order-book Overview |
-| **Fly** | https://mcfly-analytics.fly.dev · version **446** · image `deployment-01M362P9WVBQFS7ZP1XFQ96NTV` · `/health` 200 · marketing paths 301 → mcflyads.com · SAMPLE_ONLY **true** · scopes no `read_reports` |
+| **Updated** | 2026-09-22 · America/Denver · Site **v44** Pages `c5af633e` · Fly **447** · SHA `7d1d95e` · occupancy **0/4** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v44** · aesthetic-light-sky · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · `/demo` order-book first beat |
+| **Fly** | https://mcfly-analytics.fly.dev · version **447** · image `deployment-01M363XJA06MCM9PBA97EWSJZ8` · `/health` 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · scopes no `read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -93,7 +93,8 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Site v29 + Fly 395** — operator desk lock: white cards / navy ink / sky `#0284c7`. Charcoal marketing wells gone from Admin + live slices. Pages `1a025e00`. Journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md).
 - [x] **Site v30 + Fly 396** — five analysis tabs plus Settings (fold never delete). Overview YoY year board · Customers returning $ + Growth/LTV · Spend MER + mix + CPA. Pages `83cfac91`. Journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md).
 - [x] **Site v43 + Fly 446** — rebuild-v43 PR #204 · order-book Overview · Fly marketing 301 · Opus Ship · smoke PASS · Pages `d0791d6b` · SHA `49bb8ef` · critic [`research/2026-09-22-revamp/PHASE_D_CRITIC.md`](./research/2026-09-22-revamp/PHASE_D_CRITIC.md).
-- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (90-day trial / 24-month paid · From orders). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v43** before paste.
+- [x] **Site v44 + Fly 447** — aesthetic-v44 PR #205 · light+sky first folds · Overview panel chips gone · Opus Ship · smoke PASS · Pages `c5af633e` · SHA `7d1d95e` · critic [`research/2026-09-22-revamp/AESTHETIC_CRITIC.md`](./research/2026-09-22-revamp/AESTHETIC_CRITIC.md).
+- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (90-day trial / 24-month paid · From orders). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v44** before paste.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
 - [x] v11 app-first
@@ -114,7 +115,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Phase D **live**. Marty gates: Partner listing Save (taglines / 90 vs 24) · `support@` MX · founder review emails · FUNNEL week · **unpark decision** (paying installs still SAMPLE until Marty flips `MCFLY_SAMPLE_ONLY`). Site **v43** · Fly **446**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
+**Next:** Phase D + aesthetic **v44 live**. Marty gates: Partner listing Save · `support@` MX · founder review emails · FUNNEL week · **unpark decision**. Site **v44** · Fly **447**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
 
 ---
 
