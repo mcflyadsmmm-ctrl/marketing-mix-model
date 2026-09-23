@@ -225,11 +225,10 @@ describe("Sample data | Live data UX", () => {
     expect(customers).toContain("tillLtv.repeatRate");
     expect(growth).toContain("#mcfly-ltv");
     expect(growth).not.toContain("cashCac");
-    expect(orders).toContain("<OrdersScoreboard");
-    expect(orders).toContain("<OrdersTimingChart");
+    expect(orders).toContain("OrdersRedirect");
+    expect(orders).toContain("throw redirect");
     expect(customers).toContain("orderFactsTruncated");
     expect(growthRedirect).toContain("throw redirect");
-    expect(orders).toContain("orderFactsTruncated");
     const deskPage = read("../lib/desk-sales-page.server.ts");
     expect(deskPage).toContain("getOrderBackfillProgress");
     const bookPage = read("../components/DeskBookPage.tsx");
@@ -433,17 +432,13 @@ describe("Sample data | Live data UX", () => {
     const goals = read("../routes/app.goals.tsx");
     const ltv = read("../components/CustomersLtvSection.tsx");
     const gauges = read("../components/SalesGoalGauges.tsx");
+    const habitBoard = read("../components/OrderHistoryGoalsBoard.tsx");
 
-    expect(goals).toContain("mcfly-book");
-    expect(goals).toContain("mcfly-book--soft");
-    expect(goals).toContain('className="mcfly-book__hero-v"');
-    expect(goals).toContain('variant="book"');
-    expect(goals).toContain("mcfly-goals--soft");
+    // T1: Goals route redirects to Settings; soft book craft lives on gauges + habit board.
+    expect(goals).toContain("redirect(`/app/settings");
+    expect(habitBoard).toContain("Today’s read");
     expect(gauges).toContain("mcfly-goal-row--soft");
     expect(gauges).toContain("mcfly-goals-gauges--soft");
-    expect(goals).not.toContain("mcfly-acq-tile");
-    expect(goals).not.toContain("mcfly-goals-declare");
-    expect(goals).not.toContain("mcfly-panel mcfly-goals-declare");
     expect(gauges).toContain('case "book"');
     expect(gauges).not.toMatch(/cash \$\{PRODUCT_NOUN\.totalRoas\}/);
     expect(gauges).not.toContain("cash Total ROAS");

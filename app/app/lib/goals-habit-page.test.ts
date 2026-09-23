@@ -17,20 +17,13 @@ const css = read("../styles/mcfly-desk.css");
 const nav = read("./desk-nav.ts");
 
 describe("Order-history Goals — habit, not a dump", () => {
-  it("sits on the existing Goals surface above the sales-plan hero", () => {
-    const order = [
-      "<OrderHistoryGoalsBoard",
-      "mcfly-goals-hero--soft",
-      "<SalesGoalGauges",
-    ].map((tag) => goals.indexOf(tag));
-    expect(order.every((i) => i > -1)).toBe(true);
-    for (let i = 1; i < order.length; i += 1) {
-      expect(order[i]!).toBeGreaterThan(order[i - 1]!);
-    }
-    expect(goals).toContain("buildHabitGoals");
-    expect(goals).toContain("save_habit_goals");
-    expect(goals).toContain("yearReturningSales");
-    expect(goals).toContain("avgRevenueD90");
+  it("T1 retires Goals tab — /app/goals redirects to Settings; habit board stays in components", () => {
+    expect(goals).toContain('redirect(`/app/settings');
+    expect(goals).toContain("GoalsRedirect");
+    expect(board).toContain("Today’s read");
+    expect(lib).toContain("buildHabitGoals");
+    expect(lib).toContain("yearReturningSales");
+    expect(settings).toContain("save_habit_goals");
   });
 
   it("lets Settings type returning-$ only — LTV Target Line is the average", () => {
@@ -54,11 +47,10 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(board).not.toContain("First-window LTV target");
   });
 
-  it("keeps the sales-plan gauges, year control, and spend-six Goals job", () => {
-    expect(goals).toContain('aria-label="Plan year"');
-    expect(goals).toContain("SalesGoalGauges");
-    expect(goals).toContain("MTD · QTD · YTD");
-    expect(goals).toContain("GOALS_ANALYTICS_LEDE");
+  it("keeps habit board + Settings as the Goals job after T1 redirect", () => {
+    expect(board).toContain("Today’s read");
+    expect(settings).toContain("Order-history targets");
+    expect(goals).toContain("/app/settings");
   });
 
   it("paints Today’s read, two ActionCards, and the written-out formulas", () => {
@@ -92,7 +84,6 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(lib).toContain("historyLimited");
     expect(lib).toContain("not a full year");
     expect(lib).toContain("never a fake first-year");
-    expect(goals).toContain("historyLimited");
     expect(board).toContain("habitGoalsHistoryLine");
   });
 

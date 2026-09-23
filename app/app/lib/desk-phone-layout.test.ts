@@ -104,12 +104,8 @@ describe("Admin desk phone / narrow iframe", () => {
   });
 
   it("at 36rem, this month vs the plan, peek text, and CPA dates stay on screen", () => {
-    const goals = read("../routes/app.goals.tsx");
     const cards = read("../components/CpaWindowCards.tsx");
-    expect(goals).toContain("mcfly-goals-month-stack");
-    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
-    expect(goals).toContain("formatSalesOrDash(prior, currency)");
-    expect(goals).toContain("ThisMonthPlanStack");
+    expect(css).toContain("mcfly-goals-month-stack");
     expect(cards).toContain("mcfly-yoy--cpa");
     expect(cards).toContain("window.rangeLabel");
     expect(cards).toContain("mcfly-yoy__range");
