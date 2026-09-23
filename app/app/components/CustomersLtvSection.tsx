@@ -202,11 +202,7 @@ function useCustomersLtvPack({
       d: "Average orders per new-on-file buyer in the first 90 days after their first visible order. A buyer with earlier Shopify orders is not counted as new.",
     });
   }
-  if (
-    isNum(ltv.avgRevenueD365) &&
-    ltv.avgRevenueD365 > 0 &&
-    yearDollars != null
-  ) {
+  if (isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0 && yearDollars != null) {
     orderRows.push({
       k: "First year",
       v: formatCurrency(yearDollars, currency),
@@ -269,7 +265,9 @@ function useCustomersLtvPack({
       : null;
     const later = [
       d30 != null && d30 > 0 ? `30 days ${formatCurrency(d30, currency)}` : null,
-      d365 != null ? `First year ${formatCurrency(d365, currency)}` : null,
+      d365 != null && d365 > 0
+        ? `First year ${formatCurrency(d365, currency)}`
+        : null,
     ].filter((part): part is string => part != null);
     return {
       k: `First on file · ${row.cohortMonth}`,
