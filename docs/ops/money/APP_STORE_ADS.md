@@ -10,16 +10,16 @@ Significant ad spend is **illegal for this workspace until all four gates below 
 
 ## Four gates (checklist)
 
-Status as of Ops smoke **2026-09-18** ([`../journal/STATUS_20260918_ops_smoke.md`](../journal/STATUS_20260918_ops_smoke.md)). Ops did not `fly deploy`, did not open Admin, and did not paste Partner numbers.
+Status **2026-09-23** (PCD L2 Approved · Phase G in git · site v45 curl PASS). Full founder order: [`../AD_READY_GO.md`](../AD_READY_GO.md). Ops/Cursor still do **not** `fly deploy`, open Admin, paste Partner numbers, or buy ads.
 
 | # | Gate | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | Marty **Admin smoke PASS** (SAMPLE + one live spend day) | **AMBER** | Ops curl smoke **PASS** 2026-09-18 (site v19, `/health` 200, listing 200). SAMPLE greeting **PASS** 2026-09-15. **Live spend day skipped. Trial CTA skipped.** Gate stays amber until those two lines PASS. |
-| 2 | **≥3 honest** App Store reviews | **RED** | Listing HTML 2026-09-18: **0.0/5**, **(0 Reviews)**, **No reviews yet**. Keep **0**. Do not invent. |
-| 3 | One **organic week** of Partner listing visits / installs / trials pasted in [`FUNNEL_WEEKLY.md`](./FUNNEL_WEEKLY.md) | **RED** | 2026-09-08 / 2026-09-15 / 2026-09-22 rows **empty**. Marty has not pasted. Do not fill zeros. |
-| 4 | **P0 desk on Fly** | **GREEN** | Live `/health` 200 (`ok` + `db:up`). Living Board: Fly **331** @ `6c8a86b`. Ops did not deploy this row. |
+| 1 | Marty **Admin smoke PASS** (SAMPLE + one live spend day) | **AMBER → Marty** | Site + Fly `/health` + `/demo` curl PASS 2026-09-23. **Live spend day + trial CTA still Marty.** |
+| 2 | **≥3 honest** App Store reviews | **RED** | Listing still **0** reviews (do not invent). Founder may accept cash-burn risk; Cursor still will not start campaigns. |
+| 3 | One **organic week** of Partner listing visits / installs / trials pasted in [`FUNNEL_WEEKLY.md`](./FUNNEL_WEEKLY.md) | **RED** | Rows empty until Marty pastes. Do not fill zeros. |
+| 4 | **P0 desk on Fly** | **GREEN*** | `/health` 200. *Redeploy tip with `read_reports` still Marty (AD_READY_GO step 3). |
 
-**Start campaigns?** **NO.** Gate 1 amber, gates 2–3 red.
+**Start campaigns?** **NO** until Marty clears 1 (+ prefers 2–3). Product finalize is no longer the blocker — founder taps are.
 
 ---
 

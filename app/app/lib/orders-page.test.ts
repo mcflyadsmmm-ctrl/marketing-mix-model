@@ -13,8 +13,17 @@ const firstView = readFileSync(
 );
 
 describe("Orders page", () => {
+  it("SAMPLE L2 retires Orders routes — app + demo redirect Home", () => {
+    expect(orders).toContain("OrdersRedirect");
+    expect(orders).toContain("throw redirect");
+    expect(demoOrders).toContain("DemoOrdersRedirect");
+    expect(demoOrders).toContain("throw redirect");
+    expect(orders).not.toContain("<OrdersFirstViewport");
+    expect(demoOrders).not.toContain("<OrdersIntelligence");
+  });
+
   it("names average vs typical in the craft plane — no essay lede", () => {
-    expect(orders).not.toContain("mcfly-book__lede");
+    expect(firstView).not.toContain("mcfly-book__lede");
     expect(firstView).toContain("ORDERS_ANALYTICS_AVERAGE_LINE");
     expect(readFileSync(join(here, "orders-first-viewport.ts"), "utf8")).toMatch(
       /Shopify Analytics/,
@@ -24,88 +33,16 @@ describe("Orders page", () => {
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
   });
 
-  it("mounts hero + compare + chart in first lane; clock and intel fold below", () => {
-    expect(orders).toContain("<OrdersFirstViewport");
-    expect(orders).toContain("<OrdersCompareGlance");
-    expect(orders).toContain("<OrdersScoreboard");
-    expect(orders).toContain("<OrdersTimingChart");
-    expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
-      orders.indexOf("<OrdersTimingChart"),
-    );
-    expect(orders.indexOf("<OrdersTimingChart")).toBeLessThan(
-      orders.indexOf("<OrdersScoreboard"),
-    );
-    const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
-    const firstLane = orders.slice(firstStart, firstEnd);
-    expect(firstLane).toContain("<OrdersFirstViewport");
-    expect(firstLane).toContain("<OrdersCompareGlance");
-    expect(firstLane).toContain("<OrdersTimingChart");
-    expect(firstLane).not.toContain("<OrdersScoreboard");
-    expect(firstLane).not.toContain("<OrdersIntelligence");
-  });
-
   it("pending sales are not $0", () => {
-    expect(orders).toContain("salesPending");
     expect(firstView).toContain("ORDERS_PENDING_LINE");
     expect(firstView).toContain("ORDERS_THIN_EMPTY_LINE");
   });
 
   it("does not put SpendExplorer, Total ROAS, or Spend Upload as the hero", () => {
+    expect(firstView).not.toContain("SpendExplorer");
+    expect(firstView).not.toContain("Total ROAS");
+    expect(firstView).not.toContain("/app/spend");
     expect(orders).not.toContain("SpendExplorer");
     expect(orders).not.toContain("Total ROAS");
-    expect(orders).not.toContain("/app/spend");
-  });
-
-  it("mounts the same orders intelligence stack on the public orders page", () => {
-    expect(demoOrders).not.toContain("mcfly-book__lede");
-    expect(demoOrders).toContain("<OrdersIntelligence");
-    expect(demoOrders).toContain("<OrdersFrequencyChart");
-    expect(demoOrders.indexOf("<OrdersTimingChart")).toBeLessThan(
-      demoOrders.indexOf("<OrdersScoreboard"),
-    );
-    expect(demoOrders.indexOf("<OrdersScoreboard")).toBeLessThan(
-      demoOrders.indexOf("<OrdersIntelligence"),
-    );
-  });
-});
-
-/** Opening JSX tag — a till that drops a required prop must fail this, not a name-only grep. */
-function jsxOpen(source: string, name: string): string {
-  const start = source.indexOf(`<${name}`);
-  expect(start).toBeGreaterThan(-1);
-  const self = source.indexOf("/>", start);
-  const open = source.indexOf(">", start);
-  const end =
-    self >= 0 && (open < 0 || self < open) ? self + 2 : open + 1;
-  return source.slice(start, end);
-}
-
-describe("Orders step mix call-site lock", () => {
-  it("omit-path: first viewport and timing chart require step mix props on both tills", () => {
-    for (const source of [orders, demoOrders]) {
-      const first = jsxOpen(source, "OrdersFirstViewport");
-      expect(first).toMatch(/\bdepth=/);
-      expect(first).toMatch(/\bstepMix=/);
-      expect(first).toMatch(/\btickets=/);
-      expect(first).toMatch(/\btodaySalesTruncated=/);
-      expect(first).not.toMatch(/\bwaitDays=/);
-      const timing = jsxOpen(source, "OrdersTimingChart");
-      expect(timing).toMatch(/\bweekdayShares=/);
-      expect(timing).toMatch(/\btimingSplit=/);
-    }
-    expect(jsxOpen(demoOrders, "OrdersFirstViewport")).toMatch(
-      /todaySalesTruncated=\{false\}/,
-    );
-    const desk = readFileSync(
-      join(here, "desk-sales-page.server.ts"),
-      "utf8",
-    );
-    expect(demoOrders).toContain("lastYearRows");
-    expect(desk).toContain("lastYearRows");
-    expect(orders).toContain('from "../components/OrdersFirstViewport"');
-    expect(demoOrders).toContain('from "../components/OrdersFirstViewport"');
-    expect(orders).toContain('from "../components/OrdersTimingChart"');
-    expect(demoOrders).toContain('from "../components/OrdersTimingChart"');
   });
 });

@@ -191,33 +191,13 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(growth).toContain("/app/customers");
   });
 
-  it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {
-    const order = [
-      'rank="first"',
-      "<OrdersFirstViewport",
-      "<OrdersCompareGlance",
-      "<OrdersTimingChart",
-      'rank="more"',
-      'label={ORDERS_CLOCK_LANE_LABEL}',
-      "<OrdersScoreboard",
-      "<OrdersIntelligence",
-      "<OrdersFrequencyChart",
-    ].map((tag) => orders.indexOf(tag));
-    expect(order.every((i) => i > -1)).toBe(true);
-    for (let i = 1; i < order.length; i += 1) {
-      expect(order[i]!).toBeGreaterThan(order[i - 1]!);
-    }
+  it("SAMPLE L2 retires Orders route — DesktopLane craft stays on the kit", () => {
+    expect(orders).toContain("OrdersRedirect");
+    expect(orders).toContain("throw redirect");
     expect(scoreboard).toContain("<DeskLane");
     expect(scoreboard).toContain('rank="more"');
     expect(scoreboard).toContain("<OrdersClockBar");
     expect(scoreboard).not.toContain("<details");
-    const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
-    const firstLane = orders.slice(firstStart, firstEnd);
-    expect(firstLane).toContain("<OrdersFirstViewport");
-    expect(firstLane).toContain("<OrdersTimingChart");
-    expect(firstLane).not.toContain("<OrdersScoreboard");
-    expect(firstLane).not.toContain("<OrdersIntelligence");
   });
 
   it("ranks LTV value first, explorers next, spend last — no details FAQ", () => {

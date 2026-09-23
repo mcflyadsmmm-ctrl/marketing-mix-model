@@ -423,7 +423,7 @@ describe("orders code money for the selected month", () => {
 });
 
 describe("orders month board wiring", () => {
-  it("loads the selected period on the admin desk and mounts the same stack on demo", () => {
+  it("loads the selected period on the admin desk; demo Orders redirects on SAMPLE L2", () => {
     const desk = readFileSync(join(here, "desk-sales-page.server.ts"), "utf8");
     const demo = readFileSync(join(here, "../routes/demo.orders.tsx"), "utf8");
     const board = readFileSync(join(here, "../components/OrdersIntelligence.tsx"), "utf8");
@@ -432,10 +432,9 @@ describe("orders month board wiring", () => {
     expect(desk).toContain("assembleOrdersIntelligence");
     expect(desk).not.toContain("ORDERS_INTEL_WINDOW_DAYS");
     expect(desk).not.toContain("trailing 90");
-    expect(demo).toContain("<OrdersIntelligence");
-    expect(demo).toContain("<OrdersFrequencyChart");
-    expect(demo).toContain("assembleOrdersIntelligence");
-    expect(demo).toContain("resolvePeriod");
+    expect(demo).toContain("DemoOrdersRedirect");
+    expect(demo).toContain("throw redirect");
+    expect(demo).not.toContain("<OrdersIntelligence");
     expect(board).toContain("{intel.badge}");
     expect(board).toContain("ordersMonthBoardSentence");
     expect(board).not.toContain(">90d<");
