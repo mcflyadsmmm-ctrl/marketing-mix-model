@@ -89,7 +89,7 @@ If a question asks “do you log access to personal data?” → **Yes** for sho
 
 ## Reviewer Admin view
 
-SAMPLE desk on Fly **454+**: Home · Customers · Spend, SAMPLE watermark, Spend cash chips. Live path parked (`SAMPLE_ONLY`). Site aesthetic ops held.
+SAMPLE desk on Fly **455+**: Home · Customers · Spend, SAMPLE watermark, Spend cash chips. Live path parked (`SAMPLE_ONLY`). Privacy live on Fly `/privacy` + mcflyads.com/privacy (L2 gate honesty). Site aesthetic ops held.
 
 ---
 
