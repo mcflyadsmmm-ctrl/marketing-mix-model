@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-19 · America/Denver · Site **v30** Pages `83cfac91` · Fly **396** · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v30** · five analysis tabs plus Settings · operator white KPI cards · live HTML Overview slices · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **396** · `/health` 200 · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings |
+| **Updated** | 2026-09-22 · America/Denver · Site **v43** Pages `d0791d6b` · Fly **446** · SHA `49bb8ef` · occupancy **0/4** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v43** · rebuild-first-screen · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · `/demo` iframes Fly Remix order-book Overview |
+| **Fly** | https://mcfly-analytics.fly.dev · version **446** · image `deployment-01M362P9WVBQFS7ZP1XFQ96NTV` · `/health` 200 · marketing paths 301 → mcflyads.com · SAMPLE_ONLY **true** · scopes no `read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -24,7 +24,7 @@ Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/m
 | --- | --- | --- |
 | **Public mark** | **Mcfly Analytics** | Chrome, `<title>`, `og:site_name`, favicon, manifest |
 | **Firm** | **Mcfly Ads** | Domain, legal, footer, Organization schema |
-| **Line** | Deeper Shopify numbers Analytics does not show. | Home H1 job — **P7 live** ([rebuild plan](./plans/2026-09-10-mcfly-analytics-rebuild.md)) |
+| **Line** | Spend next to sales. | Home H1: **Spend next to real Shopify sales.** ([REBUILD_SPEC](./research/2026-09-22-revamp/REBUILD_SPEC.md)) |
 | **Money now** | **Mcfly Analytics** | Shopify app · 7-day then $39 |
 | **Parked** | Custom Data Solutions | 301 `/` on mcflyads.com |
 
@@ -92,7 +92,8 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Site v28 + Fly 394** — sales page = live HTML Overview / spend / ROAS / Goals slices (not PNGs). `/demo` = Remix SAMPLE desk for listing stills. Pages `f2f6dba8`. Home lock $19,023 / $68,457 / 3.60×; Fly `/demo` rolls with the calendar.
 - [x] **Site v29 + Fly 395** — operator desk lock: white cards / navy ink / sky `#0284c7`. Charcoal marketing wells gone from Admin + live slices. Pages `1a025e00`. Journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md).
 - [x] **Site v30 + Fly 396** — five analysis tabs plus Settings (fold never delete). Overview YoY year board · Customers returning $ + Growth/LTV · Spend MER + mix + CPA. Pages `83cfac91`. Journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md).
-- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (Overview · Orders · Customers at $0 spend · Spend last · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v30** before paste. Partner still says eleven until Save.
+- [x] **Site v43 + Fly 446** — rebuild-v43 PR #204 · order-book Overview · Fly marketing 301 · Opus Ship · smoke PASS · Pages `d0791d6b` · SHA `49bb8ef` · critic [`research/2026-09-22-revamp/PHASE_D_CRITIC.md`](./research/2026-09-22-revamp/PHASE_D_CRITIC.md).
+- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (90-day trial / 24-month paid · From orders). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v43** before paste.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
 - [x] v11 app-first
@@ -113,7 +114,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Marty Partner Save of five-tab listing paste + recapture listing stills from **Live Admin** (not SAMPLE `/demo`). Site **v30** · Fly **396**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
+**Next:** Phase D **live**. Marty gates: Partner listing Save (taglines / 90 vs 24) · `support@` MX · founder review emails · FUNNEL week · **unpark decision** (paying installs still SAMPLE until Marty flips `MCFLY_SAMPLE_ONLY`). Site **v43** · Fly **446**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
 
 ---
 
