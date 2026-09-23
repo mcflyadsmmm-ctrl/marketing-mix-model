@@ -226,6 +226,13 @@ describe("overview first viewport", () => {
     expect(cards).toContain("overviewYoyZone");
     expect(cards).toContain("mcfly-yoy--glance");
     expect(cards).toContain("mcfly-yoy--plane");
+    expect(cards).toContain("mcfly-yoy--metrics");
+    expect(cards).not.toContain("mcfly-yoy__lede");
+    expect(cards).not.toContain("<s-section");
+    expect(cards).toContain('<section');
+    expect(cards).toContain('aria-label="Vs last year"');
+    expect(cards).toContain('className="mcfly-yoy__h"');
+    expect(cards).toContain("Vs last year</h3>");
     expect(cards).not.toContain("mcfly-yoy--soft");
     expect(cards).toContain("OVERVIEW_YOY_GLANCE_ID");
     expect(cards).toContain("OVERVIEW_YOY_YEAR_PANEL");
@@ -240,7 +247,9 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(firstView).toContain("mcfly-overview-plane__meta");
-    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(firstView).toContain("overviewCoverageLine(orderBookDepth)");
+    expect(firstView).toContain("mcfly-overview-plane__sr");
+    expect(firstView).not.toContain("mcfly-overview-plane__coverage");
     expect(firstView).toContain("orderHero");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-4");
@@ -619,7 +628,9 @@ describe("Overview first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(firstView).toContain("mcfly-overview-plane__meta");
-    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(firstView).toContain("overviewCoverageLine(orderBookDepth)");
+    expect(firstView).toContain("mcfly-overview-plane__sr");
+    expect(firstView).not.toContain("mcfly-overview-plane__coverage");
     expect(firstView).not.toContain('label="Total Sales"');
     expect(firstView).not.toContain("Sessions");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-4");

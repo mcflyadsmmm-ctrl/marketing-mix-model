@@ -110,12 +110,13 @@ export function OverviewYoyCards({
   if (salesPending) {
     return (
       <section
-        className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane"
+        className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane mcfly-yoy--metrics"
         id={OVERVIEW_YOY_GLANCE_ID}
-        aria-label="Sales versus last year"
+        aria-label="Vs last year"
       >
-        <p className="mcfly-yoy__lede mcfly-yoy__lede--quiet">{OVERVIEW_YOY_PENDING}</p>
-        <div className="mcfly-yoy__grid">
+        <h3 className="mcfly-yoy__h">Vs last year</h3>
+        <span className="mcfly-yoy__sr">{OVERVIEW_YOY_PENDING}</span>
+        <div className="mcfly-yoy__grid mcfly-yoy__grid--metrics">
           {OVERVIEW_YOY_IDS.map((id) => (
             <PendingYoyShell id={id} key={id} />
           ))}
@@ -127,12 +128,13 @@ export function OverviewYoyCards({
   if (cards.length === 0) {
     return (
       <section
-        className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane"
+        className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane mcfly-yoy--metrics"
         id={OVERVIEW_YOY_GLANCE_ID}
-        aria-label="Sales versus last year"
+        aria-label="Vs last year"
       >
-        <p className="mcfly-yoy__lede mcfly-yoy__lede--quiet">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
-        <div className="mcfly-yoy__grid">
+        <h3 className="mcfly-yoy__h">Vs last year</h3>
+        <span className="mcfly-yoy__sr">{OVERVIEW_YOY_ANALYTICS_LEDE}</span>
+        <div className="mcfly-yoy__grid mcfly-yoy__grid--metrics">
           {OVERVIEW_YOY_IDS.map((id) => (
             <PendingYoyShell
               id={id}
@@ -141,7 +143,7 @@ export function OverviewYoyCards({
             />
           ))}
         </div>
-        <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
+        <p className="mcfly-yoy__note mcfly-yoy__note--quiet">{OVERVIEW_YOY_MISSING}</p>
       </section>
     );
   }
@@ -151,11 +153,12 @@ export function OverviewYoyCards({
 
   return (
     <section
-      className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane"
+      className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane mcfly-yoy--metrics"
       id={OVERVIEW_YOY_GLANCE_ID}
-      aria-label="Sales versus last year"
+      aria-label="Vs last year"
     >
-      <div className="mcfly-yoy__grid">
+      <h3 className="mcfly-yoy__h">Vs last year</h3>
+      <div className="mcfly-yoy__grid mcfly-yoy__grid--metrics">
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
           const zone = overviewYoyZone(card);
@@ -220,9 +223,9 @@ export function OverviewYoyCards({
         })}
       </div>
       {sameWindow ? (
-        <p className="mcfly-yoy__note">{OVERVIEW_YOY_SAME_WINDOW}</p>
+        <p className="mcfly-yoy__note mcfly-yoy__note--quiet">{OVERVIEW_YOY_SAME_WINDOW}</p>
       ) : allMissingPrior ? (
-        <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
+        <p className="mcfly-yoy__note mcfly-yoy__note--quiet">{OVERVIEW_YOY_MISSING}</p>
       ) : null}
     </section>
   );

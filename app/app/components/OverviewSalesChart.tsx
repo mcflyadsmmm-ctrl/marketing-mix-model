@@ -337,30 +337,11 @@ export function OverviewSalesChart({
       : range
         ? `${overviewChartDayLabel(range.fromKey)} – ${overviewChartDayLabel(range.toKey)}`
         : "Range";
-  const ledeParts = [
-    rangeLabel,
-    effectiveGrain !== "day"
-      ? `${points.length} ${points.length === 1 ? noun : `${noun}s`}`
-      : null,
-    `${formatCurrency(total, currency)} total`,
-    hasOrders ? `${numberFmt.format(totalOrders)} orders` : null,
-  ].filter((part): part is string => part != null);
 
   const bestBucket = points.reduce(
     (best, bucket) => (bucket.sales > best.sales ? bucket : best),
     points[0]!,
   );
-  const aboveCount = points.filter(
-    (bucket) => overviewVsTypical(bucket.sales, typicalRef)?.kind === "up",
-  ).length;
-  const abovePct = points.length > 0 ? (aboveCount / points.length) * 100 : 0;
-  const weekendShare =
-    effectiveGrain === "day" && total > 0
-      ? points
-          .filter((bucket) => bucket.weekend)
-          .reduce((sum, bucket) => sum + bucket.sales, 0) / total
-      : null;
-  const topShare = total > 0 ? bestBucket.sales / total : 0;
 
   type Stat = { k: string; v: string; delta?: OverviewDelta | null; sub: string };
   const statCards: Stat[] = hasOrders
@@ -390,28 +371,6 @@ export function OverviewSalesChart({
         { k: `Best ${noun}`, v: formatCurrency(bestBucket.sales, currency), sub: bestBucket.label },
       ];
 
-  const paceBars: { k: string; pct: number; value: string; tone: string }[] = [
-    {
-      k: `${noun[0]!.toUpperCase()}${noun.slice(1)}s above typical`,
-      pct: Math.round(abovePct),
-      value: `${aboveCount}/${points.length}`,
-      tone: "up",
-    },
-    weekendShare != null
-      ? {
-          k: "Weekend share of sales",
-          pct: Math.round(weekendShare * 100),
-          value: `${Math.round(weekendShare * 100)}%`,
-          tone: "accent",
-        }
-      : {
-          k: `Top ${noun} share of range`,
-          pct: Math.round(topShare * 100),
-          value: `${Math.round(topShare * 100)}%`,
-          tone: "accent",
-        },
-  ];
-
   const tipOpen = hoverIndex != null && active != null;
   const tipCenter = centerX(activeIndex);
   const tipTopY = active ? yForSales(active.sales) : PLOT_TOP;
@@ -426,17 +385,18 @@ export function OverviewSalesChart({
   };
 
   return (
-    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales" aria-label="Orders by day">
+    <section
+      className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales"
+      aria-label={OVERVIEW_CHART_CAPTION}
+    >
+      <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
-          <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
-          {ledeParts.length > 0 ? (
-            <p className="mcfly-chart__muted">{ledeParts.join(" · ")}</p>
-          ) : null}
+          <p className="mcfly-chart__muted">{rangeLabel}</p>
           {sameDatesSentence ? (
-            <p className="mcfly-chart__muted" data-overview-compare="same-dates">
+            <span className="mcfly-chart__sr" data-overview-compare="same-dates">
               {sameDatesSentence}
-            </p>
+            </span>
           ) : null}
         </div>
         {active ? (
@@ -864,25 +824,6 @@ export function OverviewSalesChart({
           {rightLabel}
         </li>
       </ul>
-
-      {typicalRef != null ? (
-        <div className="mcfly-chart__bars">
-          {paceBars.map((bar) => (
-            <div className="mcfly-chart__bar-block" key={bar.k}>
-              <div className="mcfly-chart__bar-row">
-                <span>{bar.k}</span>
-                <span>{bar.value}</span>
-              </div>
-              <div className="mcfly-chart__track" aria-hidden="true">
-                <div
-                  className={`mcfly-chart__fill mcfly-chart__fill--${bar.tone}`}
-                  style={{ width: `${Math.min(100, Math.max(0, bar.pct))}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
     </section>
   );
 }

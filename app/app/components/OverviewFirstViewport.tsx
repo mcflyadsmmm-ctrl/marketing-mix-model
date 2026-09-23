@@ -343,9 +343,9 @@ export function OverviewFirstViewport({
               : `same days last year ${money(hero.priorSales)}`}
           </span>
         </p>
-        <p className="mcfly-overview-plane__coverage">
+        <span className="mcfly-overview-plane__sr">
           {overviewCoverageLine(orderBookDepth)}
-        </p>
+        </span>
       </div>
 
       {orderBackfillLine ? (

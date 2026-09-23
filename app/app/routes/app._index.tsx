@@ -982,8 +982,13 @@ export default function Dashboard() {
                     />
                   </div>
                 </DeskLane>
-                <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
-                <DeskLane rank="next" label="Mix and month close">
+                <DeskLane
+                  rank="more"
+                  label="Mix and month close"
+                  fold
+                  defaultOpen={shotMode}
+                >
+                  <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                   <OverviewMixForecast
                     view={mixView}
                     customersHref={customersHref}
@@ -994,8 +999,8 @@ export default function Dashboard() {
                     goalsHref={goalsHref}
                   />
                   <ShareableInsightCards view={insightView} shotMode={shotMode} />
+                  </div>
                 </DeskLane>
-                </div>
                 <DeskLane
                   rank="more"
                   label="More order detail"
