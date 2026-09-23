@@ -228,7 +228,11 @@ describe("overview first viewport", () => {
     expect(cards).toContain("mcfly-yoy--plane");
     expect(cards).toContain("mcfly-yoy--metrics");
     expect(cards).not.toContain("mcfly-yoy__lede");
-    expect(cards).toContain("<s-section");
+    expect(cards).not.toContain("<s-section");
+    expect(cards).toContain('<section');
+    expect(cards).toContain('aria-label="Vs last year"');
+    expect(cards).toContain('className="mcfly-yoy__h"');
+    expect(cards).toContain("Vs last year</h3>");
     expect(cards).not.toContain("mcfly-yoy--soft");
     expect(cards).toContain("OVERVIEW_YOY_GLANCE_ID");
     expect(cards).toContain("OVERVIEW_YOY_YEAR_PANEL");

@@ -21819,6 +21819,15 @@ button.mcfly-habit-goals__read:focus-visible {
   border: 0;
 }
 
+.mcfly-yoy__h {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute, #64748b);
+}
+
 .mcfly-yoy--metrics .mcfly-yoy__grid--metrics {
   display: flex;
   flex-direction: column;

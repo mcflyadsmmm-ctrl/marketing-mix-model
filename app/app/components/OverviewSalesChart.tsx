@@ -385,10 +385,11 @@ export function OverviewSalesChart({
   };
 
   return (
-    <s-section
+    <section
       className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales"
-      heading={OVERVIEW_CHART_CAPTION}
+      aria-label={OVERVIEW_CHART_CAPTION}
     >
+      <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
           <p className="mcfly-chart__muted">{rangeLabel}</p>
@@ -823,6 +824,6 @@ export function OverviewSalesChart({
           {rightLabel}
         </li>
       </ul>
-    </s-section>
+    </section>
   );
 }

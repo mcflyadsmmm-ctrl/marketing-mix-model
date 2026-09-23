@@ -109,28 +109,30 @@ export function OverviewYoyCards({
   const drill = useDeskDrill();
   if (salesPending) {
     return (
-      <s-section
+      <section
         className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane mcfly-yoy--metrics"
         id={OVERVIEW_YOY_GLANCE_ID}
-        heading="Vs last year"
+        aria-label="Vs last year"
       >
+        <h3 className="mcfly-yoy__h">Vs last year</h3>
         <span className="mcfly-yoy__sr">{OVERVIEW_YOY_PENDING}</span>
         <div className="mcfly-yoy__grid mcfly-yoy__grid--metrics">
           {OVERVIEW_YOY_IDS.map((id) => (
             <PendingYoyShell id={id} key={id} />
           ))}
         </div>
-      </s-section>
+      </section>
     );
   }
 
   if (cards.length === 0) {
     return (
-      <s-section
+      <section
         className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane mcfly-yoy--metrics"
         id={OVERVIEW_YOY_GLANCE_ID}
-        heading="Vs last year"
+        aria-label="Vs last year"
       >
+        <h3 className="mcfly-yoy__h">Vs last year</h3>
         <span className="mcfly-yoy__sr">{OVERVIEW_YOY_ANALYTICS_LEDE}</span>
         <div className="mcfly-yoy__grid mcfly-yoy__grid--metrics">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -142,7 +144,7 @@ export function OverviewYoyCards({
           ))}
         </div>
         <p className="mcfly-yoy__note mcfly-yoy__note--quiet">{OVERVIEW_YOY_MISSING}</p>
-      </s-section>
+      </section>
     );
   }
 
@@ -150,11 +152,12 @@ export function OverviewYoyCards({
   const sameWindow = overviewWindowsCollapsed(cards);
 
   return (
-    <s-section
+    <section
       className="mcfly-desk-anchor mcfly-yoy mcfly-yoy--glance mcfly-yoy--plane mcfly-yoy--metrics"
       id={OVERVIEW_YOY_GLANCE_ID}
-      heading="Vs last year"
+      aria-label="Vs last year"
     >
+      <h3 className="mcfly-yoy__h">Vs last year</h3>
       <div className="mcfly-yoy__grid mcfly-yoy__grid--metrics">
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
@@ -224,6 +227,6 @@ export function OverviewYoyCards({
       ) : allMissingPrior ? (
         <p className="mcfly-yoy__note mcfly-yoy__note--quiet">{OVERVIEW_YOY_MISSING}</p>
       ) : null}
-    </s-section>
+    </section>
   );
 }

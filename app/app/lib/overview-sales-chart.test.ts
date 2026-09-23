@@ -243,7 +243,10 @@ describe("overview sales chart labels + buckets", () => {
     expect(chart).toContain("mcfly-chart__hero");
     expect(chart).toContain("mcfly-chart__board");
     expect(chart).toContain("mcfly-chart__muted");
-    expect(chart).toContain("<s-section");
+    expect(chart).not.toContain("<s-section");
+    expect(chart).toContain('<section');
+    expect(chart).toContain("mcfly-chart__serif");
+    expect(chart).toContain("aria-label={OVERVIEW_CHART_CAPTION}");
     expect(chart).not.toContain("mcfly-chart__bars");
     expect(chart).not.toContain("mcfly-yoy__lede");
     expect(chart).toContain("Tap a bar");
