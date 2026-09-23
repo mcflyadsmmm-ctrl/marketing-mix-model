@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v45** Pages `8aef9cfb` · Fly **450** · SHA `27dc7bc` · occupancy **0/4** · ads **NO** |
+| **Updated** | 2026-09-22 · America/Denver · Site **v45** Pages `8aef9cfb` · Fly **451** · SHA `a7a513b` · occupancy **0/4** · ads **NO** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v45** · quality-rescue · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · home → Open the SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **450** · image `deployment-01M3666H1NZH5R6RBPV4RAXB69` · Orders craft · `/health` 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · scopes no `read_reports` |
+| **Fly** | https://mcfly-analytics.fly.dev · version **451** · image `deployment-01M366PPWTG75HG69CJ0PSCBDS` · Customers craft · `/health` 200 · marketing 301 → mcflyads.com · SAMPLE_ONLY **true** · scopes no `read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
