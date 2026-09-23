@@ -290,4 +290,12 @@ describe("Growth first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).not.toContain("first-time");
     expect(firstView).not.toContain("newCustomers");
   });
+
+  it("omit-path: GrowthScoreboard copy must use CopyMorningSentence", () => {
+    const board = read("../components/GrowthScoreboard.tsx");
+    expect(board).toContain("CopyMorningSentence");
+    expect(board).toContain("growthStandupCopyText");
+    expect(board).toContain("goalLine: standupCopy");
+    expect(board).not.toContain("CopySpendPair");
+  });
 });

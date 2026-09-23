@@ -20,6 +20,7 @@ import {
   type WindowSets,
 } from "./allocation-history";
 import {
+  applyLiveBuyerIndexToCpaDays,
   applyUniqueBuyerCounts,
   buildCpaWindowSnapshot,
   cpaExplorerRangeOf,
@@ -50,6 +51,10 @@ import {
 import { buildLivePasteBuyerIndex } from "./spend-paste-buyers.server";
 import type { SpendPasteLiveIndex } from "./spend-paste-preview";
 import {
+  spendPairCoverage,
+  type SpendPairCoverage,
+} from "./spend-pair-coverage";
+import {
   deskPeriodTimeZone,
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
@@ -66,11 +71,13 @@ import {
 import {
   fetchSampleSales,
   fetchSampleSalesByDay,
-  localDayKey,
   utcDayKey,
 } from "./sample-desk.server";
-import { shopLocalDayKey } from "./shop-local-day";
+import { shopLocalDayKey, spendDeskClosedAsOfKey, spendDeskTodayKey } from "./shop-local-day";
+import { formatCurrency } from "./mer-format";
 import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 import type { SalesResult } from "./shopify-sales.server";
 import {
   isCertifiedSalesDayFact,
@@ -88,6 +95,8 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  clampExplorerRangeToBook,
+  explorerWeekMonthCopyText,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
@@ -131,6 +140,8 @@ export type SpendAnalysisData = {
   } | null;
   factsIncomplete: boolean;
   shopifyOrderWindowLimited: boolean;
+  pairCoverage: SpendPairCoverage;
+  orderBookDepth: LiveIngestDepth;
 };
 
 export function emptySpendWindowSets(): SpendWindowSets {
@@ -292,9 +303,15 @@ async function loadSpendCpa(args: {
   deskTz: string | null;
   dailyRows: ExplorerDailyRow[];
   dayKey: (instant: Date) => string;
+  liveBuyerIndex: SpendPasteLiveIndex | null;
+  orderBookDepth: LiveIngestDepth;
 }): Promise<SpendCpaView> {
   const now = new Date();
-  const deskWindows = resolveCpaDeskWindows(now, args.deskTz);
+  const deskWindows = resolveCpaDeskWindows(
+    now,
+    args.deskTz,
+    args.orderBookDepth,
+  );
   const buyerDays = await loadBuyerDays(
     args.shopId,
     deskWindows.explorer,
@@ -306,7 +323,10 @@ async function loadSpendCpa(args: {
   for (const row of rowsInWindow(args.dailyRows, explorerFrom, explorerTo)) {
     if (row.spend > 0) spendByDay.set(row.dateKey, row.spend);
   }
-  const days = joinCpaDays(spendByDay, buyerDays);
+  const days = applyLiveBuyerIndexToCpaDays(
+    joinCpaDays(spendByDay, buyerDays),
+    args.useSampleDesk ? null : args.liveBuyerIndex,
+  );
 
   let thisMonth = buildCpaWindowSnapshot(
     "this_month",
@@ -388,7 +408,7 @@ export async function loadSpendAnalysis(args: {
   request: Request;
   admin: AdminApiContext;
   shopDomain: string;
-  shop: { id: string; ianaTimezone: string | null | undefined };
+  shop: { id: string; ianaTimezone: string | null | undefined; currencyCode?: string | null };
   useSampleDesk: boolean;
 }): Promise<SpendAnalysisData> {
   const url = new URL(args.request.url);
@@ -397,6 +417,9 @@ export async function loadSpendAnalysis(args: {
   const settings = await getOrCreateSettings(args.shop.id);
   const now = new Date();
   const deskTz = deskPeriodTimeZone(args.useSampleDesk, args.shop.ianaTimezone);
+  const orderBookDepth: LiveIngestDepth = args.useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(args.shop.id);
   const range = resolvePeriod(preset, now, deskTz);
   const dayKey = (instant: Date) =>
     deskTz ? shopLocalDayKey(instant, deskTz) : dateKeyFromLocal(instant);
@@ -454,11 +477,14 @@ export async function loadSpendAnalysis(args: {
     explicitExplorerRange || historyFirstEmpty
       ? null
       : explorerQueryMatchingScoreboard(preset, range, deskTz);
-  const explorerRange = explicitExplorerRange
-    ? parseExplorerRange(explicitExplorerRange)
-    : historyFirstEmpty
-      ? parseExplorerRange("90d")
-      : (tiedExplorer?.range ?? "custom");
+  const explorerRange = clampExplorerRangeToBook(
+    explicitExplorerRange
+      ? parseExplorerRange(explicitExplorerRange)
+      : historyFirstEmpty
+        ? parseExplorerRange("90d")
+        : (tiedExplorer?.range ?? "custom"),
+    orderBookDepth,
+  );
   const explorerFrom = explicitExplorerRange
     ? parseExplorerDateParam(url.searchParams.get("exFrom"))
     : (tiedExplorer?.from ?? null);
@@ -483,7 +509,7 @@ export async function loadSpendAnalysis(args: {
     end: ytdRange.end,
     label: "Control",
   };
-  const cpaWindows = resolveCpaDeskWindows(now, deskTz);
+  const cpaWindows = resolveCpaDeskWindows(now, deskTz, orderBookDepth);
 
   const unionStart = minDate(
     minDate(explorerWindow.start, histWindow.start),
@@ -495,9 +521,11 @@ export async function loadSpendAnalysis(args: {
   );
   const unionRange = { start: unionStart, end: unionEnd, label: "Spend stack" };
 
-  const liveBuyerIndexPromise = args.useSampleDesk
-    ? Promise.resolve(null)
-    : buildLivePasteBuyerIndex(args.shop.id, unionRange);
+  const liveBuyerIndexPromise = buildLivePasteBuyerIndex(
+    args.shop.id,
+    unionRange,
+    { source: args.useSampleDesk ? "sample" : undefined },
+  );
 
   let salesByDay = new Map<string, number>();
   try {
@@ -538,6 +566,12 @@ export async function loadSpendAnalysis(args: {
     customerMetricsAvailable: false,
     bucketCount: explorerPlot.length,
   });
+  const copyAsOf = spendDeskClosedAsOfKey(deskTz, now);
+  const weekMonthCopy = explorerWeekMonthCopyText({
+    salesByDay,
+    asOfKey: copyAsOf,
+    money: (n) => formatCurrency(n, args.shop.currencyCode ?? ""),
+  });
   const explorer: SpendExplorerSeriesView = {
     buckets: explorerPlot,
     summary: explorerSummary,
@@ -552,6 +586,7 @@ export async function loadSpendAnalysis(args: {
     toKey: dayKey(explorerWindow.end),
     asOfKey: dayKey(explorerWindow.end),
     channelLabels,
+    weekMonthCopy: weekMonthCopy?.combined ?? null,
   };
 
   let cashControl: CashControlBoard | null = null;
@@ -578,7 +613,7 @@ export async function loadSpendAnalysis(args: {
   let history: AllocationHistoryView | null = null;
   let windowSets = emptySpendWindowSets();
   try {
-    const todayKey = deskTz ? shopLocalDayKey(now, deskTz) : localDayKey(now);
+    const todayKey = spendDeskTodayKey(deskTz, now);
     const asOfDateKey = shiftDateKey(todayKey, -1);
     const historyDays = capHistoryDays(
       toHistoryDays(dailyRows, channelLabels),
@@ -621,6 +656,8 @@ export async function loadSpendAnalysis(args: {
     deskTz,
     dailyRows,
     dayKey,
+    liveBuyerIndex: args.useSampleDesk ? null : liveBuyerIndex,
+    orderBookDepth,
   });
   if (!args.useSampleDesk) {
     cpa.salesError = salesError;
@@ -634,6 +671,25 @@ export async function loadSpendAnalysis(args: {
   for (const [dateKey, sales] of salesByDay) {
     certifiedSalesByDay[dateKey] = sales;
   }
+
+  const periodFrom = dayKey(range.start);
+  const periodTo = dayKey(range.end);
+  const pairCoverage = spendPairCoverage({
+    salesDays: [...salesByDay.entries()]
+      .filter(
+        ([dateKey, sales]) =>
+          dateKey >= periodFrom && dateKey <= periodTo && sales > 0,
+      )
+      .map(([dateKey]) => dateKey),
+    spendDays: dailyRows
+      .filter(
+        (row) =>
+          row.dateKey >= periodFrom &&
+          row.dateKey <= periodTo &&
+          row.spend > 0,
+      )
+      .map((row) => row.dateKey),
+  });
 
   return {
     metrics,
@@ -651,5 +707,7 @@ export async function loadSpendAnalysis(args: {
     salesFactsIncomplete,
     factsIncomplete,
     shopifyOrderWindowLimited,
+    pairCoverage,
+    orderBookDepth,
   };
 }

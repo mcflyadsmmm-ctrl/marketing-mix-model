@@ -45,8 +45,12 @@ describe("P2-A order-history forecast — on the existing tabs", () => {
     expect(forecastAt).toBeGreaterThan(boardAt);
     expect(heroAt).toBeGreaterThan(forecastAt);
     expect(goals).toContain('variant="goals"');
+    expect(demoGoals).toContain("<OrderHistoryGoalsBoard");
     expect(demoGoals).toContain("<OrderHistoryForecast");
     expect(demoGoals).toContain('variant="goals"');
+    expect(demoGoals).toContain("<SalesGoalGauges");
+    expect(demoGoals).toContain("mcfly-goals-hero--soft");
+    expect(demoGoals).not.toMatch(/profit margin/i);
     expect(nav).toContain('{ path: "/app", label: "Overview" }');
     expect(nav).toContain('{ path: "/app/orders", label: "Orders" }');
     expect(nav).toContain('{ path: "/app/customers", label: "Customers" }');

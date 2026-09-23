@@ -37,19 +37,33 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(overview).toContain("avgRevenueD90");
   });
 
-  it("reuses the same light strip on Customers after LTV depth, without scrambling the spine", () => {
+  it("mounts returning $ copy on the Customers first fold without moving Overview posters", () => {
     expect(customers).toContain("<ShareableInsightCards");
-    expect(customers.indexOf("<CustomersLtvDepth")).toBeGreaterThan(-1);
+    expect(customers).toContain("returningInsight");
     expect(customers.indexOf("<ShareableInsightCards")).toBeGreaterThan(
+      customers.indexOf("<CustomersFirstViewport"),
+    );
+    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
+      customers.indexOf("<CustomerMixChart"),
+    );
+    expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
       customers.indexOf("<CustomersLtvDepth"),
     );
-    expect(customers.indexOf("<ShareableInsightCards")).toBeGreaterThan(
-      customers.indexOf("<CustomerConcentrationChart"),
+    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+      overview.indexOf("<ShareableInsightCards"),
     );
-    expect(customers.indexOf("<ShareableInsightCards")).toBeGreaterThan(
-      customers.indexOf("<CustomersScoreboard"),
+    expect(overview.indexOf('rank="first"')).toBeLessThan(
+      overview.indexOf("<ShareableInsightCards"),
     );
     expect(customers).toContain("flagshipDailyRead");
+    const demo = read("../routes/demo.customers.tsx");
+    expect(demo).toContain("returningInsight");
+    expect(demo.indexOf("<ShareableInsightCards")).toBeGreaterThan(
+      demo.indexOf("<CustomersFirstViewport"),
+    );
+    expect(demo.indexOf("<ShareableInsightCards")).toBeLessThan(
+      demo.indexOf("<CustomerMixChart"),
+    );
   });
 
   it("paints 2–4 screenshot cards with formula, Slack copy, and PNG", () => {
@@ -65,6 +79,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(lib).toContain("Returning $ ÷ (new $ + returning $)");
     expect(lib).toContain("median of paid orders");
     expect(lib).toContain("median first→second gap");
+    expect(lib).toContain("firstTimeSlackInsight");
+    expect(lib).toContain("Never copy $0");
     expect(lib).toContain("average dollars per new buyer");
     expect(png).toContain("Mcfly Analytics");
     expect(png).toContain("image/png");
@@ -104,6 +120,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
       ltv.indexOf("<LtvValueBuild"),
     );
     expect(whale).toContain("whaleSlackInsight");
+    expect(whale).toContain("coldShare: whales.coldShare");
+    expect(whale).toContain("historyLimited: historyLimited");
     expect(whale).toContain("<SlackInsightCard");
     expect(first).not.toContain("SlackInsightCard");
     expect(overview.indexOf('rank="first"')).toBeLessThan(

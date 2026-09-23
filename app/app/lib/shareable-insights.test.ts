@@ -12,6 +12,7 @@ import {
   ltvPeekSlackInsight,
   daysToSecondSlackInsight,
   emptyShareableInsights,
+  firstTimeSlackInsight,
   pickShareableLtvPeek,
   shareableInsightEmptyState,
   shareableInsightKicker,
@@ -251,6 +252,29 @@ describe("buildShareableInsights — 2–4 soft cards from desk truths", () => {
     });
     expect(view.cards.some((c) => c.kind === "returning")).toBe(false);
   });
+
+  it("withholds the returning poster when live today is capped — never a closed-day copy", () => {
+    const view = richInput({
+      todaySalesTruncated: true,
+      returningSales: 417_392,
+      returningShare: 0.7,
+      newSales: 180_000,
+    });
+    expect(view.cards.some((c) => c.kind === "returning")).toBe(false);
+    expect(view.cards.every((c) => !c.line.includes("$0"))).toBe(true);
+  });
+
+  it("does not copy pending returning vs new as a finished mix", () => {
+    const view = richInput({
+      salesPending: true,
+      returningSales: 417_392,
+      returningShare: 0.7,
+      newSales: 180_000,
+    });
+    expect(view.available).toBe(false);
+    expect(view.cards).toEqual([]);
+    expect(view.empty?.kind).toBe("syncing");
+  });
 });
 
 describe("emptyShareableInsights", () => {
@@ -349,6 +373,30 @@ describe("Slack insight paste — one sealed number", () => {
     ).toBeNull();
   });
 
+  it("shares first-time dollars only when the stand-up line is sealed, never $0", () => {
+    const sealed = firstTimeSlackInsight({
+      line: "First-time Shopify Total Sales this period is $187,000. 2nd 18% · 3rd+ 11%. Reach 5 one-order buyers already past win-back.",
+      shopLabel: "snowdevil.myshopify.com",
+      sample: true,
+      where: "This period",
+    });
+    expect(sealed?.id).toBe("firstTime");
+    expect(sealed?.line).toContain("$187,000");
+    expect(sealed?.slack).toContain("*First-time dollars*");
+    expect(firstTimeSlackInsight({
+      line: null,
+      shopLabel: "",
+      sample: false,
+      where: "This period",
+    })).toBeNull();
+    expect(firstTimeSlackInsight({
+      line: "First-time Shopify Total Sales this period is $0.",
+      shopLabel: "",
+      sample: false,
+      where: "This period",
+    })).toBeNull();
+  });
+
   it("shares new-buyer worth at 90, and withholds a fake year", () => {
     const peek = ltvPeekSlackInsight({
       amount: 380,
@@ -391,6 +439,8 @@ describe("Slack insight paste — one sealed number", () => {
       whaleCount: 6,
       salesShare: 0.34,
       medianLifetime: 1240,
+      coldShare: null,
+      historyLimited: false,
       shopLabel: "harbor.myshopify.com",
       sample: false,
       where: "On file",
@@ -404,6 +454,8 @@ describe("Slack insight paste — one sealed number", () => {
         whaleCount: 0,
         salesShare: 0.34,
         medianLifetime: 1240,
+        coldShare: 0.5,
+        historyLimited: false,
         shopLabel: "",
         sample: false,
         where: "On file",
@@ -419,8 +471,53 @@ describe("Slack insight paste — one sealed number", () => {
         sample: false,
         where: "On file",
         money,
+        coldShare: 0.22,
+        historyLimited: false,
       }),
     ).toBeNull();
+  });
+
+  it("appends cold share when it is > 0 and withholds it on a limited book", () => {
+    const withCold = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      coldShare: 0.22,
+      historyLimited: false,
+      shopLabel: "harbor.myshopify.com",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(withCold?.line).toContain("34%");
+    expect(withCold?.line).toContain("$1,240");
+    expect(withCold?.line).toMatch(/22% have not ordered in over 180 days/);
+    expect(withCold?.slack).not.toContain("$0");
+    const quiet = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      coldShare: 0,
+      historyLimited: false,
+      shopLabel: "",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(quiet?.line).not.toMatch(/180 days/);
+    const pending = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      coldShare: 0.4,
+      historyLimited: true,
+      shopLabel: "",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(pending?.line).not.toMatch(/180 days/);
+    expect(pending?.slack).not.toContain("$0");
   });
 
   it("paints a selectable quote and stays quiet when the insight is missing", () => {
@@ -481,6 +578,8 @@ describe("Slack insight paste — one sealed number", () => {
       whaleCount: whales?.whaleCount ?? 0,
       salesShare: whales?.salesShare ?? null,
       medianLifetime: whales?.medianLifetime ?? null,
+      coldShare: whales?.coldShare ?? null,
+      historyLimited: false,
       shopLabel: "Snowdevil",
       sample: true,
       where: "On file",

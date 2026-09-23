@@ -14,7 +14,7 @@
  */
 
 import type { RetentionOrderRow } from "./customers-analytics";
-import { RETENTION_GUEST_KEY } from "./customers-analytics";
+import { RETENTION_GUEST_KEY, WHALE_MIN_ORDERS } from "./customers-analytics";
 
 const DAY_MS = 86_400_000;
 
@@ -92,6 +92,17 @@ export interface WhaleWatchRow {
    */
   repeatRevenue: number | null;
   orders: number;
+  /**
+   * Lifetime ÷ orders. Null when orders < 1 — blank, not a fake $0.
+   */
+  typicalTicket: number | null;
+  /** First Shopify order amount. Null when orders < 1. */
+  firstTicket: number | null;
+  /**
+   * Typical later order (repeat revenue ÷ later orders). Null when there is
+   * no second order — blank, not a fake $0.
+   */
+  laterTicket: number | null;
   daysSince: number;
   recency: RfmScore;
   frequency: RfmScore;
@@ -99,6 +110,15 @@ export interface WhaleWatchRow {
   segment: RfmSegmentKey | null;
   verb: string;
   detail: string;
+}
+
+/** Last month’s Champions who are At risk or Hibernating at as-of T. */
+export interface RfmChampionFlow {
+  lastMonthChampions: number;
+  cooledBuyers: number;
+  /** Lifetime dollars of cooled Champions. Null when unsealed or none cooled. */
+  cooledLifetime: number | null;
+  sealed: boolean;
 }
 
 export interface CustomerRfmView {
@@ -115,6 +135,11 @@ export interface CustomerRfmView {
   bands: RfmBand[];
   segments: RfmSegment[];
   watchlist: WhaleWatchRow[];
+  /** Identified buyers with positive order LTV — may exceed WATCHLIST_MAX. */
+  watchlistTotal: number;
+  /** 5+ order buyers not in the shown eight. */
+  watchlistMoreMinOrders: number;
+  championFlow: RfmChampionFlow;
   /** Designed first-win when RFM sealed but no positive order LTV to rank. */
   watchEmpty: RfmEmpty | null;
   recencyTruncatedAt: number | null;
@@ -375,53 +400,92 @@ function repeatRevenueOf(b: BuyerRollup): number | null {
   return Math.round(b.total - b.firstAmount);
 }
 
-function buildWatchlist(rollups: BuyerRollup[]): WhaleWatchRow[] {
-  if (rollups.length < RFM_MIN_BUYERS) return [];
-  const ranked = rollups
-    .filter((b) => b.total > 0)
-    .sort((a, b) => {
-      if (b.total !== a.total) return b.total - a.total;
-      const aRepeat = repeatRevenueOf(a) ?? -1;
-      const bRepeat = repeatRevenueOf(b) ?? -1;
-      return bRepeat - aRepeat;
-    })
-    .slice(0, WATCHLIST_MAX);
+function typicalTicketOf(b: BuyerRollup): number | null {
+  if (b.orders < 1) return null;
+  return Math.round(b.total / b.orders);
+}
 
-  return ranked.map((b, i) => {
-    const segment = segmentFor(b);
-    return {
-      rank: i + 1,
-      label: `Whale ${i + 1}`,
-      lifetime: Math.round(b.total),
-      repeatRevenue: repeatRevenueOf(b),
-      orders: b.orders,
-      daysSince: Math.round(b.daysSince),
-      recency: b.recency,
-      frequency: b.frequency,
-      monetary: b.monetary,
-      segment,
-      verb: whaleVerb(segment),
-      detail:
-        "Ranked by order LTV from Shopify orders. Repeat is revenue after the first order — blank when there is no second order, not $0.",
-    };
-  });
+function firstTicketOf(b: BuyerRollup): number | null {
+  if (b.orders < 1) return null;
+  return Math.round(b.firstAmount);
+}
+
+function laterTicketOf(b: BuyerRollup): number | null {
+  if (b.orders < 2) return null;
+  const repeat = repeatRevenueOf(b);
+  if (repeat == null || repeat <= 0) return null;
+  return Math.round(repeat / (b.orders - 1));
+}
+
+function emptyChampionFlow(): RfmChampionFlow {
+  return {
+    lastMonthChampions: 0,
+    cooledBuyers: 0,
+    cooledLifetime: null,
+    sealed: false,
+  };
+}
+
+/** As-of T minus one calendar month (UTC). */
+function minusOneMonth(d: Date): Date {
+  const copy = new Date(d.getTime());
+  copy.setUTCMonth(copy.getUTCMonth() - 1);
+  return copy;
 }
 
 /**
- * RFM-lite + whale watchlist over the stored Shopify order book.
- * `historyLimited` withholds year-scale recency — never a fake lifetime.
- * Thin books return an empty watchlist — never invented customers.
+ * “Whale 8 of N” / “N more with 5+ orders.” Null when the list is empty or
+ * the eight already are the whole book.
  */
-export function buildCustomerRfm(
-  rows: RetentionOrderRow[],
-  options: { windowEnd: Date; historyLimited: boolean },
-): CustomerRfmView {
-  const clean = rows.filter((r) => r && Number.isFinite(r.amount));
-  const windowEndMs = ms(options.windowEnd);
-  const identified = clean.filter(
-    (r) => r.customerKey && r.customerKey !== RETENTION_GUEST_KEY,
-  );
+export function whaleWatchRemainderLine(input: {
+  shown: number;
+  total: number;
+  moreMinOrders: number;
+  minOrders: number;
+}): string | null {
+  const shown = Math.max(0, Math.trunc(input.shown));
+  const total = Math.max(0, Math.trunc(input.total));
+  const moreMin = Math.max(0, Math.trunc(input.moreMinOrders));
+  const minOrders = Math.max(1, Math.trunc(input.minOrders));
+  if (shown < 1 || total < 1) return null;
+  const ofN = total > shown ? `Whale ${shown} of ${total}.` : null;
+  const more =
+    moreMin > 0 ? `${moreMin.toLocaleString()} more with ${minOrders}+ orders.` : null;
+  if (!ofN && !more) return null;
+  return [ofN, more].filter(Boolean).join(" ");
+}
 
+function championFlowOf(
+  now: BuyerRollup[],
+  prior: BuyerRollup[],
+): RfmChampionFlow {
+  if (prior.length < RFM_MIN_BUYERS) return emptyChampionFlow();
+  const nowByKey = new Map(now.map((b) => [b.key, b]));
+  let lastMonthChampions = 0;
+  let cooledBuyers = 0;
+  let cooledLifetime = 0;
+  for (const b of prior) {
+    if (segmentFor(b) !== "champions") continue;
+    lastMonthChampions += 1;
+    const later = nowByKey.get(b.key);
+    const nowSeg = later ? segmentFor(later) : "hibernating";
+    if (nowSeg === "at_risk" || nowSeg === "hibernating") {
+      cooledBuyers += 1;
+      cooledLifetime += later?.total ?? b.total;
+    }
+  }
+  return {
+    lastMonthChampions,
+    cooledBuyers,
+    cooledLifetime: cooledBuyers > 0 ? Math.round(cooledLifetime) : null,
+    sealed: true,
+  };
+}
+
+function rollUpBuyers(
+  rows: RetentionOrderRow[],
+  windowEndMs: number,
+): { rollups: BuyerRollup[]; historyDays: number } {
   let earliest = Number.POSITIVE_INFINITY;
   const byCustomer = new Map<
     string,
@@ -433,7 +497,7 @@ export function buildCustomerRfm(
       firstAmount: number;
     }
   >();
-  for (const r of identified) {
+  for (const r of rows) {
     const t = ms(r.orderedAt);
     const amt = finite(r.amount);
     if (t < earliest) earliest = t;
@@ -458,12 +522,6 @@ export function buildCustomerRfm(
     byCustomer.set(r.customerKey, rec);
   }
 
-  const identifiedBuyers = byCustomer.size;
-  const historyDays =
-    identifiedBuyers > 0 && Number.isFinite(earliest)
-      ? Math.max(1, Math.ceil((windowEndMs - earliest) / DAY_MS))
-      : 0;
-
   const rollups: BuyerRollup[] = [];
   for (const [key, rec] of byCustomer) {
     rollups.push({
@@ -479,7 +537,76 @@ export function buildCustomerRfm(
       monetary: 1,
     });
   }
+  const historyDays =
+    rollups.length > 0 && Number.isFinite(earliest)
+      ? Math.max(1, Math.ceil((windowEndMs - earliest) / DAY_MS))
+      : 0;
+  return { rollups, historyDays };
+}
 
+function buildWatchlist(rollups: BuyerRollup[]): {
+  rows: WhaleWatchRow[];
+  total: number;
+  moreMinOrders: number;
+} {
+  if (rollups.length < RFM_MIN_BUYERS) {
+    return { rows: [], total: 0, moreMinOrders: 0 };
+  }
+  const ranked = rollups
+    .filter((b) => b.total > 0)
+    .sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      const aRepeat = repeatRevenueOf(a) ?? -1;
+      const bRepeat = repeatRevenueOf(b) ?? -1;
+      return bRepeat - aRepeat;
+    });
+  const shown = ranked.slice(0, WATCHLIST_MAX);
+  const shownKeys = new Set(shown.map((b) => b.key));
+  const moreMinOrders = ranked.filter(
+    (b) => b.orders >= WHALE_MIN_ORDERS && !shownKeys.has(b.key),
+  ).length;
+
+  const rows = shown.map((b, i) => {
+    const segment = segmentFor(b);
+    return {
+      rank: i + 1,
+      label: `Whale ${i + 1}`,
+      lifetime: Math.round(b.total),
+      repeatRevenue: repeatRevenueOf(b),
+      orders: b.orders,
+      typicalTicket: typicalTicketOf(b),
+      firstTicket: firstTicketOf(b),
+      laterTicket: laterTicketOf(b),
+      daysSince: Math.round(b.daysSince),
+      recency: b.recency,
+      frequency: b.frequency,
+      monetary: b.monetary,
+      segment,
+      verb: whaleVerb(segment),
+      detail:
+        "Ranked by order LTV from Shopify orders. Repeat is revenue after the first order — blank when there is no second order, not $0. Typical ticket is lifetime ÷ orders. First vs later tells a VIP from one huge first order.",
+    };
+  });
+  return { rows, total: ranked.length, moreMinOrders };
+}
+
+/**
+ * RFM-lite + whale watchlist over the stored Shopify order book.
+ * `historyLimited` withholds year-scale recency — never a fake lifetime.
+ * Thin books return an empty watchlist — never invented customers.
+ */
+export function buildCustomerRfm(
+  rows: RetentionOrderRow[],
+  options: { windowEnd: Date; historyLimited: boolean },
+): CustomerRfmView {
+  const clean = rows.filter((r) => r && Number.isFinite(r.amount));
+  const windowEndMs = ms(options.windowEnd);
+  const identified = clean.filter(
+    (r) => r.customerKey && r.customerKey !== RETENTION_GUEST_KEY,
+  );
+
+  const { rollups, historyDays } = rollUpBuyers(identified, windowEndMs);
+  const identifiedBuyers = rollups.length;
   const maturedBuyers = rollups.filter(
     (b) => windowEndMs - b.first >= RFM_MIN_FOLLOW_DAYS * DAY_MS,
   ).length;
@@ -499,6 +626,9 @@ export function buildCustomerRfm(
       bands: emptyBands(),
       segments: emptySegments(),
       watchlist: [],
+      watchlistTotal: 0,
+      watchlistMoreMinOrders: 0,
+      championFlow: emptyChampionFlow(),
       watchEmpty: empty,
       recencyTruncatedAt,
     };
@@ -508,7 +638,17 @@ export function buildCustomerRfm(
   scoreBuyers(rollups, median);
   const segments = buildSegments(rollups);
   const labeled = segments.reduce((sum, row) => sum + row.buyers, 0);
-  const watchlist = buildWatchlist(rollups);
+  const watch = buildWatchlist(rollups);
+
+  const priorEnd = minusOneMonth(options.windowEnd);
+  const priorEndMs = ms(priorEnd);
+  const priorRows = identified.filter((r) => ms(r.orderedAt) <= priorEndMs);
+  const { rollups: priorRollups } = rollUpBuyers(priorRows, priorEndMs);
+  if (priorRollups.length >= RFM_MIN_BUYERS) {
+    const priorMedian = medianOf(priorRollups.map((b) => b.total)) ?? 0;
+    scoreBuyers(priorRollups, priorMedian);
+  }
+  const championFlow = championFlowOf(rollups, priorRollups);
 
   return {
     available: true,
@@ -521,8 +661,11 @@ export function buildCustomerRfm(
     empty: null,
     bands: buildBands(rollups),
     segments,
-    watchlist,
-    watchEmpty: watchlist.length === 0 ? watchEmptyState(identifiedBuyers) : null,
+    watchlist: watch.rows,
+    watchlistTotal: watch.total,
+    watchlistMoreMinOrders: watch.moreMinOrders,
+    championFlow,
+    watchEmpty: watch.rows.length === 0 ? watchEmptyState(identifiedBuyers) : null,
     recencyTruncatedAt,
   };
 }

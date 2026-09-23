@@ -5,7 +5,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { DeskIcon } from "./DeskIcon";
 
 function moneyOrDash(value: number | null, currency: string): string {
-  return value != null ? formatCurrency(value, currency) : "—";
+  return value != null && value > 0 ? formatCurrency(value, currency) : "—";
 }
 
 export function CpaPaybackDesk({
@@ -22,10 +22,6 @@ export function CpaPaybackDesk({
   const sharePct =
     payback.cacShareOfFirst90 != null
       ? Math.min(100, Math.round(payback.cacShareOfFirst90 * 100))
-      : null;
-  const recoveredPct =
-    payback.paybackDays != null
-      ? Math.min(100, Math.round((payback.paybackDays / 90) * 100))
       : null;
 
   return (
@@ -57,6 +53,11 @@ export function CpaPaybackDesk({
           <p className="mcfly-cpa__payback-d">{PRODUCT_NOUN.ltv90Def}</p>
         </article>
       </div>
+
+      <p className="mcfly-cpa__payback-note">
+        Day 0 is the start of the curve ($0), not earned LTV. Anchors are first-30
+        and first-90 averages from order history — not ads-manager payback.
+      </p>
 
       <div className="mcfly-cpa__payback-track" aria-hidden="true">
         <div
@@ -92,7 +93,8 @@ export function CpaPaybackDesk({
             {payback.paybackDays != null ? `${payback.paybackDays}d` : "—"}
           </span>
           <span className="mcfly-chart__stat-sub">
-            {recoveredPct != null ? `${recoveredPct}% of first 90` : "order-history average"}
+            interpolated vs first-90 average — day 0 is the start ($0), not earned
+            LTV, and not ads-manager payback
           </span>
         </li>
         <li className="mcfly-chart__stat">

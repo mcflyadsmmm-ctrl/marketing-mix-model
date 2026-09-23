@@ -11,6 +11,7 @@ import {
   ordersPct,
   type OrdersChartGrain,
 } from "../lib/orders-scoreboard";
+import type { OrdersTimingSplit } from "../lib/orders-intelligence";
 
 export const ORDERS_CHART_EMPTY = "Needs five days with sales — not $0.";
 export const ORDERS_HOUR_EMPTY =
@@ -27,6 +28,7 @@ export function OrdersTimingChart({
   peakWeekday = null,
   peakHour = null,
   salesPending = false,
+  timingSplit,
 }: {
   weekdayShares: number[] | null;
   hourlyShares: number[] | null;
@@ -34,6 +36,7 @@ export function OrdersTimingChart({
   peakWeekday?: number | null;
   peakHour?: number | null;
   salesPending?: boolean;
+  timingSplit: OrdersTimingSplit | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -128,6 +131,12 @@ export function OrdersTimingChart({
           <DeskIcon name="chart" />
           When sales land
         </p>
+        {timingSplit?.weekday.first != null ||
+        timingSplit?.hourly.first != null ? (
+          <p className="mcfly-chart__sub">
+            First-time vs already-bought. Guests out of returning.
+          </p>
+        ) : null}
         {active ? (
           <div className="mcfly-chart__readout" role="status">
             <p className="mcfly-chart__when">{active.label}</p>
@@ -199,6 +208,17 @@ export function OrdersTimingChart({
               : bar.share > 0
                 ? ordersPct(bar.share)
                 : "—";
+          const lane =
+            grain === "hour" ? timingSplit?.hourly : timingSplit?.weekday;
+          const firstDollars = lane?.firstDollars?.[index] ?? 0;
+          const returningDollars = lane?.returningDollars?.[index] ?? 0;
+          const splitTotal = firstDollars + returningDollars;
+          const showSplit =
+            lane?.first != null &&
+            lane.returning != null &&
+            splitTotal > 0;
+          const firstPct = showSplit ? firstDollars / splitTotal : 0;
+          const returningPct = showSplit ? returningDollars / splitTotal : 0;
           const open = () =>
             drill?.openDrill({
               title: bar.label,
@@ -212,9 +232,15 @@ export function OrdersTimingChart({
                   k: "Share",
                   v: `${ordersPct(bar.share)} of sales this window`,
                 },
+                showSplit
+                  ? {
+                      k: "First-time vs already-bought",
+                      v: `${formatCurrency(firstDollars, currency)} first · ${formatCurrency(returningDollars, currency)} already bought`,
+                    }
+                  : null,
                 {
                   k: "What this is",
-                  v: "Share of sales in the selected window. Grain lives on this chart — Shopify Analytics Overview does not put weekday and hour next to typical order.",
+                  v: "Share of sales in the selected window. First-time vs already-bought uses identified order number. Guests stay out of returning. Unknown lifetime is not painted as new.",
                 },
               ].filter((block): block is { k: string; v: string } => block != null),
               next: "Typical ticket and the sales clock sit above this chart.",
@@ -235,10 +261,26 @@ export function OrdersTimingChart({
               onMouseEnter={() => setHoverIndex(index)}
               onFocus={() => setHoverIndex(index)}
             >
-              <span
-                className="mcfly-chart__day-bar"
-                style={{ height: `${Math.max(8, (bar.share / max) * 88)}%` }}
-              />
+              {showSplit ? (
+                <span
+                  className="mcfly-chart__day-bar mcfly-chart__day-bar--stack"
+                  style={{ height: `${Math.max(8, (bar.share / max) * 88)}%` }}
+                >
+                  <span
+                    className="mcfly-chart__day-fill mcfly-chart__day-fill--first"
+                    style={{ flexGrow: firstPct > 0 ? firstPct : 0 }}
+                  />
+                  <span
+                    className="mcfly-chart__day-fill mcfly-chart__day-fill--returning"
+                    style={{ flexGrow: returningPct > 0 ? returningPct : 0 }}
+                  />
+                </span>
+              ) : (
+                <span
+                  className="mcfly-chart__day-bar"
+                  style={{ height: `${Math.max(8, (bar.share / max) * 88)}%` }}
+                />
+              )}
               <span className="mcfly-chart__day-k">
                 {grain === "hour" ? hourTick(bar.label) : bar.label}
               </span>

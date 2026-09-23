@@ -1,16 +1,18 @@
-import { calculateBreakEvenMer, calculateMer } from "@mcfly/mer-core";
+import { calculateMer } from "@mcfly/mer-core";
 
 import prisma from "../db.server";
 import {
+  confirmedBreakEvenMer,
   getOrCreateSettings,
-  marginIsConfirmed,
 } from "./mer-dashboard.server";
-import type { DateRange } from "./periods";
-import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server";
 import {
-  fetchSampleSalesByDay,
-  SAMPLE_DESK_MARGIN_PCT,
-} from "./sample-desk.server";
+  FORECAST_MIN_DAYS,
+  overviewTypicalDayFromBook,
+} from "./overview-mix-forecast";
+import type { DateRange } from "./periods";
+import { MONTH_CLOSE_SALES_FORMULA } from "./sales-goals";
+import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server";
+import { fetchSampleSalesByDay } from "./sample-desk.server";
 import {
   dateKeyFromYmd,
   shopLocalDayRange,
@@ -79,10 +81,12 @@ export interface GoalMonthRow {
   month: number;
   monthShort: string;
   monthLong: string;
-  /** Monthly sales goal ($) */
-  salesGoal: number;
+  /** Monthly sales goal ($). Null when the month is not on file — not a $0 plan. */
+  salesGoal: number | null;
   /** Till actual / MTD ($). Null when the month has no certified facts — not $0. */
   actual: number | null;
+  /** Identified returning Shopify Total Sales for the calendar month, or null. */
+  returningActual: number | null;
   spend: number;
   /** Cash MER = sales ÷ spend */
   mer: number | null;
@@ -96,7 +100,7 @@ export interface GoalMonthRow {
 
 export interface GoalsYtd {
   goal: number;
-  /** Null when any YTD month is missing certified facts — not a $0 year. */
+  /** Null when a planned YTD month is missing facts, or no month is planned — not a $0 year. */
   actual: number | null;
   pct: number | null;
   delta: number | null;
@@ -113,10 +117,16 @@ export interface MonthCloseForecast {
   daysElapsed: number;
   daysInMonth: number;
   remainingDays: number;
-  projSales: number;
-  projSpend: number;
+  /** Null when typical selling day has not sealed, or the month is still filling. */
+  projSales: number | null;
+  /** Null when remaining spend cannot be paced on days that already have spend. */
+  projSpend: number | null;
   projMer: number | null;
-  vsGoalProj: number;
+  vsGoalProj: number | null;
+  typicalDay: number | null;
+  sellingDays: number;
+  spendDays: number;
+  formula: string;
   pace: GoalPace;
   targetMer: number;
   merRails: MerVsRails;
@@ -202,6 +212,48 @@ export function yearDateRange(
 }
 
 /** Aggregate YYYY-MM-DD sales map → month (1–12) → dollars. Months with no days are absent. */
+function expectedClosedDaysForMonth(
+  year: number,
+  month: number,
+  now: Date,
+  ianaTimezone?: string | null,
+): {
+  expectedClosed: number;
+  isCurrent: boolean;
+  isFuture: boolean;
+  todayDay: number;
+} {
+  const daysInMonth = daysInCalendarMonth(year, month);
+  const tz = ianaTimezone?.trim() || null;
+  const { y: nowY, m: nowM, d: nowD } = tz
+    ? shopLocalYmd(now, tz)
+    : {
+        y: now.getFullYear(),
+        m: now.getMonth() + 1,
+        d: now.getDate(),
+      };
+  const isFuture = nowY < year || (nowY === year && nowM < month);
+  const isCurrent = nowY === year && nowM === month;
+  if (isFuture) {
+    return { expectedClosed: 0, isCurrent, isFuture: true, todayDay: nowD };
+  }
+  if (isCurrent) {
+    const todayDay = Math.min(Math.max(nowD, 1), daysInMonth);
+    return {
+      expectedClosed: Math.max(0, todayDay - 1),
+      isCurrent: true,
+      isFuture: false,
+      todayDay,
+    };
+  }
+  return {
+    expectedClosed: daysInMonth,
+    isCurrent: false,
+    isFuture: false,
+    todayDay: daysInMonth,
+  };
+}
+
 export function salesByMonthFromDayMap(
   year: number,
   salesByDay: Map<string, number>,
@@ -209,7 +261,6 @@ export function salesByMonthFromDayMap(
   ianaTimezone?: string | null,
 ): Map<number, number> {
   const months = new Map<number, number>();
-
   const prefix = `${year}-`;
   const tz = ianaTimezone?.trim() || null;
   const { y: currentYear, m: currentMonth, d: currentDay } = tz
@@ -223,13 +274,44 @@ export function salesByMonthFromDayMap(
     currentYear === year
       ? dateKeyFromYmd(year, currentMonth, currentDay)
       : null;
+  const expected = Array.from({ length: 12 }, (_, i) =>
+    expectedClosedDaysForMonth(year, i + 1, now, tz),
+  );
+  const acc = Array.from({ length: 12 }, () => ({
+    sum: 0,
+    closedOnFile: 0,
+    hasToday: false,
+    anyDay: false,
+  }));
 
   for (const [key, sales] of salesByDay) {
     if (!key.startsWith(prefix) || !Number.isFinite(sales)) continue;
     const month = Number.parseInt(key.slice(5, 7), 10);
-    if (month < 1 || month > 12) continue;
+    const day = Number.parseInt(key.slice(8, 10), 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) continue;
     if (todayKey && month === currentMonth && key > todayKey) continue;
-    months.set(month, (months.get(month) ?? 0) + sales);
+    const slot = acc[month - 1]!;
+    const meta = expected[month - 1]!;
+    slot.sum += sales;
+    slot.anyDay = true;
+    if (meta.isCurrent && day === meta.todayDay) {
+      slot.hasToday = true;
+    } else if (day >= 1 && day <= meta.expectedClosed) {
+      slot.closedOnFile += 1;
+    }
+  }
+
+  for (let m = 1; m <= 12; m += 1) {
+    const meta = expected[m - 1]!;
+    const slot = acc[m - 1]!;
+    if (meta.isFuture || !slot.anyDay) continue;
+    if (meta.expectedClosed > 0 && slot.closedOnFile < meta.expectedClosed) {
+      continue;
+    }
+    if (meta.expectedClosed === 0 && !(meta.isCurrent && slot.hasToday)) {
+      continue;
+    }
+    months.set(m, slot.sum);
   }
   return months;
 }
@@ -239,7 +321,7 @@ export function salesByMonthFromDayMap(
  * When `ianaTimezone` is set, year window + month buckets use shop-local days.
  * Future months in the current year stay 0; current month is MTD-safe via caller window.
  */
-export async function spendByMonthMap(
+export async function spendByMonthMaps(
   shopId: string,
   year: number,
   options?: {
@@ -248,9 +330,16 @@ export async function spendByMonthMap(
     ianaTimezone?: string | null;
   },
   now = new Date(),
-): Promise<Map<number, number>> {
+): Promise<{
+  spendByMonth: Map<number, number>;
+  spendDaysByMonth: Map<number, number>;
+}> {
   const months = new Map<number, number>();
-  for (let m = 1; m <= 12; m++) months.set(m, 0);
+  const spendDaysByMonth = new Map<number, number>();
+  for (let m = 1; m <= 12; m++) {
+    months.set(m, 0);
+    spendDaysByMonth.set(m, 0);
+  }
 
   const tz = options?.ianaTimezone;
   let yearStart: Date;
@@ -261,7 +350,7 @@ export async function spendByMonthMap(
     const { y: nowY, m: nowM, d: nowD } = shopLocalYmd(now, tz);
     yearStart = shopLocalDayRange(dateKeyFromYmd(year, 1, 1), tz).start;
     if (nowY < year) {
-      return months;
+      return { spendByMonth: months, spendDaysByMonth };
     }
     if (nowY === year) {
       yearEnd = shopLocalDayRange(dateKeyFromYmd(nowY, nowM, nowD), tz).end;
@@ -277,7 +366,7 @@ export async function spendByMonthMap(
       yearEnd = endOfLocalDay(now);
       maxMonth = now.getMonth() + 1;
     } else if (now.getFullYear() < year) {
-      return months;
+      return { spendByMonth: months, spendDaysByMonth };
     } else {
       maxMonth = 12;
     }
@@ -297,6 +386,7 @@ export async function spendByMonthMap(
     select: { amount: true, periodStart: true },
   });
 
+  const dayKeys = new Map<number, Set<string>>();
   for (const entry of entries) {
     // Spend stamps are UTC midnight of the CSV day key — use UTC Y/M, not shopLocalYmd
     // (Denver would shift 2026-07-01T00:00Z → June).
@@ -307,9 +397,29 @@ export async function spendByMonthMap(
     const amount = toMoneyNumber(entry.amount);
     if (!(amount > 0)) continue;
     months.set(m, (months.get(m) ?? 0) + amount);
+    const key = `${y}-${String(m).padStart(2, "0")}-${String(entry.periodStart.getUTCDate()).padStart(2, "0")}`;
+    const set = dayKeys.get(m) ?? new Set<string>();
+    set.add(key);
+    dayKeys.set(m, set);
+  }
+  for (let m = 1; m <= 12; m++) {
+    spendDaysByMonth.set(m, dayKeys.get(m)?.size ?? 0);
   }
 
-  return months;
+  return { spendByMonth: months, spendDaysByMonth };
+}
+
+export async function spendByMonthMap(
+  shopId: string,
+  year: number,
+  options?: {
+    sampleOnly?: boolean;
+    excludeSample?: boolean;
+    ianaTimezone?: string | null;
+  },
+  now = new Date(),
+): Promise<Map<number, number>> {
+  return (await spendByMonthMaps(shopId, year, options, now)).spendByMonth;
 }
 
 export function calendarDaysElapsedInMonth(
@@ -398,16 +508,16 @@ function clampMonth(month: number): number | null {
   return month;
 }
 
-/** List monthly sales goals for a year (12 slots, missing → 0). */
+/** List monthly sales goals for a year (12 slots, missing → null). */
 export async function listSalesGoals(
   shopId: string,
   year: number,
-): Promise<number[]> {
+): Promise<Array<number | null>> {
   const rows = await prisma.salesGoal.findMany({
     where: { shopId, year },
     select: { month: true, salesGoal: true },
   });
-  const goals = Array.from({ length: 12 }, () => 0);
+  const goals = Array.from({ length: 12 }, () => null as number | null);
   for (const row of rows) {
     if (row.month >= 1 && row.month <= 12) {
       goals[row.month - 1] = row.salesGoal;
@@ -440,11 +550,11 @@ export async function upsertSalesGoal(
   });
 }
 
-/** Upsert all 12 months for a year plan (missing → 0). */
+/** Upsert months that have a plan. A cleared month deletes the row — not a $0 plan. */
 export async function upsertYearSalesGoals(
   shopId: string,
   year: number,
-  monthlyGoals: number[],
+  monthlyGoals: Array<number | null>,
 ) {
   if (!Number.isInteger(year) || year < 2000 || year > 2100) {
     throw new Error("Year out of range");
@@ -455,8 +565,13 @@ export async function upsertYearSalesGoals(
 
   await prisma.$transaction(
     monthlyGoals.map((raw, index) => {
-      const salesGoal = Number.isFinite(raw) && raw >= 0 ? raw : 0;
       const month = index + 1;
+      if (raw == null || !Number.isFinite(raw)) {
+        return prisma.salesGoal.deleteMany({
+          where: { shopId, year, month },
+        });
+      }
+      const salesGoal = raw >= 0 ? raw : 0;
       return prisma.salesGoal.upsert({
         where: {
           shopId_year_month: { shopId, year, month },
@@ -473,11 +588,13 @@ function mapGetMonth(map: Map<number, number>, month: number): number | null {
   return Number.isFinite(v) ? (v as number) : null;
 }
 
-function buildMonthCloseForecast(params: {
+export function buildMonthCloseForecast(params: {
   year: number;
-  goals: number[];
+  goals: Array<number | null>;
   salesByMonth: Map<number, number>;
   spendByMonth: Map<number, number>;
+  salesByDay?: Map<string, number>;
+  spendDaysByMonth?: Map<number, number>;
   targetMer: number;
   breakEvenMer: number | null;
   now?: Date;
@@ -487,9 +604,13 @@ function buildMonthCloseForecast(params: {
   const { year, goals, salesByMonth, spendByMonth, targetMer, breakEvenMer } =
     params;
   const tz = params.ianaTimezone?.trim() || null;
-  const { y: nowY, m: nowM } = tz
+  const { y: nowY, m: nowM, d: nowD } = tz
     ? shopLocalYmd(now, tz)
-    : { y: now.getFullYear(), m: now.getMonth() + 1 };
+    : {
+        y: now.getFullYear(),
+        m: now.getMonth() + 1,
+        d: now.getDate(),
+      };
 
   if (nowY !== year) return null;
 
@@ -502,11 +623,37 @@ function buildMonthCloseForecast(params: {
   const { daysElapsed, daysInMonth, remainingDays } =
     calendarDaysElapsedInMonth(year, month, now, tz);
 
-  const avgDailySales = daysElapsed > 0 ? mtdSales / daysElapsed : 0;
-  const avgDailySpend = daysElapsed > 0 ? mtdSpend / daysElapsed : 0;
-  const projSales = mtdSales + avgDailySales * remainingDays;
-  const projSpend = mtdSpend + avgDailySpend * remainingDays;
-  const projMer = calculateMer(projSales, projSpend);
+  const monthPrefix = `${year}-${String(month).padStart(2, "0")}-`;
+  const todayKey = dateKeyFromYmd(nowY, nowM, nowD);
+  const selling: number[] = [];
+  if (params.salesByDay) {
+    for (const [key, n] of params.salesByDay) {
+      if (!key.startsWith(monthPrefix)) continue;
+      if (key > todayKey) continue;
+      if (Number.isFinite(n) && n > 0) selling.push(n);
+    }
+  }
+  const typicalRaw = overviewTypicalDayFromBook(selling, FORECAST_MIN_DAYS);
+  const typicalDay =
+    typicalRaw != null && typicalRaw > 0 ? typicalRaw : null;
+  const projSales =
+    remainingDays <= 0
+      ? mtdSales
+      : typicalDay != null
+        ? mtdSales + typicalDay * remainingDays
+        : null;
+
+  const spendDays = params.spendDaysByMonth?.get(month) ?? 0;
+  const projSpend =
+    !(mtdSpend > 0) || spendDays <= 0
+      ? null
+      : remainingDays <= 0
+        ? mtdSpend
+        : mtdSpend + (mtdSpend / spendDays) * remainingDays;
+  const projMer =
+    projSales != null && projSpend != null
+      ? calculateMer(projSales, projSpend)
+      : null;
   const expectedPct = daysInMonth > 0 ? daysElapsed / daysInMonth : 1;
   const pace = paceStatus(mtdSales, monthGoal, { expectedPct });
 
@@ -524,11 +671,104 @@ function buildMonthCloseForecast(params: {
     projSales,
     projSpend,
     projMer,
-    vsGoalProj: projSales - monthGoal,
+    vsGoalProj: projSales != null ? projSales - monthGoal : null,
+    typicalDay,
+    sellingDays: selling.length,
+    spendDays,
+    formula: MONTH_CLOSE_SALES_FORMULA,
     pace,
     targetMer,
     merRails: merVsRails(mtdMer, targetMer, breakEvenMer),
   };
+}
+
+/**
+ * Prisma-free year-board rows so public SAMPLE can mount the Admin table
+ * from typed-or-empty months without inventing a $0 plan.
+ */
+export function buildGoalMonthRows(params: {
+  year: number;
+  goals: Array<number | null>;
+  salesByMonth: Map<number, number>;
+  spendByMonth?: Map<number, number>;
+  returningByMonth?: Map<number, number | null>;
+  targetMer: number;
+  breakEvenMer?: number | null;
+  now?: Date;
+  ianaTimezone?: string | null;
+}): GoalMonthRow[] {
+  const now = params.now ?? new Date();
+  const goals =
+    params.goals.length === 12
+      ? params.goals
+      : Array.from({ length: 12 }, (_, i) => params.goals[i] ?? null);
+  const spendByMonth = params.spendByMonth ?? new Map<number, number>();
+  const tz = params.ianaTimezone?.trim() || null;
+  const { y: currentYear, m: currentMonth } = tz
+    ? shopLocalYmd(now, tz)
+    : { y: now.getFullYear(), m: now.getMonth() + 1 };
+  const rail = params.targetMer;
+  const breakEvenMer = params.breakEvenMer ?? null;
+
+  return Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1;
+    const salesGoal = goals[i] ?? null;
+    const actual = mapGetMonth(params.salesByMonth, month);
+    const spend = mapGetMonth(spendByMonth, month) ?? 0;
+    const mer = actual == null ? null : calculateMer(actual, spend);
+    const delta = actual == null ? 0 : actual - (salesGoal ?? 0);
+    const pct =
+      actual == null || salesGoal == null || !(salesGoal > 0)
+        ? null
+        : (actual / salesGoal) * 100;
+
+    const isCurrent = currentYear === params.year && currentMonth === month;
+    const isFuture =
+      currentYear === params.year
+        ? month > currentMonth
+        : currentYear < params.year;
+
+    let expectedPct: number | null = null;
+    if (isCurrent) {
+      const { daysElapsed, daysInMonth } = calendarDaysElapsedInMonth(
+        params.year,
+        month,
+        now,
+        tz,
+      );
+      expectedPct = daysInMonth > 0 ? daysElapsed / daysInMonth : 1;
+    }
+
+    const pace = paceStatus(actual, salesGoal ?? 0, {
+      expectedPct: isCurrent ? expectedPct : null,
+      isFuture,
+    });
+
+    const returningStored = params.returningByMonth?.get(month);
+    const returningActual =
+      actual == null
+        ? null
+        : returningStored != null && Number.isFinite(returningStored)
+          ? returningStored
+          : null;
+
+    return {
+      month,
+      monthShort: MONTH_SHORT[i],
+      monthLong: MONTH_LONG[i],
+      salesGoal,
+      actual,
+      returningActual,
+      spend,
+      mer,
+      merRails: merVsRails(mer, rail, breakEvenMer),
+      delta,
+      pct,
+      pace,
+      isCurrent,
+      isFuture,
+    };
+  });
 }
 
 /**
@@ -543,15 +783,18 @@ export async function buildYearBoard(
   targetMer: number,
   now = new Date(),
   ianaTimezone?: string | null,
+  extras?: {
+    salesByDay?: Map<string, number>;
+    spendDaysByMonth?: Map<number, number>;
+    returningByMonth?: Map<number, number | null>;
+  },
 ): Promise<GoalsYearBoard> {
   const settings = await getOrCreateSettings(shopId);
   const goals = await listSalesGoals(shopId, year);
-  const marginKnown = marginIsConfirmed(settings) || settings.useSampleDesk;
-  const breakEvenMer = marginKnown
-    ? calculateBreakEvenMer(
-        settings.useSampleDesk ? SAMPLE_DESK_MARGIN_PCT : settings.marginPct,
-      )
-    : null;
+  const breakEvenMer = confirmedBreakEvenMer({
+    marginConfirmedAt: settings.marginConfirmedAt,
+    marginPct: settings.marginPct,
+  });
   const rail = Number.isFinite(targetMer) && targetMer > 0
     ? targetMer
     : settings.targetMer;
@@ -561,51 +804,16 @@ export async function buildYearBoard(
     ? shopLocalYmd(now, tz)
     : { y: now.getFullYear(), m: now.getMonth() + 1 };
 
-  const rows: GoalMonthRow[] = Array.from({ length: 12 }, (_, i) => {
-    const month = i + 1;
-    const salesGoal = goals[i] ?? 0;
-    const actual = mapGetMonth(salesByMonth, month);
-    const spend = mapGetMonth(spendByMonth, month) ?? 0;
-    const mer = actual == null ? null : calculateMer(actual, spend);
-    const delta = actual == null ? 0 : actual - salesGoal;
-    const pct =
-      actual == null || !(salesGoal > 0) ? null : (actual / salesGoal) * 100;
-
-    const isCurrent = currentYear === year && currentMonth === month;
-    const isFuture =
-      currentYear === year ? month > currentMonth : currentYear < year;
-
-    let expectedPct: number | null = null;
-    if (isCurrent) {
-      const { daysElapsed, daysInMonth } = calendarDaysElapsedInMonth(
-        year,
-        month,
-        now,
-        tz,
-      );
-      expectedPct = daysInMonth > 0 ? daysElapsed / daysInMonth : 1;
-    }
-
-    const pace = paceStatus(actual, salesGoal, {
-      expectedPct: isCurrent ? expectedPct : null,
-      isFuture,
-    });
-
-    return {
-      month,
-      monthShort: MONTH_SHORT[i],
-      monthLong: MONTH_LONG[i],
-      salesGoal,
-      actual,
-      spend,
-      mer,
-      merRails: merVsRails(mer, rail, breakEvenMer),
-      delta,
-      pct,
-      pace,
-      isCurrent,
-      isFuture,
-    };
+  const rows = buildGoalMonthRows({
+    year,
+    goals,
+    salesByMonth,
+    spendByMonth,
+    returningByMonth: extras?.returningByMonth,
+    targetMer: rail,
+    breakEvenMer,
+    now,
+    ianaTimezone: tz,
   });
 
   const throughMonth =
@@ -617,17 +825,18 @@ export async function buildYearBoard(
 
   let ytdGoal = 0;
   let ytdActual: number | null = 0;
-  for (let m = 1; m <= throughMonth; m++) {
-    ytdGoal += goals[m - 1] ?? 0;
-    const monthActual = mapGetMonth(salesByMonth, m);
-    if (monthActual == null) {
-      ytdActual = null;
-    } else if (ytdActual != null) {
-      ytdActual += monthActual;
-    }
-  }
+  const ytdMonths =
+    throughMonth > 0
+      ? Array.from({ length: throughMonth }, (_, i) => i + 1)
+      : [];
+  const ytdSum = sumMonths(ytdMonths, goals, salesByMonth, spendByMonth);
+  ytdGoal = ytdSum.goal ?? 0;
+  ytdActual = ytdSum.actual;
 
-  const yearGoal = goals.reduce((a, b) => a + b, 0);
+  const yearGoal = goals.reduce<number>(
+    (a, b) => (b != null && Number.isFinite(b) ? a + b : a),
+    0,
+  );
   let yearActual: number | null = 0;
   for (let m = 1; m <= 12; m++) {
     if (currentYear === year && m > currentMonth) break;
@@ -644,6 +853,8 @@ export async function buildYearBoard(
     goals,
     salesByMonth,
     spendByMonth,
+    salesByDay: extras?.salesByDay,
+    spendDaysByMonth: extras?.spendDaysByMonth,
     targetMer: rail,
     breakEvenMer,
     now,
@@ -697,7 +908,8 @@ export interface SalesGoalPeriod {
   periodHint: string;
   /** Null when the window has a month with no certified facts — not $0. */
   actual: number | null;
-  goal: number;
+  /** Null when no month in the window is planned. Typed $0 stays 0. */
+  goal: number | null;
   /** Uploaded ad spend summed over the same months as `actual`. */
   spend: number;
   /** Cash MER = sales ÷ uploaded ad spend. */
@@ -786,26 +998,42 @@ function monthsInQuarter(quarter: number): number[] {
   return [start, start + 1, start + 2];
 }
 
+/** Months in `months` that have a typed plan, including typed $0. */
+export function plannedMonthIndexes(
+  months: number[],
+  goals: Array<number | null>,
+): number[] {
+  return months.filter((m) => {
+    const planned = goals[m - 1];
+    return planned != null && Number.isFinite(planned);
+  });
+}
+
 function sumMonths(
   months: number[],
-  goals: number[],
+  goals: Array<number | null>,
   salesByMonth: Map<number, number>,
   spendByMonth: Map<number, number>,
-): { actual: number | null; goal: number; spend: number } {
+): { actual: number | null; goal: number | null; spend: number; months: number[] } {
+  const counted = plannedMonthIndexes(months, goals);
+  if (counted.length === 0) {
+    return { actual: null, goal: null, spend: 0, months: counted };
+  }
   let actual: number | null = 0;
   let goal = 0;
   let spend = 0;
-  for (const m of months) {
+  for (const m of counted) {
     const monthActual = mapGetMonth(salesByMonth, m);
     if (monthActual == null) {
       actual = null;
     } else if (actual != null) {
       actual += monthActual;
     }
-    goal += goals[m - 1] ?? 0;
+    const planned = goals[m - 1];
+    if (planned != null && Number.isFinite(planned)) goal += planned;
     spend += mapGetMonth(spendByMonth, m) ?? 0;
   }
-  return { actual, goal, spend };
+  return { actual, goal, spend, months: counted };
 }
 
 function sumPriorMonths(
@@ -878,7 +1106,7 @@ function calendarPctInMonthSpan(
  */
 export function buildSalesGoalPeriods(params: {
   year: number;
-  goals: number[];
+  goals: Array<number | null>;
   salesByMonth: Map<number, number>;
   spendByMonth?: Map<number, number>;
   priorYearMonthly: Array<number | null>;
@@ -891,7 +1119,7 @@ export function buildSalesGoalPeriods(params: {
   const goals =
     params.goals.length === 12
       ? params.goals
-      : Array.from({ length: 12 }, (_, i) => params.goals[i] ?? 0);
+      : Array.from({ length: 12 }, (_, i) => params.goals[i] ?? null);
   const prior =
     params.priorYearMonthly.length >= 12
       ? params.priorYearMonthly
@@ -935,7 +1163,8 @@ export function buildSalesGoalPeriods(params: {
   const mtdSpend =
     throughMonth > 0 ? (mapGetMonth(spendByMonth, throughMonth) ?? 0) : 0;
   const mtdMer = mtdActual == null ? null : calculateMer(mtdActual, mtdSpend);
-  const mtdGoal = throughMonth > 0 ? (goals[throughMonth - 1] ?? 0) : 0;
+  const mtdGoal =
+    throughMonth > 0 ? (goals[throughMonth - 1] ?? null) : null;
   let mtdCalendarPct = 0;
   let mtdExpected: number | null = null;
   const mtdFuture = year > nowYear || throughMonth === 0;
@@ -965,9 +1194,11 @@ export function buildSalesGoalPeriods(params: {
     mer: mtdMer,
     merRails: merVsRails(mtdMer, targetMer, breakEvenMer),
     progressPct:
-      mtdActual != null && mtdGoal > 0 ? (mtdActual / mtdGoal) * 100 : null,
+      mtdActual != null && mtdGoal != null && mtdGoal > 0
+        ? (mtdActual / mtdGoal) * 100
+        : null,
     calendarPct: mtdCalendarPct,
-    pace: paceStatus(mtdActual, mtdGoal, {
+    pace: paceStatus(mtdActual, mtdGoal ?? 0, {
       expectedPct: mtdExpected,
       isFuture: mtdFuture,
     }),
@@ -979,13 +1210,13 @@ export function buildSalesGoalPeriods(params: {
 
   // --- QTD ---
   const qtdSum = sumMonths(qMonths, goals, salesByMonth, spendByMonth);
-  const qtdPrior = sumPriorMonths(qMonths, prior);
+  const qtdPrior = sumPriorMonths(qtdSum.months, prior);
   let qtdCalendarPct = 0;
   let qtdExpected: number | null = null;
   if (year < nowYear) {
-    qtdCalendarPct = 100;
+    qtdCalendarPct = qtdSum.months.length > 0 ? 100 : 0;
   } else if (live) {
-    qtdCalendarPct = calendarPctInMonthSpan(year, qMonths, now, tz);
+    qtdCalendarPct = calendarPctInMonthSpan(year, qtdSum.months, now, tz);
     qtdExpected =
       qtdCalendarPct > 0 && qtdCalendarPct < 100
         ? qtdCalendarPct / 100
@@ -1008,11 +1239,11 @@ export function buildSalesGoalPeriods(params: {
     mer: qtdMer,
     merRails: merVsRails(qtdMer, targetMer, breakEvenMer),
     progressPct:
-      qtdSum.actual != null && qtdSum.goal > 0
+      qtdSum.actual != null && qtdSum.goal != null && qtdSum.goal > 0
         ? (qtdSum.actual / qtdSum.goal) * 100
         : null,
     calendarPct: qtdCalendarPct,
-    pace: paceStatus(qtdSum.actual, qtdSum.goal, {
+    pace: paceStatus(qtdSum.actual, qtdSum.goal ?? 0, {
       expectedPct: qtdExpected,
       isFuture: year > nowYear || throughMonth === 0,
     }),
@@ -1021,13 +1252,13 @@ export function buildSalesGoalPeriods(params: {
 
   // --- YTD ---
   const ytdSum = sumMonths(ytdMonths, goals, salesByMonth, spendByMonth);
-  const ytdPrior = sumPriorMonths(ytdMonths, prior);
+  const ytdPrior = sumPriorMonths(ytdSum.months, prior);
   let ytdCalendarPct = 0;
   let ytdExpected: number | null = null;
   if (year < nowYear) {
-    ytdCalendarPct = 100;
+    ytdCalendarPct = ytdSum.months.length > 0 ? 100 : 0;
   } else if (live) {
-    ytdCalendarPct = calendarPctInMonthSpan(year, ytdMonths, now, tz);
+    ytdCalendarPct = calendarPctInMonthSpan(year, ytdSum.months, now, tz);
     ytdExpected =
       ytdCalendarPct > 0 && ytdCalendarPct < 100
         ? ytdCalendarPct / 100
@@ -1050,11 +1281,11 @@ export function buildSalesGoalPeriods(params: {
     mer: ytdMer,
     merRails: merVsRails(ytdMer, targetMer, breakEvenMer),
     progressPct:
-      ytdSum.actual != null && ytdSum.goal > 0
+      ytdSum.actual != null && ytdSum.goal != null && ytdSum.goal > 0
         ? (ytdSum.actual / ytdSum.goal) * 100
         : null,
     calendarPct: ytdCalendarPct,
-    pace: paceStatus(ytdSum.actual, ytdSum.goal, {
+    pace: paceStatus(ytdSum.actual, ytdSum.goal ?? 0, {
       expectedPct: ytdExpected,
       isFuture: year > nowYear || throughMonth === 0,
     }),

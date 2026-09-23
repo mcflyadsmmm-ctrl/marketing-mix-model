@@ -24,7 +24,7 @@ export const ORDER_HISTORY_FORECAST_FORMULA =
   "Next month = typical day × days in that month";
 
 export const ORDER_HISTORY_FORECAST_METHOD =
-  "Typical day is the median of stored days with sales. Honest estimate — not a black box.";
+  "Typical day is the median of selling days (stored days with sales over $0). Honest estimate — not a black box. Missing days stay off the book — never a fake $0 day.";
 
 const MONTH_LONG = [
   "January",
@@ -98,6 +98,11 @@ export type OrderHistoryForecastInput = {
   /** Shop-local today. Month is 1–12. */
   todayYear: number;
   todayMonth: number;
+  /**
+   * Picked Goals year. When this is not the live shop year, do not print a
+   * next-month close from today × that year’s days.
+   */
+  bookYear?: number | null;
   historyLimited: boolean;
   /** Optional book name, e.g. "2026 book", so the median is not a mystery. */
   bookLabel?: string | null;
@@ -250,10 +255,10 @@ function buildTargets(
 
 function emptyCopyFor(salesPending: boolean, dayCount: number): string {
   if (salesPending || dayCount <= 0) {
-    return `Orders still syncing — not $0. Next month fills after ${ORDER_HISTORY_FORECAST_MIN_DAYS} days with sales.`;
+    return `Orders still syncing — not $0. Next month fills after ${ORDER_HISTORY_FORECAST_MIN_DAYS} selling days.`;
   }
-  const noun = dayCount === 1 ? "day" : "days";
-  return `${dayCount.toLocaleString("en-US")} ${noun} with sales on file. Next month needs ${ORDER_HISTORY_FORECAST_MIN_DAYS} — not $0.`;
+  const noun = dayCount === 1 ? "selling day" : "selling days";
+  return `${dayCount.toLocaleString("en-US")} ${noun} on file. Next month needs ${ORDER_HISTORY_FORECAST_MIN_DAYS} — not $0.`;
 }
 
 /**
@@ -263,8 +268,41 @@ function emptyCopyFor(salesPending: boolean, dayCount: number): string {
 export function buildOrderHistoryForecast(
   input: OrderHistoryForecastInput,
 ): OrderHistoryForecastView {
-  const clock = nextCalendarMonth(input.todayYear, input.todayMonth);
   const daily = input.dailySales.filter((n) => Number.isFinite(n) && n > 0);
+  const historyLimited = Boolean(input.historyLimited);
+  const scope = input.bookLabel?.trim() ? ` in the ${input.bookLabel.trim()}` : "";
+  const counted = daily.length.toLocaleString("en-US");
+  const method = historyLimited
+    ? `${ORDER_HISTORY_FORECAST_METHOD} From the selling days on file — not a full year of pace.`
+    : ORDER_HISTORY_FORECAST_METHOD;
+  const clockOff =
+    input.bookYear != null &&
+    Number.isFinite(input.bookYear) &&
+    input.bookYear !== input.todayYear;
+
+  if (clockOff) {
+    const daysLine =
+      daily.length > 0
+        ? `Median of ${counted} selling days${scope} — not next month from today.`
+        : "No selling days on file for this year. Missing last year stays —.";
+    return {
+      available: false,
+      periodLabel: "—",
+      daysInPeriod: 0,
+      typicalDay: null,
+      dayCount: daily.length,
+      estimate: null,
+      formula: ORDER_HISTORY_FORECAST_FORMULA,
+      plug: null,
+      method,
+      daysLine,
+      emptyCopy: `${input.bookYear} is not the live year. Next-month close waits on this year’s clock — not today × that year’s days — not $0.`,
+      historyLimited,
+      targets: buildTargets(input.targets),
+    };
+  }
+
+  const clock = nextCalendarMonth(input.todayYear, input.todayMonth);
   const typicalRaw = input.salesPending
     ? null
     : overviewTypicalDayFromBook(daily, ORDER_HISTORY_FORECAST_MIN_DAYS);
@@ -273,17 +311,11 @@ export function buildOrderHistoryForecast(
   const typicalDay = rounded != null && rounded > 0 ? rounded : null;
   const estimate =
     typicalDay != null ? typicalDay * clock.days : null;
-  const historyLimited = Boolean(input.historyLimited);
-  const scope = input.bookLabel?.trim() ? ` in the ${input.bookLabel.trim()}` : "";
-  const counted = daily.length.toLocaleString("en-US");
   const daysLine = historyLimited
-    ? `Median of ${counted} stored days with sales${scope} — not a full year of pace.`
+    ? `Median of ${counted} selling days (stored days with sales over $0)${scope} — not a full year of pace.`
     : daily.length > 0
-      ? `Median of ${counted} stored days with sales${scope}.`
-      : "No stored days with sales yet.";
-  const method = historyLimited
-    ? `${ORDER_HISTORY_FORECAST_METHOD} From the days on file — not a full year of pace.`
-    : ORDER_HISTORY_FORECAST_METHOD;
+      ? `Median of ${counted} selling days (stored days with sales over $0)${scope}.`
+      : "No selling days on file yet.";
 
   return {
     available: estimate != null,

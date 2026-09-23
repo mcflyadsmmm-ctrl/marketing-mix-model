@@ -1,14 +1,13 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
-import { calculateBreakEvenMer } from "@mcfly/mer-core";
 
 import { DeskBookPage } from "../components/DeskBookPage";
-import { formatMer } from "../lib/mer-format";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
+import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 
 const LISTING = "https://apps.shopify.com/mcfly-analytics-public";
 
@@ -20,7 +19,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function PublicDemoSettings() {
   const data = useLoaderData<typeof loader>();
-  const be = calculateBreakEvenMer(data.marginPct);
   return (
     <DeskBookPage
       heading="Settings"
@@ -30,6 +28,7 @@ export default function PublicDemoSettings() {
       useSampleDesk
       isLoading={false}
       showPeriod={false}
+      orderBookDepth="paid_full"
       retryHref="/demo/settings"
     >
       <p className="mcfly-book__lede">
@@ -46,12 +45,9 @@ export default function PublicDemoSettings() {
           Empty spend is —.
         </p>
         <p>
-          <strong>SAMPLE goal</strong> · {formatMer(data.targetMer)}× · break-even{" "}
-          {be != null ? `${formatMer(be)}×` : "—"} at{" "}
-          {Math.round(data.marginPct * 100)}% margin.
-        </p>
-        <p>
-          <strong>Plan</strong> · 7-day trial, then $39/store/month.{" "}
+          <strong>Plan</strong> · SAMPLE is the paid-shaped book — up to 24
+          months of orders. Live trial is {LIVE_UNPAID_INGEST_DAYS} closed days
+          of order rows. Then $39/store/month, one plan.{" "}
           <a href={LISTING} rel="noopener noreferrer">
             Install
           </a>

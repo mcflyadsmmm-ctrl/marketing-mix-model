@@ -7,7 +7,10 @@ import {
   DESK_LANE_HINT,
   DESK_LANE_RANKS,
   deskLaneFoldLabel,
+  deskLaneHashId,
   deskLaneHint,
+  deskLaneOpenAfterDefaultOpen,
+  deskLaneTargetOpensFold,
 } from "./desk-lane";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -17,7 +20,10 @@ function read(rel: string): string {
 }
 
 const overview = read("../routes/app._index.tsx");
+const demoOverview = read("../routes/demo._index.tsx");
 const customers = read("../routes/app.customers.tsx");
+const demoCustomers = read("../routes/demo.customers.tsx");
+const spend = read("../routes/app.spend.tsx");
 const growth = read("../routes/app.growth.tsx");
 const orders = read("../routes/app.orders.tsx");
 const ltv = read("../routes/app.ltv.tsx");
@@ -27,6 +33,27 @@ const drill = read("../components/DeskDrill.tsx");
 const css = read("../styles/mcfly-desk.css");
 const pills = read("../components/DeskTopTabs.tsx");
 const sample = read("../components/SampleDeskBanner.tsx");
+
+function mixCloseWrapClosesBeforeWeekday(src: string): boolean {
+  const mixIdAt = src.indexOf("id={OVERVIEW_MIX_CLOSE_ID}");
+  const weekdayAt = src.indexOf('label="More order detail"');
+  if (mixIdAt < 0 || weekdayAt < 0) return false;
+  const wrapCloseAt = src.lastIndexOf("</div>", weekdayAt);
+  if (wrapCloseAt <= mixIdAt || wrapCloseAt >= weekdayAt) return false;
+  const wrap = src.slice(mixIdAt, wrapCloseAt);
+  return (
+    wrap.includes('label="Mix and month close"') &&
+    !wrap.includes('label="More order detail"')
+  );
+}
+
+function weekdayFoldDefaultOpen(src: string): string | null {
+  const weekdayAt = src.indexOf('label="More order detail"');
+  if (weekdayAt < 0) return null;
+  const lane = src.slice(weekdayAt, src.indexOf(">", weekdayAt + 80) + 1);
+  const match = lane.match(/defaultOpen=\{[^}]+\}/);
+  return match?.[0] ?? null;
+}
 
 describe("deskLaneHint", () => {
   it("uses the rank eyebrow and honors a custom hint", () => {
@@ -82,7 +109,15 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
     expect(overview).toContain("<DeskLane");
     expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain('label="More order detail"');
-    expect(overview).toContain("defaultOpen={shotMode}");
+    expect(overview).toContain("defaultOpen={shotMode");
+    expect(demoOverview).toContain('label="More order detail"');
+    expect(demoOverview).toContain("defaultOpen={data.shotMode");
+    expect(mixCloseWrapClosesBeforeWeekday(overview)).toBe(true);
+    expect(mixCloseWrapClosesBeforeWeekday(demoOverview)).toBe(true);
+    expect(weekdayFoldDefaultOpen(overview)).toBe("defaultOpen={shotMode}");
+    expect(weekdayFoldDefaultOpen(demoOverview)).toBe(
+      "defaultOpen={data.shotMode}",
+    );
     expect(overview).not.toContain("<details");
     expect(overview).not.toContain("Click for detail");
     expect(overview).not.toContain("<SpendExplorer");
@@ -96,6 +131,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       'id="mcfly-returning"',
       'rank="first"',
       "<CustomersFirstViewport",
+      "<ShareableInsightCards",
       "<CustomerMixChart",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
@@ -111,7 +147,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       "<CustomerValueBands",
       "<CustomerWhaleTable",
       "<CustomerConcentrationChart",
-      "<ShareableInsightCards",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
@@ -120,6 +155,10 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(customers).toContain("mcfly-cust-action-row");
     expect(customers).toContain('label="Who the dollars sit with"');
     expect(customers).toContain("defaultOpen={shotMode");
+    expect(customers).toContain('panel === "depth"');
+    expect(demoCustomers).toContain('label="Who the dollars sit with"');
+    expect(demoCustomers).toContain("defaultOpen={data.shotMode");
+    expect(demoCustomers).toContain('data.panel === "depth"');
   });
 
   it("ranks Growth days-to-second first fold ahead of come-back explorer and TT2", () => {
@@ -171,9 +210,10 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     const section = read("../components/CustomersLtvSection.tsx");
     const order = [
       "<LtvValueBuild",
+      "<LtvFirstProductDrivers",
+      "<LtvPromoBoard",
       "<LtvFlagshipBoard",
       "<LtvProductBoard",
-      "<LtvPromoBoard",
       "<LtvBuildCurves",
       "<LtvWhaleRecency",
       "facts={economicsRows}",
@@ -196,7 +236,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
   });
 
   it("ranks Spend pair first, explorer/mix/CPA next, add-a-day more — empty live promotes add", () => {
-    const spend = read("../routes/app.spend.tsx");
     const order = [
       'rank="first"',
       'id="mcfly-roas"',
@@ -219,6 +258,95 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<CpaExplorer");
     expect(spend).not.toContain("0.00×");
+    expect(spend).toContain('spendPanel === "spend-add"');
+    expect(spend).toContain('href="#mcfly-spend-add"');
+  });
+});
+
+describe("DeskLane follows a later defaultOpen — omit-path must fail", () => {
+  it("opens when defaultOpen flips true and does not force-close", () => {
+    expect(deskLaneOpenAfterDefaultOpen(false, false)).toBe(false);
+    expect(deskLaneOpenAfterDefaultOpen(false, true)).toBe(true);
+    expect(deskLaneOpenAfterDefaultOpen(true, true)).toBe(true);
+    expect(deskLaneOpenAfterDefaultOpen(true, false)).toBe(true);
+  });
+
+  it("opens when the hash target is the fold, inside it, or wrapping it", () => {
+    expect(deskLaneHashId("")).toBeNull();
+    expect(deskLaneHashId("#")).toBeNull();
+    expect(deskLaneHashId("#mcfly-spend-add")).toBe("mcfly-spend-add");
+    expect(deskLaneHashId("mcfly-depth")).toBe("mcfly-depth");
+
+    const child = { contains: () => false };
+    const fold = {
+      contains: (other: unknown) => other === child,
+    };
+    const wrap = {
+      contains: (other: unknown) => other === fold,
+    };
+    const outside = { contains: () => false };
+
+    expect(deskLaneTargetOpensFold(fold, fold)).toBe(true);
+    expect(deskLaneTargetOpensFold(child, fold)).toBe(true);
+    expect(deskLaneTargetOpensFold(wrap, fold)).toBe(true);
+    expect(deskLaneTargetOpensFold(outside, fold)).toBe(false);
+    expect(deskLaneTargetOpensFold(null, fold)).toBe(false);
+    expect(deskLaneTargetOpensFold(fold, null)).toBe(false);
+
+    const coverageDetails = {
+      contains: () => false,
+      tagName: "DETAILS",
+    };
+    const addSection = {
+      contains: () => false,
+      tagName: "SECTION",
+    };
+    const addFold = {
+      contains: (other: unknown) =>
+        other === coverageDetails || other === addSection || other === child,
+    };
+    expect(deskLaneTargetOpensFold(coverageDetails, addFold)).toBe(false);
+    expect(deskLaneTargetOpensFold(addSection, addFold)).toBe(true);
+    expect(
+      deskLaneTargetOpensFold({ contains: () => false, localName: "details" }, addFold),
+    ).toBe(false);
+  });
+
+  it("Add-a-day fold does not wrap coverage / ledger / rates / recurring hashes", () => {
+    const addLaneOpen = spend.indexOf("label={SPEND_ADD_LANE_LABEL}");
+    expect(addLaneOpen).toBeGreaterThan(-1);
+    const addLaneClose = spend.indexOf("</DeskLane>", addLaneOpen);
+    const addLane = spend.slice(addLaneOpen, addLaneClose);
+    expect(addLane).toContain('id="mcfly-spend-add"');
+    expect(addLane).not.toContain('id="mcfly-spend-coverage"');
+    expect(addLane).not.toContain('id="mcfly-spend-ledger"');
+    expect(addLane).not.toContain('id="mcfly-spend-rates"');
+    expect(addLane).not.toContain('id="mcfly-spend-recurring"');
+
+    const coverageAt = spend.indexOf('id="mcfly-spend-coverage"');
+    const coverageLaneHead = spend.slice(
+      spend.lastIndexOf("<DeskLane", coverageAt),
+      coverageAt,
+    );
+    expect(coverageLaneHead).toContain('label="Coverage and import"');
+    expect(coverageLaneHead).not.toContain("SPEND_ADD_LANE_LABEL");
+    expect(coverageLaneHead).not.toMatch(/\bfold\b/);
+  });
+
+  it("DeskLane applies later defaultOpen and hash — grepping a prop is not enough", () => {
+    expect(lane).toContain("deskLaneOpenAfterDefaultOpen");
+    expect(lane).toContain("deskLaneTargetOpensFold");
+    expect(lane).toContain("deskLaneHashId");
+    expect(lane).toContain("useLayoutEffect");
+    expect(lane).toContain("useDeskLaneLayoutEffect");
+    expect(lane).toContain("hashchange");
+    expect(lane).toContain("aria-expanded={open}");
+    expect(lane).toContain("hidden={!open}");
+    expect(lane).toContain("mcfly-lane__toggle");
+    expect(lane).not.toContain("<details");
+    expect(lane).toMatch(
+      /useDeskLaneLayoutEffect\(\(\) => \{[\s\S]*deskLaneOpenAfterDefaultOpen/,
+    );
   });
 });
 

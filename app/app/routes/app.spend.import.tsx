@@ -11,7 +11,6 @@ import type {
 } from "react-router";
 import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { calculateBreakEvenMer } from "@mcfly/mer-core";
 import {
   SPEND_CHANNELS,
   SPEND_CHANNEL_LABELS,
@@ -24,6 +23,7 @@ import { requireAdmin } from "../lib/public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
 import {
   buildSpendExplorerSeries,
+  confirmedBreakEvenMer,
   ensureShop,
 } from "../lib/mer-dashboard.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
@@ -37,8 +37,9 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  explorerWeekMonthCopyText,
 } from "../lib/spend-explorer";
-import { shopLocalDayKey } from "../lib/shop-local-day";
+import { shopLocalDayKey, spendDeskClosedAsOfKey, spendDeskTodayKey } from "../lib/shop-local-day";
 import {
   CUSTOM_CHANNEL_PRESETS,
   MAX_CUSTOM_SPEND_CHANNELS,
@@ -105,13 +106,11 @@ import {
   getSampleDeskEnabled,
   getSampleDeskStats,
   isSampleOnlyFreeze,
-  localDayKey,
-  SAMPLE_DESK_MARGIN_PCT,
   SAMPLE_DESK_TARGET_MER,
   setSampleDeskEnabled,
   utcDayKey,
 } from "../lib/sample-desk.server";
-import { formatMer, formatSpendAmount } from "../lib/mer-format";
+import { formatCurrency, formatMer, formatSpendAmount } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
 import prisma from "../db.server";
@@ -241,7 +240,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       orderBy: { periodStart: "desc" },
       take: 20,
     }),
-    loadSpendDayCoverage(shop.id, sampleDesk.enabled),
+    loadSpendDayCoverage(shop.id, sampleDesk.enabled, { now, timeZone }),
   ]);
   const entries = entryRows.map((entry) => ({
     ...entry,
@@ -303,11 +302,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const targetMer = sampleDesk.enabled
     ? SAMPLE_DESK_TARGET_MER
     : (settings?.targetMer ?? 3);
-  const marginPct = sampleDesk.enabled
-    ? SAMPLE_DESK_MARGIN_PCT
-    : (settings?.marginPct ?? null);
-  const breakEvenMer =
-    marginPct != null ? calculateBreakEvenMer(marginPct) : null;
+  const breakEvenMer = confirmedBreakEvenMer({
+    marginConfirmedAt: settings?.marginConfirmedAt ?? null,
+    marginPct: settings?.marginPct ?? 0,
+  });
 
   const explorerSeries = await buildSpendExplorerSeries(shop.id, {
     sampleOnly: sampleDesk.enabled,
@@ -342,12 +340,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
     channelLabels: explorerSeries.channelLabels,
+    weekMonthCopy:
+      explorerWeekMonthCopyText({
+        salesByDay,
+        asOfKey: spendDeskClosedAsOfKey(timeZone, now),
+        money: (n) => formatCurrency(n, shopCurrencyCode(shop.currencyCode)),
+      })?.combined ?? null,
   };
 
   const [liveBuyerIndex, tillLtv, sampleBuyerRows] = await Promise.all([
-    sampleDesk.enabled
-      ? Promise.resolve(null)
-      : buildLivePasteBuyerIndex(shop.id, dayFetchRange),
+    buildLivePasteBuyerIndex(shop.id, dayFetchRange, {
+      source: sampleDesk.enabled ? "sample" : undefined,
+    }),
     buildTillLtvSummary(shop.id, {
       totalSpend: 0,
       newCustomers: 0,
@@ -393,7 +397,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     addSpendChannels: addSpendSelectOptions(entitlements),
     spendHistoryFloorKey: salesDayFactWindowStartUtc().toISOString().slice(0, 10),
     spendHistoryYearsBack: SALES_DAY_FACT_WINDOW_YEARS_BACK,
-    todayKey: sampleDesk.enabled ? utcDayKey(now) : localDayKey(now),
+    todayKey: spendDeskTodayKey(timeZone, now),
     currencyCode: shopCurrencyCode(shop.currencyCode),
     explorer,
     certifiedSalesByDay: Object.fromEntries(salesByDay),
@@ -1050,6 +1054,7 @@ export default function SpendEntryPage() {
                 preset={preset}
                 shotMode={shotMode}
                 language="spend"
+                orderBookDepth="paid_full"
               />
             </div>
           </div>
@@ -1511,7 +1516,7 @@ export default function SpendEntryPage() {
               <h3>Upload the filled template</h3>
               <p>
                 Keep the Date column and enter one amount per channel per day.
-                Empty cells count as $0.
+                Blank cells are not spend — they stay blank, not a certified $0.
               </p>
               <Form
                 id="mcfly-spend-template-upload-form"

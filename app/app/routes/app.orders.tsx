@@ -38,6 +38,7 @@ export default function OrdersPage() {
     orderBackfillProgress,
     ordersIntel,
     ordersFrequency,
+    orderBookDepth,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -53,6 +54,7 @@ export default function OrdersPage() {
     todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
     shopifyOrderWindowLimited: !useSampleDesk && shopifyOrderWindowLimited,
     includeShopifyOrderWindow: true,
+    orderBookDepth,
   });
   const book = shopifyNativePeriodStats({
     sales: metrics.sales,
@@ -76,6 +78,7 @@ export default function OrdersPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      orderBookDepth={orderBookDepth}
       orderFactsTruncated={
         !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
       }
@@ -106,6 +109,7 @@ export default function OrdersPage() {
         <p className="mcfly-book__lede">
           {deskBookLede(
             "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS. Pending sales are a banner — the board still paints from orders on file.",
+            orderBookDepth,
           )}
         </p>
         <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL}>
@@ -113,6 +117,9 @@ export default function OrdersPage() {
             depth={metrics.shopifyDepth}
             salesPending={Boolean(metrics.salesPending)}
             useSampleDesk={useSampleDesk}
+            stepMix={ordersIntel?.stepMix ?? null}
+            tickets={ordersIntel?.tickets ?? null}
+            todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
           />
         </DeskLane>
         <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>
@@ -141,6 +148,7 @@ export default function OrdersPage() {
             peakWeekday={metrics.shopifyDepth.peakWeekday}
             peakHour={metrics.shopifyDepth.peakHour}
             salesPending={Boolean(metrics.salesPending)}
+            timingSplit={ordersIntel?.timingSplit ?? null}
           />
           {ordersFrequency && ordersFrequency.length > 1 && !metrics.salesPending ? (
             <OrdersFrequencyChart buckets={ordersFrequency} />

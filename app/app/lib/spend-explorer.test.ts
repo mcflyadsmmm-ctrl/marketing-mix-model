@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   applyExplorerMode,
@@ -6,10 +9,13 @@ import {
   closedDayEnd,
   compareExplorerBuckets,
   explorerBucketDateRange,
+  explorerWeekMonthCopyText,
   priorExplorerBucketKey,
+  explorerMer,
   explorerMoneyCeil,
   explorerSalesCeil,
   formatExplorerSubtitle,
+  isUnpairedSpendDay,
   orderBarsByLegend,
   parseExplorerDateParam,
   parseExplorerGranularity,
@@ -18,9 +24,14 @@ import {
   parseExplorerShowSales,
   resolveExplorerWindow,
   explorerQueryMatchingScoreboard,
+  clampExplorerRangeToBook,
+  explorerRangeOptionsFor,
+  explorerYearChipNote,
+  EXPLORER_GRANULARITY_OPTIONS,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   listRecentClosedShopLocalDays,
   shopLocalDayKey,
@@ -54,6 +65,14 @@ describe("parseExplorer*", () => {
     expect(parseExplorerRange("All")).toBe("All");
     expect(parseExplorerGranularity("Month")).toBe("Month");
     expect(parseExplorerGranularity("Quarter")).toBe("Quarter");
+    expect(parseExplorerGranularity("Weekday")).toBe("Weekday");
+    expect(EXPLORER_GRANULARITY_OPTIONS.map((opt) => opt.value)).toEqual([
+      "Day",
+      "Week",
+      "Weekday",
+      "Month",
+      "Quarter",
+    ]);
     expect(parseExplorerMode("share")).toBe("share");
     expect(parseExplorerShowSales("1")).toBe(true);
     expect(parseExplorerShowSales("true")).toBe(true);
@@ -328,6 +347,42 @@ describe("bucketExplorerRows", () => {
     expect(buckets[1].label).toBe("Q4 ’26");
   });
 
+  it("Weekday grain pairs shop-local weekday sales with typed spend and never paints 0×", () => {
+    const rows: ExplorerDailyRow[] = [
+      day("2026-09-14", 2100, { meta: 1000 }), // Mon 2.1×
+      day("2026-09-21", 2100, { meta: 1000 }), // next Mon
+      {
+        dateKey: "2026-09-20",
+        sales: 8000,
+        spend: 0,
+        channels: [],
+        salesOnFile: true,
+      }, // Sunday organic
+      {
+        dateKey: "2026-09-15",
+        sales: 0,
+        spend: 400,
+        channels: [{ channel: "meta", amount: 400 }],
+        salesOnFile: false,
+      }, // Tuesday spend, sales not on file
+    ];
+    const buckets = bucketExplorerRows(rows, "Weekday");
+    const mon = buckets.find((b) => b.key === "wd:1");
+    const tue = buckets.find((b) => b.key === "wd:2");
+    const sun = buckets.find((b) => b.key === "wd:7");
+    expect(mon?.label).toBe("Mon");
+    expect(mon?.sales).toBe(4200);
+    expect(mon?.spend).toBe(2000);
+    expect(mon?.mer).toBeCloseTo(2.1, 5);
+    expect(sun?.sales).toBe(8000);
+    expect(sun?.spend).toBe(0);
+    expect(sun?.mer).toBeNull();
+    expect(tue?.mer).toBeNull();
+    expect(JSON.stringify(buckets)).not.toMatch(/0×/);
+    expect(explorerBucketDateRange("wd:1", "Weekday")).toBeNull();
+    expect(priorExplorerBucketKey("wd:1", "Weekday")).toBeNull();
+  });
+
   it("includes new SpendChannels in bucket mix", () => {
     const mixed = bucketExplorerRows(
       [
@@ -441,6 +496,69 @@ describe("summarizeExplorer", () => {
     });
     expect(s.costPerNew).toBeNull();
     expect(s.costPerCustomer).toBeNull();
+  });
+});
+
+describe("explorer unpaired MER", () => {
+  it("is unpaired when spend exists and sales are not positive", () => {
+    expect(isUnpairedSpendDay(0, 40)).toBe(true);
+    expect(isUnpairedSpendDay(100, 40)).toBe(false);
+    expect(isUnpairedSpendDay(100, 0)).toBe(false);
+  });
+
+  it("returns — not 0× when sales are missing or unpaired", () => {
+    expect(explorerMer(0, 650)).toBeNull();
+    expect(explorerMer(0, 650, true)).toBeNull();
+    expect(explorerMer(0, 400, false)).toBeNull();
+    expect(explorerMer(800, 400, false)).toBeNull();
+    expect(explorerMer(800, 400, true)).toBe(2);
+  });
+
+  it("day grain dashes MER for spend before closed sales land", () => {
+    const buckets = bucketExplorerRows(
+      [
+        {
+          dateKey: "2026-09-21",
+          sales: 0,
+          spend: 400,
+          channels: [{ channel: "meta", amount: 400 }],
+          salesOnFile: false,
+        },
+      ],
+      "Day",
+    );
+    expect(buckets[0]?.mer).toBeNull();
+    expect(buckets[0]?.spend).toBe(400);
+  });
+
+  it("does not paint 0× from a certified closed-day $0 with spend", () => {
+    const buckets = bucketExplorerRows(
+      [
+        {
+          dateKey: "2026-09-20",
+          sales: 0,
+          spend: 120,
+          channels: [{ channel: "meta", amount: 120 }],
+          salesOnFile: true,
+        },
+      ],
+      "Day",
+    );
+    expect(buckets[0]?.mer).toBeNull();
+  });
+
+  it("overall MER stays — when the window is spend-only", () => {
+    const summary = summarizeExplorer([
+      {
+        dateKey: "2026-09-21",
+        sales: 0,
+        spend: 400,
+        channels: [],
+        salesOnFile: false,
+      },
+    ]);
+    expect(summary.overallMer).toBeNull();
+    expect(summary.totalSpend).toBe(400);
   });
 });
 
@@ -686,3 +804,141 @@ describe("compareExplorerBuckets", () => {
     expect(rows[0]?.spendDelta).toBeNull();
   });
 });
+
+describe("unpaid explorer does not sell a finished year", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const lib = readFileSync(join(here, "./spend-explorer.ts"), "utf8");
+  const ui = readFileSync(join(here, "../components/SpendExplorer.tsx"), "utf8");
+  const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
+  const demo = readFileSync(join(here, "../routes/demo.spend.tsx"), "utf8");
+  const stack = readFileSync(join(here, "./desk-spend-stack.server.ts"), "utf8");
+
+  it("keep parsing YTD / 1y / All so paid and SAMPLE URLs still resolve", () => {
+    expect(parseExplorerRange("YTD")).toBe("YTD");
+    expect(parseExplorerRange("1y")).toBe("1y");
+    expect(parseExplorerRange("All")).toBe("All");
+  });
+
+  it("trial_slice hides This year / 1 year / All and clamps them to 90d", () => {
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+    const paid = explorerRangeOptionsFor("paid_full").map((opt) => opt.value);
+    expect(paid).toEqual(["14d", "30d", "90d", "YTD", "1y", "All"]);
+    const unpaid = explorerRangeOptionsFor("trial_slice").map((opt) => opt.value);
+    expect(unpaid).toEqual(["14d", "30d", "90d"]);
+    expect(clampExplorerRangeToBook("YTD", "trial_slice")).toBe("90d");
+    expect(clampExplorerRangeToBook("1y", "trial_slice")).toBe("90d");
+    expect(clampExplorerRangeToBook("All", "trial_slice")).toBe("90d");
+    expect(clampExplorerRangeToBook("YTD", "paid_full")).toBe("YTD");
+    expect(clampExplorerRangeToBook("90d", "trial_slice")).toBe("90d");
+    expect(explorerYearChipNote("paid_full")).toBeNull();
+    expect(explorerYearChipNote("trial_slice")).toMatch(
+      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
+    );
+    expect(explorerYearChipNote("trial_slice")).not.toMatch(/\$0/);
+  });
+
+  it("omit-path: chips and loader clamp year ranges on trial_slice", () => {
+    expect(lib).toContain("explorerRangeOptionsFor");
+    expect(lib).toContain("clampExplorerRangeToBook");
+    expect(lib).toMatch(
+      /export function explorerRangeOptionsFor\(\s*orderBookDepth: LiveIngestDepth/,
+    );
+    expect(lib).not.toMatch(/orderBookDepth:\s*LiveIngestDepth\s*=/);
+    expect(lib).toContain('case "trial_slice"');
+    expect(lib).toContain('case "paid_full"');
+    expect(lib).toMatch(/const _never: never = orderBookDepth/);
+    expect(ui).toContain("orderBookDepth: LiveIngestDepth");
+    expect(ui).not.toMatch(/orderBookDepth\?:/);
+    expect(ui).not.toMatch(/orderBookDepth\s*=\s*"paid_full"/);
+    expect(ui).toContain("explorerRangeOptionsFor(orderBookDepth)");
+    expect(ui).toContain("clampExplorerRangeToBook");
+    expect(spend).toMatch(/<SpendExplorer[\s\S]*orderBookDepth=\{orderBookDepth\}/);
+    expect(demo).toMatch(/<SpendExplorer[\s\S]*orderBookDepth="paid_full"/);
+    expect(stack).toContain("clampExplorerRangeToBook");
+    expect(spend).not.toContain("UnlockFullHistoryBanner");
+  });
+});
+
+describe("explorerWeekMonthCopyText", () => {
+  const money = (n: number) => `$${n.toLocaleString("en-US")}`;
+
+  it("names this-week and this-month Shopify Total Sales plus last-year weekday-shifted $", () => {
+    const salesByDay = new Map<string, number>([
+      ["2026-09-14", 1000], // Mon this week
+      ["2026-09-15", 1100],
+      ["2026-09-16", 1200],
+      ["2026-09-17", 1300],
+      ["2026-09-18", 1400],
+      ["2026-09-19", 1500],
+      ["2026-09-20", 1600], // as-of Sunday
+      ["2026-09-01", 400],
+      ["2025-09-15", 900], // last year Monday (14th 2026 → 15th 2025)
+      ["2025-09-16", 910],
+      ["2025-09-17", 920],
+      ["2025-09-18", 930],
+      ["2025-09-19", 940],
+      ["2025-09-20", 950],
+      ["2025-09-21", 960],
+      ["2025-09-02", 300],
+      ["2025-09-03", 310],
+    ]);
+    const copy = explorerWeekMonthCopyText({
+      salesByDay,
+      asOfKey: "2026-09-20",
+      money,
+    });
+    expect(copy).not.toBeNull();
+    expect(copy?.week).toMatch(/this week is \$9,100/);
+    expect(copy?.week).toMatch(/\$6,510/);
+    expect(copy?.week).toMatch(/last year/i);
+    expect(copy?.week).not.toMatch(/%/);
+    expect(copy?.month).toMatch(/this month is \$9,500/);
+    expect(copy?.combined).toContain(copy?.week ?? "");
+    expect(copy?.combined).toContain(copy?.month ?? "");
+    expect(copy?.combined).not.toMatch(/\$0/);
+  });
+
+  it("falls back to previous week $ when last year is not on file — never a fake $0", () => {
+    const salesByDay = new Map<string, number>([
+      ["2026-09-14", 1000],
+      ["2026-09-15", 1100],
+      ["2026-09-16", 1200],
+      ["2026-09-17", 1300],
+      ["2026-09-18", 1400],
+      ["2026-09-19", 1500],
+      ["2026-09-20", 1600],
+      ["2026-09-07", 800],
+      ["2026-09-08", 810],
+      ["2026-09-09", 820],
+      ["2026-09-10", 830],
+      ["2026-09-11", 840],
+      ["2026-09-12", 850],
+      ["2026-09-13", 860],
+      ["2026-09-01", 400],
+    ]);
+    const copy = explorerWeekMonthCopyText({
+      salesByDay,
+      asOfKey: "2026-09-20",
+      money,
+    });
+    expect(copy?.week).toMatch(/this week is \$9,100/);
+    expect(copy?.week).toMatch(/\$5,810/);
+    expect(copy?.week).toMatch(/last week/i);
+    expect(copy?.week).toMatch(/not on file/i);
+    expect(copy?.week).not.toMatch(/is \$0/);
+    expect(copy?.month).toMatch(/this month is \$15,310/);
+    expect(copy?.month).toMatch(/last week/i);
+    expect(copy?.combined).not.toMatch(/is \$0/);
+  });
+
+  it("returns null when this week and this month have no sales on file", () => {
+    expect(
+      explorerWeekMonthCopyText({
+        salesByDay: new Map(),
+        asOfKey: "2026-09-20",
+        money,
+      }),
+    ).toBeNull();
+  });
+});
+

@@ -67,7 +67,7 @@ describe("LTV sales spine (HARD-STOP)", () => {
     expect(customers).toContain("orderFactsTruncated");
     expect(stack).toContain("scheduleFirstSessionShopifyWindow");
     expect(ltvSection).not.toContain("until you confirm in Settings");
-    expect(ltvSection).toContain("showMarginKept");
+    expect(ltvSection).not.toContain("Kept after margin");
     expect(customers).toContain("UnlockFullHistoryBanner");
     expect(customers).toContain("liveHistoryLocked");
   });

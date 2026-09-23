@@ -66,6 +66,23 @@ describe("buildLivePasteBuyerIndex", () => {
     expect(unique.size).toBe(3);
   });
 
+  it("reads SAMPLE OrderFacts when source is sample", async () => {
+    findManyOrderFact.mockResolvedValueOnce([]);
+    await buildLivePasteBuyerIndex(
+      "shop_1",
+      {
+        start: day("2026-09-18"),
+        end: new Date("2026-09-19T23:59:59.999Z"),
+      },
+      { source: "sample" },
+    );
+    expect(findManyOrderFact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ source: "sample" }),
+      }),
+    );
+  });
+
   it("stamps quiet days in range as known-zero, not omitted", async () => {
     findManyOrderFact.mockResolvedValueOnce([]);
     const index = await buildLivePasteBuyerIndex("shop_1", {

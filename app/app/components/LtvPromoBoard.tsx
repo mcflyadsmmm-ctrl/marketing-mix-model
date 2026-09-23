@@ -13,6 +13,8 @@ import {
   type PromoLtvRow,
   type PromoLtvView,
 } from "../lib/ltv-promo";
+import type { SourceLtvView } from "../lib/ltv-by-source";
+import { LtvBySourceRows } from "./LtvBySourceRows";
 
 function pct(share: number): string {
   return `${Math.round(share * 100)}%`;
@@ -100,33 +102,41 @@ function depthEmptyFloor(kind: PromoDepthEmptyKind, need: number): string {
  * full-price first, and the written-out 90-day formula. Soft dense, not a
  * code dump. Live shops without discount $ keep the ActionCard-shaped empty.
  * Named codes only paint when they are on the order — never invented.
+ * Optional Online / POS / Shop / Other rows sit under the promo cards on the
+ * open LTV lane (same section).
  */
 export function LtvPromoBoard({
   promo,
+  bySource,
 }: {
   promo: PromoLtvView | null | undefined;
+  bySource?: SourceLtvView | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
-  if (!promo) return null;
+  if (!promo && !bySource) return null;
 
-  const empty = promo.empty;
-  const read = promo.read;
-  const best = promo.best;
+  const empty = promo?.empty ?? null;
+  const read = promo?.read ?? null;
+  const best = promo?.best ?? null;
   // Flagship already owns the 0-buyer first-win. Paint discounts / thin / young
   // here so a live shop without discount $ is never a blank chart.
   const showEmpty = Boolean(empty && empty.kind !== "syncing");
   const showRead = Boolean(read);
-  const showCards = promo.rows.length > 0 && read != null;
+  const showCards = Boolean(promo && promo.rows.length > 0 && read != null);
   const showMath = Boolean(best && best.predicted90 != null && best.formula90);
-  const depthLine = promo.depthLine;
-  const depthEmpty = promo.depthEmpty;
-  const showDepthCards = promo.depthBands.length > 0 && depthLine != null;
+  const depthLine = promo?.depthLine ?? null;
+  const depthEmpty = promo?.depthEmpty ?? null;
+  const showDepthCards = Boolean(
+    promo && promo.depthBands.length > 0 && depthLine != null,
+  );
   const showDepthEmpty = Boolean(
     depthEmpty && empty?.kind !== "discounts" && empty?.kind !== "syncing",
   );
-  const showAwaitingNote =
-    promo.depthAwaitingGross > 0 && depthEmpty?.kind !== "gross";
+  const showAwaitingNote = Boolean(
+    promo && promo.depthAwaitingGross > 0 && depthEmpty?.kind !== "gross",
+  );
+  const showSource = Boolean(bySource);
   if (
     !showEmpty &&
     !showRead &&
@@ -134,7 +144,8 @@ export function LtvPromoBoard({
     !showMath &&
     !showDepthCards &&
     !showDepthEmpty &&
-    !depthLine
+    !depthLine &&
+    !showSource
   ) {
     return null;
   }
@@ -144,26 +155,28 @@ export function LtvPromoBoard({
   const later = best?.laterOrder90 ?? 0;
   const estimate = best?.predicted90;
   const observed = best?.observed90;
-  const codesNote = promo.codesKnown
+  const codesNote = promo?.codesKnown
     ? "Named codes are on the first order."
     : "Named discount codes are not on this shop’s stored orders — this is first orders with a discount $ vs none. We do not invent titles.";
+  const historyLimited = Boolean(promo?.historyLimited);
+  const fullPrice90 = promo?.fullPrice90 ?? null;
 
   return (
     <section
       className="mcfly-book mcfly-depth mcfly-depth--soft mcfly-depth-flag mcfly-depth-promo"
-      aria-label="First-order promo to lifetime value"
+      aria-label="Which first orders are worth more"
     >
       <div className="mcfly-depth-softhead">
         <h3 className="mcfly-chart__serif">
           <DeskIcon name="orders" />
-          Promo → LTV
+          Which first orders are worth more
         </h3>
         <p className="mcfly-chart__muted">
-          Which first-order promo starts the higher-value path. Discount depth
-          is Light (under 15%), Typical (15% to under 30%), or Deep (30% or
-          more) of the first order — discount $ divided by the pre-refund total
-          plus that discount, not the code name. Lift is vs full-price first.
-          A dash is not $0. No spend required.
+          Discount depth, Online / POS / Shop, and a discount code when Shopify
+          stored one. Light (under 15%), Typical (15% to under 30%), or Deep
+          (30% or more) of the first order — discount $ divided by the
+          pre-refund total plus that discount, not the code name. Lift is vs
+          full-price first. A dash is not $0. No spend required. Not an ad.
         </p>
       </div>
 
@@ -246,7 +259,7 @@ export function LtvPromoBoard({
                 {
                   k: "First year",
                   v: read.yearPending
-                    ? yearNotOnFile(promo.historyLimited)
+                    ? yearNotOnFile(historyLimited)
                     : "On the year line of the promo cards below.",
                 },
               ],
@@ -274,10 +287,10 @@ export function LtvPromoBoard({
             {read.estimate != null && read.observed != null
               ? `The math says ${formatCurrency(read.estimate, currency)} — those starters spent ${formatCurrency(read.observed, currency)}.`
               : read.yearPending
-                ? yearNotOnFile(promo.historyLimited)
+                ? yearNotOnFile(historyLimited)
                 : "Averages from the starters who have lived this window."}
           </span>
-          {!promo.codesKnown ? (
+          {promo && !promo.codesKnown ? (
             <span className="mcfly-depth-flag__read-line">{codesNote}</span>
           ) : null}
         </button>
@@ -289,15 +302,15 @@ export function LtvPromoBoard({
         </p>
       ) : null}
 
-      {showCards ? (
+      {showCards && promo ? (
         <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft">
           {promo.rows.map((row) => (
             <PromoCard
               key={row.promo}
               row={row}
               currency={currency}
-              fullPrice90={promo.fullPrice90}
-              historyLimited={promo.historyLimited}
+              fullPrice90={fullPrice90}
+              historyLimited={historyLimited}
             />
           ))}
         </div>
@@ -346,14 +359,14 @@ export function LtvPromoBoard({
         </button>
       ) : null}
 
-      {showDepthCards ? (
+      {showDepthCards && promo ? (
         <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft">
           {promo.depthBands.map((row) => (
             <DepthBandCard
               key={row.band}
               row={row}
               currency={currency}
-              historyLimited={promo.historyLimited}
+              historyLimited={historyLimited}
             />
           ))}
         </div>
@@ -387,8 +400,8 @@ export function LtvPromoBoard({
                 {
                   k: "Vs full-price first",
                   v:
-                    best.lift90 != null && promo.fullPrice90 != null
-                      ? `${best.lift90.toFixed(1)}× full-price first (${formatCurrency(promo.fullPrice90, currency)}).`
+                    best.lift90 != null && fullPrice90 != null
+                      ? `${best.lift90.toFixed(1)}× full-price first (${formatCurrency(fullPrice90, currency)}).`
                       : "Lift waits until full-price first has sealed 90 days.",
                 },
                 {
@@ -396,7 +409,7 @@ export function LtvPromoBoard({
                   v:
                     best.day365Ltv != null
                       ? formatCurrency(best.day365Ltv, currency)
-                      : yearNotOnFile(promo.historyLimited),
+                      : yearNotOnFile(historyLimited),
                 },
               ],
               next: "An average from order history — not a promise for the next buyer.",
@@ -442,6 +455,8 @@ export function LtvPromoBoard({
           </p>
         </button>
       ) : null}
+
+      {showSource && bySource ? <LtvBySourceRows bySource={bySource} /> : null}
     </section>
   );
 }

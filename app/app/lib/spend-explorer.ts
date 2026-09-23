@@ -4,16 +4,20 @@
  */
 
 import type { PeriodPreset } from "./periods";
+import type { LiveIngestDepth } from "./live-ingest-depth";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
+  mondayOfDayKey,
+  shiftCivilDayKey,
   shopLocalDayKey,
   shopLocalDayRange,
   shopLocalYmd,
 } from "./shop-local-day";
 
 export type ExplorerRange = "14d" | "30d" | "90d" | "YTD" | "1y" | "All" | "custom";
-export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter";
+export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter" | "Weekday";
 export type ExplorerMode = "stacked" | "share" | "total";
 
 export type ExplorerWindowOptions = {
@@ -34,6 +38,11 @@ export type ExplorerDailyRow = {
   sales: number;
   spend: number;
   channels: ExplorerChannelSlice[];
+  /**
+   * False when Shopify sales are not on file for this date (missing map key).
+   * Omitted / true means `sales` is a certified closed-day amount, including $0.
+   */
+  salesOnFile?: boolean;
 };
 
 export type ExplorerBucket = {
@@ -105,6 +114,7 @@ const GRANULARITIES: ExplorerGranularity[] = [
   "Week",
   "Month",
   "Quarter",
+  "Weekday",
 ];
 const MODES: ExplorerMode[] = ["stacked", "share", "total"];
 
@@ -121,12 +131,65 @@ export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
     { value: "All", label: "All" },
   ];
 
+/** Year-length chips that sell a finished year on a 90-day unpaid book. */
+export function explorerSellsFinishedYear(range: ExplorerRange): boolean {
+  return range === "YTD" || range === "1y" || range === "All";
+}
+
+export function explorerRangeAllowedOnBook(
+  range: ExplorerRange,
+  orderBookDepth: LiveIngestDepth,
+): boolean {
+  switch (orderBookDepth) {
+    case "paid_full":
+      return true;
+    case "trial_slice":
+      return !explorerSellsFinishedYear(range);
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
+}
+
+export function explorerRangeOptionsFor(
+  orderBookDepth: LiveIngestDepth,
+): { value: ExplorerRange; label: string }[] {
+  return EXPLORER_RANGE_OPTIONS.filter((opt) =>
+    explorerRangeAllowedOnBook(opt.value, orderBookDepth),
+  );
+}
+
+export function clampExplorerRangeToBook(
+  range: ExplorerRange,
+  orderBookDepth: LiveIngestDepth,
+): ExplorerRange {
+  if (explorerRangeAllowedOnBook(range, orderBookDepth)) return range;
+  return "90d";
+}
+
+export function explorerYearChipNote(
+  orderBookDepth: LiveIngestDepth,
+): string | null {
+  switch (orderBookDepth) {
+    case "paid_full":
+      return null;
+    case "trial_slice":
+      return `${LIVE_UNPAID_INGEST_DAYS} closed days of order rows on this unpaid till. This year / 1 year / All wait until you pay — day totals vs order rows.`;
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
+}
+
 export const EXPLORER_GRANULARITY_OPTIONS: {
   value: ExplorerGranularity;
   label: string;
 }[] = [
   { value: "Day", label: "Day" },
   { value: "Week", label: "Week" },
+  { value: "Weekday", label: "Weekday" },
   { value: "Month", label: "Month" },
   { value: "Quarter", label: "Quarter" },
 ];
@@ -188,8 +251,32 @@ function parseDateKey(dateKey: string): Date | null {
   return dt;
 }
 
+/** Spend on file with no sales dollars — never paint 0× from `$0 / $spend`. */
+export function isUnpairedSpendDay(sales: number, spend: number): boolean {
+  return spend > 0 && !(sales > 0);
+}
+
+/**
+ * Explorer Total ROAS. Sales not on file stay —. Certified `$0` with spend
+ * is unpaired (—), never 0× from `sales ?? 0`.
+ */
+export function explorerMer(
+  sales: number,
+  spend: number,
+  salesOnFile = true,
+): number | null {
+  if (salesOnFile === false) return null;
+  if (isUnpairedSpendDay(sales, spend)) return null;
+  return merOf(sales, spend);
+}
+
 function merOf(sales: number, spend: number): number | null {
-  if (!Number.isFinite(sales) || !Number.isFinite(spend) || spend <= 0) {
+  if (
+    !Number.isFinite(sales) ||
+    !Number.isFinite(spend) ||
+    spend <= 0 ||
+    !(sales > 0)
+  ) {
     return null;
   }
   const mer = sales / spend;
@@ -282,8 +369,13 @@ export type ExplorerPaintControls = {
 export function paintExplorerControls(
   current: ExplorerPaintControls,
   pendingSearch: string | null | undefined,
+  orderBookDepth: LiveIngestDepth,
 ): ExplorerPaintControls {
-  if (!pendingSearch) return current;
+  const clamp = (range: ExplorerRange) =>
+    clampExplorerRangeToBook(range, orderBookDepth);
+  if (!pendingSearch) {
+    return { ...current, range: clamp(current.range) };
+  }
   const query = pendingSearch.startsWith("?")
     ? pendingSearch.slice(1)
     : pendingSearch;
@@ -295,11 +387,13 @@ export function paintExplorerControls(
     params.has("exSales") ||
     params.has("exFrom") ||
     params.has("exTo");
-  if (!touching) return current;
+  if (!touching) return { ...current, range: clamp(current.range) };
   return {
-    range: params.has("exRange")
-      ? parseExplorerRange(params.get("exRange"))
-      : current.range,
+    range: clamp(
+      params.has("exRange")
+        ? parseExplorerRange(params.get("exRange"))
+        : current.range,
+    ),
     granularity: params.has("exGran")
       ? parseExplorerGranularity(params.get("exGran"))
       : current.granularity,
@@ -486,10 +580,19 @@ function mondayOf(d: Date): Date {
 
 type BucketMeta = { key: string; label: string; sortMs: number };
 
+function isoWeekdayFromDateKey(dateKey: string): number {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const utcDay = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return utcDay === 0 ? 7 : utcDay;
+}
+
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
 function bucketMetaForDay(
   date: Date,
   granularity: ExplorerGranularity,
   spansYears: boolean,
+  dateKey: string,
 ): BucketMeta {
   const y = date.getFullYear();
   const monthIndex = date.getMonth();
@@ -530,6 +633,14 @@ function bucketMetaForDay(
         key,
         label,
         sortMs: new Date(y, (q - 1) * 3, 1).getTime(),
+      };
+    }
+    case "Weekday": {
+      const iso = isoWeekdayFromDateKey(dateKey);
+      return {
+        key: `wd:${iso}`,
+        label: WEEKDAY_LABELS[iso - 1] ?? "Mon",
+        sortMs: iso,
       };
     }
     default: {
@@ -582,6 +693,8 @@ export function bucketExplorerRows(
     sortMs: number;
     sales: number;
     spend: number;
+    salesOnFile: boolean;
+    unpairedSpend: boolean;
     channels: Map<string, number>;
   };
   const map = new Map<string, Acc>();
@@ -589,7 +702,7 @@ export function bucketExplorerRows(
   for (const row of rows) {
     const d = parseDateKey(row.dateKey);
     if (!d) continue;
-    const meta = bucketMetaForDay(d, granularity, spansYears);
+    const meta = bucketMetaForDay(d, granularity, spansYears, row.dateKey);
     let acc = map.get(meta.key);
     if (!acc) {
       acc = {
@@ -597,12 +710,20 @@ export function bucketExplorerRows(
         sortMs: meta.sortMs,
         sales: 0,
         spend: 0,
+        salesOnFile: false,
+        unpairedSpend: false,
         channels: new Map(),
       };
       map.set(meta.key, acc);
     }
-    acc.sales += row.sales;
+    if (row.salesOnFile !== false) {
+      acc.salesOnFile = true;
+      acc.sales += row.sales;
+    }
     acc.spend += row.spend;
+    if (granularity === "Weekday" && row.spend > 0 && row.salesOnFile === false) {
+      acc.unpairedSpend = true;
+    }
     mergeChannels(acc.channels, row.channels);
   }
 
@@ -611,12 +732,16 @@ export function bucketExplorerRows(
     .map(([key, acc]) => {
       const sales = round2(acc.sales);
       const spend = round2(acc.spend);
+      const mer =
+        granularity === "Weekday" && acc.unpairedSpend
+          ? null
+          : explorerMer(sales, spend, acc.salesOnFile);
       return {
         key,
         label: acc.label,
         sales,
         spend,
-        mer: merOf(sales, spend),
+        mer,
         channels: channelsFromMap(acc.channels),
       };
     });
@@ -692,6 +817,8 @@ export function priorExplorerBucketKey(
       const prevQ = q === 1 ? 4 : q - 1;
       return `q:${prevY}-Q${prevQ}`;
     }
+    case "Weekday":
+      return null;
     default: {
       const _exhaustive: never = granularity;
       throw new Error(`Unknown granularity: ${_exhaustive}`);
@@ -747,6 +874,8 @@ export function explorerBucketDateRange(
         toKey: `${m[1]}-${pad2(endMonth + 1)}-${pad2(last)}`,
       };
     }
+    case "Weekday":
+      return null;
     default: {
       const _exhaustive: never = granularity;
       throw new Error(`Unknown granularity: ${_exhaustive}`);
@@ -902,10 +1031,19 @@ export function summarizeExplorer(
   let totalSales = 0;
   let totalSpend = 0;
   let closedDays = 0;
+  let salesOnFile = false;
   for (const row of rows) {
-    totalSales += row.sales;
+    if (row.salesOnFile !== false) {
+      salesOnFile = true;
+      totalSales += row.sales;
+    }
     totalSpend += row.spend;
-    if (row.sales > 0 || row.spend > 0) closedDays += 1;
+    if (
+      row.spend > 0 ||
+      (row.salesOnFile !== false && row.sales > 0)
+    ) {
+      closedDays += 1;
+    }
   }
   totalSales = round2(totalSales);
   totalSpend = round2(totalSpend);
@@ -927,7 +1065,7 @@ export function summarizeExplorer(
   return {
     totalSales,
     totalSpend,
-    overallMer: merOf(totalSales, totalSpend),
+    overallMer: explorerMer(totalSales, totalSpend, salesOnFile),
     costPerNew,
     costPerCustomer,
     closedDays,
@@ -1034,6 +1172,8 @@ export function explorerGranLabel(granularity: ExplorerGranularity): string {
       return "month buckets";
     case "Quarter":
       return "quarter buckets";
+    case "Weekday":
+      return "weekday buckets";
     default: {
       const _exhaustive: never = granularity;
       return _exhaustive;
@@ -1072,9 +1212,13 @@ export function formatExplorerSubtitle(opts: {
             ? opts.bucketCount === 1
               ? "month bucket"
               : "month buckets"
-            : opts.bucketCount === 1
-              ? "quarter bucket"
-              : "quarter buckets";
+            : opts.granularity === "Weekday"
+              ? opts.bucketCount === 1
+                ? "weekday bucket"
+                : "weekday buckets"
+              : opts.bucketCount === 1
+                ? "quarter bucket"
+                : "quarter buckets";
   const asOf = opts.asOfKey ? ` · as of ${opts.asOfKey}` : "";
   return (
     `${opts.bucketCount} ${gran} · spend ${opts.formatCurrency(opts.totalSpend)}` +
@@ -1082,3 +1226,116 @@ export function formatExplorerSubtitle(opts: {
     ` · ${formula} · closed days only${asOf}`
   );
 }
+
+/** Same weekday last year — 52 weeks, not the calendar date. */
+export const EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS = -364;
+
+function eachCivilKeyInclusive(fromKey: string, toKey: string): string[] {
+  if (!DATE_KEY_RE.test(fromKey) || !DATE_KEY_RE.test(toKey) || fromKey > toKey) {
+    return [];
+  }
+  const keys: string[] = [];
+  let cursor = fromKey;
+  for (let i = 0; i < 400; i++) {
+    keys.push(cursor);
+    if (cursor === toKey) break;
+    cursor = shiftCivilDayKey(cursor, 1);
+  }
+  return keys;
+}
+
+function sumSalesOnFile(
+  salesByDay: ReadonlyMap<string, number>,
+  keys: readonly string[],
+): number | null {
+  let saw = false;
+  let sum = 0;
+  for (const key of keys) {
+    if (!salesByDay.has(key)) continue;
+    const amount = salesByDay.get(key);
+    if (amount == null || !Number.isFinite(amount)) continue;
+    saw = true;
+    sum += amount;
+  }
+  return saw ? round2(sum) : null;
+}
+
+function thisWeekKeys(asOfKey: string): string[] {
+  const monday = mondayOfDayKey(asOfKey);
+  return eachCivilKeyInclusive(monday, asOfKey);
+}
+
+function thisMonthKeys(asOfKey: string): string[] {
+  const start = `${asOfKey.slice(0, 7)}-01`;
+  return eachCivilKeyInclusive(start, asOfKey);
+}
+
+function shiftedKeys(keys: readonly string[], deltaDays: number): string[] {
+  return keys.map((key) => shiftCivilDayKey(key, deltaDays));
+}
+
+function formatPeriodCopy(opts: {
+  label: string;
+  current: number | null;
+  lastYear: number | null;
+  previousWeek: number | null;
+  money: (n: number) => string;
+}): string | null {
+  if (opts.current == null) return null;
+  const currentText = `Shopify Total Sales ${opts.label} is ${opts.money(opts.current)}`;
+  if (opts.lastYear != null) {
+    return `${currentText} versus ${opts.money(opts.lastYear)} the same weekdays last year.`;
+  }
+  if (opts.previousWeek != null) {
+    return `${currentText} versus ${opts.money(opts.previousWeek)} last week (same weekdays last year not on file).`;
+  }
+  return `${currentText}. Same weekdays last year and last week are not on file.`;
+}
+
+export type ExplorerWeekMonthCopy = {
+  week: string | null;
+  month: string | null;
+  combined: string;
+};
+
+/**
+ * Copyable this-week / this-month Shopify Total Sales and the same
+ * weekday-shifted last year $, or previous week $ when last year is missing.
+ * Never a fake $0. A percent-only chip is not enough.
+ */
+export function explorerWeekMonthCopyText(opts: {
+  salesByDay: ReadonlyMap<string, number>;
+  asOfKey: string;
+  money: (n: number) => string;
+}): ExplorerWeekMonthCopy | null {
+  if (!DATE_KEY_RE.test(opts.asOfKey)) return null;
+  const weekKeys = thisWeekKeys(opts.asOfKey);
+  const monthKeys = thisMonthKeys(opts.asOfKey);
+  const prevWeekKeys = shiftedKeys(weekKeys, -7);
+  const lastYearWeekKeys = shiftedKeys(
+    weekKeys,
+    EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS,
+  );
+  const lastYearMonthKeys = shiftedKeys(
+    monthKeys,
+    EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS,
+  );
+  const week = formatPeriodCopy({
+    label: "this week",
+    current: sumSalesOnFile(opts.salesByDay, weekKeys),
+    lastYear: sumSalesOnFile(opts.salesByDay, lastYearWeekKeys),
+    previousWeek: sumSalesOnFile(opts.salesByDay, prevWeekKeys),
+    money: opts.money,
+  });
+  const month = formatPeriodCopy({
+    label: "this month",
+    current: sumSalesOnFile(opts.salesByDay, monthKeys),
+    lastYear: sumSalesOnFile(opts.salesByDay, lastYearMonthKeys),
+    previousWeek: sumSalesOnFile(opts.salesByDay, prevWeekKeys),
+    money: opts.money,
+  });
+  if (!week && !month) return null;
+  const combined = [week, month].filter(Boolean).join("\n");
+  return { week, month, combined };
+}
+

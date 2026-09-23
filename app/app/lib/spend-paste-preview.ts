@@ -29,7 +29,7 @@ export type SpendPasteLiveIndex = {
 export type SpendPasteBook = {
   certifiedSalesByDay: Record<string, number>;
   buyerDays: SpendPasteBuyerDay[];
-  /** Live unique OrderFacts. Null on SAMPLE — use buyerDays instead. */
+  /** Unique OrderFacts (Live shopify_order_v1 or SAMPLE source). Null only when no order book. */
   liveBuyerIndex: SpendPasteLiveIndex | null;
   salesFloorKey: string;
   salesPending: boolean;

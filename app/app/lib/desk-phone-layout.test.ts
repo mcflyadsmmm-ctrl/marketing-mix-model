@@ -51,7 +51,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).not.toContain("label=\"Ads\"");
   });
 
-  it("keeps a swipe rail in the phone block; Overview glance is a 3-up spine", () => {
+  it("keeps a swipe rail in the phone block; Overview glance stacks with last year visible", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
@@ -75,7 +75,80 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain(".mcfly-chart__typical");
     expect(css).toContain(".mcfly-chart__hero");
     expect(css).toContain(".mcfly-chart__sales-fill");
-    expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
+    expect(css).not.toContain("max-width: calc(33.333% - 0.24rem)");
+    const glanceAt = css.indexOf(
+      "@media (max-width: 36rem) {\n  .mcfly-yoy--glance .mcfly-yoy__grid,",
+    );
+    expect(glanceAt).toBeGreaterThan(-1);
+    const glanceBlock = css.slice(glanceAt, css.indexOf("@media", glanceAt + 10));
+    expect(glanceBlock).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(glanceBlock).toMatch(
+      /\.mcfly-yoy--glance \.mcfly-yoy__prior\s*\{[^}]*display:\s*flex/,
+    );
+    expect(glanceBlock).not.toMatch(/\.mcfly-yoy__prior[\s\S]*display:\s*none/);
+    expect(glanceBlock).not.toContain("33.333%");
+    expect(glanceBlock).toContain("white-space: normal");
+    const narrowAt = css.indexOf(
+      "@media (max-width: 430px) {\n  .mcfly-yoy--glance .mcfly-yoy__grid,",
+    );
+    expect(narrowAt).toBeGreaterThan(glanceAt);
+    const narrowBlock = css.slice(narrowAt, css.indexOf("@media", narrowAt + 10));
+    expect(narrowBlock).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(narrowBlock).not.toContain("33.333%");
+    expect(narrowBlock).toMatch(
+      /\.mcfly-yoy--glance \.mcfly-yoy__prior\s*\{[^}]*display:\s*flex/,
+    );
+    expect(glanceBlock).toContain(".mcfly-cpa__windows .mcfly-yoy__range");
+    expect(glanceBlock).toMatch(
+      /\.mcfly-cpa__windows \.mcfly-yoy__range[\s\S]*?display:\s*inline/,
+    );
+    expect(glanceBlock).toMatch(
+      /\.mcfly-yoy--glance \.mcfly-yoy__range[\s\S]*?display:\s*none/,
+    );
+  });
+
+  it("at 36rem, this month vs the plan, peek text, and CPA dates stay on screen", () => {
+    const goals = read("../routes/app.goals.tsx");
+    const cards = read("../components/CpaWindowCards.tsx");
+    expect(goals).toContain("mcfly-goals-month-stack");
+    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
+    expect(goals).toContain("formatSalesOrDash(prior, currency)");
+    expect(goals).toContain("ThisMonthPlanStack");
+    expect(cards).toContain("mcfly-yoy--cpa");
+    expect(cards).toContain("window.rangeLabel");
+    expect(cards).toContain("mcfly-yoy__range");
+    expect(cards).not.toContain("mcfly-yoy--glance");
+
+    const phoneGoals = lastBlock(css, "Phone Goals board + chips + CPA dates");
+    const mediaStart = phoneGoals.indexOf("@media (max-width: 36rem)");
+    expect(mediaStart).toBeGreaterThan(-1);
+    const morningAt = phoneGoals.indexOf("Morning habit");
+    const phone36 = phoneGoals.slice(
+      mediaStart,
+      morningAt === -1 ? undefined : morningAt,
+    );
+
+    expect(phone36).toContain(".mcfly-goals-table");
+    expect(phone36).toContain("min-width: 0");
+    expect(phone36).toContain("white-space: normal");
+    expect(phone36).toContain("overflow-wrap: anywhere");
+    expect(phone36).not.toContain("min-width: 720px");
+    expect(phone36).toContain(".mcfly-goals-month-stack__grid");
+    expect(phone36).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(phone36).toContain("max-width: none !important");
+    expect(phone36).not.toContain("33.333%");
+    expect(phone36).toContain("flex-wrap: wrap");
+    expect(phone36).toContain(".mcfly-desk-panel-rail__chip");
+    expect(phone36).toContain("font-size: 0.88rem");
+    expect(phone36).toMatch(
+      /\.mcfly-cpa__windows \.mcfly-yoy__range[\s\S]*?display:\s*inline/,
+    );
+    expect(phone36).not.toMatch(
+      /\.mcfly-cpa__windows[\s\S]*\.mcfly-yoy__range[\s\S]*display:\s*none/,
+    );
+    expect(phone36).toContain(".mcfly-score--orders-hero");
+    expect(phone36).toContain(".mcfly-score--customers-hero");
+    expect(css).toContain("overflow-x: hidden");
   });
 
   it("wraps 5 analysis tabs as small spaced pills — never a smooshed nowrap strip", () => {

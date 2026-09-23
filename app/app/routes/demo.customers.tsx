@@ -62,6 +62,7 @@ function demoLtvMetrics(data: PublicSamplePage): CustomersLtvMetrics {
       repeatRate: data.ltv.repeatRate,
       avgOrdersD90: data.ltv.avgOrdersD90,
       paybackDays: null,
+      truncatedLifetimeBuyers: data.customers.truncatedLifetimeBuyers,
     },
     totalSpend: spend,
     marginPct: data.marginPct,
@@ -124,9 +125,19 @@ export default function PublicDemoCustomers() {
       shopLabel: data.shopLabel,
       sample: true,
       periodLabel: data.rangeLabel,
+      todaySalesTruncated: false,
     },
     (n) => formatCurrency(n, currency),
   );
+  const returningInsight = {
+    ...insightView,
+    cards: insightView.cards.filter((card) => card.kind === "returning"),
+    empty: null,
+  };
+  const depthInsight = {
+    ...insightView,
+    cards: insightView.cards.filter((card) => card.kind !== "returning"),
+  };
 
   return (
     <DeskBookPage
@@ -137,6 +148,7 @@ export default function PublicDemoCustomers() {
       useSampleDesk
       isLoading={navigation.state === "loading"}
       showPeriod={false}
+      orderBookDepth="paid_full"
       retryHref="/demo/customers"
     >
       <p className="mcfly-book__lede">
@@ -147,6 +159,7 @@ export default function PublicDemoCustomers() {
         <p className="mcfly-book__lede">
           {deskBookLede(
             "Shopify Analytics Customers is a customer list. Deeper: returning dollars vs new, dollars per buyer, then LTV, growth, and who the dollars sit with.",
+            "paid_full",
           )}
         </p>
         <div id="mcfly-returning">
@@ -156,7 +169,14 @@ export default function PublicDemoCustomers() {
               book={data.book}
               salesPending={false}
               useSampleDesk
+              todaySalesTruncated={false}
             />
+            {returningInsight.cards.length > 0 ? (
+              <ShareableInsightCards
+                view={returningInsight}
+                shotMode={data.shotMode}
+              />
+            ) : null}
             <CustomerMixChart analytics={data.customers} salesPending={false} />
             <CustomersScoreboard
               book={data.book}
@@ -188,6 +208,10 @@ export default function PublicDemoCustomers() {
               useSampleDesk
               shopLabel={data.shopLabel}
               shotMode={data.shotMode}
+              orderSteps={data.customers.orderSteps}
+              quietBack={data.customers.quietBack}
+              comebackWait={data.customers.comebackWait}
+              lifetimeSpan={data.customers.lifetimeSpan}
             />
           </DeskLane>
         </div>
@@ -207,7 +231,12 @@ export default function PublicDemoCustomers() {
             <CustomerWhaleTable analytics={data.customers} />
             <CustomerConcentrationChart book={data.book} depth={data.depth} />
             <CustomersLtvDepth {...ltvProps} />
-            <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
+            {depthInsight.cards.length > 0 || depthInsight.empty ? (
+              <ShareableInsightCards
+                view={depthInsight}
+                shotMode={data.shotMode}
+              />
+            ) : null}
           </DeskLane>
         </div>
       </div>

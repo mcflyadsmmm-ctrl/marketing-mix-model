@@ -16,21 +16,17 @@ import {
 } from "../lib/overview-sales-chart";
 import {
   buildOrdersIntelKpis,
+  ordersCodeTookLabel,
   ordersIntelDayLabel,
+  ordersMonthBoardSentence,
+  ordersPaintDollars,
   type OrdersAovTier,
-  type OrdersIntelAgg,
+  type OrdersIntelData,
   type OrdersIntelDay,
   type OrdersWeekRow,
 } from "../lib/orders-intelligence";
 
-export type OrdersIntel = {
-  windowLabel: string;
-  days: OrdersIntelDay[];
-  weeks: OrdersWeekRow[];
-  tiers: OrdersAovTier[];
-  current: OrdersIntelAgg;
-  prior: OrdersIntelAgg | null;
-};
+export type OrdersIntel = OrdersIntelData;
 
 type IntelGrain = "day" | "week";
 
@@ -41,12 +37,20 @@ function deltaCopy(dir: "up" | "down" | "flat", pct: number): string {
 }
 
 /**
- * Order intelligence (90d) — vs-prior KPI strip + a dual-axis daily chart
- * (Orders bars, AOV line). Order data only; zero spend / ROAS.
+ * Order intelligence for the period the merchant picked — vs-prior KPI strip,
+ * which codes took the money, and whether returns are climbing.
+ * Order data only; zero spend / ROAS.
  */
 export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
   const currency = useDeskCurrency();
   const kpis = buildOrdersIntelKpis(intel.current, intel.prior, currency);
+  const sentence = ordersMonthBoardSentence({
+    periodLabel: intel.periodLabel,
+    codes: intel.codes,
+    returnsDrag: intel.returnsDrag,
+    priorReturnsDrag: intel.priorReturnsDrag,
+    currency,
+  });
   return (
     <section
       className="mcfly-orders-intel mcfly-orders-intel--soft mcfly-desk-anchor"
@@ -56,9 +60,10 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
         <p className="mcfly-orders-intel__title">
           <DeskIcon name="orders" />
           Order intelligence
-          <span className="mcfly-orders-intel__badge">90d</span>
+          <span className="mcfly-orders-intel__badge">{intel.badge}</span>
         </p>
         <p className="mcfly-orders-intel__window">{intel.windowLabel}</p>
+        <p className="mcfly-orders-intel__window">{sentence}</p>
       </div>
       <div className="mcfly-orders-intel__kpis">
         {kpis.map((kpi) => (
@@ -77,6 +82,7 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
           </div>
         ))}
       </div>
+      <OrdersPeriodMix intel={intel} currency={currency} />
       <OrdersDualAxisChart
         days={intel.days}
         weeks={intel.weeks}
@@ -85,6 +91,120 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
       <OrdersAovTiers tiers={intel.tiers} currency={currency} />
       <OrdersLedgerTable weeks={intel.weeks} currency={currency} />
     </section>
+  );
+}
+
+function paintPct(share: number | null | undefined): string {
+  if (share == null || !Number.isFinite(share)) return "—";
+  return `${Math.round(share * 100)}%`;
+}
+
+function paintMoney(amount: number | null | undefined, currency: string): string {
+  if (amount == null || !Number.isFinite(amount)) return "—";
+  return formatCurrency(amount, currency);
+}
+
+function OrdersPeriodMix({
+  intel,
+  currency,
+}: {
+  intel: OrdersIntel;
+  currency: string;
+}) {
+  const drill = useDeskDrill();
+  const half =
+    intel.concentration.buyersForHalf != null
+      ? `${intel.concentration.buyersForHalf.toLocaleString()} identified buyers`
+      : "—";
+  const top = paintPct(intel.concentration.topDecileShare);
+  const codeLine = intel.yearDiscount.codes
+    .map((line) => ordersCodeTookLabel(line.code, line.sales, currency))
+    .filter((label): label is string => label != null)
+    .join(" · ");
+  const discountNow = paintMoney(intel.yearDiscount.currentDollars, currency);
+  const discountLy = paintMoney(intel.yearDiscount.lastYearDollars, currency);
+  const keptNow = paintPct(intel.keptShare.current);
+  const keptLy = paintPct(intel.keptShare.lastYear);
+  const firstOff = paintPct(intel.checkoutDiscount.firstDepth);
+  const returningOff = paintPct(intel.checkoutDiscount.returningDepth);
+  const perUnit = paintMoney(intel.dollarsPerUnit.dollarsPerUnit, currency);
+  const perUnitSub =
+    intel.dollarsPerUnit.dollarsPerUnit != null
+      ? intel.dollarsPerUnit.basis === "net"
+        ? "Net per unit on file"
+        : "Shopify Total Sales per unit on file"
+      : "Units not crawled";
+  const zeroUnits =
+    intel.zeroOrders.units != null
+      ? `${intel.zeroOrders.units.toLocaleString()} units`
+      : "units not crawled";
+  const facts: Array<{ k: string; v: string; s?: string; d: string }> = [
+    {
+      k: "Buyers for half",
+      v: half,
+      s: `${intel.concentration.identifiedBuyers.toLocaleString()} identified`,
+      d: "Identified buyers who made 50% of this period’s Shopify Total Sales. Guests out. Under 8 identified buyers stays —.",
+    },
+    {
+      k: "Top tenth",
+      v: top,
+      d: "Share of this period’s identified Shopify Total Sales from the top tenth of identified buyers. Guests out.",
+    },
+    {
+      k: "Discount vs last year",
+      v: `${discountNow} · last year ${discountLy}`,
+      s: `${paintPct(intel.yearDiscount.currentDepth)} now · ${paintPct(intel.yearDiscount.lastYearDepth)} last year${codeLine ? ` · ${codeLine}` : ""}`,
+      d: "Discount dollars and depth versus the same window last year. Codes are names. Missing last year is —.",
+    },
+    {
+      k: "Placed-day kept",
+      v: `${keptNow} · last year ${keptLy}`,
+      d: "Net versus gross on the placed day, this period vs last year. Any missing gross stays —. Not a refund processing date.",
+    },
+    {
+      k: "First vs returning off",
+      v: `${firstOff} first · ${returningOff} returning`,
+      d: "Share of gross taken off at first checkouts versus returning checkouts this period. Missing discount field stays —.",
+    },
+    {
+      k: "Dollars per unit",
+      v: perUnit,
+      s: perUnitSub,
+      d: "Period sales divided by units on file. Dash when unitCount is not crawled.",
+    },
+    {
+      k: "$0 orders",
+      v: `${intel.zeroOrders.count.toLocaleString()}`,
+      s: zeroUnits,
+      d: "Orders with a $0 amount and the units on those rows. This desk does not know they are internal. Order tags stay off.",
+    },
+  ];
+  return (
+    <div className="mcfly-orders-mix" aria-label="Period mix">
+      {facts.map((fact) => (
+        <button
+          type="button"
+          className="mcfly-orders-mix__fact"
+          key={fact.k}
+          onClick={() =>
+            drill?.openDrill({
+              title: fact.k,
+              value: fact.v,
+              kicker: intel.periodLabel,
+              blocks: [
+                { k: "What this is", v: fact.d },
+                fact.s ? { k: "Also", v: fact.s } : null,
+              ].filter((block): block is { k: string; v: string } => block != null),
+              next: "Order history only — guests out of identified mixes.",
+            })
+          }
+        >
+          <span className="mcfly-orders-mix__k">{fact.k}</span>
+          <span className="mcfly-orders-mix__v">{fact.v}</span>
+          {fact.s ? <span className="mcfly-orders-mix__s">{fact.s}</span> : null}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -394,7 +514,22 @@ function deltaChipCopy(dir: "up" | "down" | "flat", pct: number): string {
   return `${sign}${Math.abs(Math.round(pct))}%`;
 }
 
-/** Audit-grade weekly ledger — Week · Orders (Δ) · Sales · AOV · Discount. */
+function codeCell(week: OrdersWeekRow, currency: string): string {
+  const labels = week.codeLines
+    .map((line) => ordersCodeTookLabel(line.code, line.sales, currency))
+    .filter((label): label is string => label != null);
+  return labels.length > 0 ? labels.join(" · ") : "—";
+}
+
+function returnsCell(week: OrdersWeekRow, currency: string): string {
+  const money = ordersPaintDollars(week.returnsDrag, currency);
+  if (week.returnsClimbing === "climbing") {
+    return money ? `${money} · climbing` : "climbing";
+  }
+  return money ?? "—";
+}
+
+/** Audit-grade weekly ledger — orders, sales, code dollars, returns. */
 function OrdersLedgerTable({
   weeks,
   currency,
@@ -407,7 +542,7 @@ function OrdersLedgerTable({
   const rows = [...weeks].reverse();
   return (
     <div className="mcfly-orders-ledger">
-      <p className="mcfly-orders-ledger__cap">Weekly ledger · Monday-start · this window</p>
+      <p className="mcfly-orders-ledger__cap">Weekly ledger · Monday-start · this period</p>
       <div className="mcfly-orders-ledger__wrap">
         <table className="mcfly-orders-ledger__table">
           <thead>
@@ -418,6 +553,8 @@ function OrdersLedgerTable({
               <th scope="col">Sales</th>
               <th scope="col">AOV</th>
               <th scope="col">Discount</th>
+              <th scope="col">Codes</th>
+              <th scope="col">Returns</th>
             </tr>
           </thead>
           <tbody>
@@ -432,6 +569,12 @@ function OrdersLedgerTable({
                     { k: "AOV", v: formatCurrency(week.aov, currency) },
                     week.discountDepth != null
                       ? { k: "Discount depth", v: `${Math.round(week.discountDepth * 100)}%` }
+                      : null,
+                    codeCell(week, currency) !== "—"
+                      ? { k: "Codes", v: codeCell(week, currency) }
+                      : null,
+                    returnsCell(week, currency) !== "—"
+                      ? { k: "Returns", v: returnsCell(week, currency) }
                       : null,
                   ].filter((b): b is { k: string; v: string } => b != null),
                   next: "Monday-start week from this shop's orders — not a platform pixel.",
@@ -462,6 +605,8 @@ function OrdersLedgerTable({
                       ? `${Math.round(week.discountDepth * 100)}%`
                       : "—"}
                   </td>
+                  <td>{codeCell(week, currency)}</td>
+                  <td>{returnsCell(week, currency)}</td>
                 </tr>
               );
             })}

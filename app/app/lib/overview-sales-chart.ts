@@ -1,3 +1,6 @@
+import { OVERVIEW_LAST_YEAR_NOT_ON_FILE } from "./overview-first-viewport";
+import { overviewWindowRange } from "./overview-yoy";
+import { shopLocalDayKey, shopLocalHour } from "./shop-local-day";
 import { parseShopCurrencyCode } from "./spend-money";
 
 const MONTHS = [
@@ -406,4 +409,377 @@ export function overviewDeltaCopy(delta: OverviewDelta | null): string | null {
   if (delta == null) return null;
   const sign = delta.pct > 0 ? "+" : delta.pct < 0 ? "−" : "±";
   return `${sign}${Math.abs(delta.pct)}% vs prior`;
+}
+
+/** Same weekday last year — 52 weeks, not the calendar date. */
+export const OVERVIEW_SAME_WEEKDAY_SHIFT_DAYS = -364;
+
+export type OverviewClockOrder = {
+  orderedAt: Date;
+  amount: number;
+};
+
+/** Serializable clock orders for the Overview loader → desk. */
+export type OverviewClockOrderInput = {
+  orderedAt: string;
+  amount: number;
+};
+
+export type OverviewClockPayload = {
+  timeZone: string | null;
+  nowIso: string;
+  /** Book has not synced — today must not paint as a finished $0. */
+  pending: boolean;
+  /** Null when today's orders are not on file. Empty means a real zero. */
+  todayOrders: OverviewClockOrderInput[] | null;
+  /** Null when that weekday's orders are not in the stored book. */
+  priorOrders: OverviewClockOrderInput[] | null;
+};
+
+export type OverviewClockStatus = "no-timezone" | "syncing" | "ready";
+
+export type OverviewClockCompare = {
+  status: OverviewClockStatus;
+  clockLabel: string | null;
+  todaySales: number | null;
+  priorSales: number | null;
+  todayKey: string | null;
+  priorKey: string | null;
+};
+
+export type OverviewSameDatesWindow = {
+  fromKey: string;
+  toKey: string;
+  /** Each current day mapped onto the prior year. Not a filled calendar span. */
+  dateKeys: string[];
+};
+
+function clockMinute(instant: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
+  if (!Number.isFinite(minute)) return 0;
+  return Math.min(59, Math.max(0, minute));
+}
+
+function clockSecond(instant: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const second = Number(parts.find((part) => part.type === "second")?.value ?? 0);
+  if (!Number.isFinite(second)) return 0;
+  return Math.min(59, Math.max(0, second));
+}
+
+/** Shop-local seconds after midnight. Hour grain matches Orders' shopLocalHour. */
+function shopLocalClockSeconds(instant: Date, timeZone: string): number {
+  const hour = shopLocalHour(instant, timeZone);
+  return hour * 3600 + clockMinute(instant, timeZone) * 60 + clockSecond(instant, timeZone);
+}
+
+function formatShopClock(instant: Date, timeZone: string): string {
+  const hour = shopLocalHour(instant, timeZone);
+  const minute = clockMinute(instant, timeZone);
+  const suffix = hour >= 12 ? "pm" : "am";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h12}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+/**
+ * Same calendar month/day one year earlier.
+ * Feb 29 has no prior-year date — returns null. Does not clamp onto Feb 28.
+ */
+export function overviewCalendarDateLastYear(dateKey: string): string | null {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+  const priorYear = year - 1;
+  const shifted = new Date(Date.UTC(priorYear, month - 1, day));
+  if (
+    shifted.getUTCFullYear() !== priorYear ||
+    shifted.getUTCMonth() !== month - 1 ||
+    shifted.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return utcDateKey(shifted);
+}
+
+/**
+ * Custom from/to → those calendar dates one year earlier.
+ * A Feb 29 anywhere in the range makes the whole compare not on file.
+ * This is not {@link overviewPriorWindow}.
+ */
+export function overviewSameDatesLastYear(
+  fromKey: string,
+  toKey: string,
+): OverviewSameDatesWindow | null {
+  const lo = fromKey <= toKey ? fromKey : toKey;
+  const hi = fromKey <= toKey ? toKey : fromKey;
+  const span = overviewDaySpan(lo, hi);
+  if (span <= 0) return null;
+  const dateKeys: string[] = [];
+  let cursor = lo;
+  for (let index = 0; index < span; index += 1) {
+    const prior = overviewCalendarDateLastYear(cursor);
+    if (!prior) return null;
+    dateKeys.push(prior);
+    cursor = overviewShiftDayKey(cursor, 1);
+  }
+  const priorFrom = dateKeys[0];
+  const priorTo = dateKeys[dateKeys.length - 1];
+  if (!priorFrom || !priorTo) return null;
+  return { fromKey: priorFrom, toKey: priorTo, dateKeys };
+}
+
+/**
+ * Shopify Total Sales for those dates last year.
+ * Any missing day in the mapped prior window is null — never filled with $0.
+ * A stored 0 on every required day is a real zero.
+ */
+export function overviewSameDatesSales(
+  days: readonly SalesDayInput[],
+  fromKey: string,
+  toKey: string,
+): number | null {
+  const window = overviewSameDatesLastYear(fromKey, toKey);
+  if (!window) return null;
+  const byKey = new Map<string, number>();
+  for (const day of days) {
+    if (!Number.isFinite(day.sales)) continue;
+    if (!byKey.has(day.dateKey)) byKey.set(day.dateKey, day.sales);
+  }
+  let sum = 0;
+  for (const key of window.dateKeys) {
+    if (!byKey.has(key)) return null;
+    sum += byKey.get(key)!;
+  }
+  return sum;
+}
+
+function sameDatesRangeLabel(fromKey: string, toKey: string): string {
+  const lo = fromKey <= toKey ? fromKey : toKey;
+  const hi = fromKey <= toKey ? toKey : fromKey;
+  const span = overviewWindowRange(lo, hi) ?? `${lo}–${hi}`;
+  if (lo.slice(0, 4) === hi.slice(0, 4) && !span.includes(lo.slice(0, 4))) {
+    return `${span}, ${lo.slice(0, 4)}`;
+  }
+  return span;
+}
+
+function honestDeltaTail(delta: OverviewDelta | null): string {
+  if (delta == null) return "";
+  switch (delta.kind) {
+    case "even":
+      return " (even)";
+    case "up":
+      return ` (+${delta.pct}%)`;
+    case "down":
+      return ` (−${Math.abs(delta.pct)}%)`;
+    default: {
+      const _never: never = delta.kind;
+      return _never;
+    }
+  }
+}
+
+/** Labeled line for a custom range versus those dates last year. */
+export function overviewSameDatesSentence(input: {
+  fromKey: string;
+  toKey: string;
+  sales: number;
+  priorSales: number | null;
+  money: (amount: number) => string;
+}): string {
+  const label = sameDatesRangeLabel(input.fromKey, input.toKey);
+  if (input.priorSales == null || !Number.isFinite(input.sales)) {
+    return `Shopify Total Sales for ${label} versus those dates last year is — ${OVERVIEW_LAST_YEAR_NOT_ON_FILE}.`;
+  }
+  const delta = overviewDeltaPct(input.sales, input.priorSales);
+  return `Shopify Total Sales for ${label} is ${input.money(input.sales)} versus ${input.money(input.priorSales)} those dates last year${honestDeltaTail(delta)}.`;
+}
+
+function sumThroughClock(
+  orders: readonly OverviewClockOrder[],
+  dayKey: string,
+  now: Date,
+  timeZone: string,
+): number {
+  const cutoff = shopLocalClockSeconds(now, timeZone);
+  let sum = 0;
+  for (const order of orders) {
+    const at = order.orderedAt;
+    if (!(at instanceof Date) || Number.isNaN(at.getTime())) continue;
+    if (!Number.isFinite(order.amount)) continue;
+    if (shopLocalDayKey(at, timeZone) !== dayKey) continue;
+    if (shopLocalClockSeconds(at, timeZone) > cutoff) continue;
+    sum += order.amount;
+  }
+  return sum;
+}
+
+function clockOrdersFromInput(
+  rows: OverviewClockOrderInput[] | null,
+): OverviewClockOrder[] | null {
+  if (rows == null) return null;
+  return rows.map((row) => ({
+    orderedAt: new Date(row.orderedAt),
+    amount: row.amount,
+  }));
+}
+
+/**
+ * Shopify Total Sales from shop-local midnight through the current shop-local
+ * clock, versus the same weekday last year through that clock.
+ * No timezone → not on file. No stored orders on the prior weekday → not on
+ * file, even when a sales-day total exists. Day totals have no hour split.
+ */
+export function overviewThroughClock(input: {
+  now: Date;
+  timeZone: string | null;
+  pending: boolean;
+  todayOrders: OverviewClockOrder[] | null;
+  priorOrders: OverviewClockOrder[] | null;
+}): OverviewClockCompare {
+  const zone = input.timeZone?.trim() || null;
+  if (!zone) {
+    return {
+      status: "no-timezone",
+      clockLabel: null,
+      todaySales: null,
+      priorSales: null,
+      todayKey: null,
+      priorKey: null,
+    };
+  }
+  const todayKey = shopLocalDayKey(input.now, zone);
+  const priorKey = overviewShiftDayKey(todayKey, OVERVIEW_SAME_WEEKDAY_SHIFT_DAYS);
+  const clockLabel = formatShopClock(input.now, zone);
+  if (input.pending || input.todayOrders == null) {
+    return {
+      status: "syncing",
+      clockLabel,
+      todaySales: null,
+      priorSales: null,
+      todayKey,
+      priorKey,
+    };
+  }
+  return {
+    status: "ready",
+    clockLabel,
+    todaySales: sumThroughClock(input.todayOrders, todayKey, input.now, zone),
+    priorSales:
+      input.priorOrders == null
+        ? null
+        : sumThroughClock(input.priorOrders, priorKey, input.now, zone),
+    todayKey,
+    priorKey,
+  };
+}
+
+/** One copyable sentence for the through-this-clock compare. */
+export function overviewClockSentence(
+  compare: OverviewClockCompare,
+  money: (amount: number) => string,
+): string {
+  switch (compare.status) {
+    case "no-timezone":
+      return `Shopify Total Sales through this clock is — ${OVERVIEW_LAST_YEAR_NOT_ON_FILE}.`;
+    case "syncing":
+      return "Shopify Total Sales through this clock is still loading — not $0.";
+    case "ready": {
+      const clock = compare.clockLabel ?? "this clock";
+      if (compare.todaySales == null) {
+        return `Shopify Total Sales through ${clock} is — ${OVERVIEW_LAST_YEAR_NOT_ON_FILE}.`;
+      }
+      const todayMoney = money(compare.todaySales);
+      if (compare.priorSales == null) {
+        return `Shopify Total Sales through ${clock} is ${todayMoney}, and the same weekday last year is — ${OVERVIEW_LAST_YEAR_NOT_ON_FILE}.`;
+      }
+      const delta = overviewDeltaPct(compare.todaySales, compare.priorSales);
+      return `Shopify Total Sales through ${clock} is ${todayMoney} versus ${money(compare.priorSales)} the same weekday last year${honestDeltaTail(delta)}.`;
+    }
+    default: {
+      const _never: never = compare.status;
+      return _never;
+    }
+  }
+}
+
+export function overviewClockSentenceFromPayload(
+  payload: OverviewClockPayload,
+  money: (amount: number) => string,
+): string {
+  return overviewClockSentence(
+    overviewThroughClock({
+      now: new Date(payload.nowIso),
+      timeZone: payload.timeZone,
+      pending: payload.pending,
+      todayOrders: clockOrdersFromInput(payload.todayOrders),
+      priorOrders: clockOrdersFromInput(payload.priorOrders),
+    }),
+    money,
+  );
+}
+
+/**
+ * Slim the stored order book down to today and the weekday 364 days earlier.
+ * A prior weekday with no stored orders stays null — a sales-day total is not
+ * an hour split.
+ */
+export function overviewClockPayloadFromOrders(input: {
+  now: Date;
+  timeZone: string | null;
+  pending: boolean;
+  orders: readonly OverviewClockOrder[] | null;
+}): OverviewClockPayload {
+  const zone = input.timeZone?.trim() || null;
+  const nowIso = input.now.toISOString();
+  if (!zone || input.orders == null) {
+    return {
+      timeZone: zone,
+      nowIso,
+      pending: input.pending,
+      todayOrders: null,
+      priorOrders: null,
+    };
+  }
+  const todayKey = shopLocalDayKey(input.now, zone);
+  const priorKey = overviewShiftDayKey(todayKey, OVERVIEW_SAME_WEEKDAY_SHIFT_DAYS);
+  const today: OverviewClockOrderInput[] = [];
+  const prior: OverviewClockOrderInput[] = [];
+  for (const order of input.orders) {
+    if (!(order.orderedAt instanceof Date) || Number.isNaN(order.orderedAt.getTime())) {
+      continue;
+    }
+    const key = shopLocalDayKey(order.orderedAt, zone);
+    const row = {
+      orderedAt: order.orderedAt.toISOString(),
+      amount: order.amount,
+    };
+    if (key === todayKey) today.push(row);
+    else if (key === priorKey) prior.push(row);
+  }
+  return {
+    timeZone: zone,
+    nowIso,
+    pending: input.pending,
+    todayOrders: today,
+    priorOrders: prior.length > 0 ? prior : null,
+  };
 }

@@ -7,13 +7,14 @@ import {
   habitGoalTargetSourceLabel,
   habitGoalsDailyRead,
   habitGoalsHistoryLine,
-  SAMPLE_HABIT_RETURNING_TARGET,
   type HabitGoalEmpty,
   type HabitGoalEmptyKind,
   type HabitGoalTargetSource,
   type HabitGoalTrack,
   type HabitGoalsView,
 } from "../lib/goals-habit";
+import { habitMorningGoalLine, morningSentence } from "../lib/morning-habit";
+import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 
@@ -131,7 +132,7 @@ function returningActionDetail(track: HabitGoalTrack | null): string {
   }
   switch (track.targetSource) {
     case "sample":
-      return `Sales from returning buyers in this Goals year, over the Snowdevil stretch (SAMPLE example — not a target you typed). ${guests}`;
+      return `Sales from returning buyers in this Goals year. SAMPLE does not invent a returning-$ target. ${guests}`;
     case "typed":
       return `Sales from returning buyers in this Goals year, over the returning-$ target you typed. ${guests}`;
     case "average":
@@ -161,10 +162,12 @@ export function OrderHistoryGoalsBoard({
   view,
   year,
   busy = false,
+  readOnly = false,
 }: {
   view: HabitGoalsView;
   year: number;
   busy?: boolean;
+  readOnly?: boolean;
 }) {
   const currency = useDeskCurrency();
   const deskHref = useDeskHref();
@@ -226,7 +229,7 @@ export function OrderHistoryGoalsBoard({
             <span key={i} style={{ height: `${Math.round(h * 100)}%` }} />
           ))}
         </div>
-        {empty.kind === "unset" ? (
+        {empty.kind === "unset" && !readOnly ? (
           <HabitGoalFields
             year={year}
             returningTarget={view.returningTarget}
@@ -252,6 +255,20 @@ export function OrderHistoryGoalsBoard({
     : returning
       ? formatCurrency(returning.actual, currency)
       : "—";
+  const goalLine = habitMorningGoalLine({
+    returningActual: returning
+      ? formatCurrency(returning.actual, currency)
+      : null,
+    returningTarget: returning
+      ? formatCurrency(returning.target, currency)
+      : null,
+    returningPct: returning?.pct ?? null,
+    returningMet: returning?.met,
+    targetSource: returning?.targetSource ?? null,
+    ltvActual: ltv ? formatCurrency(ltv.actual, currency) : null,
+    ltvWindow: ltv?.windowLabel ?? null,
+  });
+  const shownLine = goalLine ?? read?.line ?? null;
 
   return (
     <section
@@ -264,6 +281,7 @@ export function OrderHistoryGoalsBoard({
       </div>
 
       {read ? (
+        <div className="mcfly-morning-on-read">
         <button
           type="button"
           className="mcfly-habit-goals__read"
@@ -273,7 +291,7 @@ export function OrderHistoryGoalsBoard({
               value: heroMoney,
               kicker: "Today’s read",
               blocks: [
-                { k: "What this is", v: read.line },
+                { k: "What this is", v: shownLine ?? read.line },
                 ltv
                   ? {
                       k: "New-buyer worth",
@@ -295,8 +313,15 @@ export function OrderHistoryGoalsBoard({
         >
           <span className="mcfly-habit-goals__read-k">Today’s read</span>
           <span className="mcfly-habit-goals__read-v">{heroMoney}</span>
-          <span className="mcfly-habit-goals__read-line">{read.line}</span>
+          <span className="mcfly-habit-goals__read-line">{shownLine}</span>
         </button>
+        <CopyMorningSentence
+          sentence={morningSentence({
+            history: "ready",
+            goalLine,
+          })}
+        />
+        </div>
       ) : null}
 
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">
@@ -433,7 +458,7 @@ export function OrderHistoryGoalsBoard({
                   k: "Source",
                   v:
                     returning.targetSource === "sample"
-                      ? "Snowdevil stretch — SAMPLE example, not a target you typed."
+                      ? "SAMPLE example — not a target you typed."
                       : habitGoalTargetSourceLabel(returning.targetSource),
                 },
               ],
@@ -479,12 +504,14 @@ export function OrderHistoryGoalsBoard({
         </button>
       ) : null}
 
-      <HabitGoalFields
-        year={year}
-        returningTarget={view.returningTarget}
-        targetSource={returning?.targetSource ?? null}
-        busy={busy}
-      />
+      {!readOnly ? (
+        <HabitGoalFields
+          year={year}
+          returningTarget={view.returningTarget}
+          targetSource={returning?.targetSource ?? null}
+          busy={busy}
+        />
+      ) : null}
 
       <p className="mcfly-habit-goals__meta">
         <DeskIcon name="sales" /> Order history only. LTV Target Line is the
@@ -506,7 +533,6 @@ function HabitGoalFields({
   targetSource: HabitGoalTargetSource | null;
   busy: boolean;
 }) {
-  const sampleStretch = targetSource === "sample";
   return (
     <Form method="post" className="mcfly-habit-goals__form">
       <input type="hidden" name="intent" value="save_habit_goals" />
@@ -523,13 +549,6 @@ function HabitGoalFields({
           placeholder="e.g. 800000"
           aria-label="Year returning-dollar target"
         />
-        {sampleStretch ? (
-          <span className="mcfly-habit-goals__field-k">
-            Canvas uses Snowdevil stretch $
-            {SAMPLE_HABIT_RETURNING_TARGET.toLocaleString("en-US")} — SAMPLE
-            example, not a target you typed.
-          </span>
-        ) : null}
       </label>
       <button
         type="submit"

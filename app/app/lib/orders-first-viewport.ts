@@ -13,6 +13,10 @@ import {
   type OrdersFact,
 } from "./orders-scoreboard";
 import type { ShopifyDepthStats } from "./shopify-depth-stats";
+import {
+  ORDERS_TICKET_BASIS,
+  type OrdersPeriodTickets,
+} from "./orders-intelligence";
 
 export const ORDERS_PENDING_LINE =
   "Sales for closed days are still loading — not $0.";
@@ -50,7 +54,12 @@ export type OrdersOperatorGreetingInput = {
   orderCount: number;
   typicalOrderLabel: string | null;
   averageOrderLabel?: string | null;
+  todaySalesTruncated: boolean;
 };
+
+/** Live today hit the ~100-order cap — typical/average are not a closed day. */
+export const ORDERS_TODAY_TRUNCATED_LINE =
+  "Live today is capped at ~100 orders for a fast desk load. Typical and average include an incomplete today — not a closed day.";
 
 /**
  * PASS only when the first-fold hero is Mcfly-differentiated — not a free
@@ -81,6 +90,9 @@ export function ordersOperatorGreeting(
 ): string {
   if (input.salesPending) {
     return ORDERS_PENDING_LINE;
+  }
+  if (input.todaySalesTruncated) {
+    return ORDERS_TODAY_TRUNCATED_LINE;
   }
   if (!(input.orderCount > 0)) {
     return "No orders in this window yet.";
@@ -132,6 +144,52 @@ export function buildOrdersLeadPeeks(
       v: depth.meanUnitCount.toFixed(1),
       d: PRODUCT_NOUN.bookItemsPerOrderDef,
       icon: "orders",
+    });
+  }
+  return rows;
+}
+
+/**
+ * First-time vs returning ticket, plus shipping + tax next to typical
+ * so a ~20% gap is a named slice — not Shopify’s AOV.
+ */
+export function buildOrdersTicketPeeks(
+  tickets: OrdersPeriodTickets | null,
+  depth: ShopifyDepthStats,
+  currency: string,
+): OrdersFact[] {
+  const rows: OrdersFact[] = [];
+  if (tickets) {
+    rows.push({
+      k: "First-time ticket",
+      v:
+        isOrdersNum(tickets.firstTimeTicket)
+          ? formatCurrency(tickets.firstTimeTicket, currency)
+          : "—",
+      s: ORDERS_TICKET_BASIS,
+      d: "This period’s first orders. Shopify Total Sales per order — not Shopify’s AOV, which drops tax and shipping.",
+      icon: "orders",
+    });
+    rows.push({
+      k: "Returning ticket",
+      v:
+        isOrdersNum(tickets.returningTicket)
+          ? formatCurrency(tickets.returningTicket, currency)
+          : "—",
+      s: ORDERS_TICKET_BASIS,
+      d: "This period’s already-bought orders. Shopify Total Sales per order — not one blended AOV.",
+      icon: "orders",
+    });
+  }
+  if (isOrdersNum(depth.shippingTaxFees) && depth.shippingTaxFees > 0) {
+    rows.push({
+      k: "Shipping + tax",
+      v: formatCurrency(depth.shippingTaxFees, currency),
+      s: ordersHasShare(depth.shippingTaxFeesPct)
+        ? `${ordersPct(depth.shippingTaxFeesPct)} of Total Sales`
+        : undefined,
+      d: "Shipping, tax, duties and fees sitting above the product subtotal. That slice is why Total Sales per order sits above Shopify’s AOV.",
+      icon: "sales",
     });
   }
   return rows;

@@ -71,6 +71,7 @@ export type ShareableInsightInput = {
   shopLabel: string;
   sample: boolean;
   periodLabel: string;
+  todaySalesTruncated?: boolean;
 };
 
 function finitePositive(n: number | null | undefined): number | null {
@@ -210,6 +211,7 @@ function returningCard(
   input: ShareableInsightInput,
   money: (n: number) => string,
 ): ShareableInsightCard | null {
+  if (input.todaySalesTruncated) return null;
   const ret = finitePositive(input.returningSales);
   const share =
     input.returningShare != null &&
@@ -337,7 +339,7 @@ export function buildShareableInsights(
   };
 }
 
-export type SlackInsightId = ShareableInsightKind | "whale";
+export type SlackInsightId = ShareableInsightKind | "whale" | "firstTime";
 
 /** One paste-ready insight. Missing numbers never become a card. */
 export type SlackInsight = {
@@ -442,6 +444,32 @@ export function daysToSecondSlackInsight(input: {
 }
 
 /**
+ * Growth stand-up. First-time Shopify Total Sales this period, plus 2nd vs
+ * 3rd when both seal, plus reach-now. Never copy $0 or a pending window.
+ */
+export function firstTimeSlackInsight(input: {
+  line: string | null;
+  shopLabel: string;
+  sample: boolean;
+  where: string;
+}): SlackInsight | null {
+  const line = input.line?.trim() ?? "";
+  if (!line) return null;
+  if (/[$£€]\s*0(?:[.,]0+)?(?!\d)/.test(line)) return null;
+  return sealSlackInsight({
+    id: "firstTime",
+    label: "First-time dollars",
+    line,
+    formula:
+      "First-time Shopify Total Sales this period. 2nd vs 3rd when both shares seal. Reach-now from the win-back clock.",
+    trust: "Identified first-time dollars. Guests stay out of returning. Order history only.",
+    shopLabel: input.shopLabel,
+    sample: input.sample,
+    where: input.where,
+  });
+}
+
+/**
  * LTV chip. Same 90-then-30 peek as the posters. Year stays off when
  * history is limited — never a fake first year.
  */
@@ -479,6 +507,8 @@ export function whaleSlackInsight(input: {
   whaleCount: number;
   salesShare: number | null;
   medianLifetime: number | null;
+  coldShare: number | null;
+  historyLimited: boolean;
   shopLabel: string;
   sample: boolean;
   where: string;
@@ -494,12 +524,24 @@ export function whaleSlackInsight(input: {
   const typical = finitePositive(input.medianLifetime);
   if (count < 1 || share == null || typical == null) return null;
   const pct = wholePercent(share);
+  const cold =
+    !input.historyLimited &&
+    input.coldShare != null &&
+    Number.isFinite(input.coldShare) &&
+    input.coldShare > 0
+      ? wholePercent(input.coldShare)
+      : 0;
+  let line = `Best customers carry ${pct}% of identified sales. A typical best customer is ${input.money(typical)}.`;
+  if (cold > 0) {
+    line += ` ${cold}% have not ordered in over 180 days.`;
+  }
+  if (line.includes("$0")) return null;
   return sealSlackInsight({
     id: "whale",
     label: "Best customers",
-    line: `Best customers carry ${pct}% of identified sales. A typical best customer is ${input.money(typical)}.`,
+    line,
     formula:
-      "Share = best-customer lifetime $ ÷ identified lifetime $. Typical = median lifetime in the top tenth.",
+      "Share = best-customer lifetime $ ÷ identified lifetime $. Typical = median lifetime in the top tenth. Cold share = best customers whose last order is over 180 days ago.",
     trust: "Top tenth by lifetime dollars. Guests stay out. Order history only.",
     shopLabel: input.shopLabel,
     sample: input.sample,

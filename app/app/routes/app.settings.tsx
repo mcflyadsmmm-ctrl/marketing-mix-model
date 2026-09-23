@@ -34,6 +34,7 @@ import {
 } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
+import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -46,10 +47,7 @@ import {
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { BILLING_HONESTY } from "../lib/entitlements";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
-import {
-  parseHabitGoalInput,
-  SAMPLE_HABIT_RETURNING_TARGET,
-} from "../lib/goals-habit";
+import { parseHabitGoalInput } from "../lib/goals-habit";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -545,14 +543,8 @@ export default function SettingsPage() {
                   <span className="mcfly-settings-field__hint">
                     Returning-buyer dollars in the Goals year. Guests stay
                     out. Same field as Goals. LTV Target Line is the
-                    observed average — not set here.
-                    {useSampleDesk &&
-                    !(
-                      settings.returningSalesTarget != null &&
-                      settings.returningSalesTarget > 0
-                    )
-                      ? ` Goals paints a Snowdevil stretch $${SAMPLE_HABIT_RETURNING_TARGET.toLocaleString("en-US")} SAMPLE example until you type your own — not a number you typed.`
-                      : ""}
+                    observed average — not set here. SAMPLE with no typed
+                    target stays unset, like Live.
                   </span>
                 </div>
                 <button
@@ -587,7 +579,9 @@ export default function SettingsPage() {
               </p>
             ) : null}
             <p className="mcfly-control__k" style={{ marginTop: "0.75rem" }}>
-              $39 per store / month after a 7-day full-access trial
+              $39 per store / month after a 7-day trial. Unpaid order rows
+              stop at {LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.
+              One plan.
             </p>
             <ul className="mcfly-settings-guide">
               {billing.deskBullets.map((line) => (
@@ -615,9 +609,8 @@ export default function SettingsPage() {
                   className="mcfly-panel__muted"
                   style={{ marginTop: "0.75rem" }}
                 >
-                  Start 7-day trial opens when billing is on this host. The
-                  whole desk is included — one Live shop view, not a Sample
-                  plan.
+                  Start 7-day trial opens when billing is on this host. One Live shop view, not a Sample plan.
+                  Unpaid order rows stop at {LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.
                 </p>
               )
             ) : (

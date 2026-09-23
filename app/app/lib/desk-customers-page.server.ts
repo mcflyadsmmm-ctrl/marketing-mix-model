@@ -3,11 +3,12 @@
  * order-history window, plus RFM-lite / whale watchlist over the full stored
  * book, independent of the (hidden) period slicer.
  *
- * "When do they come back" and the mix marquee stay a trailing ~90-day read
- * (a month-to-date window cannot hold a repurchase cadence). RFM-lite and the
- * watchlist read the full stored OrderFact book — year / long recency when
- * `read_all_orders` has filled it. Thin shops stay honest empties, never a
- * fake lifetime.
+ * "When do they come back" stays a trailing ~90-day read (a month-to-date
+ * window cannot hold a repurchase cadence). The returning mix still plots
+ * that slice, but it classifies each buyer against the full stored book so a
+ * prior order outside the slice is returning, not new. Weekly first-time
+ * counts use OrderFact plus lifetimeOrders. RFM-lite and the watchlist read
+ * the full book too. Thin shops stay honest empties, never a fake lifetime.
  *
  * Reuses `loadDeskSalesPage` for period sales/metrics — this only adds one
  * OrderFact query plus pure analytics math. Order history only. No spend, no ROAS.
@@ -20,6 +21,7 @@ import {
   ORDER_FACT_SOURCE,
 } from "./order-facts.server";
 import { requireAdmin } from "./public-app-gate.server";
+import { deskPeriodTimeZone } from "./periods";
 import {
   buildCustomerAnalytics,
   type CustomerAnalytics,
@@ -37,23 +39,38 @@ export type CustomerPageAnalytics = CustomerAnalytics & {
 };
 
 function toRetentionRows(
-  rows: Array<{ customerKey: string; orderedAt: Date; amount: number }>,
+  rows: Array<{
+    customerKey: string;
+    orderedAt: Date;
+    amount: number;
+    lifetimeOrders: number | null;
+    shopLocalDate: Date;
+  }>,
 ): RetentionOrderRow[] {
   return rows.map((row) => ({
     customerKey: row.customerKey,
     orderedAt: row.orderedAt,
     amount: row.amount,
+    lifetimeOrders: row.lifetimeOrders,
+    shopLocalDate: row.shopLocalDate,
   }));
 }
 
 /**
  * Retention + value analytics for the Customers tab. `windowEnd` aligns with
  * the page's "as of" instant (period end) so the trailing window ends where
- * sales do. RFM-lite uses the same rows without a 90-day cap.
+ * sales do. The mix window is still that slice. Classification reads the full
+ * stored book, including orders older than the slice. RFM-lite uses the same
+ * rows without a 90-day cap.
  */
 export async function loadCustomerAnalytics(
   request: Request,
-  options: { useSampleDesk: boolean; windowEnd: Date },
+  options: {
+    useSampleDesk: boolean;
+    windowEnd: Date;
+    periodStart: Date;
+    periodEnd: Date;
+  },
 ): Promise<CustomerPageAnalytics> {
   const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
@@ -66,11 +83,17 @@ export async function loadCustomerAnalytics(
   const historyLimited = options.useSampleDesk
     ? false
     : await getOrderBackfillHistoryLimited(shop.id);
+  const timeZone = deskPeriodTimeZone(options.useSampleDesk, shop.ianaTimezone);
 
   return {
     ...buildCustomerAnalytics(recent, {
       windowEnd: end,
       historyWindowDays: CUSTOMERS_ANALYTICS_WINDOW_DAYS,
+      orderBook: mapped,
+      periodStart: options.periodStart,
+      periodEnd: options.periodEnd,
+      historyLimited,
+      timeZone,
     }),
     rfm: buildCustomerRfm(mapped, { windowEnd: end, historyLimited }),
   };

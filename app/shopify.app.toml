@@ -14,9 +14,8 @@ embedded = true
 automatically_update_urls_on_dev = false
 
 [access_scopes]
-# Partner-approved: full order history + ShopifyQL day totals (Analytics parity).
-# shopifyqlQuery also needs Partner PCD Level 2 fields (name, address, email, phone).
-scopes = "read_orders,read_customers,read_all_orders,read_reports"
+# Partner-approved: full order history so Live year / long LTV can seal.
+scopes = "read_orders,read_customers,read_all_orders"
 
 [webhooks]
 api_version = "2025-10"

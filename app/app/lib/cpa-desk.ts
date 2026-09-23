@@ -4,6 +4,8 @@
  */
 
 import { calculateAmer } from "@mcfly/mer-core";
+import type { LiveIngestDepth } from "./live-ingest-depth";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   overviewChartDayLabel,
   overviewIsoWeekStartKey,
@@ -15,11 +17,12 @@ import type { DateRange } from "./periods";
 import { resolvePeriod } from "./periods";
 import { cashCostPerCustomer } from "./shopify-native-stats";
 import {
-  dateKeyFromYmd,
+  listRecentClosedShopLocalDays,
   shopLocalDayKey,
   shopLocalDayRange,
-  shopLocalYmd,
 } from "./shop-local-day";
+import { closedDayEnd } from "./spend-explorer";
+import type { SpendPasteLiveIndex } from "./spend-paste-preview";
 
 export const CPA_WINDOW_IDS = ["this_month", "last_28"] as const;
 export type CpaWindowId = (typeof CPA_WINDOW_IDS)[number];
@@ -66,6 +69,40 @@ export const CPA_CONTRAST =
 export const CPA_EMPTY_SPEND =
   "Add spend in Spend Upload to calculate customer costs. Cash CPA and Cash CAC stay — until spend is on file — never a fake $0.";
 
+export const CPA_CLOSED_DAY_CLOCK =
+  "This month and Last 28 use closed days — incomplete today is out, same clock as Spend explorer.";
+
+export const CPA_TODAY_TRUNCATED =
+  "Today’s sales may be incomplete. Closed days are still in This month and Last 28.";
+
+export function cpaExplorerRangesFor(
+  orderBookDepth: LiveIngestDepth,
+): readonly CpaExplorerRange[] {
+  switch (orderBookDepth) {
+    case "paid_full":
+      return CPA_EXPLORER_RANGES;
+    case "trial_slice":
+      return CPA_EXPLORER_RANGES.filter((id) => id !== "ytd");
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
+}
+
+export function cpaYtdChipNote(orderBookDepth: LiveIngestDepth): string | null {
+  switch (orderBookDepth) {
+    case "paid_full":
+      return null;
+    case "trial_slice":
+      return `Unpaid till — no YTD. Order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days.`;
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
+}
+
 export const CPA_NO_BUYERS =
   "Shopify has not identified buyers for this window yet, so customer costs are unavailable — not $0.";
 
@@ -76,6 +113,10 @@ export type CpaDayPoint = {
   returningCustomers: number;
   newCustomerSales: number;
   buyersKnown: boolean;
+  /** Interned identified buyer ids for unique week/month grain. */
+  identifiedIds?: number[];
+  /** Interned new-buyer ids for unique week/month grain. */
+  newIds?: number[];
 };
 
 export type CpaWindowSnapshot = {
@@ -132,7 +173,7 @@ function localDayKey(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 }
 
-/** Rolling last-N calendar days through today (inclusive). */
+/** Rolling last-N closed calendar days (excludes incomplete today). */
 export function resolveLastNDays(
   n: number,
   now = new Date(),
@@ -141,32 +182,34 @@ export function resolveLastNDays(
   const days = Math.max(1, Math.floor(n));
   const label = days === 28 ? "Last 28 days" : `Last ${days} days`;
   if (timeZone) {
-    const { y, m, d } = shopLocalYmd(now, timeZone);
-    const startAnchor = new Date(Date.UTC(y, m - 1, d - (days - 1), 12, 0, 0));
-    const startKey = shopLocalDayKey(startAnchor, timeZone);
-    const todayKey = dateKeyFromYmd(y, m, d);
+    const closed = listRecentClosedShopLocalDays(timeZone, days, now);
+    const fromKey = closed[0];
+    const toKey = closed[closed.length - 1];
+    if (!fromKey || !toKey) {
+      const end = closedDayEnd(now);
+      return { start: end, end, label };
+    }
     return {
-      start: shopLocalDayRange(startKey, timeZone).start,
-      end: shopLocalDayRange(todayKey, timeZone).end,
+      start: shopLocalDayRange(fromKey, timeZone).start,
+      end: shopLocalDayRange(toKey, timeZone).end,
       label,
     };
   }
-  const end = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    23,
-    59,
-    59,
-    999,
-  );
-  const start = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - (days - 1),
-  );
+  const end = closedDayEnd(now);
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  start.setDate(start.getDate() - (days - 1));
   start.setHours(0, 0, 0, 0);
   return { start, end, label };
+}
+
+export function clampCpaRangeToClosedDays(
+  range: DateRange,
+  now = new Date(),
+  timeZone?: string | null,
+): DateRange {
+  const closed = resolveLastNDays(1, now, timeZone);
+  if (range.end.getTime() <= closed.end.getTime()) return range;
+  return { ...range, end: closed.end };
 }
 
 export function rangeDayKeys(
@@ -185,17 +228,37 @@ export function rangeDayKeys(
   };
 }
 
-/** This month + Last 28 on the cards; explorer lookback is YTD ∪ last 90. */
+/** This month + Last 28 on the cards; explorer lookback is YTD ∪ last 90 (paid) or last 90 (unpaid). */
 export function resolveCpaDeskWindows(
   now = new Date(),
-  timeZone?: string | null,
+  timeZone: string | null | undefined,
+  orderBookDepth: LiveIngestDepth,
 ): CpaDeskWindows {
-  const thisMonth = resolvePeriod("mtd", now, timeZone);
-  const ytd = resolvePeriod("ytd", now, timeZone);
+  const thisMonth = clampCpaRangeToClosedDays(
+    resolvePeriod("mtd", now, timeZone),
+    now,
+    timeZone,
+  );
+  const ytd = clampCpaRangeToClosedDays(
+    resolvePeriod("ytd", now, timeZone),
+    now,
+    timeZone,
+  );
   const last28 = resolveLastNDays(28, now, timeZone);
   const last90 = resolveLastNDays(90, now, timeZone);
-  const explorerStart =
+  let explorerStart =
     ytd.start.getTime() < last90.start.getTime() ? ytd.start : last90.start;
+  switch (orderBookDepth) {
+    case "trial_slice":
+      explorerStart = last90.start;
+      break;
+    case "paid_full":
+      break;
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
   return {
     thisMonth,
     last28,
@@ -338,6 +401,56 @@ export function applyUniqueBuyerCounts(
   };
 }
 
+function uniqueIdCount(ids: number[] | undefined): number {
+  if (!ids || ids.length === 0) return 0;
+  return new Set(ids).size;
+}
+
+/**
+ * Overlay interned OrderFact ids onto CPA days. Missing keys stay unknown
+ * (—), never SalesDayFact `newCustomers: 0`. Known-zero days are `[]`.
+ */
+export function applyLiveBuyerIndexToCpaDays(
+  days: CpaDayPoint[],
+  index: SpendPasteLiveIndex | null | undefined,
+): CpaDayPoint[] {
+  if (!index) return days;
+  return days.map((day) => {
+    const hasIdentified = Object.prototype.hasOwnProperty.call(
+      index.identifiedByDay,
+      day.dateKey,
+    );
+    const hasNew = Object.prototype.hasOwnProperty.call(
+      index.newByDay,
+      day.dateKey,
+    );
+    if (!hasIdentified && !hasNew) {
+      return {
+        ...day,
+        newCustomers: 0,
+        returningCustomers: 0,
+        buyersKnown: false,
+        identifiedIds: undefined,
+        newIds: undefined,
+      };
+    }
+    const identifiedIds = hasIdentified
+      ? [...(index.identifiedByDay[day.dateKey] ?? [])]
+      : [];
+    const newIds = hasNew ? [...(index.newByDay[day.dateKey] ?? [])] : [];
+    const identified = uniqueIdCount(identifiedIds);
+    const neu = uniqueIdCount(newIds);
+    return {
+      ...day,
+      newCustomers: neu,
+      returningCustomers: Math.max(0, identified - neu),
+      buyersKnown: true,
+      identifiedIds,
+      newIds,
+    };
+  });
+}
+
 export function buildCpaPaybackView(input: {
   cashCac: number | null;
   avgRevenueD30: number | null;
@@ -406,77 +519,142 @@ export function bucketCpaDays(
   days: CpaDayPoint[],
   grain: CpaGrain,
 ): CpaExplorerBucket[] {
-  if (grain === "day") {
-    return days.map((day) => {
-      const buyers = day.buyersKnown
-        ? Math.max(0, Math.trunc(day.newCustomers)) +
-          Math.max(0, Math.trunc(day.returningCustomers))
-        : null;
-      return {
-        key: day.dateKey,
-        label: overviewChartDayLabel(day.dateKey),
-        spend: day.spend > 0 ? day.spend : 0,
-        buyers,
-        newCustomers: day.buyersKnown ? Math.max(0, Math.trunc(day.newCustomers)) : 0,
-        returningCustomers: day.buyersKnown
-          ? Math.max(0, Math.trunc(day.returningCustomers))
-          : 0,
-        cashCpa:
-          day.buyersKnown && buyers != null
-            ? cashCostPerCustomer(day.spend, buyers)
-            : null,
-        weekend: overviewIsWeekendKey(day.dateKey),
+  switch (grain) {
+    case "day":
+      return days.map((day) => {
+        const fromIds = day.identifiedIds != null;
+        const identified = fromIds
+          ? uniqueIdCount(day.identifiedIds)
+          : day.buyersKnown
+            ? Math.max(0, Math.trunc(day.newCustomers)) +
+              Math.max(0, Math.trunc(day.returningCustomers))
+            : null;
+        const newCustomers = fromIds
+          ? uniqueIdCount(day.newIds)
+          : day.buyersKnown
+            ? Math.max(0, Math.trunc(day.newCustomers))
+            : 0;
+        const returningCustomers = fromIds
+          ? Math.max(0, (identified ?? 0) - newCustomers)
+          : day.buyersKnown
+            ? Math.max(0, Math.trunc(day.returningCustomers))
+            : 0;
+        const buyersKnown = fromIds || day.buyersKnown;
+        const buyers = buyersKnown ? identified : null;
+        return {
+          key: day.dateKey,
+          label: overviewChartDayLabel(day.dateKey),
+          spend: day.spend > 0 ? day.spend : 0,
+          buyers,
+          newCustomers,
+          returningCustomers,
+          cashCpa:
+            buyersKnown && buyers != null
+              ? cashCostPerCustomer(day.spend, buyers)
+              : null,
+          weekend: overviewIsWeekendKey(day.dateKey),
+        };
+      });
+    case "week":
+    case "month": {
+      type Acc = {
+        spend: number;
+        newCustomers: number;
+        returningCustomers: number;
+        buyersKnown: boolean;
+        identifiedIds: number[] | null;
+        newIds: number[] | null;
+        unknown: boolean;
       };
-    });
-  }
+      const map = new Map<string, Acc>();
+      for (const day of days) {
+        const key =
+          grain === "week"
+            ? `W:${overviewIsoWeekStartKey(day.dateKey)}`
+            : monthBucketKey(day.dateKey);
+        const prev = map.get(key) ?? {
+          spend: 0,
+          newCustomers: 0,
+          returningCustomers: 0,
+          buyersKnown: false,
+          identifiedIds: null,
+          newIds: null,
+          unknown: false,
+        };
+        prev.spend += day.spend > 0 ? day.spend : 0;
+        if (day.identifiedIds != null && day.newIds != null) {
+          if (prev.unknown) {
+            map.set(key, prev);
+            continue;
+          }
+          prev.identifiedIds = [
+            ...(prev.identifiedIds ?? []),
+            ...day.identifiedIds,
+          ];
+          prev.newIds = [...(prev.newIds ?? []), ...day.newIds];
+          prev.buyersKnown = true;
+        } else if (day.buyersKnown) {
+          if (prev.identifiedIds != null) {
+            prev.unknown = true;
+            prev.buyersKnown = false;
+          } else {
+            prev.buyersKnown = true;
+            prev.newCustomers += Math.max(0, Math.trunc(day.newCustomers));
+            prev.returningCustomers += Math.max(
+              0,
+              Math.trunc(day.returningCustomers),
+            );
+          }
+        } else {
+          prev.unknown = true;
+          prev.buyersKnown = false;
+        }
+        map.set(key, prev);
+      }
 
-  type Acc = {
-    spend: number;
-    newCustomers: number;
-    returningCustomers: number;
-    buyersKnown: boolean;
-  };
-  const map = new Map<string, Acc>();
-  for (const day of days) {
-    const key =
-      grain === "week"
-        ? `W:${overviewIsoWeekStartKey(day.dateKey)}`
-        : monthBucketKey(day.dateKey);
-    const prev = map.get(key) ?? {
-      spend: 0,
-      newCustomers: 0,
-      returningCustomers: 0,
-      buyersKnown: false,
-    };
-    prev.spend += day.spend > 0 ? day.spend : 0;
-    if (day.buyersKnown) {
-      prev.buyersKnown = true;
-      prev.newCustomers += Math.max(0, Math.trunc(day.newCustomers));
-      prev.returningCustomers += Math.max(0, Math.trunc(day.returningCustomers));
+      return [...map.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, acc]) => {
+          const fromIds =
+            !acc.unknown && acc.identifiedIds != null && acc.newIds != null;
+          const newCustomers = fromIds
+            ? uniqueIdCount(acc.newIds ?? [])
+            : acc.buyersKnown
+              ? acc.newCustomers
+              : 0;
+          const buyers = acc.unknown
+            ? null
+            : fromIds
+              ? uniqueIdCount(acc.identifiedIds ?? [])
+              : acc.buyersKnown
+                ? acc.newCustomers + acc.returningCustomers
+                : null;
+          const returningCustomers = fromIds
+            ? Math.max(0, (buyers ?? 0) - newCustomers)
+            : acc.buyersKnown
+              ? acc.returningCustomers
+              : 0;
+          const buyersKnown = !acc.unknown && (fromIds || acc.buyersKnown);
+          return {
+            key,
+            label: overviewChartDayLabel(key),
+            spend: acc.spend,
+            buyers: buyersKnown ? buyers : null,
+            newCustomers,
+            returningCustomers,
+            cashCpa:
+              buyersKnown && buyers != null
+                ? cashCostPerCustomer(acc.spend, buyers)
+                : null,
+            weekend: false,
+          };
+        });
     }
-    map.set(key, prev);
+    default: {
+      const _never: never = grain;
+      throw new Error(`Unknown CPA grain: ${_never}`);
+    }
   }
-
-  return [...map.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, acc]) => {
-      const buyers = acc.buyersKnown
-        ? acc.newCustomers + acc.returningCustomers
-        : null;
-      return {
-        key,
-        label: overviewChartDayLabel(key),
-        spend: acc.spend,
-        buyers,
-        newCustomers: acc.newCustomers,
-        returningCustomers: acc.returningCustomers,
-        cashCpa:
-          acc.buyersKnown && buyers != null
-            ? cashCostPerCustomer(acc.spend, buyers)
-            : null,
-        weekend: false,
-      };
-    });
 }
 
 /** Median Cash CPA across buckets that have one — never a fake $0. */

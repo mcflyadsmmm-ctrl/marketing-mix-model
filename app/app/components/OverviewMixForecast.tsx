@@ -8,6 +8,8 @@ import {
   type OverviewMixEmptyKind,
   type OverviewMixForecastView,
 } from "../lib/overview-mix-forecast";
+import { morningSentence } from "../lib/morning-habit";
+import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 
@@ -104,9 +106,14 @@ function pct(share: number): string {
 export function OverviewMixForecast({
   view,
   customersHref = "/app/customers",
+  typicalOrder = null,
+  meanAov = null,
 }: {
   view: OverviewMixForecastView;
   customersHref?: string;
+  /** Median order already on Overview. Mean fills only when the median is absent. */
+  typicalOrder?: number | null;
+  meanAov?: number | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -182,6 +189,22 @@ export function OverviewMixForecast({
   const closeMoney = forecast
     ? formatCurrency(forecast.projected, currency)
     : "—";
+  const typicalValue =
+    typicalOrder != null && Number.isFinite(typicalOrder)
+      ? typicalOrder
+      : meanAov != null && Number.isFinite(meanAov)
+        ? meanAov
+        : null;
+  const typicalOrderLabel =
+    typicalValue != null && typicalValue > 0
+      ? formatCurrency(typicalValue, currency)
+      : null;
+  const monthCloseLine =
+    forecast && closeMoney !== "—"
+      ? forecast.closed
+        ? `This month closed at ${closeMoney}.`
+        : `Month close is ${closeMoney}.`
+      : null;
 
   return (
     <section
@@ -194,10 +217,11 @@ export function OverviewMixForecast({
       </div>
 
       {read ? (
-        <button
-          type="button"
-          className="mcfly-ov-mix__read"
-          onClick={() =>
+        <div className="mcfly-morning-on-read">
+          <button
+            type="button"
+            className="mcfly-ov-mix__read"
+            onClick={() =>
             drill?.openDrill({
               title: "New vs returning $",
               value:
@@ -233,12 +257,21 @@ export function OverviewMixForecast({
               nextHref: customersHref,
               nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
             })
-          }
-        >
-          <span className="mcfly-ov-mix__read-k">Today’s read</span>
-          <span className="mcfly-ov-mix__read-v">{closeMoney}</span>
-          <span className="mcfly-ov-mix__read-line">{read.line}</span>
-        </button>
+            }
+          >
+            <span className="mcfly-ov-mix__read-k">Today’s read</span>
+            <span className="mcfly-ov-mix__read-v">{closeMoney}</span>
+            <span className="mcfly-ov-mix__read-line">{read.line}</span>
+          </button>
+          <CopyMorningSentence
+            sentence={morningSentence({
+              history: "ready",
+              typicalOrderLabel,
+              returningSalesShare: mix?.returningShare ?? null,
+              goalLine: monthCloseLine,
+            })}
+          />
+        </div>
       ) : null}
 
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">

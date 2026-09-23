@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   isLiveHandoffGuide,
   LIVE_HANDOFF_BODY,
@@ -96,5 +97,23 @@ describe("SAMPLE → Live handoff", () => {
     expect(goals).toContain("TRIAL_VS_VIEW");
     expect(settings).toContain("TRIAL_VS_VIEW");
     expect(settings).not.toContain("Switch to Sample data now");
+  });
+
+  it("TRIAL_VS_VIEW names unpaid 90 vs paid 24 — not full-access, not already on", () => {
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+    expect(TRIAL_VS_VIEW).toMatch(
+      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
+    );
+    expect(TRIAL_VS_VIEW).toMatch(/up to 24 months/i);
+    expect(TRIAL_VS_VIEW).toMatch(/\$39/);
+    expect(TRIAL_VS_VIEW).toMatch(/view, not a plan/i);
+    expect(TRIAL_VS_VIEW).toMatch(/7-day trial/i);
+    expect(TRIAL_VS_VIEW).not.toMatch(/whole desk is already on/i);
+    expect(TRIAL_VS_VIEW).not.toMatch(/full-access/i);
+    expect(TRIAL_VS_VIEW).not.toMatch(/Free plan/i);
+    const goals = read("../routes/app.goals.tsx");
+    const settings = read("../routes/app.settings.tsx");
+    expect(goals).not.toMatch(/whole desk is already on/i);
+    expect(settings).not.toMatch(/full-access/i);
   });
 });

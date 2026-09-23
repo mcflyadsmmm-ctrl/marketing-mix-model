@@ -79,7 +79,7 @@ describe("public Remix SAMPLE desk", () => {
     );
     const view = page.orderHistoryForecast;
     expect(view.formula).toBe("Next month = typical day × days in that month");
-    expect(view.method).toMatch(/median of stored days with sales/i);
+    expect(view.method).toMatch(/median of selling days/i);
     expect(view.estimate).not.toBeNull();
     expect(view.estimate!).toBeGreaterThan(0);
     expect(view.plug).toMatch(/×/);
@@ -89,8 +89,14 @@ describe("public Remix SAMPLE desk", () => {
     const ltv = view.targets.find((row) => row.kind === "ltv");
     expect(sales?.actual).toBeGreaterThan(0);
     expect(sales?.pct).toBeNull();
-    expect(returning?.note).toMatch(/Snowdevil stretch/);
+    expect(returning?.target).toBeNull();
+    expect(returning?.pct).toBeNull();
+    expect(returning?.note).not.toMatch(/Snowdevil stretch/);
+    expect(returning?.note).not.toMatch(/800,000/);
     expect(ltv?.actual).toBeGreaterThan(0);
+    expect(ltv?.pct).toBeNull();
+    expect(page.habitGoals.returning).toBeNull();
+    expect(page.habitGoals.returningTarget).toBeNull();
     expect(ltv?.pct).toBeNull();
   });
 

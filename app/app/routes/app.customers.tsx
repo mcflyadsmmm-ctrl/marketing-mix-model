@@ -65,6 +65,7 @@ export default function CustomersPage() {
     liveHistoryLocked,
     shopLabel,
     panel,
+    orderBookDepth,
   } = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const navigation = useNavigation();
@@ -81,6 +82,7 @@ export default function CustomersPage() {
     todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
     shopifyOrderWindowLimited: !useSampleDesk && shopifyOrderWindowLimited,
     includeShopifyOrderWindow: true,
+    orderBookDepth,
   });
   const book = shopifyNativePeriodStats({
     sales: metrics.sales,
@@ -124,9 +126,19 @@ export default function CustomersPage() {
           shopLabel,
           sample: useSampleDesk,
           periodLabel: metrics.period.label,
+          todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
         },
         (n) => formatCurrency(n, currency),
       );
+  const returningInsight = {
+    ...insightView,
+    cards: insightView.cards.filter((card) => card.kind === "returning"),
+    empty: null,
+  };
+  const depthInsight = {
+    ...insightView,
+    cards: insightView.cards.filter((card) => card.kind !== "returning"),
+  };
   const ltvProps = {
     metrics: {
       tillLtv: metrics.tillLtv,
@@ -154,6 +166,7 @@ export default function CustomersPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      orderBookDepth={orderBookDepth}
       orderFactsTruncated={
         !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
       }
@@ -189,7 +202,9 @@ export default function CustomersPage() {
       ) : null}
 
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
-      <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
+      <p className="mcfly-book__lede">
+        {deskBookLede(CUSTOMERS_CONTRAST, orderBookDepth)}
+      </p>
 
       <div id="mcfly-returning">
       <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL}>
@@ -198,7 +213,11 @@ export default function CustomersPage() {
           book={book}
           salesPending={metrics.salesPending}
           useSampleDesk={useSampleDesk}
+          todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
         />
+        {returningInsight.cards.length > 0 ? (
+          <ShareableInsightCards view={returningInsight} shotMode={shotMode} />
+        ) : null}
         <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
         <CustomersScoreboard
           book={book}
@@ -233,6 +252,10 @@ export default function CustomersPage() {
           useSampleDesk={useSampleDesk}
           shopLabel={shopLabel}
           shotMode={shotMode}
+          orderSteps={analytics.orderSteps}
+          quietBack={analytics.quietBack}
+          comebackWait={analytics.comebackWait}
+          lifetimeSpan={analytics.lifetimeSpan}
         />
       </DeskLane>
       </div>
@@ -255,7 +278,9 @@ export default function CustomersPage() {
           <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
         ) : null}
         <CustomersLtvDepth {...ltvProps} />
-        <ShareableInsightCards view={insightView} shotMode={shotMode} />
+        {depthInsight.cards.length > 0 || depthInsight.empty ? (
+          <ShareableInsightCards view={depthInsight} shotMode={shotMode} />
+        ) : null}
       </DeskLane>
       </div>
 

@@ -39,8 +39,9 @@ export default function SupportPage() {
         <h2>What it costs</h2>
         <ul>
           <li>
-            <strong>7-day full-access trial</strong>, then{" "}
-            <strong>$39</strong> per store / month for the whole desk.{" "}
+            <strong>7-day trial</strong>, then{" "}
+            <strong>$39</strong> per store / month for the whole desk. Trial is
+            90 days of order history; paid is up to 24 months. One plan.
             Includes every named platform plus extras like billboard, Total
             ROAS, break-even, Allocation, Customer LTV, and the full-year Goals
             board.

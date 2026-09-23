@@ -25,6 +25,8 @@ import {
   overviewMedian,
   overviewPresetRange,
   overviewPriorWindow,
+  overviewSameDatesSales,
+  overviewSameDatesSentence,
   overviewVsTypical,
   overviewVsTypicalPctCopy,
   type ChartGrain,
@@ -113,11 +115,18 @@ export function OverviewSalesChart({
   ordersHref = "/app/orders",
   salesPending = false,
   typicalDay = null,
+  historyDays = null,
+  initialPreset = "30d",
+  initialCustom = null,
 }: {
   days: SalesDayPoint[];
   ordersHref?: string;
   salesPending?: boolean;
   typicalDay?: number | null;
+  /** Sales days already on the desk, including last year when the chart window is shorter. */
+  historyDays?: SalesDayPoint[] | null;
+  initialPreset?: OverviewRangePreset | "custom";
+  initialCustom?: { fromKey: string; toKey: string } | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -136,9 +145,10 @@ export function OverviewSalesChart({
   const earliestKey = sorted[0]?.dateKey ?? null;
   const latestKey = overviewLatestDayKey(sorted);
 
-  const defaultPreset: OverviewRangePreset = "30d";
-  const [preset, setPreset] = useState<OverviewRangePreset | "custom">(defaultPreset);
-  const [custom, setCustom] = useState<{ fromKey: string; toKey: string } | null>(null);
+  const [preset, setPreset] = useState<OverviewRangePreset | "custom">(initialPreset);
+  const [custom, setCustom] = useState<{ fromKey: string; toKey: string } | null>(
+    initialCustom,
+  );
   const [grain, setGrain] = useState<ChartGrain>("day");
 
   const range = useMemo(() => {
@@ -274,8 +284,11 @@ export function OverviewSalesChart({
   const activePctCopy = overviewVsTypicalPctCopy(activeVs, typicalRef);
   const activeAov = active ? overviewAov(active.sales, active.orders) : null;
 
-  // Honest vs-prior — the equal-length window immediately before this range.
-  const priorWin = range ? overviewPriorWindow(range.fromKey, range.toKey) : null;
+  // Presets keep the equal-length window immediately before this range.
+  // A custom from/to compares to those calendar dates last year instead.
+  const customRange = preset === "custom" && range != null;
+  const priorWin =
+    !customRange && range ? overviewPriorWindow(range.fromKey, range.toKey) : null;
   const priorDays = priorWin
     ? overviewFilterRange(sorted, priorWin.fromKey, priorWin.toKey)
     : [];
@@ -289,6 +302,33 @@ export function OverviewSalesChart({
   const aovDelta =
     priorHasData && hasOrders && rangeAov != null && priorAov != null
       ? overviewDeltaPct(rangeAov, priorAov)
+      : null;
+
+  const sameDatesSource = new Map<string, number>();
+  for (const day of historyDays ?? []) {
+    if (Number.isFinite(day.sales)) sameDatesSource.set(day.dateKey, day.sales);
+  }
+  for (const day of sorted) {
+    if (!sameDatesSource.has(day.dateKey) && Number.isFinite(day.sales)) {
+      sameDatesSource.set(day.dateKey, day.sales);
+    }
+  }
+  const sameDatesSentence =
+    customRange && range
+      ? overviewSameDatesSentence({
+          fromKey: range.fromKey,
+          toKey: range.toKey,
+          sales: total,
+          priorSales: overviewSameDatesSales(
+            [...sameDatesSource.entries()].map(([dateKey, sales]) => ({
+              dateKey,
+              sales,
+            })),
+            range.fromKey,
+            range.toKey,
+          ),
+          money: (amount) => formatCurrency(amount, currency),
+        })
       : null;
 
   const rangeLabel =
@@ -392,6 +432,11 @@ export function OverviewSalesChart({
           <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
           {ledeParts.length > 0 ? (
             <p className="mcfly-chart__muted">{ledeParts.join(" · ")}</p>
+          ) : null}
+          {sameDatesSentence ? (
+            <p className="mcfly-chart__muted" data-overview-compare="same-dates">
+              {sameDatesSentence}
+            </p>
           ) : null}
         </div>
         {active ? (

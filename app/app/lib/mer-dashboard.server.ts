@@ -15,7 +15,7 @@ import {
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
 import { deskPeriodTimeZone, type DateRange } from "./periods";
-import { localDayKey, utcDayKey, SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
+import { localDayKey, utcDayKey, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
   nextShopLocalDayKey,
@@ -36,6 +36,7 @@ import {
 import {
   applyExplorerMode,
   bucketExplorerRows,
+  explorerMer,
   summarizeExplorer,
   type ExplorerDailyRow,
   type ExplorerGranularity,
@@ -259,6 +260,18 @@ export function marginIsConfirmed(settings: {
   return settings.marginConfirmedAt != null;
 }
 
+/**
+ * Break-even Total ROAS only after the merchant confirmed margin.
+ * SAMPLE must not invent 35% profit. Empty BE is —.
+ */
+export function confirmedBreakEvenMer(settings: {
+  marginConfirmedAt: Date | null;
+  marginPct: number;
+}): number | null {
+  if (!marginIsConfirmed(settings)) return null;
+  return computeBreakEvenMer(settings.marginPct);
+}
+
 /** Soft stale — confirmed margin older than 90 days (no schema change). */
 export const MARGIN_STALE_DAYS = 90;
 
@@ -271,7 +284,7 @@ export function marginIsStale(settings: {
 }
 
 export interface RitualOnboarding {
-  /** Margin confirmed via Settings save (or sample desk treated as confirmed). */
+  /** Margin confirmed via Settings save. SAMPLE does not count as confirmed. */
   settingsSaved: boolean;
   hasSpend: boolean;
   /**
@@ -672,12 +685,15 @@ export async function buildDailyRowsForWindow(
    * working unchanged.
    */
   const channelLabels: Record<string, string> = {};
-  const byDay = new Map<string, { sales: number; channels: Map<string, number> }>();
+  const byDay = new Map<
+    string,
+    { sales: number; salesOnFile: boolean; channels: Map<string, number> }
+  >();
 
   const ensureDay = (key: string) => {
     let row = byDay.get(key);
     if (!row) {
-      row = { sales: 0, channels: new Map() };
+      row = { sales: 0, salesOnFile: false, channels: new Map() };
       byDay.set(key, row);
     }
     return row;
@@ -685,7 +701,9 @@ export async function buildDailyRowsForWindow(
 
   for (const [key, sales] of options.salesByDay) {
     if (key < startKey || key > endKey) continue;
-    ensureDay(key).sales += sales;
+    const row = ensureDay(key);
+    row.sales += sales;
+    row.salesOnFile = true;
   }
 
   for (const entry of entries) {
@@ -727,9 +745,11 @@ export async function buildDailyRowsForWindow(
       : [];
     const spend =
       Math.round(channels.reduce((s, c) => s + c.amount, 0) * 100) / 100;
-    const sales = Math.round((row?.sales ?? 0) * 100) / 100;
+    const salesOnFile = row?.salesOnFile === true;
+    const sales =
+      salesOnFile && row ? Math.round(row.sales * 100) / 100 : 0;
     if (sales <= 0 && spend <= 0) continue;
-    rows.push({ dateKey, sales, spend, channels });
+    rows.push({ dateKey, sales, spend, channels, salesOnFile });
   }
   return { rows, channelLabels };
 }
@@ -857,8 +877,9 @@ export async function buildDailySpine(
       amount: c.amount,
     }));
     const spend = row?.spend ?? 0;
-    const sales = row?.sales ?? 0;
-    const mer = computeMer(sales, spend);
+    const salesOnFile = row != null && row.salesOnFile !== false;
+    const sales = row != null && salesOnFile ? row.sales : 0;
+    const mer = explorerMer(sales, spend, salesOnFile);
     return {
       dateKey,
       label: dayLabel(dateKey),
@@ -1087,10 +1108,8 @@ export async function buildDashboardMetrics(
     options?.salesBasis ?? settings.salesBasis,
     "total",
   );
-  // SAMPLE economics are read-time overlays — seed must not mutate merchant settings.
-  const effectiveMarginPct = useSampleDesk
-    ? SAMPLE_DESK_MARGIN_PCT
-    : settings.marginPct;
+  // SAMPLE must not invent a confirmed profit margin. Target ROAS overlay stays.
+  const effectiveMarginPct = settings.marginPct;
   const effectiveTargetMer = useSampleDesk
     ? SAMPLE_DESK_TARGET_MER
     : settings.targetMer;
@@ -1211,12 +1230,13 @@ export async function buildDashboardMetrics(
   /**
    * Marty product lock / existing NO COGS override: do not ask merchants
    * for profit margin or average COGS. Total ROAS unlocks without BE.
-   * Break-even / contrib formulas still run when margin is confirmed or SAMPLE.
+   * Break-even only when margin is confirmed. SAMPLE does not invent it.
    */
   const settingsSaved = true;
-  const breakEvenMerRaw = computeBreakEvenMer(effectiveMarginPct);
-  const breakEvenMer =
-    marginIsConfirmed(settings) || useSampleDesk ? breakEvenMerRaw : null;
+  const breakEvenMer = confirmedBreakEvenMer({
+    marginConfirmedAt: settings.marginConfirmedAt,
+    marginPct: effectiveMarginPct,
+  });
   const hasSpend = totalSpend > 0;
   const onboarding: RitualOnboarding = {
     settingsSaved,

@@ -309,6 +309,7 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
       identifiedBuyers: native.newCustomers + native.returningCustomers,
       returningShare: native.returningSalesShare,
       newShare: native.newSalesShare,
+      todaySalesTruncated: false,
     });
     const hero = buildCustomersHero(native);
     const peeks = buildCustomersLeadPeeks(native);
@@ -360,7 +361,7 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
         amount: o.amount,
         lifetimeOrders: o.lifetimeOrders,
       })),
-    );
+    ).rollups;
     expect(rollups.length).toBeGreaterThan(0);
     const repeatCohorts = rollups.filter((r) => r.ordersD90 > r.customers);
     // At least one cohort shows repeat orders inside 90 days (retention heat).

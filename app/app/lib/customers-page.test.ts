@@ -43,6 +43,7 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     const order = [
       'id="mcfly-returning"',
       "<CustomersFirstViewport",
+      "<ShareableInsightCards",
       "<CustomerMixChart",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
@@ -58,14 +59,19 @@ describe("Customers route — one RETAIN spine, order history only", () => {
       "<CustomerWhaleTable",
       "<CustomerConcentrationChart",
       "<CustomersLtvDepth",
-      "<ShareableInsightCards",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]).toBeGreaterThan(order[i - 1]!);
     }
+    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
+      customers.indexOf("<CustomerMixChart"),
+    );
     expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
       customers.indexOf("<CustomersScoreboard"),
+    );
+    expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
+      customers.indexOf("<CustomersLtvDepth"),
     );
     expect(customers).toContain("salesPending={metrics.salesPending}");
     expect(customers).not.toContain(
@@ -93,6 +99,51 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).not.toContain('href="/app/ltv"');
     expect(customers).toContain("useSampleDesk");
     expect(customers).toContain("<ReviewAsk");
+  });
+
+  it("demo customers still mounts Growth, including the step board", () => {
+    const demo = read("../routes/demo.customers.tsx");
+    expect(demo).toContain("<CustomersGrowthSection");
+    expect(demo).toContain('id="mcfly-growth"');
+    expect(demo).toContain("orderSteps=");
+    expect(demo).toContain("quietBack=");
+    expect(customers).toContain("orderSteps=");
+    expect(customers).toContain("quietBack=");
+    expect(analyticsLib).toContain("ORDER_STEP_MIN_BUYERS = 8");
+    expect(analyticsLib).toContain("buildOrderSteps");
+  });
+});
+
+/** Opening JSX tag — a till that drops a required prop must fail this, not a name-only grep. */
+function jsxOpen(source: string, name: string): string {
+  const start = source.indexOf(`<${name}`);
+  expect(start).toBeGreaterThan(-1);
+  const self = source.indexOf("/>", start);
+  const open = source.indexOf(">", start);
+  const end =
+    self >= 0 && (open < 0 || self < open) ? self + 2 : open + 1;
+  return source.slice(start, end);
+}
+
+describe("Customers truncated-today leftover — first-fold omit-path", () => {
+  it("requires todaySalesTruncated on both tills; SAMPLE is explicitly not a capped live today", () => {
+    const demo = read("../routes/demo.customers.tsx");
+    for (const source of [customers, demo]) {
+      const first = jsxOpen(source, "CustomersFirstViewport");
+      expect(first).toMatch(/\btodaySalesTruncated=/);
+      expect(first).toMatch(/\bsalesPending=/);
+    }
+    expect(jsxOpen(demo, "CustomersFirstViewport")).toMatch(
+      /todaySalesTruncated=\{false\}/,
+    );
+    expect(customers).toContain("returningInsight");
+    expect(demo).toContain("returningInsight");
+    const firstStart = customers.indexOf('<DeskLane rank="first"');
+    const firstEnd = customers.indexOf("<DeskLane", firstStart + 1);
+    const firstLane = customers.slice(firstStart, firstEnd);
+    expect(firstLane).toContain("<CustomersFirstViewport");
+    expect(firstLane).toContain("<ShareableInsightCards");
+    expect(firstLane).toContain("returningInsight");
   });
 });
 
@@ -168,6 +219,9 @@ describe("CustomerWhaleWatch — top order LTV beside ActionCards", () => {
     expect(watch).toContain("repeatRevenue == null");
     expect(watch).toContain('href="#mcfly-win-back"');
     expect(watch).toContain("No customers invented");
+    expect(watch).toContain("row.typicalTicket");
+    expect(watch).toContain("row.firstTicket");
+    expect(watch).toContain("row.laterTicket");
     expect(watch).not.toMatch(/gid:\/\/shopify\/Customer/);
     expect(watch).not.toContain("Recharge");
     expect(watch).not.toContain("Skio");
@@ -195,6 +249,7 @@ describe("CustomerRfmBoard — recency / frequency / monetary lite", () => {
     expect(rfmLib).toContain("RFM_HIBERNATE_DAYS = 90");
     expect(rfmBoard).toContain("RFM_FROM_SHOPIFY_ORDERS");
     expect(rfmBoard).toContain("RFM_RULES_LINE");
+    expect(rfmBoard).toContain("rfm.championFlow");
     expect(rfmBoard).not.toContain("Potential loyalist");
     expect(rfmBoard).not.toContain("Cannot lose them");
   });
@@ -216,8 +271,50 @@ describe("Customers loader — full stored book for RFM, 90-day mix kept", () =>
     expect(analyticsLoader).toContain("CUSTOMERS_ANALYTICS_WINDOW_DAYS");
     expect(analyticsLoader).toContain("getOrderBackfillHistoryLimited");
     expect(analyticsLoader).toContain("full stored");
+    expect(analyticsLoader).toContain("periodStart: options.periodStart");
+    expect(read("./desk-customers-stack.server.ts")).toContain(
+      "periodStart: base.metrics.period.start",
+    );
     expect(rfmLib).toContain("RFM_MIN_BUYERS = 8");
     expect(rfmLib).toContain("WATCHLIST_MAX = 8");
+  });
+
+  it("classifies returning dollars from the stored book and counts first-time buyers there", () => {
+    expect(analyticsLoader).toContain("orderBook: mapped");
+    expect(analyticsLoader).toContain("periodStart: options.periodStart");
+    expect(analyticsLoader).toContain("periodEnd: options.periodEnd");
+    expect(analyticsLib).toContain("buildQuietBackDollars");
+    expect(analyticsLib).toContain("buildComebackNextWait");
+    expect(analyticsLib).toContain("buildBuyerLifetimeSpan");
+    expect(analyticsLoader).toContain("lifetimeOrders");
+    expect(analyticsLoader).not.toContain("sales-facts");
+    expect(analyticsLoader).not.toContain("newCustomers");
+    expect(analyticsLib).toContain("firstTimeBuyers");
+    expect(analyticsLib).toContain("orderBook");
+    expect(analyticsLib).not.toContain("sales-facts");
+    expect(mix).toContain("firstTimeBuyers");
+    expect(mix).toContain("First-time buyers");
+    expect(mix).toContain("mixFirstTimePaint");
+    expect(mix).toContain("mixReturningPaint");
+    expect(mix).toContain("mixTotalPaint");
+    expect(mix).toContain("truncatedMixNote");
+    expect(mix).toContain("offTill");
+    expect(mix).toContain("paintedMixStack");
+    expect(mix).not.toMatch(
+      /formatCurrency\(\s*(b|active|summary)\.(returningDollars|total)/,
+    );
+    expect(mix).not.toContain("formatCurrency(summary.bestReturning.returningDollars");
+    expect(mix).not.toContain("yForD(b.newDollars)");
+    expect(mix).not.toContain("b.returningDollars / leftAxis.max");
+    expect(analyticsLib).toContain("shopLocalDayKey");
+    expect(analyticsLib).not.toContain("utcDayStart");
+    expect(analyticsLoader).toContain("timeZone");
+    expect(analyticsLoader).toMatch(/ianaTimezone|deskPeriodTimeZone/);
+    expect(read("./public-sample-page.server.ts")).toContain("timeZone:");
+    expect(read("./public-sample-page.server.ts")).toContain("PUBLIC_SAMPLE_TZ");
+    expect(read("../routes/demo.customers.tsx")).toContain(
+      "truncatedLifetimeBuyers",
+    );
   });
 });
 

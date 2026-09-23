@@ -3,10 +3,10 @@
  *
  * The shipped sample OrderFacts only span ~90 days with recycled ids and no
  * product names — not enough to build spend-build curves, a retention grid,
- * first→second product journeys, or best-customer recency. This generator
- * produces a stable ~14-month Snowdevil order book (snow-sports shop: wax,
- * beanies, gloves, goggles, jackets, boards) so the SAMPLE desk can show the
- * full depth. A later pass stamps the same three first-order codes
+ * or best-customer recency. This generator produces a stable ~14-month
+ * Snowdevil sales book so the SAMPLE desk can show that depth. It does not
+ * store a product title and does not invent one from the ticket or the unit
+ * count. A later pass stamps the same three first-order codes
  * (WELCOME10 / POWDER15 / BUNDLE) and a discount depth on the pre-refund
  * total, without changing order dollars or inventing a fourth code.
  * Clearly SAMPLE — never presented as this shop's Shopify orders.
@@ -23,23 +23,6 @@ import type { DepthOrder } from "./ltv-depth";
 
 /** Rolling first-order months generated (older = fully matured curves/heat). */
 export const SNOWDEVIL_DEPTH_MONTHS = 14;
-
-/** Snowdevil catalog, cheapest first — product is chosen by order dollars. */
-const SNOWDEVIL_CATALOG: Array<{ name: string; below: number }> = [
-  { name: "Selling Plans Ski Wax", below: 32 },
-  { name: "Trail Beanie", below: 55 },
-  { name: "Insulated Gloves", below: 85 },
-  { name: "Snow Goggles", below: 120 },
-  { name: "Alpine Jacket", below: 205 },
-  { name: "The Collection Snowboard: Hydrogen", below: 460 },
-  { name: "The Complete Snowboard", below: Number.POSITIVE_INFINITY },
-];
-
-/** Map an order's dollars to the Snowdevil product a shopper at that price buys. */
-export function snowdevilProductForAmount(amount: number): string {
-  const hit = SNOWDEVIL_CATALOG.find((p) => amount < p.below);
-  return (hit ?? SNOWDEVIL_CATALOG[SNOWDEVIL_CATALOG.length - 1]!).name;
-}
 
 interface Segment {
   key: string;
@@ -164,12 +147,16 @@ export function generateSnowdevilDepthOrders(now: Date = new Date()): DepthOrder
           isFirst ? seg.firstSpread : seg.aovSpread,
         );
         const units = drawUnits(rng, amount);
+        // Mostly Online, with POS / Shop slices so source → LTV can seal.
+        const sourceName =
+          i % 11 === 0 ? "pos" : i % 17 === 0 ? "shop" : "web";
         orders.push({
           customerKey,
           orderedAt,
           amount,
           units,
-          product: snowdevilProductForAmount(amount),
+          product: null,
+          sourceName,
         });
         // Reorder cadence widens with each order — the first gap clears 30 days
         // for most buyers so the first-30-days number stays close to one order.

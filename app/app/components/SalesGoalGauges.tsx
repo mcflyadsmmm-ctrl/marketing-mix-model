@@ -22,7 +22,8 @@ type Props = {
 };
 
 const DEFAULT_HEADING = "Goal progress";
-const DEFAULT_MUTED = `Sales vs plan plus ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} — Shopify sales goals do not overlay ad spend`;
+const DEFAULT_MUTED =
+  `Sales vs plan plus ${PRODUCT_NOUN.totalRoas}. Empty spend is —.`;
 
 function formatCashMerLine(
   period: SalesGoalPeriod,
@@ -72,21 +73,30 @@ function GoalRow({
   breakEvenMer?: number | null;
 }) {
   const currency = useDeskCurrency();
-  const hasGoal = period.goal > 0 && Number.isFinite(period.goal);
-  const progressPct = hasGoal
-    ? Math.min(100, Math.max(0, period.progressPct ?? 0))
+  const hasGoal = period.goal != null && Number.isFinite(period.goal);
+  const knownProgress =
+    hasGoal &&
+    period.actual != null &&
+    period.progressPct != null &&
+    Number.isFinite(period.progressPct);
+  const progressPct = knownProgress
+    ? Math.min(100, Math.max(0, period.progressPct as number))
     : 0;
-  const tone: GoalPaceTone = hasGoal ? period.pace.tone : "flat";
+  const tone: GoalPaceTone =
+    hasGoal && period.actual != null ? period.pace.tone : "flat";
   const yoy = formatYoyShort(period);
-  const pctLabel = hasGoal
-    ? `${Math.round(period.progressPct ?? 0)}%`
-    : "no goal set";
+  const pctLabel = !hasGoal
+    ? "no goal set"
+    : knownProgress
+      ? `${Math.round(period.progressPct as number)}%`
+      : "—";
   const calPct = Number.isFinite(period.calendarPct)
     ? Math.min(100, Math.max(0, period.calendarPct))
     : null;
   const paceBit =
     !compact &&
     hasGoal &&
+    knownProgress &&
     period.pace.kind !== "none"
       ? `${period.pace.label}${
           calPct != null ? ` · ${Math.round(calPct)}% calendar` : ""
@@ -108,9 +118,9 @@ function GoalRow({
       aria-label={`${period.label} sales vs goal`}
       title={
         hasGoal
-          ? `${period.actual == null ? "—" : formatCurrency(period.actual, currency)} / ${formatCurrency(period.goal, currency)}${
-              paceBit ? ` · ${paceBit}` : ""
-            }`
+          ? `${period.actual == null ? "—" : formatCurrency(period.actual, currency)} / ${
+              period.goal != null ? formatCurrency(period.goal, currency) : "—"
+            }${paceBit ? ` · ${paceBit}` : ""}`
           : undefined
       }
     >
@@ -125,7 +135,7 @@ function GoalRow({
       <div
         className="mcfly-goal-row__track"
         role="progressbar"
-        aria-valuenow={hasGoal ? Math.round(progressPct) : undefined}
+        aria-valuenow={knownProgress ? Math.round(progressPct) : undefined}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={
@@ -149,7 +159,9 @@ function GoalRow({
         <div className="mcfly-goal-row__meta">
           <span className="mcfly-goal-row__meta-amt">
             {period.actual == null ? "—" : formatCurrency(period.actual, currency)}
-            {hasGoal ? ` / ${formatCurrency(period.goal, currency)}` : ""}
+            {hasGoal && period.goal != null
+              ? ` / ${formatCurrency(period.goal, currency)}`
+              : ""}
             {period.periodHint ? ` · ${period.periodHint}` : ""}
           </span>
           {yoy ? (
@@ -198,9 +210,9 @@ export function SalesGoalGauges({
   breakEvenMer,
 }: Props) {
   const noGoalsSet =
-    !(periods.mtd.goal > 0) &&
-    !(periods.qtd.goal > 0) &&
-    !(periods.ytd.goal > 0);
+    periods.mtd.goal == null &&
+    periods.qtd.goal == null &&
+    periods.ytd.goal == null;
   const compact = variant === "inline";
 
   const rows = (

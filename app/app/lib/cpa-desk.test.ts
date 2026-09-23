@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyLiveBuyerIndexToCpaDays,
   applyUniqueBuyerCounts,
   bucketCpaDays,
   buildCpaPaybackView,
@@ -11,6 +12,7 @@ import {
   resolveLastNDays,
   typicalCpa,
   type CpaDayPoint,
+  cpaExplorerRangesFor,
 } from "./cpa-desk";
 
 function day(
@@ -32,29 +34,56 @@ function day(
 }
 
 describe("resolveLastNDays", () => {
-  it("covers 28 inclusive shop-local days through today", () => {
+  it("covers 28 inclusive shop-local closed days, excluding incomplete today", () => {
     const range = resolveLastNDays(
       28,
       new Date("2026-09-17T18:00:00.000Z"),
       "UTC",
     );
     expect(range.label).toBe("Last 28 days");
-    expect(range.start.toISOString().slice(0, 10)).toBe("2026-08-21");
-    expect(range.end.toISOString().slice(0, 10)).toBe("2026-09-17");
+    expect(range.start.toISOString().slice(0, 10)).toBe("2026-08-20");
+    expect(range.end.toISOString().slice(0, 10)).toBe("2026-09-16");
   });
 });
 
 describe("resolveCpaDeskWindows", () => {
-  it("pins This month and Last 28, and explorer covers YTD ∪ last 90", () => {
+  it("pins This month and Last 28 to closed days, and explorer covers YTD ∪ last 90", () => {
     const windows = resolveCpaDeskWindows(
       new Date("2026-09-17T18:00:00.000Z"),
       "UTC",
+      "paid_full",
     );
     expect(windows.thisMonth.label).toBe("Month to date");
     expect(windows.thisMonth.start.toISOString().slice(0, 10)).toBe("2026-09-01");
+    expect(windows.thisMonth.end.toISOString().slice(0, 10)).toBe("2026-09-16");
     expect(windows.last28.label).toBe("Last 28 days");
     expect(windows.explorer.start.toISOString().slice(0, 10)).toBe("2026-01-01");
-    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-17");
+    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-16");
+  });
+
+  it("unpaid explorer lookback is 90 closed days, not a finished YTD", () => {
+    const windows = resolveCpaDeskWindows(
+      new Date("2026-09-17T18:00:00.000Z"),
+      "UTC",
+      "trial_slice",
+    );
+    expect(windows.explorer.start.toISOString().slice(0, 10)).toBe("2026-06-19");
+    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-16");
+    expect(windows.last90.start.toISOString().slice(0, 10)).toBe("2026-06-19");
+  });
+
+  it("unpaid CPA has no YTD chip; paid and SAMPLE keep it", () => {
+    expect(cpaExplorerRangesFor("paid_full")).toEqual([
+      "this_month",
+      "last_28",
+      "90d",
+      "ytd",
+    ]);
+    expect(cpaExplorerRangesFor("trial_slice")).toEqual([
+      "this_month",
+      "last_28",
+      "90d",
+    ]);
   });
 });
 
@@ -183,6 +212,44 @@ describe("applyUniqueBuyerCounts", () => {
       applyUniqueBuyerCounts(base, { identified: null, newBuyers: null }),
     ).toEqual(base);
   });
+
+  it("keeps Cash CAC — when unique new buyers are unknown", () => {
+    const next = applyUniqueBuyerCounts(base, {
+      identified: 8,
+      newBuyers: null,
+    });
+    expect(next.identifiedBuyers).toBe(8);
+    expect(next.cashCac).toBeNull();
+    expect(next.newCustomers).toBe(0);
+  });
+});
+
+describe("applyLiveBuyerIndexToCpaDays", () => {
+  it("uses interned ids when the day is in the book, including known-zero", () => {
+    const days: CpaDayPoint[] = [
+      day("2026-09-14", 80, 9, 9, 0, false),
+      day("2026-09-15", 40, 0, 0, 0, false),
+    ];
+    const next = applyLiveBuyerIndexToCpaDays(days, {
+      identifiedByDay: { "2026-09-14": [1, 2], "2026-09-15": [] },
+      newByDay: { "2026-09-14": [1], "2026-09-15": [] },
+    });
+    expect(next[0]?.buyersKnown).toBe(true);
+    expect(next[0]?.newCustomers).toBe(1);
+    expect(next[0]?.identifiedIds).toEqual([1, 2]);
+    expect(next[1]?.buyersKnown).toBe(true);
+    expect(next[1]?.newCustomers).toBe(0);
+  });
+
+  it("does not treat a missing key as SalesDayFact zero buyers", () => {
+    const next = applyLiveBuyerIndexToCpaDays(
+      [day("2026-09-21", 200, 0, 0, 0, false)],
+      { identifiedByDay: {}, newByDay: {} },
+    );
+    expect(next[0]?.buyersKnown).toBe(false);
+    expect(next[0]?.newCustomers).toBe(0);
+    expect(next[0]?.identifiedIds).toBeUndefined();
+  });
 });
 
 describe("buildCpaPaybackView", () => {
@@ -236,5 +303,45 @@ describe("explorer buckets", () => {
     expect(weeks[0]?.cashCpa).toBeCloseTo(100 / 6, 5);
     expect(typicalCpa(weeks)).toBeGreaterThan(0);
     expect(filterCpaDays(days, "2026-09-02", "2026-09-08")).toHaveLength(2);
+  });
+
+  it("uniques interned buyer ids across a live week grain", () => {
+    const live = [
+      {
+        dateKey: "2026-09-14",
+        spend: 50,
+        newCustomers: 1,
+        returningCustomers: 1,
+        newCustomerSales: 0,
+        buyersKnown: true,
+        identifiedIds: [1, 2],
+        newIds: [1],
+      },
+      {
+        dateKey: "2026-09-15",
+        spend: 50,
+        newCustomers: 1,
+        returningCustomers: 1,
+        newCustomerSales: 0,
+        buyersKnown: true,
+        identifiedIds: [2, 3],
+        newIds: [3],
+      },
+    ];
+    const weeks = bucketCpaDays(live, "week");
+    expect(weeks).toHaveLength(1);
+    expect(weeks[0]?.buyers).toBe(3);
+    expect(weeks[0]?.newCustomers).toBe(2);
+    expect(weeks[0]?.cashCpa).toBeCloseTo(100 / 3, 5);
+  });
+
+  it("keeps unknown live week buyers as — and never spend ÷ 0", () => {
+    const unknown = [
+      day("2026-09-14", 80, 0, 0, 0, false),
+      day("2026-09-15", 40, 0, 0, 0, false),
+    ];
+    const weeks = bucketCpaDays(unknown, "week");
+    expect(weeks[0]?.buyers).toBeNull();
+    expect(weeks[0]?.cashCpa).toBeNull();
   });
 });

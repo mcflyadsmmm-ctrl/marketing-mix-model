@@ -8,8 +8,6 @@ import {
   HABIT_GOALS_MIN_ORDERS,
   HABIT_LTV_FORMULA_EQ,
   HABIT_RETURNING_FORMULA_EQ,
-  HABIT_RETURNING_SAMPLE_FORMULA_EQ,
-  SAMPLE_HABIT_RETURNING_TARGET,
   buildHabitGoals,
   emptyHabitGoals,
   habitGoalTargetSourceLabel,
@@ -17,7 +15,6 @@ import {
   habitGoalsEmptyState,
   habitGoalsHistoryLine,
   habitLtvWindowLabel,
-  habitReturningDailyLine,
   habitReturningFormulaEq,
   parseHabitGoalInput,
   resolveHabitReturningTargetSource,
@@ -47,37 +44,29 @@ function richInput(
   });
 }
 
-describe("habit goal floors + SAMPLE stretch", () => {
-  it("names the 8-order floor and Snowdevil returning stretch", () => {
+describe("habit goal floors", () => {
+  it("names the 8-order floor", () => {
     expect(HABIT_GOALS_MIN_ORDERS).toBe(8);
-    expect(SAMPLE_HABIT_RETURNING_TARGET).toBe(800_000);
   });
 });
 
 describe("resolveHabitTarget", () => {
-  it("lets a typed returning-$ target win, and SAMPLE paints when unset", () => {
-    expect(resolveHabitTarget(420, SAMPLE_HABIT_RETURNING_TARGET, true)).toBe(
-      420,
-    );
-    expect(resolveHabitTarget(null, SAMPLE_HABIT_RETURNING_TARGET, true)).toBe(
-      800_000,
-    );
-    expect(resolveHabitTarget(null, SAMPLE_HABIT_RETURNING_TARGET, false)).toBeNull();
-    expect(resolveHabitTarget(0, SAMPLE_HABIT_RETURNING_TARGET, false)).toBeNull();
+  it("lets a typed returning-$ target win, and SAMPLE stays unset like Live", () => {
+    expect(resolveHabitTarget(420, 800_000, true)).toBe(420);
+    expect(resolveHabitTarget(null, 800_000, true)).toBeNull();
+    expect(resolveHabitTarget(null, 800_000, false)).toBeNull();
+    expect(resolveHabitTarget(0, 800_000, false)).toBeNull();
   });
 });
 
-describe("SAMPLE stretch is not typed merchant input", () => {
-  it("labels SAMPLE overlay as Snowdevil stretch, never You typed", () => {
+describe("SAMPLE does not invent a returning-$ stretch", () => {
+  it("does not call an unset SAMPLE target Snowdevil stretch progress", () => {
     expect(resolveHabitReturningTargetSource(800_000, true)).toBe("typed");
-    expect(resolveHabitReturningTargetSource(null, true)).toBe("sample");
+    expect(resolveHabitReturningTargetSource(null, true)).toBeNull();
     expect(resolveHabitReturningTargetSource(null, false)).toBeNull();
-    expect(habitGoalTargetSourceLabel("sample")).toBe("Snowdevil stretch");
+    expect(habitGoalTargetSourceLabel("sample")).not.toMatch(/stretch/i);
     expect(habitGoalTargetSourceLabel("typed")).toBe("You typed");
     expect(habitGoalTargetSourceLabel("average")).toBe("Average");
-    expect(habitReturningFormulaEq("sample")).toBe(
-      HABIT_RETURNING_SAMPLE_FORMULA_EQ,
-    );
     expect(habitReturningFormulaEq("typed")).toBe(HABIT_RETURNING_FORMULA_EQ);
   });
 });
@@ -180,7 +169,7 @@ describe("habitGoalsEmptyState — first-win, not $0", () => {
     expect(young?.copy).toMatch(/not \$0/);
   });
 
-  it("paints LTV from the average without a typed target — SAMPLE returning still overlays", () => {
+  it("paints LTV from the average without a typed target — SAMPLE returning stays unset", () => {
     const sample = richInput({
       typedReturningTarget: null,
       sample: true,
@@ -188,20 +177,8 @@ describe("habitGoalsEmptyState — first-win, not $0", () => {
     expect(sample.available).toBe(true);
     expect(sample.ltv?.target).toBe(380);
     expect(sample.ltv?.targetSource).toBe("average");
-    expect(sample.returning?.target).toBe(SAMPLE_HABIT_RETURNING_TARGET);
-    expect(sample.returning?.targetSource).toBe("sample");
-    expect(sample.returning?.formulaEq).toBe(HABIT_RETURNING_SAMPLE_FORMULA_EQ);
-    expect(habitGoalTargetSourceLabel(sample.returning!.targetSource)).toBe(
-      "Snowdevil stretch",
-    );
-    expect(habitReturningDailyLine(sample.returning!)).toMatch(
-      /Snowdevil stretch/,
-    );
-    expect(habitReturningDailyLine(sample.returning!)).toMatch(/SAMPLE example/);
-    expect(habitReturningDailyLine(sample.returning!)).toMatch(
-      /not a target you typed/,
-    );
-    expect(habitReturningDailyLine(sample.returning!)).not.toMatch(/your /);
+    expect(sample.returning).toBeNull();
+    expect(sample.returningTarget).toBeNull();
 
     const live = richInput({
       typedReturningTarget: null,
@@ -242,13 +219,14 @@ describe("habitGoalsDailyRead + history line", () => {
     expect(read?.returningPct).toBeCloseTo(560_000 / 800_000, 5);
   });
 
-  it("reads SAMPLE stretch as an example, not your typed target", () => {
+  it("does not read an invented SAMPLE $800k stretch as progress", () => {
     const read = habitGoalsDailyRead(
       richInput({ typedReturningTarget: null, sample: true }),
     );
-    expect(read?.line).toMatch(/Snowdevil stretch 800,000/);
-    expect(read?.line).toMatch(/SAMPLE example/);
-    expect(read?.line).not.toMatch(/your 800,000 target/);
+    expect(read?.line).toMatch(/first 90 days/);
+    expect(read?.line).not.toMatch(/800,000/);
+    expect(read?.line).not.toMatch(/Snowdevil stretch/);
+    expect(read?.returningPct).toBeNull();
   });
 
   it("withholds a fake year on a limited book", () => {
@@ -298,7 +276,7 @@ describe("OrderHistoryGoalsBoard — empty is ActionCard-shaped", () => {
     expect(view.returning?.targetSource).toBe("typed");
   });
 
-  it("labels SAMPLE $800k as Snowdevil stretch, not a typed field value", () => {
+  it("does not paint SAMPLE $800k as a merchant target when unset", () => {
     const view = richInput({ typedReturningTarget: null, sample: true });
     const html = renderGoalsBoard(
       createElement(
@@ -310,14 +288,11 @@ describe("OrderHistoryGoalsBoard — empty is ActionCard-shaped", () => {
         }),
       ),
     );
-    expect(view.returning?.target).toBe(SAMPLE_HABIT_RETURNING_TARGET);
-    expect(view.returning?.targetSource).toBe("sample");
-    expect(html).toContain("Snowdevil stretch");
-    expect(html).toContain("SAMPLE example");
-    expect(html).toContain("not a target you typed");
-    expect(html).toContain(HABIT_RETURNING_SAMPLE_FORMULA_EQ);
+    expect(view.returning).toBeNull();
+    expect(view.returningTarget).toBeNull();
+    expect(html).not.toContain("Snowdevil stretch");
+    expect(html).not.toContain("800,000");
     expect(html).not.toContain('value="800000"');
-    expect(html).not.toContain("over the returning-$ target you typed");
     expect(html).toContain("New-buyer worth");
     expect(html).toContain("Returning $");
     expect(html).toContain("Today’s read");

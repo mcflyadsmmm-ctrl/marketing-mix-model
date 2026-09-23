@@ -10,14 +10,33 @@
  */
 
 import { medianOf, percentileOf } from "./shopify-depth-stats";
+import {
+  mondayOfDayKey,
+  mixDayLabel,
+  shopLocalDayKey,
+  utcMidnightFromDayKey,
+} from "./shop-local-day";
 
 export const RETENTION_GUEST_KEY = "guest";
+/** Same buyer floor as TT2 / RFM — a step stays — until 8 buyers have taken it. */
+export const ORDER_STEP_MIN_BUYERS = 8;
 const DAY_MS = 86_400_000;
 
 export type RetentionOrderRow = {
   customerKey: string;
   orderedAt: Date;
   amount: number;
+  /**
+   * Shopify `numberOfOrders` already stored on the order. Omit when the row
+   * was not loaded with that field. `null` means it was loaded and is missing —
+   * the first-time count stays unknown, never a fake zero.
+   */
+  lifetimeOrders?: number | null;
+  /**
+   * Shop-local calendar day (UTC midnight of that local date). Prefer this
+   * over converting `orderedAt` with a host Date.
+   */
+  shopLocalDate?: Date | null;
 };
 
 export type FrequencyBucket = { label: string; min: number; max: number | null; customers: number };
@@ -38,6 +57,12 @@ export type MixWeek = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
+  /** Identified first-time buyers that week. Null when a lifetime is missing or the only buyers are off this till. */
+  firstTimeBuyers: number | null;
+  /** First-on-file $ with a missing lifetime — withheld from first-time $, never stuffed. */
+  unknownDollars: number;
+  /** First stored order whose Shopify life is longer than this book. Own empty. */
+  truncatedDollars: number;
 };
 
 /** Grain the marquee explorer can roll the weekly mix up to. */
@@ -46,7 +71,7 @@ export type MixGrain = "week" | "month";
 /** Front-door explorer grain — day is its own series, not a week rollup. */
 export type MixExplorerGrain = "day" | MixGrain;
 
-/** One UTC day of new vs returning order dollars. */
+/** One shop-local day of new vs returning order dollars. */
 export type MixDay = {
   key: string;
   label: string;
@@ -55,6 +80,10 @@ export type MixDay = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
+  /** Identified first-time buyers that day. Null when a lifetime is missing or the only buyers are off this till. */
+  firstTimeBuyers: number | null;
+  unknownDollars: number;
+  truncatedDollars: number;
 };
 
 export type MixDeltaTone = "up" | "down" | "flat";
@@ -92,6 +121,10 @@ export type MixBucket = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
+  /** Identified first-time buyers in the column. Null when a lifetime is missing or the only buyers are off this till. */
+  firstTimeBuyers: number | null;
+  unknownDollars: number;
+  truncatedDollars: number;
 };
 
 /** Window roll-up powering the marquee's KPI strip and its average-share rail. */
@@ -101,7 +134,62 @@ export type MixSummary = {
   total: number;
   returningShareAvg: number | null;
   bestReturning: MixBucket | null;
+  /** Sum of known weekly counts. Null when any column's count is unknown — never a fake 0. */
+  firstTimeBuyers: number | null;
+  unknownDollars: number;
+  truncatedDollars: number;
 };
+
+export const ORDER_STEP_IDS = ["first", "second", "third", "fourthPlus"] as const;
+export type OrderStepId = (typeof ORDER_STEP_IDS)[number];
+
+export type OrderStepRow = {
+  id: OrderStepId;
+  label: string;
+  /** Identified buyers who placed a stored order at this step. */
+  buyers: number;
+  /** Average Shopify Total Sales dollars (`amount`) at this step. Null until sealed. */
+  ticket: number | null;
+  /** Share of the previous step who reached this one. Null on 1st and until sealed. */
+  reach: number | null;
+  /** Median days since the previous stored order. Null on 1st and until sealed. */
+  waitDays: number | null;
+  /** True only when at least `ORDER_STEP_MIN_BUYERS` identified buyers took this step. */
+  sealed: boolean;
+};
+
+/**
+ * Period Shopify Total Sales from identified buyers who had gone quiet
+ * (previous gap already past that shop’s wait) and then ordered again.
+ * Sales stay null under the 8-buyer floor — never a fake $0.
+ */
+export type QuietBackView = {
+  sales: number | null;
+  buyers: number;
+  sealed: boolean;
+};
+
+/** Next wait after they already came back — median 2nd→3rd, guests out. */
+export type ComebackNextWait = {
+  waitDays: number | null;
+  buyers: number;
+  sealed: boolean;
+};
+
+/**
+ * First order → last order, plus median gap across every consecutive pair.
+ * History-limited books keep the hedge; they are not a fake short life.
+ */
+export type BuyerLifetimeSpan = {
+  firstToLastDays: number | null;
+  interOrderGapDays: number | null;
+  buyers: number;
+  sealed: boolean;
+  historyLimited: boolean;
+  historyDays: number;
+};
+
+type BuyerOrder = { t: number; amount: number };
 
 export type CustomerAnalytics = {
   available: boolean;
@@ -144,12 +232,50 @@ export type CustomerAnalytics = {
   whaleCount: number;
   whaleRecency: RecencyBucket[];
   whaleRecencyTruncatedAt: number | null;
-  /** New vs returning dollars by UTC day — the daily explorer grain. */
+  /** New vs returning dollars by shop-local day. Empty when the mix clock is missing. */
   mixDaily: MixDay[];
-  /** New vs returning dollars by ISO week (Mon start) — a trend, not a snapshot. */
+  /** New vs returning dollars by shop-local ISO week (Mon start). */
   mixWeekly: MixWeek[];
   /** Dollar-weighted returning-share across the window — the trend's rail. */
   mixReturningShareAvg: number | null;
+  /**
+   * Identified buyers whose Shopify `numberOfOrders` is longer than the stored
+   * book. Named — never a silent skip, never stuffed into returning $.
+   */
+  truncatedLifetimeBuyers: number;
+  /**
+   * Ticket, reach, and wait at 1st / 2nd / 3rd / 4th+ from the stored order
+   * book. Unsealed steps stay null — never a fake $0, 0%, or 0d.
+   */
+  orderSteps: OrderStepRow[];
+  /**
+   * This period’s Shopify Total Sales from identified buyers whose previous
+   * order was already past that shop’s wait. Not RFM hibernating (still quiet).
+   * Not returning mix (any earlier stored order).
+   */
+  quietBack: QuietBackView;
+  /** Median 2nd→3rd wait. Not the 1st/2nd/3rd ticket column. */
+  comebackWait: ComebackNextWait;
+  /** Median first→last span and inter-order gap among 2+ order buyers. */
+  lifetimeSpan: BuyerLifetimeSpan;
+  /**
+   * Same calendar window last year from the stored book. Missing last
+   * September stays not on file — never a fake $0 / 0% year.
+   */
+  lastYearMix: LastYearMix;
+};
+
+/** Same days last year on the stored book. Missing stays not on file. */
+export type LastYearMix = {
+  onFile: boolean;
+  returningSales: number | null;
+  newSales: number | null;
+};
+
+export const CUSTOMERS_LAST_YEAR_EMPTY: LastYearMix = {
+  onFile: false,
+  returningSales: null,
+  newSales: null,
 };
 
 function finite(n: number): number {
@@ -160,17 +286,512 @@ function ms(d: Date): number {
   return d instanceof Date ? d.getTime() : new Date(d).getTime();
 }
 
-/** UTC midnight of the calendar day containing `d`. */
-function utcDayStart(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+const ORDER_STEP_LABELS: Record<OrderStepId, string> = {
+  first: "1st",
+  second: "2nd",
+  third: "3rd",
+  fourthPlus: "4th and later",
+};
+
+function orderStepLabel(id: OrderStepId): string {
+  switch (id) {
+    case "first":
+    case "second":
+    case "third":
+    case "fourthPlus":
+      return ORDER_STEP_LABELS[id];
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
 }
 
-/** Monday (UTC) of the week containing `d` — ISO week start for the mix trend. */
-function mondayUtc(d: Date): Date {
-  const x = utcDayStart(d);
-  const mondayIndex = (x.getUTCDay() + 6) % 7;
-  x.setUTCDate(x.getUTCDate() - mondayIndex);
-  return x;
+function unsealedOrderStep(id: OrderStepId, buyers: number): OrderStepRow {
+  return {
+    id,
+    label: orderStepLabel(id),
+    buyers,
+    ticket: null,
+    reach: null,
+    waitDays: null,
+    sealed: false,
+  };
+}
+
+function meanOf(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((s, n) => s + n, 0) / values.length;
+}
+
+function sealOrderStep(input: {
+  id: OrderStepId;
+  buyers: number;
+  amounts: number[];
+  prevBuyers: number | null;
+  waits: number[] | null;
+}): OrderStepRow {
+  const { id, buyers, amounts, prevBuyers, waits } = input;
+  if (buyers < ORDER_STEP_MIN_BUYERS) return unsealedOrderStep(id, buyers);
+  const ticket = meanOf(amounts);
+  const reach =
+    id === "first" || prevBuyers == null || prevBuyers <= 0
+      ? null
+      : buyers / prevBuyers;
+  const waitDays =
+    id === "first" || waits == null || waits.length === 0
+      ? null
+      : medianOf(waits);
+  return {
+    id,
+    label: orderStepLabel(id),
+    buyers,
+    ticket,
+    reach,
+    waitDays,
+    sealed: true,
+  };
+}
+
+/**
+ * Ticket, reach, and wait at each repurchase step from stored orders.
+ * Guests out. Lifetime counts do not invent a step the book has not lived.
+ * 4th and later wait is 3rd→4th only.
+ */
+export function buildOrderSteps(rows: RetentionOrderRow[]): OrderStepRow[] {
+  const byCustomer = new Map<string, Array<{ t: number; amount: number }>>();
+  for (const row of rows) {
+    if (!row || !row.customerKey || row.customerKey === RETENTION_GUEST_KEY) {
+      continue;
+    }
+    if (!Number.isFinite(row.amount)) continue;
+    const t = ms(row.orderedAt);
+    if (!Number.isFinite(t)) continue;
+    const list = byCustomer.get(row.customerKey) ?? [];
+    list.push({ t, amount: row.amount });
+    byCustomer.set(row.customerKey, list);
+  }
+
+  const firstAmounts: number[] = [];
+  const secondAmounts: number[] = [];
+  const thirdAmounts: number[] = [];
+  const fourthPlusAmounts: number[] = [];
+  const waitSecond: number[] = [];
+  const waitThird: number[] = [];
+  const waitFourth: number[] = [];
+  let firstBuyers = 0;
+  let secondBuyers = 0;
+  let thirdBuyers = 0;
+  let fourthBuyers = 0;
+
+  for (const list of byCustomer.values()) {
+    const sorted = [...list].sort((a, b) => a.t - b.t);
+    const n = sorted.length;
+    if (n >= 1) {
+      firstBuyers += 1;
+      firstAmounts.push(sorted[0]!.amount);
+    }
+    if (n >= 2) {
+      secondBuyers += 1;
+      secondAmounts.push(sorted[1]!.amount);
+      const gap = (sorted[1]!.t - sorted[0]!.t) / DAY_MS;
+      if (gap >= 0 && Number.isFinite(gap)) waitSecond.push(gap);
+    }
+    if (n >= 3) {
+      thirdBuyers += 1;
+      thirdAmounts.push(sorted[2]!.amount);
+      const gap = (sorted[2]!.t - sorted[1]!.t) / DAY_MS;
+      if (gap >= 0 && Number.isFinite(gap)) waitThird.push(gap);
+    }
+    if (n >= 4) {
+      fourthBuyers += 1;
+      for (let i = 3; i < n; i += 1) {
+        fourthPlusAmounts.push(sorted[i]!.amount);
+      }
+      const gap = (sorted[3]!.t - sorted[2]!.t) / DAY_MS;
+      if (gap >= 0 && Number.isFinite(gap)) waitFourth.push(gap);
+    }
+  }
+
+  return [
+    sealOrderStep({
+      id: "first",
+      buyers: firstBuyers,
+      amounts: firstAmounts,
+      prevBuyers: null,
+      waits: null,
+    }),
+    sealOrderStep({
+      id: "second",
+      buyers: secondBuyers,
+      amounts: secondAmounts,
+      prevBuyers: firstBuyers,
+      waits: waitSecond,
+    }),
+    sealOrderStep({
+      id: "third",
+      buyers: thirdBuyers,
+      amounts: thirdAmounts,
+      prevBuyers: secondBuyers,
+      waits: waitThird,
+    }),
+    sealOrderStep({
+      id: "fourthPlus",
+      buyers: fourthBuyers,
+      amounts: fourthPlusAmounts,
+      prevBuyers: thirdBuyers,
+      waits: waitFourth,
+    }),
+  ];
+}
+
+export function orderStepTicketLabel(
+  row: OrderStepRow,
+  money: (amount: number) => string,
+): string {
+  if (!row.sealed || row.ticket == null || !Number.isFinite(row.ticket)) {
+    return "—";
+  }
+  return money(row.ticket);
+}
+
+export function orderStepReachLabel(row: OrderStepRow): string {
+  if (!row.sealed) return "—";
+  switch (row.id) {
+    case "first":
+      return row.buyers === 1 ? "1 buyer" : `${row.buyers.toLocaleString()} buyers`;
+    case "second":
+    case "third":
+    case "fourthPlus": {
+      if (row.reach == null || !Number.isFinite(row.reach)) return "—";
+      const whole = Math.round(row.reach * 100);
+      if (whole === 0 && row.reach !== 0) return "—";
+      return `${whole}%`;
+    }
+    default: {
+      const _never: never = row.id;
+      return _never;
+    }
+  }
+}
+
+export function orderStepWaitLabel(row: OrderStepRow): string {
+  switch (row.id) {
+    case "first":
+      return "—";
+    case "second":
+    case "third":
+    case "fourthPlus": {
+      if (!row.sealed || row.waitDays == null || !Number.isFinite(row.waitDays)) {
+        return "—";
+      }
+      return `${Math.round(row.waitDays)}d`;
+    }
+    default: {
+      const _never: never = row.id;
+      return _never;
+    }
+  }
+}
+
+export function orderStepFormula(id: OrderStepId): string {
+  switch (id) {
+    case "first":
+      return "A first order has no wait — not 0d. Ticket is average Shopify sales on first stored orders.";
+    case "second":
+      return "Typical days from the 1st order to the 2nd. Reach is the share of 1st-step buyers who placed a 2nd.";
+    case "third":
+      return "Typical days from the 2nd order to the 3rd. Reach is the share of 2nd-step buyers who placed a 3rd.";
+    case "fourthPlus":
+      return "Wait is days from the 3rd order to the 4th. Later waits stay off this row. Ticket averages stored orders at position 4 and after. Reach is the share of 3rd-step buyers who placed a 4th.";
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
+}
+
+function identifiedBuyerOrders(rows: RetentionOrderRow[]): Map<string, BuyerOrder[]> {
+  const byCustomer = new Map<string, BuyerOrder[]>();
+  for (const row of rows) {
+    if (!row || !row.customerKey || row.customerKey === RETENTION_GUEST_KEY) {
+      continue;
+    }
+    if (!Number.isFinite(row.amount)) continue;
+    const t = ms(row.orderedAt);
+    if (!Number.isFinite(t)) continue;
+    const list = byCustomer.get(row.customerKey) ?? [];
+    list.push({ t, amount: row.amount });
+    byCustomer.set(row.customerKey, list);
+  }
+  for (const list of byCustomer.values()) {
+    list.sort((a, b) => a.t - b.t);
+  }
+  return byCustomer;
+}
+
+function consecutiveGaps(list: BuyerOrder[]): number[] {
+  const gaps: number[] = [];
+  for (let i = 1; i < list.length; i += 1) {
+    const gap = (list[i]!.t - list[i - 1]!.t) / DAY_MS;
+    if (gap >= 0 && Number.isFinite(gap)) gaps.push(gap);
+  }
+  return gaps;
+}
+
+/** Shop typical first→second wait. Same 5-gap floor as the repurchase clock. */
+function shopTypicalDaysToSecond(byCustomer: Map<string, BuyerOrder[]>): number | null {
+  const gaps: number[] = [];
+  for (const list of byCustomer.values()) {
+    if (list.length < 2) continue;
+    const gap = (list[1]!.t - list[0]!.t) / DAY_MS;
+    if (gap >= 0 && Number.isFinite(gap)) gaps.push(gap);
+  }
+  if (gaps.length < 5) return null;
+  return medianOf(gaps);
+}
+
+function buyerOwnMedianWait(list: BuyerOrder[]): number | null {
+  if (list.length < 3) return null;
+  return medianOf(consecutiveGaps(list));
+}
+
+function bookHistoryDays(
+  byCustomer: Map<string, BuyerOrder[]>,
+  windowEndMs: number,
+): number {
+  let earliest = Number.POSITIVE_INFINITY;
+  for (const list of byCustomer.values()) {
+    const first = list[0]?.t;
+    if (first != null && first < earliest) earliest = first;
+  }
+  if (!Number.isFinite(earliest) || byCustomer.size === 0) return 0;
+  return Math.max(1, Math.ceil((windowEndMs - earliest) / DAY_MS));
+}
+
+export function emptyQuietBackView(): QuietBackView {
+  return { sales: null, buyers: 0, sealed: false };
+}
+
+export function emptyComebackNextWait(): ComebackNextWait {
+  return { waitDays: null, buyers: 0, sealed: false };
+}
+
+export function emptyBuyerLifetimeSpan(
+  historyLimited = false,
+  historyDays = 0,
+): BuyerLifetimeSpan {
+  return {
+    firstToLastDays: null,
+    interOrderGapDays: null,
+    buyers: 0,
+    sealed: false,
+    historyLimited,
+    historyDays,
+  };
+}
+
+/**
+ * This period’s Shopify Total Sales from identified buyers whose previous
+ * order was already past that shop’s wait. Gap vs own median wait at 3+
+ * stored orders; else vs typical days-to-second. Guests out. Seal at 8.
+ * Not RFM hibernating (those buyers have not come back).
+ */
+export function buildQuietBackDollars(input: {
+  rows: RetentionOrderRow[];
+  periodStart: Date;
+  periodEnd: Date;
+}): QuietBackView {
+  const start = ms(input.periodStart);
+  const end = ms(input.periodEnd);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return emptyQuietBackView();
+  }
+  const byCustomer = identifiedBuyerOrders(input.rows);
+  const typical = shopTypicalDaysToSecond(byCustomer);
+  let buyers = 0;
+  let sales = 0;
+  for (const list of byCustomer.values()) {
+    const inPeriod = list.filter((order) => order.t >= start && order.t <= end);
+    if (inPeriod.length === 0) continue;
+    const firstIn = inPeriod[0]!;
+    let prev: BuyerOrder | null = null;
+    for (const order of list) {
+      if (order.t < firstIn.t) prev = order;
+      else break;
+    }
+    if (!prev) continue;
+    const gap = (firstIn.t - prev.t) / DAY_MS;
+    if (!(gap >= 0) || !Number.isFinite(gap)) continue;
+    const wait = list.length >= 3 ? buyerOwnMedianWait(list) : typical;
+    if (wait == null || !Number.isFinite(wait) || wait < 0) continue;
+    if (!(gap > wait)) continue;
+    buyers += 1;
+    for (const order of inPeriod) sales += finite(order.amount);
+  }
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    sales: sealed ? sales : null,
+    buyers,
+    sealed,
+  };
+}
+
+/**
+ * Median days from the 2nd stored order to the 3rd. Seal at 8 identified
+ * buyers who already came back and placed a third. Guests out. Thin side —.
+ */
+export function buildComebackNextWait(rows: RetentionOrderRow[]): ComebackNextWait {
+  const byCustomer = identifiedBuyerOrders(rows);
+  const waits: number[] = [];
+  let buyers = 0;
+  for (const list of byCustomer.values()) {
+    if (list.length < 3) continue;
+    buyers += 1;
+    const gap = (list[2]!.t - list[1]!.t) / DAY_MS;
+    if (gap >= 0 && Number.isFinite(gap)) waits.push(gap);
+  }
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    waitDays: sealed ? medianOf(waits) : null,
+    buyers,
+    sealed,
+  };
+}
+
+/**
+ * Median first→last among identified buyers with 2+ orders, and median
+ * inter-order gap across every consecutive pair. Seal at 8 such buyers.
+ */
+export function buildBuyerLifetimeSpan(
+  rows: RetentionOrderRow[],
+  options: { windowEnd: Date; historyLimited: boolean },
+): BuyerLifetimeSpan {
+  const byCustomer = identifiedBuyerOrders(rows);
+  const historyDays = bookHistoryDays(byCustomer, ms(options.windowEnd));
+  const spans: number[] = [];
+  const gaps: number[] = [];
+  let buyers = 0;
+  for (const list of byCustomer.values()) {
+    if (list.length < 2) continue;
+    buyers += 1;
+    const span = (list[list.length - 1]!.t - list[0]!.t) / DAY_MS;
+    if (span >= 0 && Number.isFinite(span)) spans.push(span);
+    gaps.push(...consecutiveGaps(list));
+  }
+  const sealed = buyers >= ORDER_STEP_MIN_BUYERS;
+  return {
+    firstToLastDays: sealed ? medianOf(spans) : null,
+    interOrderGapDays: sealed ? medianOf(gaps) : null,
+    buyers,
+    sealed,
+    historyLimited: options.historyLimited,
+    historyDays,
+  };
+}
+
+/** Honest hedge when the stored book is shorter than a life. */
+export function buyerLifetimeSpanLine(span: BuyerLifetimeSpan): string | null {
+  if (!span.sealed) return null;
+  if (span.historyLimited) {
+    return `On file · last ~${span.historyDays} days — not a fake short life.`;
+  }
+  return `Full stored book · last ~${span.historyDays} days.`;
+}
+
+function withheldMixDollars(bucket: {
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number {
+  return (bucket.unknownDollars ?? 0) + (bucket.truncatedDollars ?? 0);
+}
+
+/**
+ * First-time $ the mix may paint. Known guest and first-time dollars still
+ * paint when unclassified dollars share the column. Those withheld dollars
+ * stay out of this number. A column with no known first-time dollars paints
+ * —, never a certified `$0`.
+ */
+export function mixFirstTimePaint(bucket: {
+  newDollars: number;
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number | null {
+  if (bucket.newDollars > 0) return bucket.newDollars;
+  if (withheldMixDollars(bucket) > 0) return null;
+  return bucket.newDollars;
+}
+
+/**
+ * Returning $ the mix may paint. Unclassified dollars in the same column
+ * (unknown lifetime, or earlier orders off this till) make a returning figure
+ * incomplete, so the paint is —, never a certified `$0`.
+ */
+export function mixReturningPaint(bucket: {
+  returningDollars: number;
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number | null {
+  if (withheldMixDollars(bucket) > 0) return null;
+  return bucket.returningDollars;
+}
+
+/**
+ * Total the mix may paint. A sum that dropped unknown or truncated dollars
+ * is not a total — —, never `$0` of the remainder.
+ */
+export function mixTotalPaint(bucket: {
+  total: number;
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number | null {
+  if (withheldMixDollars(bucket) > 0) return null;
+  return bucket.total;
+}
+
+function shiftUtcYear(d: Date, deltaYears: number): Date | null {
+  const next = new Date(d.getTime());
+  const year = next.getUTCFullYear();
+  next.setUTCFullYear(year + deltaYears);
+  if (next.getUTCFullYear() !== year + deltaYears) return null;
+  return next;
+}
+
+function lastYearPeriodMix(
+  storedBook: RetentionOrderRow[],
+  files: Map<string, BuyerFile>,
+  periodStart: Date | undefined,
+  periodEnd: Date | undefined,
+): LastYearMix {
+  if (periodStart == null || periodEnd == null) return CUSTOMERS_LAST_YEAR_EMPTY;
+  const lastStart = shiftUtcYear(periodStart, -1);
+  const lastEnd = shiftUtcYear(periodEnd, -1);
+  if (!lastStart || !lastEnd) return CUSTOMERS_LAST_YEAR_EMPTY;
+  const startMs = lastStart.getTime();
+  const endMs = lastEnd.getTime();
+  const acc = freshMixAcc(startMs);
+  let identified = 0;
+  for (const row of storedBook) {
+    const t = ms(row.orderedAt);
+    if (t < startMs || t > endMs) continue;
+    const kind = orderMixKind(row, files.get(row.customerKey));
+    addMixAmount(acc, kind, finite(row.amount));
+    if (kind !== "guest") identified += 1;
+  }
+  if (identified <= 0) return CUSTOMERS_LAST_YEAR_EMPTY;
+  return {
+    onFile: true,
+    returningSales: mixReturningPaint({
+      returningDollars: Math.round(acc.retD),
+      unknownDollars: acc.unknownD,
+      truncatedDollars: acc.truncatedD,
+    }),
+    newSales: mixFirstTimePaint({
+      newDollars: Math.round(acc.newD),
+      unknownDollars: acc.unknownD,
+      truncatedDollars: acc.truncatedD,
+    }),
+  };
 }
 
 const SPEND_BANDS: Array<{ label: string; min: number; max: number | null }> = [
@@ -221,6 +842,172 @@ const FREQUENCY_LABELS: Array<{ label: string; min: number; max: number | null }
 /** A "whale" is a best customer with this many orders on file. */
 export const WHALE_MIN_ORDERS = 5;
 
+type BuyerFile = {
+  first: number;
+  stored: number;
+  /** `undefined` = not on the row. `null` = stored and missing. */
+  lifetime: number | null | undefined;
+  firstLocal: Date | null;
+};
+
+type MixKind = "guest" | "new" | "returning" | "unknown" | "truncated";
+
+type MixAcc = {
+  start: number;
+  newD: number;
+  retD: number;
+  unknownD: number;
+  truncatedD: number;
+  newBuyers: number;
+  unknownNew: boolean;
+};
+
+function knownLifetime(value: number | null | undefined): number | null | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return value;
+  return Math.max(0, Math.trunc(value));
+}
+
+function mergeLifetime(
+  prev: number | null | undefined,
+  next: number | null | undefined,
+): number | null | undefined {
+  const a = typeof prev === "number" ? prev : null;
+  const b = typeof next === "number" ? next : null;
+  if (a != null || b != null) return Math.max(a ?? 0, b ?? 0);
+  if (prev === null || next === null) return null;
+  return undefined;
+}
+
+/**
+ * One file per identified buyer. Same rule as `countNewBuyersInRange`: a known
+ * lifetime above the stored order count means they bought before this book.
+ * A null lifetime is kept null so the weekly count can stay unknown.
+ */
+function buyerFiles(rows: RetentionOrderRow[]): Map<string, BuyerFile> {
+  const files = new Map<string, BuyerFile>();
+  for (const row of rows) {
+    if (!row.customerKey || row.customerKey === RETENTION_GUEST_KEY) continue;
+    if (!Number.isFinite(row.amount)) continue;
+    const t = ms(row.orderedAt);
+    if (!Number.isFinite(t)) continue;
+    const lifetime = knownLifetime(row.lifetimeOrders);
+    const prev = files.get(row.customerKey);
+    if (!prev) {
+      files.set(row.customerKey, {
+        first: t,
+        stored: 1,
+        lifetime,
+        firstLocal: row.shopLocalDate ?? null,
+      });
+      continue;
+    }
+    prev.stored += 1;
+    if (t < prev.first) {
+      prev.first = t;
+      prev.firstLocal = row.shopLocalDate ?? null;
+    }
+    prev.lifetime = mergeLifetime(prev.lifetime, lifetime);
+  }
+  return files;
+}
+
+function orderMixKind(row: RetentionOrderRow, file: BuyerFile | undefined): MixKind {
+  if (!row.customerKey || row.customerKey === RETENTION_GUEST_KEY) return "guest";
+  if (!file) return "unknown";
+  if (ms(row.orderedAt) > file.first) return "returning";
+  if (typeof file.lifetime === "number" && file.lifetime > file.stored) {
+    return "truncated";
+  }
+  if (file.lifetime === null) return "unknown";
+  return "new";
+}
+
+function freshMixAcc(start: number): MixAcc {
+  return {
+    start,
+    newD: 0,
+    retD: 0,
+    unknownD: 0,
+    truncatedD: 0,
+    newBuyers: 0,
+    unknownNew: false,
+  };
+}
+
+function firstTimeCount(acc: MixAcc): number | null {
+  if (acc.unknownNew) return null;
+  // Truncated-only: those buyers were skipped. 0 would read as "0 first-time buyers".
+  if (acc.newBuyers === 0 && acc.truncatedD > 0 && acc.retD === 0) return null;
+  return acc.newBuyers;
+}
+
+function mixCalendarKey(
+  orderedAt: Date,
+  shopLocalDate: Date | null | undefined,
+  timeZone: string | null | undefined,
+): string | null {
+  if (shopLocalDate instanceof Date && Number.isFinite(shopLocalDate.getTime())) {
+    const key = shopLocalDate.toISOString().slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return key;
+  }
+  const tz = typeof timeZone === "string" ? timeZone.trim() : "";
+  if (!tz) return null;
+  const key = shopLocalDayKey(orderedAt, tz);
+  return key || null;
+}
+
+function mixShare(acc: MixAcc): number | null {
+  if (acc.unknownD > 0 || acc.truncatedD > 0) return null;
+  const total = acc.newD + acc.retD;
+  return total > 0 ? acc.retD / total : null;
+}
+
+function paintMixColumn(
+  acc: MixAcc,
+  key: string,
+  label: string,
+  start: number,
+): MixDay {
+  const newDollars = Math.round(acc.newD);
+  const returningDollars = Math.round(acc.retD);
+  const unknownDollars = Math.round(acc.unknownD);
+  const truncatedDollars = Math.round(acc.truncatedD);
+  return {
+    key,
+    label,
+    dayStart: start,
+    newDollars,
+    returningDollars,
+    total: newDollars + returningDollars,
+    returningShare: mixShare(acc),
+    firstTimeBuyers: firstTimeCount(acc),
+    unknownDollars,
+    truncatedDollars,
+  };
+}
+
+function addMixAmount(acc: MixAcc, kind: MixKind, amount: number): void {
+  switch (kind) {
+    case "guest":
+    case "new":
+      acc.newD += amount;
+      return;
+    case "returning":
+      acc.retD += amount;
+      return;
+    case "unknown":
+      acc.unknownD += amount;
+      return;
+    case "truncated":
+      acc.truncatedD += amount;
+      return;
+    default: {
+      const _never: never = kind;
+      return _never;
+    }
+  }
+}
+
 const RECENCY_BUCKETS: Array<{ label: string; min: number; max: number | null }> = [
   { label: "0–30d", min: 0, max: 30 },
   { label: "31–60d", min: 31, max: 60 },
@@ -233,7 +1020,28 @@ const RECENCY_BUCKETS: Array<{ label: string; min: number; max: number | null }>
 
 export function buildCustomerAnalytics(
   rows: RetentionOrderRow[],
-  options: { windowEnd: Date; historyWindowDays: number },
+  options: {
+    windowEnd: Date;
+    historyWindowDays: number;
+    /**
+     * Full stored order book. The mix window stays `rows` (the 90-day slice).
+     * Classification uses this book so a prior order outside that slice is
+     * returning dollars, not new dollars. Quiet-then-back, next wait, and
+     * first→last also read this book.
+     */
+    orderBook?: RetentionOrderRow[];
+    /** Picked period start. Quiet-then-back dollars stay — without it. */
+    periodStart?: Date;
+    /** Picked period end. Defaults to `windowEnd`. */
+    periodEnd?: Date;
+    /** Unpaid / truncated book — first→last is not a fake short life. */
+    historyLimited?: boolean;
+    /**
+     * Shop IANA timezone for mix day keys. Missing TZ stays — unless the
+     * row already carries `shopLocalDate`. Never a host Date.
+     */
+    timeZone?: string | null;
+  },
 ): CustomerAnalytics {
   const clean = rows.filter((r) => r && Number.isFinite(r.amount));
   const windowOrders = clean.length;
@@ -354,75 +1162,106 @@ export function buildCustomerAnalytics(
   const daysToSecondTruncatedAt =
     collectable.length < DAYS_BUCKETS.length ? historyDays : null;
 
-  // New vs returning dollars by week: an order is "returning" when it lands after
-  // the buyer's first order on file; guests can never be returning.
-  const firstByCustomer = new Map<string, number>();
-  for (const [key, rec] of byCustomer) {
-    firstByCustomer.set(key, Math.min(...rec.times));
-  }
-  const dayMap = new Map<string, { start: number; newD: number; retD: number }>();
-  const weekMap = new Map<string, { start: number; newD: number; retD: number }>();
-  for (const r of clean) {
-    const day = utcDayStart(r.orderedAt);
-    const monday = mondayUtc(r.orderedAt);
-    const dayKey = day.toISOString().slice(0, 10);
-    const weekKey = monday.toISOString().slice(0, 10);
-    const dayRec = dayMap.get(dayKey) ?? { start: day.getTime(), newD: 0, retD: 0 };
-    const weekRec = weekMap.get(weekKey) ?? { start: monday.getTime(), newD: 0, retD: 0 };
-    const isReturning =
-      r.customerKey !== RETENTION_GUEST_KEY &&
-      ms(r.orderedAt) > (firstByCustomer.get(r.customerKey) ?? Number.POSITIVE_INFINITY);
-    if (isReturning) {
-      dayRec.retD += finite(r.amount);
-      weekRec.retD += finite(r.amount);
-    } else {
-      dayRec.newD += finite(r.amount);
-      weekRec.newD += finite(r.amount);
+  // New vs returning dollars: an order is returning when the stored book has an
+  // earlier order (`orderedAt` sequence). A known lifetime above the stored
+  // count is its own empty — earlier orders exist off this till. Guests stay
+  // first-time dollars. A missing lifetime stays unknown, never stuffed into
+  // first-time $. Mix days follow shop-local keys, not UTC host dates.
+  const files = buyerFiles(options.orderBook ?? rows);
+  let truncatedLifetimeBuyers = 0;
+  for (const file of files.values()) {
+    if (typeof file.lifetime === "number" && file.lifetime > file.stored) {
+      truncatedLifetimeBuyers += 1;
     }
+  }
+  const windowEarliest = new Map<string, number>();
+  for (const r of identified) {
+    const t = ms(r.orderedAt);
+    const prev = windowEarliest.get(r.customerKey);
+    if (prev == null || t < prev) windowEarliest.set(r.customerKey, t);
+  }
+  const dayMap = new Map<string, MixAcc>();
+  const weekMap = new Map<string, MixAcc>();
+  for (const r of clean) {
+    const dayKey = mixCalendarKey(r.orderedAt, r.shopLocalDate, options.timeZone);
+    if (!dayKey) continue;
+    const weekKey = mondayOfDayKey(dayKey);
+    const dayStart = utcMidnightFromDayKey(dayKey).getTime();
+    const weekStart = utcMidnightFromDayKey(weekKey).getTime();
+    const dayRec = dayMap.get(dayKey) ?? freshMixAcc(dayStart);
+    const weekRec = weekMap.get(weekKey) ?? freshMixAcc(weekStart);
+    const kind = orderMixKind(r, files.get(r.customerKey));
+    const amount = finite(r.amount);
+    addMixAmount(dayRec, kind, amount);
+    addMixAmount(weekRec, kind, amount);
     dayMap.set(dayKey, dayRec);
     weekMap.set(weekKey, weekRec);
   }
-  const mixDaily: MixDay[] = [...dayMap.values()]
-    .sort((a, b) => a.start - b.start)
-    .map((d) => {
-      const day = new Date(d.start);
-      const newDollars = Math.round(d.newD);
-      const returningDollars = Math.round(d.retD);
-      const total = newDollars + returningDollars;
+  for (const [key, file] of files) {
+    const earliestInWindow = windowEarliest.get(key);
+    if (earliestInWindow == null || earliestInWindow !== file.first) continue;
+    if (typeof file.lifetime === "number" && file.lifetime > file.stored) continue;
+    const dayKey = mixCalendarKey(
+      new Date(file.first),
+      file.firstLocal,
+      options.timeZone,
+    );
+    if (!dayKey) continue;
+    const weekKey = mondayOfDayKey(dayKey);
+    const unknown = file.lifetime === null;
+    const dayRec = dayMap.get(dayKey);
+    const weekRec = weekMap.get(weekKey);
+    if (dayRec) {
+      if (unknown) dayRec.unknownNew = true;
+      else dayRec.newBuyers += 1;
+    }
+    if (weekRec) {
+      if (unknown) weekRec.unknownNew = true;
+      else weekRec.newBuyers += 1;
+    }
+  }
+  const mixDaily: MixDay[] = [...dayMap.entries()]
+    .sort((a, b) => a[1].start - b[1].start)
+    .map(([key, d]) =>
+      paintMixColumn(d, key, mixDayLabel(key), d.start),
+    );
+  const mixWeekly: MixWeek[] = [...weekMap.entries()]
+    .sort((a, b) => a[1].start - b[1].start)
+    .map(([key, w]) => {
+      const painted = paintMixColumn(
+        w,
+        key,
+        `Wk ${mixDayLabel(key)}`,
+        w.start,
+      );
       return {
-        key: day.toISOString().slice(0, 10),
-        label: `${day.getUTCMonth() + 1}/${day.getUTCDate()}`,
-        dayStart: d.start,
-        newDollars,
-        returningDollars,
-        total,
-        returningShare: total > 0 ? returningDollars / total : null,
-      };
-    });
-  const mixWeekly: MixWeek[] = [...weekMap.values()]
-    .sort((a, b) => a.start - b.start)
-    .map((w) => {
-      const monday = new Date(w.start);
-      // Round the parts first, then sum — independent rounding of `total`
-      // can make "$10 + $10 = $21" on the #73 marquee tooltip/drill.
-      const newDollars = Math.round(w.newD);
-      const returningDollars = Math.round(w.retD);
-      const total = newDollars + returningDollars;
-      return {
-        key: monday.toISOString().slice(0, 10),
-        label: `Wk ${monday.getUTCMonth() + 1}/${monday.getUTCDate()}`,
-        weekStart: w.start,
-        newDollars,
-        returningDollars,
-        total,
-        returningShare: total > 0 ? returningDollars / total : null,
+        key: painted.key,
+        label: painted.label,
+        weekStart: painted.dayStart,
+        newDollars: painted.newDollars,
+        returningDollars: painted.returningDollars,
+        total: painted.total,
+        returningShare: painted.returningShare,
+        firstTimeBuyers: painted.firstTimeBuyers,
+        unknownDollars: painted.unknownDollars,
+        truncatedDollars: painted.truncatedDollars,
       };
     });
   const mixTotals = mixWeekly.reduce(
-    (acc, w) => ({ ret: acc.ret + w.returningDollars, all: acc.all + w.total }),
-    { ret: 0, all: 0 },
+    (acc, w) => ({
+      ret: acc.ret + w.returningDollars,
+      all: acc.all + w.total,
+      unknown: acc.unknown + w.unknownDollars,
+      truncated: acc.truncated + w.truncatedDollars,
+    }),
+    { ret: 0, all: 0, unknown: 0, truncated: 0 },
   );
-  const mixReturningShareAvg = mixTotals.all > 0 ? mixTotals.ret / mixTotals.all : null;
+  const mixReturningShareAvg =
+    mixTotals.unknown > 0 || mixTotals.truncated > 0
+      ? null
+      : mixTotals.all > 0
+        ? mixTotals.ret / mixTotals.all
+        : null;
 
   const recencyCollectable = RECENCY_BUCKETS.filter((b) => b.min <= historyDays);
   const whaleRecency: RecencyBucket[] = recencyCollectable.map((b, i) => ({
@@ -454,6 +1293,29 @@ export function buildCustomerAnalytics(
   const thirdPlusShare = enoughBuyers ? thirdPlusBuyers / identifiedBuyers : null;
   const within30Share = eligible30 >= 8 ? within30 / eligible30 : null;
   const within60Share = eligible60 >= 8 ? within60 / eligible60 : null;
+
+  const storedBook = options.orderBook ?? rows;
+  const periodStart = options.periodStart;
+  const periodEnd = options.periodEnd ?? options.windowEnd;
+  const lastYearMix = lastYearPeriodMix(
+    storedBook,
+    files,
+    periodStart,
+    periodEnd,
+  );
+  const quietBack =
+    periodStart != null
+      ? buildQuietBackDollars({
+          rows: storedBook,
+          periodStart,
+          periodEnd,
+        })
+      : emptyQuietBackView();
+  const comebackWait = buildComebackNextWait(storedBook);
+  const lifetimeSpan = buildBuyerLifetimeSpan(storedBook, {
+    windowEnd: options.windowEnd,
+    historyLimited: options.historyLimited === true,
+  });
 
   return {
     available: identifiedBuyers > 0,
@@ -489,6 +1351,12 @@ export function buildCustomerAnalytics(
     mixDaily,
     mixWeekly,
     mixReturningShareAvg,
+    truncatedLifetimeBuyers,
+    orderSteps: buildOrderSteps(storedBook),
+    quietBack,
+    comebackWait,
+    lifetimeSpan,
+    lastYearMix,
   };
 }
 
@@ -522,11 +1390,22 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
       returningDollars: w.returningDollars,
       total: w.total,
       returningShare: w.returningShare,
+      firstTimeBuyers: w.firstTimeBuyers,
+      unknownDollars: w.unknownDollars,
+      truncatedDollars: w.truncatedDollars,
     }));
   }
   const byMonth = new Map<
     string,
-    { start: number; newD: number; retD: number; month: number }
+    {
+      start: number;
+      newD: number;
+      retD: number;
+      unknownD: number;
+      truncatedD: number;
+      month: number;
+      buyers: number | null;
+    }
   >();
   for (const w of weeks) {
     const d = new Date(w.weekStart);
@@ -537,10 +1416,17 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
       start: Date.UTC(year, month, 1),
       newD: 0,
       retD: 0,
+      unknownD: 0,
+      truncatedD: 0,
       month,
+      buyers: 0,
     };
     rec.newD += w.newDollars;
     rec.retD += w.returningDollars;
+    rec.unknownD += w.unknownDollars;
+    rec.truncatedD += w.truncatedDollars;
+    if (w.firstTimeBuyers == null) rec.buyers = null;
+    else if (rec.buyers != null) rec.buyers += w.firstTimeBuyers;
     byMonth.set(key, rec);
   }
   return [...byMonth.entries()]
@@ -554,7 +1440,15 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
         newDollars: rec.newD,
         returningDollars: rec.retD,
         total,
-        returningShare: total > 0 ? rec.retD / total : null,
+        returningShare:
+          rec.unknownD > 0 || rec.truncatedD > 0
+            ? null
+            : total > 0
+              ? rec.retD / total
+              : null,
+        firstTimeBuyers: rec.buyers,
+        unknownDollars: rec.unknownD,
+        truncatedDollars: rec.truncatedD,
       };
     });
 }
@@ -563,10 +1457,17 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
 export function mixSummary(buckets: MixBucket[]): MixSummary {
   let returningDollars = 0;
   let newDollars = 0;
+  let unknownDollars = 0;
+  let truncatedDollars = 0;
   let bestReturning: MixBucket | null = null;
+  let firstTimeBuyers: number | null = buckets.length === 0 ? null : 0;
   for (const b of buckets) {
     returningDollars += b.returningDollars;
     newDollars += b.newDollars;
+    unknownDollars += b.unknownDollars;
+    truncatedDollars += b.truncatedDollars;
+    if (b.firstTimeBuyers == null) firstTimeBuyers = null;
+    else if (firstTimeBuyers != null) firstTimeBuyers += b.firstTimeBuyers;
     if (
       b.returningDollars > 0 &&
       (bestReturning == null || b.returningDollars > bestReturning.returningDollars)
@@ -579,8 +1480,16 @@ export function mixSummary(buckets: MixBucket[]): MixSummary {
     returningDollars,
     newDollars,
     total,
-    returningShareAvg: total > 0 ? returningDollars / total : null,
+    returningShareAvg:
+      unknownDollars > 0 || truncatedDollars > 0
+        ? null
+        : total > 0
+          ? returningDollars / total
+          : null,
     bestReturning,
+    firstTimeBuyers,
+    unknownDollars,
+    truncatedDollars,
   };
 }
 
@@ -594,6 +1503,9 @@ export function bucketMixDays(days: MixDay[]): MixBucket[] {
     returningDollars: d.returningDollars,
     total: d.total,
     returningShare: d.returningShare,
+    firstTimeBuyers: d.firstTimeBuyers,
+    unknownDollars: d.unknownDollars,
+    truncatedDollars: d.truncatedDollars,
   }));
 }
 
@@ -697,9 +1609,11 @@ export function buildReturningMixPlays(input: {
   const prior = buckets.length > 1 ? buckets[buckets.length - 2]! : null;
   const summary = mixSummary(buckets);
   const noun = mixGrainNoun(input.grain);
+  const latestReturning = latest != null ? mixReturningPaint(latest) : null;
+  const priorReturning = prior != null ? mixReturningPaint(prior) : null;
   const dollarDelta =
-    latest != null && prior != null
-      ? latest.returningDollars - prior.returningDollars
+    latestReturning != null && priorReturning != null
+      ? latestReturning - priorReturning
       : null;
   const sharePoints =
     latest?.returningShare != null &&
@@ -715,7 +1629,7 @@ export function buildReturningMixPlays(input: {
       id: "latest",
       verb: "Returning $",
       label: latestMixLabel(input.grain),
-      amount: latest ? latest.returningDollars : null,
+      amount: latest != null ? latestReturning : null,
       amountKind: "money",
       sub: latest
         ? prior

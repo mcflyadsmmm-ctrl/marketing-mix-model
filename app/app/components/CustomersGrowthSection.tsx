@@ -1,20 +1,33 @@
 import { GrowthComebackChart } from "./GrowthComebackChart";
 import { GrowthFirstViewport } from "./GrowthFirstViewport";
+import { GrowthOrderStepsBoard } from "./GrowthOrderStepsBoard";
 import { GrowthScoreboard } from "./GrowthScoreboard";
 import { GrowthTt2Board } from "./GrowthTt2Board";
 import { SlackInsightCard } from "./SlackInsightCard";
+import type {
+  BuyerLifetimeSpan,
+  ComebackNextWait,
+  OrderStepRow,
+  QuietBackView,
+} from "../lib/customers-analytics";
 import {
   growthFirstOrderMonths,
   growthOrderDepthBars,
+  growthStandupCopyText,
   type GrowthMonthBar,
 } from "../lib/growth-comeback";
+import { formatCurrency } from "../lib/mer-format";
+import { useDeskCurrency } from "../lib/desk-currency";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   growthTt2HistoryLine,
   growthTt2Read,
   type GrowthTt2View,
 } from "../lib/growth-tt2";
-import { daysToSecondSlackInsight } from "../lib/shareable-insights";
+import {
+  daysToSecondSlackInsight,
+  firstTimeSlackInsight,
+} from "../lib/shareable-insights";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
@@ -37,6 +50,10 @@ export function CustomersGrowthSection({
   useSampleDesk,
   shopLabel = "",
   shotMode = false,
+  orderSteps,
+  quietBack,
+  comebackWait,
+  lifetimeSpan,
 }: {
   book: ShopifyNativePeriodStats;
   tt2: GrowthTt2View;
@@ -54,7 +71,12 @@ export function CustomersGrowthSection({
   useSampleDesk: boolean;
   shopLabel?: string;
   shotMode?: boolean;
+  orderSteps: OrderStepRow[];
+  quietBack: QuietBackView;
+  comebackWait: ComebackNextWait;
+  lifetimeSpan: BuyerLifetimeSpan;
 }) {
+  const currency = useDeskCurrency();
   const orderDepthBars = growthOrderDepthBars(depth);
   const firstOrderMonths =
     months ?? growthFirstOrderMonths(cohorts ?? []);
@@ -65,6 +87,20 @@ export function CustomersGrowthSection({
     shopLabel,
     sample: useSampleDesk,
     where: growthTt2HistoryLine(tt2),
+  });
+  const firstTimeSlack = firstTimeSlackInsight({
+    line: growthStandupCopyText({
+      salesPending,
+      newSales: book.newSales,
+      money: (n) => formatCurrency(n, currency),
+      secondShare: depth.secondOrderBuyerShare,
+      thirdShare: depth.thirdPlusBuyerShare,
+      reachNow: tt2.reachNow,
+      clockAvailable: !tt2.empty && tt2.available,
+    }),
+    shopLabel,
+    sample: useSampleDesk,
+    where: salesPending ? "Still loading" : "This period",
   });
 
   return (
@@ -97,8 +133,15 @@ export function CustomersGrowthSection({
         salesPending={salesPending}
         useSampleDesk={useSampleDesk}
         ltvHref="#mcfly-ltv"
+        quietBack={quietBack}
+        comebackWait={comebackWait}
+        lifetimeSpan={lifetimeSpan}
+        reachNow={tt2.reachNow}
+        clockAvailable={!tt2.empty && tt2.available}
       />
+      {firstTimeSlack ? <SlackInsightCard insight={firstTimeSlack} shotMode={shotMode} /> : null}
       <GrowthTt2Board tt2={tt2} />
+      <GrowthOrderStepsBoard steps={orderSteps} />
     </>
   );
 }

@@ -1,20 +1,32 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v406 / tip `2107ea8` (`2107ea876cf86e8195f172e88415520b5a450ef9`) / Live PARKED. The v403 lines below are the 2026-09-21 wave log.
+**Tip Fly note:** v433 / tip `d4ccd1c` (merge of #190 wrong-lane leftover) / image `deployment-01M355KB6BNF9R6M39F0R5NX05` / Live PARKED. Health ok 2026-09-22T18:22Z. v432 was spend leftover honesty. v431 was site trial leftover (fly.dev honest; mcflyads.com Pages still stale).
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v406 / tip `2107ea8` / Live PARKED |
-| SAMPLE smoke | WAITING Marty demo PASS/FAIL |
+| Tip Fly SoT | v433 / tip `d4ccd1c` / Live PARKED |
+| SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v406 / tip `2107ea8`; Live PARKED |
+| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v433 / tip `d4ccd1c`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | DONE — COMPETE_COMPLAINTS_PACK.md (top pains vs native/Lifetimely/TW/Peel/TrueProfit/Putler; $39 flat wedge) |
+| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
+
+## Next significant ship (the only craft allowed)
+
+**Phone six-figure wrap.** “On my phone I cannot read first 30 / 90 / first year — they sit three across. The LTV triangle is a nowrap heat table. The Orders weekly ledger is eight nowrap columns.”
+
+Customers → LTV (flagship tiles + open-lane triangle) · Orders weekly ledger. Public `/demo` and Admin `/app`. Under 36rem, 30 / 90 / first year stack the way Goals / Orders / Growth already wrap. Triangle sealed six-figure dollars stay on screen; unsealed stays — / hatch, never `$0` / `0%`. Ledger keeps Week + Sales (+ AOV) on screen; park Codes / Returns in the existing drill. Missing prior stays —. Dollar may wrap. Never a fake `$0`. Do not recook whale 430px. Do not edit the morning-habit block. Do not recook wrong-lane leftover. Do not unpark Live. Do not change the 90.
+
+Branch `cursor/phone-six-figure-wrap-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 8 and 10–14 of the third-queue stay queued. Do not rebuild wrong-lane leftover, spend leftover honesty, site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+
+Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 7. After PASS, stamp first-90 honesty (`cursor/ltv-first90-honesty-5bc6`), not rank 10.
+
+A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
 ## Accepted work log
 - Enterprise tip cooks through v387 wave + tip advanced to v403

@@ -29,6 +29,7 @@ import {
 } from "./ltv-first-product";
 import { buildProductLtv, type ProductLtvView } from "./ltv-product";
 import { buildPromoLtv, type PromoLtvView } from "./ltv-promo";
+import { buildLtvBySource, type SourceLtvView } from "./ltv-by-source";
 
 export const LTV_FLAGSHIP_WINDOWS = [30, 90, 365] as const;
 export type LtvFlagshipWindow = (typeof LTV_FLAGSHIP_WINDOWS)[number];
@@ -970,6 +971,8 @@ export interface LtvFlagshipView extends LtvDepthView {
   firstProductDrivers: FirstProductDriversView;
   /** First-order promo → LTV / lift vs full-price first. */
   promoLtv: PromoLtvView;
+  /** First-order Online / POS / Shop / Other → lifetime LTV. */
+  sourceLtv: SourceLtvView;
 }
 
 /**
@@ -996,5 +999,6 @@ export function buildLtvFlagship(
     promoLtv: buildPromoLtv(orders, asOf, {
       historyLimited: Boolean(options.historyLimited),
     }),
+    sourceLtv: buildLtvBySource(orders),
   };
 }

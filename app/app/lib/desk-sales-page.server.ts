@@ -14,6 +14,7 @@ import {
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
   resolvePeriod,
+  resolvePriorPeriod,
 } from "./periods";
 import { parseSalesBasis } from "./sales-basis";
 import {
@@ -30,18 +31,41 @@ import {
   loadOrderDepthRows,
 } from "./order-facts.server";
 import {
-  aggregateOrderRows,
-  buildOrdersAovTiers,
-  buildOrdersFrequency,
-  buildOrdersIntelDays,
-  buildOrdersWeeklyRows,
-  ordersIntelWindowLabel,
+  assembleOrdersIntelligence,
+  ordersIntelPeriodBadge,
+  ordersLastYearRows,
+  type OrderIntelRow,
   type OrdersFrequencyBucket,
+  type OrdersIntelData,
 } from "./orders-intelligence";
 import { requireAdmin } from "./public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 
-const ORDERS_INTEL_WINDOW_DAYS = 90;
+function toOrderIntelRow(row: {
+  customerKey: string;
+  amount: number;
+  discountAmount: number | null;
+  orderedAt: Date;
+  shopLocalDate: Date;
+  discountCode: string | null;
+  grossAmount: number | null;
+  lifetimeOrders: number | null;
+  unitCount: number | null;
+}): OrderIntelRow {
+  return {
+    customerKey: row.customerKey,
+    amount: row.amount,
+    discountAmount: row.discountAmount,
+    orderedAt: row.orderedAt,
+    shopLocalDate: row.shopLocalDate,
+    discountCode: row.discountCode,
+    grossAmount: row.grossAmount,
+    lifetimeOrders: row.lifetimeOrders,
+    unitCount: row.unitCount,
+  };
+}
 
 export async function loadDeskSalesPage(
   request: Request,
@@ -62,7 +86,8 @@ export async function loadDeskSalesPage(
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
-  const range = resolvePeriod(preset, new Date(), deskTz);
+  const now = new Date();
+  const range = resolvePeriod(preset, now, deskTz);
 
   let salesError: string | null = null;
   let todaySalesTruncated = false;
@@ -99,41 +124,46 @@ export async function loadDeskSalesPage(
     : await getOrderBackfillProgress(shop.id, {
         ianaTimezone: shop.ianaTimezone,
       });
+  const orderBookDepth: LiveIngestDepth = useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(shop.id);
 
-  let ordersIntel: {
-    windowLabel: string;
-    days: ReturnType<typeof buildOrdersIntelDays>;
-    weeks: ReturnType<typeof buildOrdersWeeklyRows>;
-    tiers: ReturnType<typeof buildOrdersAovTiers>;
-    current: ReturnType<typeof aggregateOrderRows>;
-    prior: ReturnType<typeof aggregateOrderRows> | null;
-  } | null = null;
+  let ordersIntel: OrdersIntelData | null = null;
   let ordersFrequency: OrdersFrequencyBucket[] | null = null;
   if (options?.includeOrdersIntelligence && !salesError) {
     try {
       const source = useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
-      const end = new Date();
-      const start = new Date(
-        end.getTime() - ORDERS_INTEL_WINDOW_DAYS * 86_400_000,
-      );
-      const priorStart = new Date(
-        start.getTime() - ORDERS_INTEL_WINDOW_DAYS * 86_400_000,
-      );
-      const [rows, priorRows] = await Promise.all([
-        loadOrderDepthRows(shop.id, { start, end }, source),
-        loadOrderDepthRows(shop.id, { start: priorStart, end: start }, source),
+      const priorRange = resolvePriorPeriod(preset, now, deskTz);
+      const [bookRows, priorDepth] = await Promise.all([
+        loadOrderDepthRows(shop.id, { end: range.end }, source),
+        loadOrderDepthRows(
+          shop.id,
+          { start: priorRange.start, end: priorRange.end },
+          source,
+        ),
       ]);
-      if (rows.length > 0) {
-        const days = buildOrdersIntelDays(rows);
-        ordersIntel = {
-          windowLabel: ordersIntelWindowLabel(days),
-          days,
-          weeks: buildOrdersWeeklyRows(rows),
-          tiers: buildOrdersAovTiers(rows),
-          current: aggregateOrderRows(rows),
-          prior: priorRows.length > 0 ? aggregateOrderRows(priorRows) : null,
-        };
-        ordersFrequency = buildOrdersFrequency(rows);
+      const orderBook = bookRows.map(toOrderIntelRow);
+      const startMs = range.start.getTime();
+      const endMs = range.end.getTime();
+      const rows = orderBook.filter((row) => {
+        const t = row.orderedAt.getTime();
+        return t >= startMs && t <= endMs;
+      });
+      const assembled = assembleOrdersIntelligence({
+        rows,
+        priorRows: priorDepth.map(toOrderIntelRow),
+        lastYearRows: ordersLastYearRows(orderBook, range.start, range.end),
+        orderBook,
+        periodLabel: range.label,
+        badge: ordersIntelPeriodBadge(preset),
+        netSales: sales.netSales,
+        netSalesKnown: sales.netSalesKnown,
+        timeZone: deskTz,
+      });
+      if (assembled) {
+        const { frequency, ...intel } = assembled;
+        ordersFrequency = frequency;
+        ordersIntel = intel;
       }
     } catch {
       ordersIntel = null;
@@ -152,6 +182,7 @@ export async function loadDeskSalesPage(
     shopifyOrderWindowLimited,
     factsIncomplete,
     orderBackfillProgress,
+    orderBookDepth,
     ordersIntel,
     ordersFrequency,
     shopLabel: session.shop,

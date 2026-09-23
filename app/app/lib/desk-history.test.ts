@@ -31,10 +31,10 @@ describe("desk history horizon", () => {
     const now = new Date(Date.UTC(2026, 7, 26));
     expect(deskHistoryFloorYear(now)).toBe(2021);
     expect(deskHistoryFloorKey(now)).toBe("2021-01-01");
-    expect(deskHistoryCaption(now)).toBe(
+    expect(deskHistoryCaption(now, "sales", "paid_full")).toBe(
       "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included",
     );
-    expect(deskHistoryCaption(now, "spend")).toBe(
+    expect(deskHistoryCaption(now, "spend", "paid_full")).toBe(
       "Daily spend by channel · sales day totals when reports are on · up to 24 months of orders.",
     );
   });
@@ -49,17 +49,34 @@ describe("desk history horizon", () => {
 describe("deskPeriodTillLabel", () => {
   it("does not seal an error or mock as live sales", () => {
     expect(
-      deskPeriodTillLabel({ ...liveTill, salesError: "timeout" }),
+      deskPeriodTillLabel({ ...liveTill, salesError: "timeout", orderBookDepth: "paid_full" }),
     ).toBe("This month · sales unavailable");
     expect(
-      deskPeriodTillLabel({ ...liveTill, salesSource: "mock" }),
+      deskPeriodTillLabel({ ...liveTill, salesSource: "mock", orderBookDepth: "paid_full" }),
     ).toBe("This month · sales unavailable");
   });
 
-  it("mentions up to 24 months on Shopify book pages", () => {
+  it("mentions up to 24 months on paid Shopify book pages", () => {
     expect(
-      deskPeriodTillLabel({ ...liveTill, includeShopifyOrderWindow: true }),
+      deskPeriodTillLabel({
+        ...liveTill,
+        includeShopifyOrderWindow: true,
+        orderBookDepth: "paid_full",
+      }),
     ).toBe("This month · live sales · up to 24 months of orders");
+  });
+
+  it("names 90 closed days on an unpaid till, not 24 months", () => {
+    expect(
+      deskPeriodTillLabel({
+        ...liveTill,
+        includeShopifyOrderWindow: true,
+        orderBookDepth: "trial_slice",
+      }),
+    ).toBe("This month · live sales · 90 closed days of orders");
+    expect(
+      deskHistoryCaption(new Date(Date.UTC(2026, 7, 26)), "sales", "trial_slice"),
+    ).not.toMatch(/24 months/);
   });
 
   it("keeps ~60 days only when Shopify history is actually limited", () => {
@@ -69,6 +86,7 @@ describe("deskPeriodTillLabel", () => {
         periodLabel: "This year",
         shopifyOrderWindowLimited: true,
         includeShopifyOrderWindow: true,
+        orderBookDepth: "paid_full",
       }),
     ).toBe("This year · last ~60 days");
     expect(
@@ -77,6 +95,7 @@ describe("deskPeriodTillLabel", () => {
         periodLabel: "This year",
         shopifyOrderWindowLimited: true,
         includeShopifyOrderWindow: true,
+        orderBookDepth: "paid_full",
       }),
     ).not.toMatch(/live sales/);
   });
@@ -87,6 +106,7 @@ describe("deskPeriodTillLabel", () => {
         ...liveTill,
         todaySalesTruncated: true,
         includeShopifyOrderWindow: true,
+        orderBookDepth: "paid_full",
       }),
     ).toBe("This month · today’s sales incomplete");
     expect(
@@ -94,6 +114,7 @@ describe("deskPeriodTillLabel", () => {
         ...liveTill,
         todaySalesUnavailable: true,
         includeShopifyOrderWindow: true,
+        orderBookDepth: "paid_full",
       }),
     ).toBe("This month · today’s sales unavailable");
   });
@@ -101,11 +122,17 @@ describe("deskPeriodTillLabel", () => {
 
 describe("deskBookLede / honesty notices", () => {
   it("keeps native contrast and the shared coverage muted line", () => {
-    const lede = deskBookLede("Returning dollars, not headcount.");
+    const lede = deskBookLede("Returning dollars, not headcount.", "paid_full");
     expect(lede).toContain("Returning dollars, not headcount.");
     expect(lede).toContain(PRODUCT_NOUN.shopifyBookMuted);
     expect(lede).toMatch(/24 months/);
     expect(lede).not.toMatch(/~60 days/);
+    const unpaid = deskBookLede(
+      "Returning dollars, not headcount.",
+      "trial_slice",
+    );
+    expect(unpaid).toMatch(/90 closed days/);
+    expect(unpaid).not.toMatch(/24 months/);
   });
 
   it("discloses YTD overclaim and truncated today — not $0", () => {

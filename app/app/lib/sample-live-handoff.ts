@@ -4,6 +4,8 @@
  * Overview must paint that so Snowdevil spend is never mistaken for a live day.
  */
 
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
+
 export const LIVE_HANDOFF_GUIDE = "real";
 
 export const LIVE_HANDOFF_HEADING = "Live data is on";
@@ -33,7 +35,7 @@ export const SAMPLE_LEDGER_HANDOFF =
   "These rows are Snowdevil example spend, not this shop. Live is parked until launch. SAMPLE dollars stay SAMPLE — they will not become your spend.";
 
 export const TRIAL_VS_VIEW =
-  "The whole desk is already on. Start 7-day trial in Settings is Shopify billing — Sample | Live is a view, not a plan.";
+  `Start 7-day trial in Settings is Shopify billing — Sample | Live is a view, not a plan. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months. $39 after 7 days, one plan.`;
 
 export function isLiveHandoffGuide(
   value: string | null | undefined,

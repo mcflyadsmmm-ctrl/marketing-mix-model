@@ -4,10 +4,12 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
 import {
   RFM_FROM_SHOPIFY_ORDERS,
+  whaleWatchRemainderLine,
   type CustomerRfmView,
   type RfmEmpty,
   type WhaleWatchRow,
 } from "../lib/customers-rfm";
+import { WHALE_MIN_ORDERS } from "../lib/customers-analytics";
 
 function emptyValue(empty: RfmEmpty): string {
   switch (empty.kind) {
@@ -28,12 +30,21 @@ function repeatLabel(row: WhaleWatchRow, currency: string): string {
   return formatCurrency(row.repeatRevenue, currency);
 }
 
+function moneyOrDash(n: number | null, currency: string): string {
+  if (n == null) return "—";
+  return formatCurrency(n, currency);
+}
+
+function ticketLine(row: WhaleWatchRow, currency: string): string {
+  return `Typical ${moneyOrDash(row.typicalTicket, currency)} · first ${moneyOrDash(row.firstTicket, currency)} · later ${moneyOrDash(row.laterTicket, currency)}`;
+}
+
 function rowDetail(row: WhaleWatchRow, currency: string): string {
   const repeat =
     row.repeatRevenue == null
       ? "Repeat revenue is blank — no second order, not $0."
       : `Repeat revenue ${formatCurrency(row.repeatRevenue, currency)}.`;
-  return `${formatCurrency(row.lifetime, currency)} order LTV · ${row.orders.toLocaleString()} orders · last seen ${row.daysSince}d. ${repeat} ${row.detail}`;
+  return `${formatCurrency(row.lifetime, currency)} order LTV · ${row.orders.toLocaleString()} orders · last seen ${row.daysSince}d. ${ticketLine(row, currency)}. ${repeat} ${row.detail}`;
 }
 
 /**
@@ -110,7 +121,13 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
       <div className="mcfly-panel__head">
         <h2>Whale watchlist</h2>
         <p className="mcfly-panel__muted">
-          {RFM_FROM_SHOPIFY_ORDERS} {rfm.watchlist.length.toLocaleString()} by order LTV.
+          {RFM_FROM_SHOPIFY_ORDERS}{" "}
+          {whaleWatchRemainderLine({
+            shown: rfm.watchlist.length,
+            total: rfm.watchlistTotal,
+            moreMinOrders: rfm.watchlistMoreMinOrders,
+            minOrders: WHALE_MIN_ORDERS,
+          }) ?? `${rfm.watchlist.length.toLocaleString()} by order LTV.`}
         </p>
       </div>
 
@@ -153,12 +170,13 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
               <span className="mcfly-cust-kpi__verb">{row.verb}</span>
               {row.label}
             </span>
-            <span className="mcfly-cust-table__num" role="cell">
+            <span className="mcfly-cust-table__num mcfly-cust-watch__ltv" role="cell">
               {formatCurrency(row.lifetime, currency)}
               <span className="mcfly-cust-watch__meta">
                 {" "}
                 · {row.orders.toLocaleString()} orders
               </span>
+              <span className="mcfly-cust-watch__ticket">{ticketLine(row, currency)}</span>
             </span>
             <span className="mcfly-cust-table__num" role="cell">
               {repeatLabel(row, currency)}
@@ -171,7 +189,9 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
       </div>
       <p className="mcfly-cust-note">
         <DeskIcon name="customers" /> Identified buyers only — Whale 1 is a rank,
-        not an invented name. Repeat stays blank with no second order.{" "}
+        not an invented name. Typical ticket is lifetime ÷ orders. First vs later
+        tells a VIP from one huge first order. Repeat stays blank with no second
+        order.{" "}
         <a href="#mcfly-win-back">Win-back</a> times the one-order ask.
       </p>
     </section>

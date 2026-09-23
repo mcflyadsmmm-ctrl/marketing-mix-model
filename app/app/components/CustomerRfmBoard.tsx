@@ -4,8 +4,10 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
 import {
   RFM_FROM_SHOPIFY_ORDERS,
+  RFM_MIN_BUYERS,
   RFM_RULES_LINE,
   type CustomerRfmView,
+  type RfmChampionFlow,
   type RfmEmpty,
   type RfmEmptyKind,
   type RfmSegment,
@@ -50,6 +52,23 @@ function historyLine(rfm: CustomerRfmView): string {
     return `On file · last ~${rfm.historyDays} days — not a fake lifetime. Year-scale recency needs more history than this install shares.`;
   }
   return `On-file lifetime · last ~${rfm.historyDays} days of the stored book.`;
+}
+
+function championFlowLine(championFlow: RfmChampionFlow, currency: string): string {
+  if (!championFlow.sealed) {
+    return `Last month's Champion flow seals after ${RFM_MIN_BUYERS} identified buyers — not $0.`;
+  }
+  if (championFlow.lastMonthChampions < 1) {
+    return "No last-month Champions on file — not $0.";
+  }
+  if (championFlow.cooledBuyers < 1) {
+    return `None of last month's ${championFlow.lastMonthChampions.toLocaleString()} Champions are At risk or Hibernating now.`;
+  }
+  const dollars =
+    championFlow.cooledLifetime != null && championFlow.cooledLifetime > 0
+      ? ` · ${formatCurrency(championFlow.cooledLifetime, currency)} lifetime`
+      : "";
+  return `${championFlow.cooledBuyers.toLocaleString()} of last month's ${championFlow.lastMonthChampions.toLocaleString()} Champions are At risk or Hibernating now${dollars}.`;
 }
 
 function segmentTone(key: RfmSegment["key"]): "good" | "warn" | "plain" {
@@ -133,6 +152,7 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
   }
 
   const atRisk = rfm.segments.find((s) => s.key === "at_risk");
+  const championFlow = rfm.championFlow;
 
   return (
     <section
@@ -219,6 +239,7 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
           <a href="#mcfly-win-back">Open win-back</a>.
         </p>
       ) : null}
+      <p className="mcfly-cust-note">{championFlowLine(championFlow, currency)}</p>
       {rfm.outsideRules > 0 ? (
         <p className="mcfly-cust-note">
           {rfm.outsideRules.toLocaleString()} identified{" "}

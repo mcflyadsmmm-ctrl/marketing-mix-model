@@ -6,7 +6,10 @@ import {
   NUMBER_HONESTY,
   SPEND_ADD_HREF,
   SPEND_CSV_HREF,
+  formatOnlineRoasLine,
   formatTotalRoasEquation,
+  hasNonOnlineSpendOnFile,
+  spendPairCopyText,
 } from "./number-honesty";
 import { BILLING_HONESTY } from "./entitlements";
 
@@ -109,10 +112,141 @@ describe("formatTotalRoasEquation", () => {
   });
 });
 
+describe("spendPairCopyText", () => {
+  it("copies nothing when spend is empty", () => {
+    expect(
+      spendPairCopyText({
+        sales: 12_400,
+        spend: 0,
+        mer: 0,
+        currency: "USD",
+      }),
+    ).toBeNull();
+  });
+
+  it("copies the loading line while sales are pending — not $0 and not 0×", () => {
+    const line = spendPairCopyText({
+      sales: 0,
+      spend: 650,
+      mer: 0,
+      salesPending: true,
+      currency: "USD",
+    });
+    expect(line).toBe(NUMBER_HONESTY.salesPending);
+    expect(line).not.toMatch(/\$0 sales/);
+    expect(line).not.toMatch(/=\s*0\.00×/);
+  });
+
+  it("does not copy 0× when mer is zero or missing", () => {
+    expect(
+      spendPairCopyText({
+        sales: 0,
+        spend: 650,
+        mer: 0,
+        salesPending: false,
+        currency: "USD",
+      }),
+    ).toBe("$0 sales ÷ $650 spend");
+    expect(
+      spendPairCopyText({
+        sales: 12_400,
+        spend: 3_100,
+        mer: null,
+        currency: "USD",
+      }),
+    ).toBe("$12,400 sales ÷ $3,100 spend");
+  });
+
+  it("copies the painted equation when Total ROAS is real", () => {
+    expect(
+      spendPairCopyText({
+        sales: 12_400,
+        spend: 3_100,
+        mer: 4,
+        currency: "USD",
+      }),
+    ).toBe("$12,400 sales ÷ $3,100 spend = 4.00×");
+  });
+});
+
+describe("formatOnlineRoasLine", () => {
+  it("labels Online Shopify Total Sales ÷ every typed dollar and names POS/Shop as excluded", () => {
+    const line = formatOnlineRoasLine({
+      totalSales: 10_000,
+      spend: 2_000,
+      mix: { online: 0.7, pos: 0.2, shop: 0.1, other: 0 },
+      currency: "USD",
+    });
+    expect(line).toMatch(/^Online /);
+    expect(line).toContain("$7,000");
+    expect(line).toContain("$2,000");
+    expect(line).toContain("3.50×");
+    expect(line).toMatch(/every typed dollar/i);
+    expect(line).toMatch(/POS/);
+    expect(line).toMatch(/Shop/);
+    expect(line).toMatch(/not from Total ROAS/);
+    expect(line).not.toMatch(/attribution/i);
+    expect(line).not.toMatch(/drawer tape/i);
+    expect(line).not.toMatch(/ads ROAS/i);
+  });
+
+  it("treats named other extras as non-online spend", () => {
+    expect(hasNonOnlineSpendOnFile([{ channel: "meta", amount: 1000 }])).toBe(
+      false,
+    );
+    expect(
+      hasNonOnlineSpendOnFile([
+        { channel: "meta", amount: 1000 },
+        { channel: "other:retainer", amount: 500 },
+      ]),
+    ).toBe(true);
+  });
+
+  it("withholds the Online multiple when a retainer sits next to Meta", () => {
+    const line = formatOnlineRoasLine({
+      totalSales: 10_000,
+      spend: 3_333,
+      mix: { online: 0.7, pos: 0.2, shop: 0.1, other: 0 },
+      currency: "USD",
+      hasNonOnlineSpend: true,
+    });
+    expect(line).toContain("—");
+    expect(line).not.toMatch(/2\.10×/);
+    expect(line).not.toMatch(/\d+\.\d+×/);
+    expect(line).toMatch(/retainer|every typed dollar|billboard/i);
+    expect(line).not.toMatch(/attribution/i);
+    expect(line).toMatch(/Total ROAS/);
+  });
+
+  it("stays — when mix is not on file instead of inventing sources", () => {
+    const line = formatOnlineRoasLine({
+      totalSales: 10_000,
+      spend: 2_000,
+      mix: null,
+      currency: "USD",
+    });
+    expect(line).toMatch(/Online Shopify Total Sales/);
+    expect(line).toContain("—");
+    expect(line).not.toMatch(/0×/);
+  });
+
+  it("returns null when spend is empty", () => {
+    expect(
+      formatOnlineRoasLine({
+        totalSales: 10_000,
+        spend: 0,
+        mix: { online: 0.7, pos: 0.2, shop: 0.1, other: 0 },
+        currency: "USD",
+      }),
+    ).toBeNull();
+  });
+});
+
 describe("NUMBER_HONESTY copy contracts", () => {
   it("names the invoice formula and what the number is not", () => {
     expect(NUMBER_HONESTY.formula).toMatch(/Shopify Total Sales/i);
     expect(NUMBER_HONESTY.formula).toMatch(/spend you added/i);
+    expect(NUMBER_HONESTY.isLine).toMatch(/every dollar you typed/i);
     expect(NUMBER_HONESTY.isNotLine).toMatch(/Not platform ROAS/i);
     expect(NUMBER_HONESTY.isNotLine).toMatch(/Not net profit/i);
     expect(NUMBER_HONESTY.empty).toMatch(/not 0×/i);

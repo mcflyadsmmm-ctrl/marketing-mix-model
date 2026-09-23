@@ -8,7 +8,10 @@
  * Client-safe: no Prisma, no Shopify.
  */
 
-import type { ExplorerDailyRow } from "./spend-explorer";
+import {
+  isUnpairedSpendDay,
+  type ExplorerDailyRow,
+} from "./spend-explorer";
 
 export type CashWindow = "ytd" | "qtd" | "mtd";
 export type CashChipId = "yesterday" | "l7" | "mtd" | "qtd" | "ytd";
@@ -356,7 +359,7 @@ export function certifyDailyRows(rows: ExplorerDailyRow[]): {
       channels.push({ channel: "Unmapped", amount: residualSpend });
       residualDays += 1;
     }
-    const unpaired = spend > 0 && !(sales > 0);
+    const unpaired = isUnpairedSpendDay(sales, spend);
     if (unpaired) unpairedDays.push(row.dateKey);
     days.push({
       dateKey: row.dateKey,

@@ -361,3 +361,45 @@ function comebackLead(
   }
   return "Who came back is from this shop’s order history — not an email list.";
 }
+
+function moneyLooksZero(text: string): boolean {
+  const matches = text.match(/[$£€]\s*0(?:[.,]0+)?(?!\d)/g);
+  return matches != null && matches.length > 0;
+}
+
+/**
+ * Copyable stand-up: first-time Shopify Total Sales this period, plus 2nd vs
+ * 3rd when both shares seal, plus reach-now. Never copy $0. Never copy a
+ * pending window as finished.
+ */
+export function growthStandupCopyText(input: {
+  salesPending: boolean;
+  newSales: number | null | undefined;
+  money: (n: number) => string;
+  secondShare: number | null | undefined;
+  thirdShare: number | null | undefined;
+  reachNow: number | null | undefined;
+  clockAvailable: boolean;
+}): string | null {
+  if (input.salesPending) return null;
+  const sales = input.newSales;
+  if (sales == null || !Number.isFinite(sales) || !(sales > 0)) return null;
+  const money = input.money(sales).trim();
+  if (!money || money === "—" || money === "-") return null;
+  if (moneyLooksZero(money)) return null;
+  const parts = [`First-time Shopify Total Sales this period is ${money}.`];
+  if (isNum(input.secondShare) && isNum(input.thirdShare)) {
+    parts.push(
+      `2nd ${growthWholePct(input.secondShare)} · 3rd+ ${growthWholePct(input.thirdShare)}.`,
+    );
+  }
+  if (input.clockAvailable && input.reachNow != null && Number.isFinite(input.reachNow)) {
+    const n = Math.max(0, Math.trunc(input.reachNow));
+    parts.push(
+      `Reach ${n.toLocaleString()} one-order ${n === 1 ? "buyer" : "buyers"} already past win-back.`,
+    );
+  }
+  const text = parts.join(" ");
+  if (moneyLooksZero(text)) return null;
+  return text;
+}

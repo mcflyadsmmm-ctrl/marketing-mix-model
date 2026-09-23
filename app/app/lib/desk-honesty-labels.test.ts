@@ -18,12 +18,12 @@ const connections = readFileSync(
 
 describe("Overview / LTV tillLabel honesty", () => {
   it("Overview tillLabel is sales unavailable when salesError", () => {
-    expect(overview).toContain("sales unavailable");
-    expect(overview).toMatch(
-      /salesError[\s\S]*sales unavailable[\s\S]*live sales/,
-    );
+    expect(overview).toContain("deskPeriodTillLabel");
+    expect(overview).toContain("salesError");
     expect(overview).toContain("OVERVIEW_PENDING_ASOF");
     expect(overview).toContain("salesPending: greetingPending");
+    expect(overview).toContain("includeShopifyOrderWindow: true");
+    expect(overview).toContain("orderBookDepth");
     expect(overview).not.toContain("factsIncompleteSuffix");
   });
 

@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   aovTiers,
   basketTiers,
@@ -249,6 +252,20 @@ describe("whaleRecency (best customers & when they last ordered)", () => {
     expect(w.coldShare).toBe(0);
   });
 
+  it("reports cold share when a whale last ordered over 180 days ago", () => {
+    const asOf = new Date("2024-08-01");
+    const orders: DepthOrder[] = [];
+    for (let i = 0; i < 18; i += 1) {
+      orders.push(order(`s${i}`, "2024-07-20", 50));
+    }
+    orders.push(order("cold", "2023-12-01", 1000));
+    orders.push(order("hot", "2024-07-28", 1000));
+    const w = whaleRecency(rollUpCustomers(orders), asOf)!;
+    expect(w.whaleCount).toBe(2);
+    expect(w.coldShare).toBe(0.5);
+    expect(w.buckets.find((b) => b.key === "d180plus")!.count).toBe(1);
+  });
+
   it("stays null below the identified-buyer floor", () => {
     const orders = Array.from({ length: 10 }, (_, i) =>
       order(`c${i}`, "2024-01-10", 100),
@@ -270,5 +287,15 @@ describe("buildLtvDepth", () => {
     expect(view.productsKnown).toBe(false);
     expect(view.paths).toEqual([]);
     expect(view.buyers).toBe(25);
+  });
+});
+
+describe("LTV depth withholds a longer Shopify life", () => {
+  it("maps lifetimeOrders and names truncated buyers instead of treating the stored book as the life", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const page = readFileSync(join(here, "ltv-depth-page.server.ts"), "utf8");
+    expect(page).toContain("lifetimeOrders");
+    expect(page).toContain("truncatedLifetimeBuyers");
+    expect(page).toMatch(/orders on this desk only|longer Shopify life/);
   });
 });
