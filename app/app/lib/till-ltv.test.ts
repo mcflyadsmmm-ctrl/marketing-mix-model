@@ -294,6 +294,91 @@ describe("summarizeTillLtvFromCohorts", () => {
   });
 });
 
+describe("first-year honesty — short, truncated, pending", () => {
+  function book(revenueD365: number): TillLtvCohortRow[] {
+    return [
+      {
+        cohortMonth: "2024-01",
+        customers: 10,
+        revenueD30: 1_000,
+        revenueD90: 2_000,
+        revenueD365,
+        ordersD30: 12,
+        ordersD90: 16,
+        ordersD365: 20,
+      },
+    ];
+  }
+
+  it("keeps a lived paid year when the dollars are real", () => {
+    const summary = summarizeTillLtvFromCohorts(book(10 * 545), {
+      totalSpend: 0,
+      newCustomers: 10,
+      asOf: new Date("2026-06-01T00:00:00.000Z"),
+      gateYearOnElapsed: true,
+    });
+    expect(summary.avgRevenueD30).toBeCloseTo(100, 5);
+    expect(summary.avgRevenueD90).toBeCloseTo(200, 5);
+    expect(summary.avgRevenueD365).toBeCloseTo(545, 5);
+  });
+
+  it("does not paint a short book as a first-year dollar or as $0", () => {
+    for (const revenueD365 of [0, 2_000, 4]) {
+      const summary = summarizeTillLtvFromCohorts(book(revenueD365), {
+        totalSpend: 0,
+        newCustomers: 10,
+        yearBlocked: true,
+        asOf: new Date("2026-06-01T00:00:00.000Z"),
+        gateYearOnElapsed: true,
+      });
+      expect(summary.avgRevenueD90).toBeCloseTo(200, 5);
+      expect(summary.avgRevenueD365).toBeNull();
+      expect(summary.avgRevenueD365).not.toBe(0);
+    }
+  });
+
+  it("does not certify a $0 year when truncated buyers outlive the stored book", () => {
+    const summary = summarizeTillLtvFromCohorts(book(0), {
+      totalSpend: 0,
+      newCustomers: 10,
+      truncatedLifetimeBuyers: 4,
+      asOf: new Date("2026-06-01T00:00:00.000Z"),
+      gateYearOnElapsed: true,
+    });
+    expect(summary.truncatedLifetimeBuyers).toBe(4);
+    expect(summary.avgRevenueD90).toBeCloseTo(200, 5);
+    expect(summary.avgRevenueD365).toBeNull();
+    expect(summary.avgRevenueD365).not.toBe(0);
+  });
+
+  it("leaves a pending cohort year blank instead of stuffing 90-day dollars into 365", () => {
+    const summary = summarizeTillLtvFromCohorts(
+      [
+        {
+          cohortMonth: "2026-08",
+          customers: 10,
+          revenueD30: 1_000,
+          revenueD90: 2_000,
+          revenueD365: 2_000,
+          ordersD30: 12,
+          ordersD90: 16,
+          ordersD365: 16,
+        },
+      ],
+      {
+        totalSpend: 0,
+        newCustomers: 10,
+        asOf: new Date("2026-09-23T00:00:00.000Z"),
+        gateYearOnElapsed: true,
+      },
+    );
+    expect(summary.avgRevenueD30).toBeCloseTo(100, 5);
+    expect(summary.avgRevenueD90).toBeCloseTo(200, 5);
+    expect(summary.avgRevenueD365).toBeNull();
+    expect(summary.avgRevenueD365).not.toBe(0);
+  });
+});
+
 describe("computeCohortRollups", () => {
   it("assigns first-order month and sums 30/90/365 windows", () => {
     const first = new Date("2026-01-15T12:00:00.000Z");

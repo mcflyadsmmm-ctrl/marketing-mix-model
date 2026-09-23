@@ -25,6 +25,12 @@ import {
   type LtvFlagshipView,
 } from "./ltv-flagship";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import type { LiveIngestDepth } from "./live-ingest-depth";
+import {
+  firstYearBlocked,
+  orderBookSpanDays,
+} from "./ltv-year-honesty";
 import { truncatedLifetimeLine } from "./till-ltv";
 
 /** Historical name. Live LTV depth is the full stored book, not a 420-day cap. */
@@ -91,6 +97,8 @@ export async function loadLtvDepth(options: {
   asOf?: Date;
   /** Live shops on a short order window — first year on Promo → LTV stays a dash. */
   historyLimited?: boolean;
+  /** Unpaid / trial is a 90-closed-day book. Sample stays paid_full. */
+  orderBookDepth?: LiveIngestDepth;
 }): Promise<LtvDepthPageView> {
   const asOf = options.asOf ?? new Date();
   const historyLimited = Boolean(options.historyLimited) && !options.useSampleDesk;
@@ -146,8 +154,23 @@ export async function loadLtvDepth(options: {
     orders.push(...group.rows);
   }
 
+  const orderBookDepth =
+    options.orderBookDepth ?? (await shopLiveIngestDepth(options.shopId));
+  const yearBlocked = firstYearBlocked({
+    historyLimited,
+    orderBookDepth,
+    bookSpanDays: orderBookSpanDays(
+      rows.map((row) => row.orderedAt),
+      asOf,
+    ),
+  });
+
   return withTruncatedNote(
-    buildLtvFlagship(orders, asOf, { sample: false, historyLimited }),
+    buildLtvFlagship(orders, asOf, {
+      sample: false,
+      historyLimited,
+      yearBlocked,
+    }),
     truncatedLifetimeBuyers,
   );
 }

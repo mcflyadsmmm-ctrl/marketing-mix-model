@@ -2,6 +2,7 @@ import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import type { PeriodPreset } from "../lib/periods";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { paintedYearDollars } from "../lib/ltv-year-honesty";
 
 export type LtvSnapTill = {
   available: boolean;
@@ -28,6 +29,9 @@ function isNum(n: number | null | undefined): n is number {
 }
 
 function ltvWindows(tillLtv: LtvSnapTill, currency: string): LtvRow[] {
+  const year = paintedYearDollars(tillLtv.avgRevenueD365);
+  const shorterOnFile =
+    isNum(tillLtv.avgRevenueD90) || isNum(tillLtv.avgRevenueD30);
   const windows: Array<LtvRow | null> = [
     isNum(tillLtv.avgRevenueD90)
       ? {
@@ -43,13 +47,19 @@ function ltvWindows(tillLtv: LtvSnapTill, currency: string): LtvRow[] {
           d: PRODUCT_NOUN.ltv30Def,
         }
       : null,
-    isNum(tillLtv.avgRevenueD365)
+    year != null
       ? {
           k: "First year",
-          v: formatCurrency(tillLtv.avgRevenueD365, currency),
+          v: formatCurrency(year, currency),
           d: PRODUCT_NOUN.ltv365Def,
         }
-      : null,
+      : shorterOnFile
+        ? {
+            k: "First year",
+            v: "—",
+            d: "Not on file yet — not enough buyers have lived a full year. Not $0 LTV.",
+          }
+        : null,
   ];
   return windows.filter((row): row is LtvRow => row !== null);
 }
