@@ -21841,13 +21841,15 @@ button.mcfly-habit-goals__read:focus-visible {
 }
 
 .mcfly-orders-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics,
-.mcfly-customers-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics {
+.mcfly-customers-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics,
+.mcfly-spend-first-beat .mcfly-yoy--plane .mcfly-yoy__grid--metrics {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.35rem 0.65rem;
 }
 
 .mcfly-orders-first-beat .mcfly-yoy__card--plane,
-.mcfly-customers-first-beat .mcfly-yoy__card--plane {
+.mcfly-customers-first-beat .mcfly-yoy__card--plane,
+.mcfly-spend-first-beat .mcfly-yoy__card--plane {
   border-bottom: 0;
   padding: 0.35rem 0;
 }
@@ -21858,6 +21860,14 @@ button.mcfly-habit-goals__read:focus-visible {
 
 .mcfly-scoreboard--orders .mcfly-orders-plane .mcfly-orders-band {
   margin-top: 0.15rem;
+}
+
+.mcfly-spend-first-beat .mcfly-spend-plane.mcfly-overview-plane {
+  margin-bottom: 0;
+}
+
+.mcfly-spend-first-beat + section#mcfly-explorer .mcfly-explorer--soft {
+  margin-top: 0.75rem;
 }
 
 .mcfly-yoy--metrics .mcfly-yoy__grid--metrics {

@@ -65,8 +65,8 @@ describe("spend upload findings", () => {
     const firstLaneStart = spend.indexOf('<DeskLane rank="first"');
     const firstLaneEnd = spend.indexOf("<DeskLane", firstLaneStart + 1);
     const firstLane = spend.slice(firstLaneStart, firstLaneEnd);
-    expect(firstLane).toContain("mcfly-spend-plane");
-    expect(firstLane).toContain("HONEST_MER_LINE");
+    expect(firstLane).toContain("<SpendFirstViewport");
+    expect(firstLane).toContain("<SpendFirstViewport");
     expect(firstLane).toContain('id="mcfly-spend-add"');
     expect(spend).toContain("spendUploadEmptyFinding");
 

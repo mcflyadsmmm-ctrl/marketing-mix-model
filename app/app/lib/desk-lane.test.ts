@@ -249,16 +249,14 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(ltv).toContain("/app/customers");
   });
 
-  it("ranks Spend pair first, explorer/mix/CPA next, add-a-day more — empty live promotes add", () => {
+  it("ranks Spend pair first, explorer in first lane, depth at more — empty live promotes add", () => {
     const order = [
       'rank="first"',
-      'id="mcfly-roas"',
-      'id="mcfly-spend-add"',
-      'rank="next"',
+      "<SpendFirstViewport",
       'id="mcfly-explorer"',
+      'rank="more"',
       "<SpendMixSection",
       'id="mcfly-cpa"',
-      'rank="more"',
     ].map((tag) => spend.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
@@ -267,7 +265,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("<DeskLane");
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
     expect(spend).toContain("emptyLiveSpend");
-    expect(spend).toContain("fold={emptyLiveSpend}");
+    expect(spend).toContain("defaultOpen={shotMode}");
     expect(spend).toContain("<CertifiedScoreboard");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<CpaExplorer");

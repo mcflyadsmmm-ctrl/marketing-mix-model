@@ -26,8 +26,9 @@ import {
 } from "../components/SpendExplorer";
 import { CpaExplorer } from "../components/CpaExplorer";
 import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
-import { CopySpendPair, CopyWeekMonthSales } from "../components/MorningHabitStrip";
-import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
+import { CopyWeekMonthSales } from "../components/MorningHabitStrip";
+import { SpendCompareGlance } from "../components/SpendCompareGlance";
+import { SpendFirstViewport } from "../components/SpendFirstViewport";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
 import { ensureShop } from "../lib/mer-dashboard.server";
@@ -51,7 +52,6 @@ import {
   setSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { formatCurrency, formatMer, formatSpendAmount } from "../lib/mer-format";
-import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import {
@@ -90,7 +90,6 @@ import { HONEST_MER_LINE, spendUploadEmptyFinding } from "../lib/spend-upload-fi
 import { loadSpendAnalysis } from "../lib/desk-spend-stack.server";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
-  CPA_CONTRAST,
   CPA_EMPTY_SPEND,
   CPA_NO_BUYERS,
   type CpaWindowId,
@@ -99,16 +98,15 @@ import {
   previewSpendPaste,
   type SpendPasteBook,
 } from "../lib/spend-paste-preview";
+import {
+  SPEND_ANALYTICS_CONTRAST,
+  SPEND_DEPTH_LANE_LABEL,
+  SPEND_FIRST_LANE_LABEL,
+} from "../lib/spend-first-viewport";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
-const SPEND_UPLOAD_CONTRAST =
-  "Shopify Analytics shows sales, not a spend ledger. This page records typed, uploaded, or daily-rate spend — not Ads Manager login.";
-
-const SPEND_FIRST_LANE_LABEL = "Sales, spend, and Total ROAS";
-const SPEND_EXPLORER_LANE_LABEL = "Certified windows and explorer";
-const SPEND_MIX_LANE_LABEL = "Spend mix";
-const SPEND_CPA_LANE_LABEL = "Cash CPA";
+const SPEND_UPLOAD_CONTRAST = SPEND_ANALYTICS_CONTRAST;
 const SPEND_ADD_LANE_LABEL = "Add a day";
 
 const SHORT_MONTHS = [
@@ -1019,73 +1017,42 @@ export default function SpendEntryPage() {
         ) : null}
 
         <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
-        <section
-          id="mcfly-roas"
-          className="mcfly-spend-plane"
-          aria-label="Sales, spend, and Total ROAS"
-        >
-          <p className="mcfly-spend-plane__label">{PRODUCT_NOUN.totalRoas}</p>
-          <p
-            className="mcfly-spend-plane__value"
-            data-empty={roasValue === "—" ? "true" : undefined}
-          >
-            {roasValue}
-          </p>
-          {hasSpend && pairEquation ? (
-            <div className="mcfly-spend-pair-copy-row">
-              <p className="mcfly-spend-plane__equation">{pairEquation}</p>
-              <CopySpendPair text={pairCopyText} />
-            </div>
-          ) : null}
-          {hasSpend ? (
-            <p className="mcfly-spend-plane__hint">{PRODUCT_NOUN.definition}</p>
-          ) : (
-            <p className="mcfly-spend-plane__hint">{HONEST_MER_LINE}</p>
-          )}
-          <p className="mcfly-spend-plane__pair">
-            <span>
-              Sales{" "}
-              {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
-            </span>
-            <span aria-hidden="true"> · </span>
-            <span
-              data-empty={
-                formatSpendOnFile(metrics.totalSpend, currency) === "—"
-                  ? "true"
-                  : undefined
-              }
-            >
-              Spend {formatSpendOnFile(metrics.totalSpend, currency)}
-            </span>
-          </p>
-          <p className="mcfly-spend-plane__hint">
-            {spendFirstFoldSalesHint({
-              salesPending: Boolean(metrics.salesPending),
-              periodLabel: metrics.period.label,
-              todaySalesTruncated,
-              todaySalesUnavailable,
-            })}
-            {hasSpend ? ` · ${spendOnFileHint(metrics.totalSpend)}` : null}
-          </p>
-          {!hasSpend && !shotMode ? (
-            <p className="mcfly-spend-plane__cta">
-              <s-link href="#mcfly-spend-add">{PRODUCT_NOUN.uploadSpend}</s-link>
-            </p>
-          ) : null}
-          {hasSpend ? (
-            <p className="mcfly-spend-plane__hint">{pairCoverage.caption}</p>
-          ) : null}
-          {hasSpend && onlineLine ? (
-            <p className="mcfly-spend-plane__hint">{onlineLine}</p>
-          ) : null}
-          {explorer.weekMonthCopy ? (
-            <div className="mcfly-spend-pair-copy-row">
-              <p className="mcfly-spend-plane__hint" style={{ whiteSpace: "pre-wrap" }}>
-                {explorer.weekMonthCopy}
-              </p>
-              <CopyWeekMonthSales text={explorer.weekMonthCopy} />
-            </div>
-          ) : null}
+        <div className="mcfly-overview-first-beat mcfly-spend-first-beat">
+          <SpendFirstViewport
+            roasValue={roasValue}
+            hasSpend={hasSpend}
+            sales={metrics.sales}
+            totalSpend={metrics.totalSpend}
+            salesPending={Boolean(metrics.salesPending)}
+            periodLabel={
+              metrics.period.label === "Month to date"
+                ? "This month"
+                : metrics.period.label
+            }
+            todaySalesTruncated={todaySalesTruncated}
+            todaySalesUnavailable={todaySalesUnavailable}
+            pairEquation={hasSpend && pairEquation ? pairEquation : null}
+            pairCopyText={hasSpend && pairCopyText ? pairCopyText : null}
+            shotMode={shotMode}
+          />
+          <SpendCompareGlance
+            deltas={metrics.deltas}
+            salesPending={Boolean(metrics.salesPending)}
+            sales={metrics.sales}
+            spend={metrics.totalSpend}
+            mer={paintedMer}
+          />
+        </div>
+        <section id="mcfly-explorer" aria-label="Certified windows and spend explorer">
+          <SpendExplorer
+            series={explorer}
+            period={preset}
+            shotMode={shotMode}
+            basePath="/app/spend"
+            compare
+            quiet={false}
+            orderBookDepth={orderBookDepth}
+          />
         </section>
         {emptyLiveSpend ? (
           <>
@@ -1219,12 +1186,12 @@ export default function SpendEntryPage() {
         </DeskLane>
 
         <DeskLane
-          rank="next"
-          label={SPEND_EXPLORER_LANE_LABEL}
-          fold={emptyLiveSpend}
-          defaultOpen={true}
+          rank="more"
+          label={SPEND_DEPTH_LANE_LABEL}
+          fold
+          defaultOpen={shotMode}
         >
-        <section id="mcfly-explorer" aria-label="Certified windows and spend explorer">
+        <section id="mcfly-explorer-depth" aria-label="Certified windows and spend analysis">
           {cashControl && cashControl.chips.length > 0 ? (
             <CertifiedScoreboard
               chips={cashControl.chips}
@@ -1232,16 +1199,6 @@ export default function SpendEntryPage() {
               plan={cashControl.plan}
             />
           ) : null}
-
-          <SpendExplorer
-            series={explorer}
-            period={preset}
-            shotMode={shotMode}
-            basePath="/app/spend"
-            compare
-            quiet={false}
-            orderBookDepth={orderBookDepth}
-          />
 
           {cashControl?.dualClose ? (
             <DualCloseLine
@@ -1268,15 +1225,23 @@ export default function SpendEntryPage() {
               channelLabels={explorer.channelLabels}
             />
           ) : null}
-        </section>
-        </DeskLane>
 
-        <DeskLane
-          rank="next"
-          label={SPEND_MIX_LANE_LABEL}
-          fold={emptyLiveSpend}
-          defaultOpen={true}
-        >
+          {hasSpend ? (
+            <p className="mcfly-spend-plane__hint">{pairCoverage.caption}</p>
+          ) : null}
+          {hasSpend && onlineLine ? (
+            <p className="mcfly-spend-plane__hint">{onlineLine}</p>
+          ) : null}
+          {explorer.weekMonthCopy ? (
+            <div className="mcfly-spend-pair-copy-row">
+              <p className="mcfly-spend-plane__hint" style={{ whiteSpace: "pre-wrap" }}>
+                {explorer.weekMonthCopy}
+              </p>
+              <CopyWeekMonthSales text={explorer.weekMonthCopy} />
+            </div>
+          ) : null}
+        </section>
+
         <SpendMixSection
           metrics={metrics}
           cashControl={cashControl}
@@ -1292,36 +1257,22 @@ export default function SpendEntryPage() {
           shopifyOrderWindowLimited={shopifyOrderWindowLimited}
           addSpendHref="#mcfly-spend-add"
         />
-        </DeskLane>
 
-        <DeskLane
-          rank="next"
-          label={SPEND_CPA_LANE_LABEL}
-          fold={emptyLiveSpend}
-          defaultOpen={true}
-        >
         <section
           id="mcfly-cpa"
           className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-cpa"
           aria-label="Customer acquisition cost"
         >
-          <p className="mcfly-book__lede">{CPA_CONTRAST}</p>
           {!cpaHasSpend ? (
             <p className="mcfly-book__lede">{CPA_EMPTY_SPEND}</p>
           ) : (
-            <p className="mcfly-book__lede">
-              This month and Last 28 live on the cards. Cash CPA is entered spend ÷
-              Shopify buyers — not ads-manager CPA.
-            </p>
-          )}
-          {cpaHasSpend ? (
             <CpaWindowCards
               windows={cpa.windows}
               selectedId={cpaSelected.id}
               onSelect={setCpaSelectedId}
               todaySalesTruncated={cpa.todaySalesTruncated}
             />
-          ) : null}
+          )}
           {cpaBuyersMissing ? (
             <p className="mcfly-book__lede">{CPA_NO_BUYERS}</p>
           ) : null}

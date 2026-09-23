@@ -11,6 +11,7 @@ function read(rel: string) {
 
 describe("Spend day card", () => {
   const spend = read("../routes/app.spend.tsx");
+  const viewport = read("../components/SpendFirstViewport.tsx");
   const appShell = read("../routes/app.tsx");
   const labels = read("./product-labels.ts");
   const explorer = read("../components/SpendExplorer.tsx");
@@ -28,9 +29,8 @@ describe("Spend day card", () => {
 
   it("contrasts Shopify Analytics with typed, uploaded, or daily-rate spend, not Ads Manager login", () => {
     expect(spend).toContain('heading="Spend"');
-    expect(spend).toContain(
-      "Shopify Analytics shows sales, not a spend ledger. This page records typed, uploaded, or daily-rate spend — not Ads Manager login.",
-    );
+    expect(spend).toContain("SPEND_ANALYTICS_CONTRAST");
+    expect(spend).toContain("SPEND_UPLOAD_CONTRAST");
     expect(spend).toContain("Days with no row have no spend entered");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<DualCloseLine");
@@ -44,24 +44,25 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Typed days are corrections");
   });
 
-  it("puts add-a-day in first-fold reach when live spend is empty, and folds mix/CPA", () => {
+  it("puts add-a-day in first-fold reach when live spend is empty, and folds mix/CPA at more", () => {
     expect(spend).toContain("emptyLiveSpend");
     expect(spend).toContain("<DeskLane");
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
-    expect(spend).toContain("fold={emptyLiveSpend}");
-    expect(spend).toContain('rank="next"');
+    expect(spend).toContain("defaultOpen={shotMode}");
+    expect(spend).toContain('rank="more"');
     const firstAdd = spend.indexOf('id="mcfly-spend-add"');
     const mixAt = spend.indexOf("<SpendMixSection");
     const cpaAt = spend.indexOf('id="mcfly-cpa"');
     const explorerAt = spend.indexOf('id="mcfly-explorer"');
     expect(firstAdd).toBeGreaterThan(-1);
-    expect(firstAdd).toBeLessThan(explorerAt);
+    expect(explorerAt).toBeLessThan(firstAdd);
     expect(firstAdd).toBeLessThan(mixAt);
     expect(firstAdd).toBeLessThan(cpaAt);
     const firstLaneStart = spend.indexOf('<DeskLane rank="first"');
     const firstLaneEnd = spend.indexOf("<DeskLane", firstLaneStart + 1);
     const firstLane = spend.slice(firstLaneStart, firstLaneEnd);
-    expect(firstLane).toContain('id="mcfly-roas"');
+    expect(firstLane).toContain("<SpendFirstViewport");
+    expect(firstLane).toContain("<SpendFirstViewport");
     expect(firstLane).toContain('id="mcfly-spend-add"');
     expect(firstLane).toContain("emptyLiveSpend");
     expect(firstLane).not.toContain("<SpendMixSection");
@@ -81,7 +82,7 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Three ways to add spend");
     expect(spend).not.toContain("<h2>Period spend</h2>");
     expect(spend).not.toContain("SpendExportWalkthrough");
-    const roasAt = spend.indexOf('id="mcfly-roas"');
+    const roasAt = viewport.indexOf('id="mcfly-roas"');
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
     expect(roasAt).toBeGreaterThan(-1);
@@ -100,8 +101,8 @@ describe("Spend day card", () => {
     expect(spend).toContain("<DualCloseLine");
     expect(spend).not.toContain("<MarketingSnapSection");
     expect(spend).not.toContain("MarketingSnapSection");
-    expect(spend).toContain('aria-label="Sales, spend, and Total ROAS"');
-    expect(spend).toContain("mcfly-spend-plane");
+    expect(viewport).toContain('aria-label="Total ROAS"');
+    expect(viewport).toContain("mcfly-spend-plane");
     expect(spend).not.toContain('id="mcfly-spend-mix"');
   });
 
@@ -163,7 +164,7 @@ describe("Spend day card", () => {
     expect(spend).toMatch(/>\s*Edit\s*</);
     expect(spend).toContain('name="intent" value="delete-entry"');
     expect(spend).toContain("Delete");
-    const planeAt = spend.indexOf("mcfly-spend-plane");
+    const planeAt = viewport.indexOf("mcfly-spend-plane");
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
     expect(planeAt).toBeGreaterThan(-1);
@@ -198,8 +199,8 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("periodChannels");
     expect(spend).not.toContain("hasPeriodSpend");
     expect(spend).not.toContain("strangerEmpty || !metrics");
-    expect(spend).toContain('aria-label="Sales, spend, and Total ROAS"');
-    expect(spend).toContain("mcfly-spend-plane");
+    expect(viewport).toContain('aria-label="Total ROAS"');
+    expect(viewport).toContain("mcfly-spend-plane");
     expect(spend).not.toContain('id="mcfly-spend-mix"');
     expect(spend).not.toContain("<NumberHonestyPanel");
     expect(spend).toContain("SAMPLE_LEDGER_HANDOFF");
@@ -396,15 +397,16 @@ describe("Total ROAS page", () => {
   it("redirects Total ROAS onto Spend and keeps the formula on Spend", () => {
     const roas = read("../routes/app.roas.tsx");
     const spend = read("../routes/app.spend.tsx");
+    const viewport = read("../components/SpendFirstViewport.tsx");
     expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
     expect(roas).toContain("requireAdmin");
     expect(roas).not.toContain("<SpendExplorer");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<DualCloseLine");
     expect(spend).toContain("<MonthlyPacing");
-    expect(spend).toContain("PRODUCT_NOUN.definition");
+    expect(viewport).toContain("HONEST_MER_LINE");
     expect(spend).toContain("formatTotalRoasEquation");
-    expect(spend).toContain("HONEST_MER_LINE");
+    expect(viewport).toContain("formatSpendOnFile");
     expect(spend).toContain("SpendFindingStrip");
     expect(spend).toContain("quiet={false}");
     expect(spend).toContain('href="#mcfly-spend-add"');
@@ -414,8 +416,10 @@ describe("Total ROAS page", () => {
 
   it("dashes pending sales and pairs the equation only when spend is on file", () => {
     const spend = read("../routes/app.spend.tsx");
+    const viewport = read("../components/SpendFirstViewport.tsx");
     expect(spend).toContain("NUMBER_HONESTY.salesPending");
-    expect(spend).toContain("metrics.salesPending ? \"—\"");
+    expect(spend).toContain("metrics.salesPending");
+    expect(viewport).toContain('salesPending ? "—"');
     expect(spend).toContain("formatTotalRoasEquation");
     expect(spend).toContain("!metrics.salesPending");
     expect(spend).not.toContain("0.00×");

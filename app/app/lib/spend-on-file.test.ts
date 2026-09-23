@@ -30,12 +30,16 @@ describe("spend on file vs certified $0", () => {
 
   it("Total ROAS Spend tile and Allocation snap use the on-file helper", () => {
     const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
+    const viewport = readFileSync(
+      join(here, "../components/SpendFirstViewport.tsx"),
+      "utf8",
+    );
     const mix = readFileSync(
       join(here, "../components/SpendMixSection.tsx"),
       "utf8",
     );
-    expect(spend).toContain("formatSpendOnFile");
-    expect(spend).toContain("spendOnFileHint");
+    expect(viewport).toContain("formatSpendOnFile");
+    expect(spend).toContain("<SpendFirstViewport");
     expect(spend).not.toContain("formatCurrency(metrics.totalSpend");
     expect(mix).toContain("metrics.totalSpend");
     expect(mix).not.toMatch(

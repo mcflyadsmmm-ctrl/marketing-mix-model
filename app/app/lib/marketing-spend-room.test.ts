@@ -93,24 +93,25 @@ describe("Marketing spend room", () => {
 
 describe("Spend MER desk", () => {
   const spend = read("../routes/app.spend.tsx");
+  const viewport = read("../components/SpendFirstViewport.tsx");
   const mix = read("../components/SpendMixSection.tsx");
   const roas = read("../routes/app.roas.tsx");
   const allocation = read("../routes/app.allocation.tsx");
   const cpa = read("../routes/app.cpa.tsx");
 
   it("contrasts Shopify Analytics vs sales÷typed spend, not platform ROAS", () => {
-    expect(spend).toContain("Shopify Analytics shows sales");
-    expect(spend).toContain("This page records");
-    expect(spend).toContain("PRODUCT_NOUN.definition");
-    expect(spend).toContain("HONEST_MER_LINE");
+    const viewport = read("../components/SpendFirstViewport.tsx");
+    expect(spend).toContain("SPEND_ANALYTICS_CONTRAST");
+    expect(viewport).toContain("HONEST_MER_LINE");
     expect(spend).toContain("SpendFindingStrip");
     expect(spend).toContain("spendUploadEmptyFinding");
     expect(spend).toMatch(/never 0×/);
   });
 
   it("pending sales KPI is an em dash, never a painted $0", () => {
-    expect(spend).toContain("metrics.salesPending ? \"—\"");
-    expect(spend).toContain("spendFirstFoldSalesHint");
+    expect(spend).toContain("metrics.salesPending");
+    expect(viewport).toContain('salesPending ? "—"');
+    expect(spend).toContain("SpendFirstViewport");
   });
 
   it("owns the explorer, dual-close, certified chips, and spend-only pacing", () => {
@@ -128,7 +129,7 @@ describe("Spend MER desk", () => {
     expect(spend).toContain("<CpaWindowCards");
     expect(spend).toContain("<CpaPaybackDesk");
     expect(spend).toContain("<CpaExplorer");
-    expect(spend).toContain('id="mcfly-roas"');
+    expect(spend).toContain("<SpendFirstViewport");
     expect(spend).toContain('id="mcfly-explorer"');
     expect(mix).toContain('id="mcfly-mix"');
     expect(spend).toContain('id="mcfly-cpa"');
@@ -143,7 +144,8 @@ describe("Spend MER desk", () => {
   });
 
   it("keeps upload forms after analysis and does not mount 12-month goals", () => {
-    const roasAt = spend.indexOf('id="mcfly-roas"');
+    const viewport = read("../components/SpendFirstViewport.tsx");
+    const roasAt = viewport.indexOf('id="mcfly-roas"');
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     expect(roasAt).toBeGreaterThan(-1);
     expect(addAt).toBeGreaterThan(roasAt);
@@ -161,8 +163,7 @@ describe("Spend MER desk", () => {
     expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
     expect(cpa).toContain("requireAdmin");
     expect(cpa).not.toContain("<CpaWindowCards");
-    expect(spend).toContain("fold={emptyLiveSpend}");
-    expect(spend).toContain("defaultOpen={true}");
+    expect(spend).toContain("defaultOpen={shotMode}");
     expect(spend).not.toContain("defaultOpen={!emptyLiveSpend");
   });
 });
