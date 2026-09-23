@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Mcfly Analytics reads Shopify order totals and opaque customer id + numberOfOrders. No name, email, phone, or address. No pixels.",
+      "Mcfly Analytics reads Shopify order totals and opaque customer id + numberOfOrders. We do not store name, email, phone, or address. No pixels.",
   },
 ];
 
@@ -18,25 +18,33 @@ export default function PrivacyPage() {
       <main id="main" className={styles.article}>
         <h1>Privacy</h1>
         <p className={styles.lede}>
-          Mcfly Analytics measures Shopify Total Sales ÷ the ad spend you add.
-          We do not run pixels, multi-touch attribution, or a name/email CRM.
+          Mcfly Analytics measures Shopify sales next to the ad spend you add
+          (Total ROAS = sales ÷ entered spend). We do not run pixels,
+          multi-touch attribution, or a name/email CRM.
         </p>
 
         <h2>What we read from Shopify</h2>
         <ul>
           <li>
-            <code>read_orders</code> — order totals and dates for Total ROAS.
+            <code>read_orders</code> / <code>read_all_orders</code> — order
+            totals and dates for the desk and Total ROAS.
           </li>
           <li>
             <code>read_customers</code> — opaque customer <code>id</code> and{" "}
-            <code>numberOfOrders</code> only, to classify new vs returning. No
-            name, email, phone, or address.
-          </li>
-          <li>
-            <code>read_all_orders</code> — older order totals and dates so
-            first-year LTV can seal. Still no name, email, phone, or address.
+            <code>numberOfOrders</code> only, to classify new vs returning
+            dollars and early LTV. No name, email, phone, or address in the
+            product UI or CRM.
           </li>
         </ul>
+
+        <h2>Shopify Analytics / ShopifyQL (Level 2)</h2>
+        <p>
+          Shopify’s reporting API (<code>shopifyqlQuery</code>) requires Partner
+          Level 2 access to name, address, email, and phone fields even for
+          aggregate sales totals. If that access is approved, we may call
+          ShopifyQL for Analytics-aligned day totals. We still will not store,
+          display, export, or message using those identity fields.
+        </p>
 
         <h2>What you add</h2>
         <p>
@@ -45,12 +53,22 @@ export default function PrivacyPage() {
           day one.
         </p>
 
-        <h2>Uninstall</h2>
+        <h2>Retention and deletion</h2>
         <p>
-          Shopify <code>shop/redact</code> deletes your Mcfly shop record,
-          settings, and spend. <code>customers/redact</code> deletes that
-          customer’s stored facts. GDPR topics: customers/data_request,
+          Shop data is deleted on uninstall and on Shopify{" "}
+          <code>shop/redact</code>. <code>customers/redact</code> deletes that
+          customer’s stored order facts. Temporary Level-1 compliance export
+          packages (opaque order ids, amounts, dates — no name/email/phone)
+          auto-purge after 60 days. GDPR topics: customers/data_request,
           customers/redact, shop/redact.
+        </p>
+
+        <h2>Security</h2>
+        <p>
+          Data in transit uses HTTPS. Production data is hosted on Fly.io with
+          encrypted volumes. Access is limited to the app operator. We keep an
+          incident response policy and do not copy Live merchant books into the
+          SAMPLE demo.
         </p>
 
         <p>

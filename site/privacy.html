@@ -156,7 +156,7 @@
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
       <h1>Privacy policy</h1>
-      <p>Last updated: July 28, 2026. We process store and spend data to show Total ROAS — <span class="mono formula-inline">Shopify sales after returns ÷ ad spend</span> (order totals may appear as Ads Manager–comparable) — never path attribution. Opaque order and customer IDs are still personal data under GDPR (pseudonymous) — we minimize them and never build a name/email CRM.</p>
+      <p>Last updated: September 23, 2026. We process store and spend data to show Total ROAS — <span class="mono formula-inline">Shopify sales ÷ entered ad spend</span> — never path attribution. Opaque order and customer IDs are still personal data under GDPR (pseudonymous) — we minimize them and never build a name/email CRM.</p>
     </header>
 
     <div class="trust-strip" role="list">
@@ -182,7 +182,7 @@
       <div class="legal-summary">
         <p class="tag">Plain-English summary</p>
         <ul class="summary-list">
-          <li>We read Shopify order totals (<code>read_orders</code>) and classify unique customers as new vs returning using least-privilege <code>read_customers</code> — opaque customer IDs + <code>numberOfOrders</code> only. We do <strong>not</strong> request name, email, phone, or address. That diet powers Total ROAS, break-even, and allocation.</li>
+          <li>We read Shopify order totals (<code>read_orders</code> / <code>read_all_orders</code>) and classify unique customers as new vs returning using least-privilege <code>read_customers</code> — opaque customer IDs + <code>numberOfOrders</code> only. We do <strong>not</strong> store or show name, email, phone, or address in the product. That diet powers Total ROAS, break-even, and allocation. Shopify’s <code>shopifyqlQuery</code> API may require Partner Level 2 field access for aggregate Analytics day totals; if approved, we still will not store or display those identity fields.</li>
           <li>We persist opaque <strong>OrderFact</strong> rows (order id, amount, date, opaque customerKey) and <strong>CohortFact</strong> aggregates for customer lifetime value — still no name/email/phone/address CRM.</li>
           <li>Uninstalling triggers Shopify's <code>shop/redact</code> webhook — we delete your Mcfly shop record, settings, spend, OrderFacts, CohortFacts, and related facts. <code>customers/redact</code> deletes that customer's OrderFacts.</li>
           <li>Same Total ROAS religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing name is <strong>Mcfly Analytics</strong>. Billing: 7-day trial, then $39/store/mo for the whole desk. Trial includes 90 days of order history; paid includes up to 24 months. Uninstall stops the charge. See <a href="/pricing">Pricing</a>.</li>
@@ -230,7 +230,7 @@
         <li><strong>Shopify shop domain</strong> and OAuth session tokens when you install the app.</li>
         <li><strong>Staff Session fields from Shopify login</strong> (when the merchant staffer opens the embedded app with an online session): staff <code>email</code>, <code>firstName</code>, <code>lastName</code>, and related Shopify session flags (account owner / collaborator / locale). These identify the Admin user using the app — <strong>not</strong> store customers. We do not use staff email for marketing lists.</li>
         <li><strong>Order / sales totals and order counts</strong> for periods you view (Shopify Admin API scopes <code>read_orders</code> and, when approved, <code>read_all_orders</code> for deeper history) to compute Total ROAS and AOV.</li>
-        <li><strong>New vs returning customer counts</strong> via minimal scope <code>read_customers</code>: on each order we read only the opaque customer <code>id</code> and <code>numberOfOrders</code> to classify new vs returning. We do not request or store customer name, email, phone, or address, and we do not keep a customer CRM.</li>
+        <li><strong>New vs returning customer counts</strong> via minimal scope <code>read_customers</code>: on each order we read only the opaque customer <code>id</code> and <code>numberOfOrders</code> to classify new vs returning. We do not store customer name, email, phone, or address, and we do not keep a customer CRM. Partner Level 2 field access (if approved) is solely to use Shopify’s aggregate reporting API — not to build identity profiles.</li>
         <li><strong>OrderFact</strong> (persisted): opaque <code>customerKey</code> (Shopify customer GID or guest marker), Shopify order id, order amount, and order created-at / shop-local date — used to build customer lifetime value. No name, email, phone, or address fields. Opaque IDs remain pseudonymous personal data under GDPR.</li>
         <li><strong>CohortFact</strong> (persisted aggregates): monthly first-order cohort rollups (customer counts and revenue/orders at 30/90/365 days) derived from OrderFacts — still no CRM PII.</li>
         <li><strong>SalesDayFact</strong> / <strong>MerSnapshot</strong> — day-level sales and Total ROAS snapshot rows for the desk (amounts/dates, not customer directories).</li>
