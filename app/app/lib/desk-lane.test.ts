@@ -149,7 +149,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       'id="mcfly-growth"',
       "<CustomersGrowthSection",
       'id="mcfly-depth"',
-      'rank="more"',
+      'label="Who the dollars sit with"',
       "<CustomerRetentionBoard",
       "<CustomerWhaleWatch",
       "<CustomerRfmBoard",
@@ -161,6 +161,9 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]!).toBeGreaterThan(order[i - 1]!);
     }
+    expect(customers).toMatch(
+      /rank="more"[\s\S]*?label="Returning mix and facts"[\s\S]*?\bfold\b/,
+    );
     expect(customers).toContain("mcfly-cust-action-row");
     expect(customers).toContain('label="Who the dollars sit with"');
     expect(customers).toContain("defaultOpen={shotMode");

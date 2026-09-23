@@ -210,7 +210,12 @@ export default function CustomersPage() {
         </div>
         <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
       </DeskLane>
-      <DeskLane rank="next" label="Returning mix and facts">
+      <DeskLane
+        rank="more"
+        label="Returning mix and facts"
+        fold
+        defaultOpen={shotMode}
+      >
         {returningInsight.cards.length > 0 ? (
           <ShareableInsightCards view={returningInsight} shotMode={shotMode} />
         ) : null}

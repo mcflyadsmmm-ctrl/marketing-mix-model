@@ -81,6 +81,9 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(firstLane).toContain("<CustomersCompareGlance");
     expect(firstLane).not.toContain("<CustomersScoreboard");
     expect(firstLane).not.toContain("<ShareableInsightCards");
+    expect(customers).toMatch(
+      /rank="more"[\s\S]*?label="Returning mix and facts"[\s\S]*?\bfold\b/,
+    );
     expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
       customers.indexOf("<CustomersLtvDepth"),
     );

@@ -175,7 +175,12 @@ export default function PublicDemoCustomers() {
             </div>
             <CustomerMixChart analytics={data.customers} salesPending={false} />
           </DeskLane>
-          <DeskLane rank="next" label="Returning mix and facts">
+          <DeskLane
+            rank="more"
+            label="Returning mix and facts"
+            fold
+            defaultOpen={data.shotMode}
+          >
             {returningInsight.cards.length > 0 ? (
               <ShareableInsightCards
                 view={returningInsight}
