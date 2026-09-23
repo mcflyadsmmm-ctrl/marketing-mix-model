@@ -192,7 +192,7 @@ export function OverviewYoyCards({
                     vs ? { k: "Change", v: vs } : null,
                     {
                       k: "What this is",
-                      v: "Shopify Total Sales for this window next to the same calendar days last year. Shopify Analytics Overview is this period only.",
+                      v: "Order-book dollars for this window next to the same calendar days last year. Not Analytics day totals.",
                     },
                   ].filter(
                     (block): block is { k: string; v: string } => block != null,
@@ -241,7 +241,7 @@ export function OverviewYoyCards({
       {ytdCopy && ytd ? (
         <div className="mcfly-spend-pair-copy-row">
           <p className="mcfly-yoy__note">
-            Shopify Total Sales YTD {formatCurrency(ytd.sales, currency)}
+            Orders YTD {formatCurrency(ytd.sales, currency)} — from orders
           </p>
           <CopyYtdSales text={ytdCopy} />
         </div>

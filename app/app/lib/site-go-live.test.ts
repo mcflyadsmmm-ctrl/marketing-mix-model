@@ -122,8 +122,9 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     expect(pricing).toMatch(/every platform/i);
     expect(pricing).toMatch(/\$39/);
     expect(pricing).toMatch(/7-day/);
-    expect(pricing).toMatch(/Trial is 90 days of order history/);
-    expect(pricing).toMatch(/Paid is up to 24 months|paid is up to 24 months/);
+    expect(pricing).toMatch(
+      /Trial includes 90 days of order history; paid includes up to 24 months/,
+    );
     expect(pricing).not.toMatch(/full-access/i);
     expect(pricing).not.toMatch(/Trial includes 24 months/);
     expect(pricing).not.toMatch(/\$79/);
@@ -134,12 +135,11 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
   it("names 90 days on trial vs 24 months paid — never a 24-month trial", () => {
     const index = readFileSync(join(siteRoot, "index.html"), "utf8");
     const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
-    expect(index).toMatch(
-      /<strong>90 days<\/strong><span>Order history on trial<\/span>/,
-    );
-    expect(index).toMatch(/Trial is 90 days of order history/);
-    expect(index).toMatch(/Paid is up to 24 months/);
-    expect(pricing).toMatch(/Trial is 90 days of order history/);
-    expect(pricing).toMatch(/paid is up to 24 months/i);
+    const history =
+      /Trial includes 90 days of order history; paid includes up to 24 months/;
+    expect(index).toMatch(history);
+    expect(pricing).toMatch(history);
+    expect(index).not.toMatch(/Trial includes 24 months/);
+    expect(pricing).not.toMatch(/Trial includes 24 months/);
   });
 });

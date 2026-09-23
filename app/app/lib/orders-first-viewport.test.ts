@@ -9,13 +9,10 @@ import {
   ORDERS_FIRST_LANE_LABEL,
   ORDERS_PENDING_LINE,
   ORDERS_THIN_EMPTY_LINE,
-  ORDERS_TODAY_TRUNCATED_LINE,
   buildOrdersLeadPeeks,
-  buildOrdersTicketPeeks,
   ordersHeroBeatsShopifyAnalytics,
   ordersOperatorGreeting,
 } from "./orders-first-viewport";
-import { ORDERS_TICKET_BASIS } from "./orders-intelligence";
 import { ORDERS_SPEND_BANS } from "./orders-scoreboard";
 import type { ShopifyDepthStats } from "./shopify-depth-stats";
 
@@ -81,7 +78,6 @@ describe("ordersOperatorGreeting", () => {
         orderCount: 108,
         typicalOrderLabel: "$631",
         averageOrderLabel: "$634",
-        todaySalesTruncated: false,
       }),
     ).toBe(
       "Typical order around $631. Average is $634. Shopify Analytics Orders is the average order.",
@@ -101,7 +97,6 @@ describe("ordersOperatorGreeting", () => {
         orderCount: 0,
         typicalOrderLabel: null,
         averageOrderLabel: null,
-        todaySalesTruncated: false,
       }),
     ).toBe(ORDERS_PENDING_LINE);
     expect(
@@ -110,35 +105,8 @@ describe("ordersOperatorGreeting", () => {
         orderCount: 0,
         typicalOrderLabel: null,
         averageOrderLabel: null,
-        todaySalesTruncated: false,
       }),
     ).toBe("No orders in this window yet.");
-  });
-
-  it("does not greet a capped live today as a finished closed typical/average day", () => {
-    const greeting = ordersOperatorGreeting({
-      salesPending: false,
-      orderCount: 108,
-      typicalOrderLabel: "$631",
-      averageOrderLabel: "$634",
-      todaySalesTruncated: true,
-    });
-    expect(greeting).toBe(ORDERS_TODAY_TRUNCATED_LINE);
-    expect(greeting).toMatch(/capped at ~100 orders/);
-    expect(greeting).toMatch(/not a closed day/);
-    expect(greeting).not.toBe(
-      "Typical order around $631. Average is $634. Shopify Analytics Orders is the average order.",
-    );
-    expect(greeting).not.toMatch(/\$0/);
-    expect(
-      ordersOperatorGreeting({
-        salesPending: true,
-        orderCount: 108,
-        typicalOrderLabel: "$631",
-        averageOrderLabel: "$634",
-        todaySalesTruncated: true,
-      }),
-    ).toBe(ORDERS_PENDING_LINE);
   });
 });
 
@@ -170,30 +138,6 @@ describe("buildOrdersLeadPeeks", () => {
   });
 });
 
-describe("buildOrdersTicketPeeks", () => {
-  it("names first-time and returning tickets as Shopify Total Sales per order", () => {
-    const peeks = buildOrdersTicketPeeks(
-      {
-        firstTimeTicket: 100,
-        returningTicket: 250,
-        basis: ORDERS_TICKET_BASIS,
-      },
-      snowdevilDepth(),
-      "USD",
-    );
-    expect(peeks.map((peek) => peek.k)).toEqual([
-      "First-time ticket",
-      "Returning ticket",
-      "Shipping + tax",
-    ]);
-    expect(peeks[0]?.v).toBe("$100");
-    expect(peeks[0]?.s).toBe(ORDERS_TICKET_BASIS);
-    expect(peeks[1]?.v).toBe("$250");
-    expect(peeks[2]?.v).toBe("$8,215");
-    expect(peeks[0]?.d).not.toMatch(/Shopify’s AOV formula/i);
-  });
-});
-
 describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
   it("PASS only when every first-fold hero is Mcfly-differentiated", () => {
     expect([...ORDERS_FIRST_FOLD_HEROES]).toEqual([
@@ -216,14 +160,13 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
       orders.indexOf("<OrdersIntelligence"),
     );
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("mcfly-orders-under");
     expect(firstView).toContain("mcfly-orders-hero");
-    expect(firstView).toContain("if (salesPending)");
+    expect(firstView).toContain("salesPending: _salesPending");
     expect(firstView).toContain("ORDERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_ORDERS_DOOR");
-    expect(firstView).toContain("todaySalesTruncated");
-    expect(firstView).toContain("ORDERS_TODAY_TRUNCATED_LINE");
-    expect(firstView).not.toMatch(/todaySalesTruncated\s*=\s*false/);
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("mcfly-kpi--soft");
     expect(firstView).not.toContain("0.00×");
     for (const ban of ORDERS_SPEND_BANS) {
       expect(firstView).not.toContain(ban);

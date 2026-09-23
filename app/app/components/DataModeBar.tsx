@@ -42,7 +42,7 @@ export function DataModeBar({
         {!shotMode && sampleOnlyFreeze ? (
           <>
             <span aria-hidden="true"> · </span>
-            Live is parked until launch
+            Sample mode is locked
           </>
         ) : null}
       </p>

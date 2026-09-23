@@ -14,6 +14,7 @@ import {
   OVERVIEW_PERIOD_TOTAL_LABEL,
   OVERVIEW_PERIOD_TOTAL_SENTENCE,
 } from "./overview-first-viewport";
+import { OVERVIEW_FROM_ORDERS_LABEL } from "./overview-order-book";
 import { OverviewFirstViewport } from "../components/OverviewFirstViewport";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import {
@@ -525,17 +526,19 @@ describe("month close and the period hero stay put", () => {
     });
   });
 
-  it("keeps the period-total hero labeled Shopify Total Sales", () => {
+  it("keeps chart copy on Shopify Total Sales; first-fold hero stays From orders", () => {
     expect(OVERVIEW_PERIOD_TOTAL_LABEL).toBe("Shopify Total Sales");
     expect(OVERVIEW_PERIOD_TOTAL_SENTENCE).toBe(
       "Shopify Total Sales for this period.",
     );
+    expect(OVERVIEW_FROM_ORDERS_LABEL).toBe("From orders");
     const first = readFileSync(
       join(here, "../components/OverviewFirstViewport.tsx"),
       "utf8",
     );
-    expect(first).toContain("label={OVERVIEW_PERIOD_TOTAL_LABEL}");
-    expect(first).toContain("overviewClockSentenceFromPayload");
+    expect(first).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(first).toContain("overviewOrderHeroSentence");
+    expect(first).not.toContain("overviewClockSentenceFromPayload");
     const chart = readFileSync(
       join(here, "../components/OverviewSalesChart.tsx"),
       "utf8",
@@ -544,10 +547,6 @@ describe("month close and the period hero stay put", () => {
     expect(chart).toContain("overviewPriorWindow");
     expect(chart).toContain('data-overview-compare="same-dates"');
     expect(chart).not.toContain('data-overview-compare="clock"');
-    expect(first).toContain('data-overview-compare="clock"');
-    const route = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
-    expect(route).not.toContain("today.length === 0 && prior == null");
-    expect(route).toContain("clockTodayOrders = todayRows.map");
     expect(chart).toContain("mcfly-chart__hero");
   });
 });
@@ -598,75 +597,38 @@ describe("Overview paints the labeled lines", () => {
     expect(missing).not.toContain("those dates last year (");
   });
 
-  it("paints an on-file clock and a missing clock on the first viewport only", () => {
-    const days = daySeries("2026-09-01", 21, 100);
-    const now = atUtc("2026-09-19T14:55:00.000Z");
-    const todayKey = "2026-09-19";
-    const priorKey = overviewShiftDayKey(todayKey, -364);
-    const onFileClock = {
-      timeZone: "UTC",
-      nowIso: now.toISOString(),
-      pending: false,
-      todayOrders: [{ orderedAt: `${todayKey}T14:50:00.000Z`, amount: 400 }],
-      priorOrders: [
-        { orderedAt: `${priorKey}T14:50:00.000Z`, amount: 250 },
-        { orderedAt: `${priorKey}T21:00:00.000Z`, amount: 5000 },
-      ],
-    };
+  it("paints order-book hero on the first viewport — clock copy stays on the chart helpers", () => {
     const onFile = renderToStaticMarkup(
       createElement(
         DeskCurrencyContext.Provider,
         { value: "USD" },
         createElement(OverviewFirstViewport, {
-          orderCount: 1,
-          typicalOrder: 100,
-          meanAov: 100,
-          returningSalesShare: null,
+          orderCount: 12,
+          typicalOrder: 631,
+          meanAov: 634,
+          returningSalesShare: 0.66,
+          returningSales: 45_409,
           salesPending: false,
           ordersHref: "/app/orders",
-          clock: onFileClock,
-        }),
-      ),
-    );
-    expect(onFile).toContain(
-      "Shopify Total Sales through 2:55 pm is $400 versus $250 the same weekday last year (+60%).",
-    );
-    expect(onFile).not.toContain("$5,000");
-    const chart = renderToStaticMarkup(
-      createElement(
-        DeskCurrencyContext.Provider,
-        { value: "USD" },
-        createElement(OverviewSalesChart, { days }),
-      ),
-    );
-    expect(chart).not.toContain("data-overview-compare=\"clock\"");
-    expect(chart).not.toContain("through 2:55 pm");
-
-    const missing = renderToStaticMarkup(
-      createElement(
-        DeskCurrencyContext.Provider,
-        { value: "USD" },
-        createElement(OverviewFirstViewport, {
-          orderCount: 1,
-          typicalOrder: 100,
-          meanAov: 100,
-          returningSalesShare: null,
-          salesPending: false,
-          ordersHref: "/app/orders",
-          clock: {
-            timeZone: "UTC",
-            nowIso: now.toISOString(),
-            pending: false,
-            todayOrders: [
-              { orderedAt: `${todayKey}T14:50:00.000Z`, amount: 400 },
-            ],
-            priorOrders: null,
+          orderBookDepth: "paid_full",
+          orderHero: {
+            sales: 68_457,
+            priorSales: 69_891,
+            yoyPct: -2,
+            orderCount: 108,
+            typicalOrder: 631,
+            returningSales: 45_409,
+            weekendShare: 0.23,
+            empty: false,
+            zone: "down",
           },
+          periodLabel: "This month",
         }),
       ),
     );
-    expect(missing).toContain(
-      "Shopify Total Sales through 2:55 pm is $400, and the same weekday last year is — not on file.",
-    );
+    expect(onFile).toContain("From orders");
+    expect(onFile).toContain("$68,457");
+    expect(onFile).toContain("same days last year $69,891");
+    expect(onFile).not.toContain("Shopify Total Sales through");
   });
 });

@@ -2241,3 +2241,252 @@ body.demo-page .demo-hero-actions {
     min-height: 70vh;
   }
 }
+
+/* =================================================================
+   v31 — static Overview still (rebuild first screen)
+   ================================================================= */
+
+.brand-mark {
+  margin: 0 0 0.85rem;
+  font-family: var(--display);
+  font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.brand-mark span {
+  font-weight: 600;
+  color: var(--cyan-deep, #1ab8c4);
+}
+
+.hero--v31 .h1--line {
+  max-width: 14ch;
+}
+
+.hero--v31 .lede--tight {
+  max-width: 38ch;
+}
+
+.shot-frame--still .shot-frame__viewport {
+  padding: 0;
+  background: #fff;
+}
+
+.ov-still {
+  padding: 1rem 1.1rem 1.15rem;
+  background: #fff;
+  color: #0f1720;
+  font-family: var(--font, "Source Sans 3", system-ui, sans-serif);
+}
+
+.ov-still__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.85rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 32, 0.1);
+}
+
+.ov-still__meta-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.45rem;
+  min-width: 0;
+}
+
+.ov-still__shop {
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ov-still__sep {
+  color: #7a8b9c;
+}
+
+.ov-still__period {
+  font-size: 0.82rem;
+  color: #5b6b7c;
+}
+
+.ov-still__sample {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid rgba(15, 23, 32, 0.14);
+  border-radius: 4px;
+  font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b6b7c;
+  background: #f7fafc;
+}
+
+.ov-still__hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+}
+
+.ov-still__k {
+  margin: 0;
+  font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #5b6b7c;
+}
+
+.ov-still__delta {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-still__delta--down {
+  color: #b91c1c;
+}
+
+.ov-still__delta--up {
+  color: #047857;
+}
+
+.ov-still__sales {
+  margin: 0.2rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(2.15rem, 4.5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-still__prior {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  color: #5b6b7c;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-still__source {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #0284c7;
+}
+
+.ov-still__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
+  margin: 1rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(15, 23, 32, 0.1);
+  font-size: 0.88rem;
+  color: #5b6b7c;
+  line-height: 1.4;
+}
+
+.ov-still__facts strong {
+  color: #0f1720;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.facts-strip--sentences {
+  padding: 1.35rem 0;
+}
+
+.facts-strip__prose {
+  max-width: 52rem;
+}
+
+.facts-strip__prose p {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--mute-ink, #5b6b7c);
+}
+
+.before-grid {
+  display: grid;
+  gap: 1.25rem 1.75rem;
+  margin-top: 1.75rem;
+}
+
+@media (min-width: 760px) {
+  .before-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.before-grid article {
+  margin: 0;
+}
+
+.before-grid strong {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.before-grid p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--mute-ink, #5b6b7c);
+  max-width: 28ch;
+}
+
+.demo-desk-frame {
+  position: relative;
+  margin: 0 auto 2rem;
+  width: min(72rem, 100%);
+  padding: 0 1.25rem;
+}
+
+.demo-desk-frame__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.55rem;
+  font-size: 0.82rem;
+  color: #5b6b7c;
+}
+
+.demo-desk-frame__label span {
+  display: inline-block;
+  padding: 0.12rem 0.38rem;
+  border: 1px solid rgba(15, 23, 32, 0.14);
+  border-radius: 4px;
+  font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b6b7c;
+  background: #f7fafc;
+}
+
+.demo-desk-frame .demo-live-frame {
+  width: 100%;
+  min-height: 78vh;
+  border: 1px solid rgba(15, 23, 32, 0.12);
+  border-radius: 14px;
+  background: #fff;
+}

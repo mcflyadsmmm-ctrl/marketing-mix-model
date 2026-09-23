@@ -17,7 +17,7 @@ describe("Marketing matches the Shopify app (one product)", () => {
 
   it("leads with the locked hero and never sells a Free vs Pro split", () => {
     expect(index).toContain(
-      '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
+      '<h1 class="h1 h1--line" id="hero-h">Spend next to real Shopify sales.</h1>',
     );
     expect(index).not.toMatch(/Email Overview \(Free\)/);
     expect(index).not.toMatch(/Goals \+ LTV \(Pro\)/);

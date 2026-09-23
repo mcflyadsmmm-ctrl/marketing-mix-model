@@ -917,10 +917,9 @@ export default function GoalsPage() {
             busy={isSaving || isRevalidating}
           />
           <OrderHistoryForecast view={orderForecast} variant="goals" />
-
-          {/* One hero, drill rows — same book language as Orders and Buyers. */}
+          {/* Sales figure after habit targets — plan gauges stay below. */}
           <section
-            className="mcfly-book mcfly-book--soft mcfly-goals-hero--soft"
+            className="mcfly-book mcfly-goals-hero mcfly-goals-hero--soft"
             aria-label={`Sales · ${periodMetrics.period.label}`}
           >
             <p className="mcfly-book__lede">

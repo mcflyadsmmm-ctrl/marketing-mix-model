@@ -553,7 +553,7 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
     if (isSampleOnlyFreeze()) {
       return {
         error:
-          "Live is parked until launch. SAMPLE spend stays the Snowdevil book.",
+          "Sample mode is locked. Spend stays the Snowdevil example book.",
         success: false,
       };
     }
@@ -1576,8 +1576,7 @@ export default function SpendEntryPage() {
                         . {SAMPLE_LEDGER_HANDOFF}
                       </p>
                       <p className="mcfly-spend-lean__status-foot">
-                        Live is parked until launch. These rows stay Snowdevil
-                        SAMPLE.
+                        Sample mode is locked. These rows stay Snowdevil SAMPLE.
                       </p>
                     </>
                   ) : coverageThroughYesterday.upToDate ? (

@@ -149,7 +149,7 @@ describe("Snowdevil SAMPLE math smoke", () => {
     expect(yoy).toMatch(/Last 7/);
 
     const settings = read("../routes/app.settings.tsx");
-    expect(settings).toContain("Live is parked until launch");
+    expect(settings).not.toContain("Live is parked until launch");
     expect(settings).toMatch(/7-day/);
     expect(settings).toMatch(/\$39/);
     expect(settings).toContain("Snowdevil");

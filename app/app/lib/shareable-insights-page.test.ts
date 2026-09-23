@@ -20,8 +20,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
   it("sits after mix/close and before the sales chart on Overview", () => {
     const order = [
       "<OverviewFirstViewport",
-      "<OverviewYoyCards",
       "<OverviewSalesChart",
+      "<OverviewYoyCards",
       "<OverviewMixForecast",
       "<ShareableInsightCards",
       "<OverviewDepthPeeks",

@@ -15,7 +15,6 @@ import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_IN_TOTAL_SALES,
-  OVERVIEW_PERIOD_TOTAL_LABEL,
   OVERVIEW_SHOP_NOT_COMPANY,
   overviewCoverageLine,
 } from "./overview-first-viewport";
@@ -183,37 +182,36 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
 });
 
 describe("book coverage honesty — Overview names the book", () => {
-  it("names pending / authorized / COD / Klarna in Shopify Total Sales", () => {
+  it("keeps pending / COD / Klarna honesty copy off the From-orders first fold", () => {
     expect(OVERVIEW_PENDING_IN_TOTAL_SALES).toMatch(/pending/i);
     expect(OVERVIEW_PENDING_IN_TOTAL_SALES).toMatch(/authorized/i);
     expect(OVERVIEW_PENDING_IN_TOTAL_SALES).toMatch(/COD/i);
     expect(OVERVIEW_PENDING_IN_TOTAL_SALES).toMatch(/Klarna/i);
-    expect(OVERVIEW_PENDING_IN_TOTAL_SALES).toMatch(/Shopify Total Sales/);
     expect(OVERVIEW_PENDING_IN_TOTAL_SALES).not.toMatch(/paid-only|paid only/i);
     const firstView = read("../components/OverviewFirstViewport.tsx");
-    expect(firstView).toContain("OVERVIEW_PENDING_IN_TOTAL_SALES");
+    expect(firstView).not.toContain("OVERVIEW_PENDING_IN_TOTAL_SALES");
+    expect(firstView).not.toContain("Shopify Total Sales");
     expect(firstView).not.toMatch(/paid-only|paidOnly|paid_only/);
   });
 
-  it("names this shop’s orders — not the company book", () => {
+  it("keeps shop-not-company copy off the From-orders first fold", () => {
     expect(OVERVIEW_SHOP_NOT_COMPANY).toMatch(/this shop/i);
     expect(OVERVIEW_SHOP_NOT_COMPANY).toMatch(/not the company book/i);
-    expect(OVERVIEW_SHOP_NOT_COMPANY).toMatch(/Shopify Total Sales/);
     const firstView = read("../components/OverviewFirstViewport.tsx");
-    expect(firstView).toContain("OVERVIEW_SHOP_NOT_COMPANY");
+    expect(firstView).not.toContain("OVERVIEW_SHOP_NOT_COMPANY");
+    expect(firstView).not.toContain("Shopify Total Sales");
   });
 
-  it("YTD Shopify Total Sales is named and copyable on the year card", () => {
+  it("YTD from orders is named and copyable on the year card", () => {
     const copy = overviewYtdCopyText({
       salesPending: false,
       amount: 417_392,
       currency: "USD",
     });
-    expect(copy).toMatch(new RegExp(OVERVIEW_PERIOD_TOTAL_LABEL));
-    expect(copy).toMatch(/YTD/i);
+    expect(copy).toMatch(/Orders YTD/i);
     expect(copy).toMatch(/\$417,392/);
-    expect(copy).toMatch(/this shop/i);
-    expect(copy).toMatch(/not the company book/i);
+    expect(copy).toMatch(/from orders/i);
+    expect(copy).not.toMatch(/Shopify Total Sales/);
     expect(copy).not.toMatch(/fee|payout|bank/i);
 
     expect(
@@ -234,6 +232,8 @@ describe("book coverage honesty — Overview names the book", () => {
     const cards = read("../components/OverviewYoyCards.tsx");
     expect(cards).toContain("CopyYtdSales");
     expect(cards).toContain("overviewYtdCopyText");
+    expect(cards).toMatch(/Orders YTD/);
+    expect(cards).not.toMatch(/Shopify Total Sales YTD/);
     expect(cards).not.toMatch(/Shopify fees|payout date|bank match/i);
     const strip = read("../components/MorningHabitStrip.tsx");
     expect(strip).toContain("export function CopyYtdSales");

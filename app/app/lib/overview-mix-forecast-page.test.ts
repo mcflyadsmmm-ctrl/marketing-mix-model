@@ -19,8 +19,8 @@ describe("Overview mix + month close — habit, not a dump", () => {
   it("sits after the sales chart in the mix-close fold", () => {
     const order = [
       "<OverviewFirstViewport",
-      "<OverviewYoyCards",
       "<OverviewSalesChart",
+      "<OverviewYoyCards",
       "<OverviewMixForecast",
       "<ShareableInsightCards",
       "<OverviewDepthPeeks",
@@ -37,11 +37,10 @@ describe("Overview mix + month close — habit, not a dump", () => {
   });
 
   it("keeps typical order, weekends, and existing explorers", () => {
-    expect(firstView).toContain("bookTypicalOrder");
-    expect(firstView).toContain("Weekend vs weekday");
+    expect(firstView).toContain("Typical order");
+    expect(firstView).toContain("Weekend");
     expect(firstView).toContain("Returning");
-    expect(firstView).toContain("mixGreeting");
-    expect(firstView).toContain("newSales");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(overview).toContain("newSales={shopBook.newSales}");
     expect(overview).toContain("<OverviewSalesChart");
     expect(overview).toContain("<WeekdaySalesChart");

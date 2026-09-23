@@ -6323,18 +6323,6 @@
   gap: 0.35rem;
 }
 
-.mcfly-spend-cal__day--sales:not(.mcfly-spend-cal__day--filled) .mcfly-spend-cal__tick {
-  border-style: solid;
-  box-shadow: inset 0 -3px 0 var(--mcfly-accent);
-}
-
-.mcfly-spend-pair-copy-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-}
-
 .mcfly-spend-reveal > .mcfly-spend-reveal__summary {
   cursor: pointer;
   list-style: none;
@@ -7341,62 +7329,6 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--mcfly-accent-ink);
-}
-
-.mcfly-goals-month-stack {
-  margin: 0 0 0.75rem;
-  padding: 0.7rem 0.8rem 0.75rem;
-  border: 1px solid var(--mcfly-line-soft);
-  border-radius: 12px;
-  background: var(--mcfly-paper, #fff);
-  max-width: 100%;
-  min-width: 0;
-}
-
-.mcfly-goals-month-stack__k {
-  margin: 0 0 0.45rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--mcfly-mute);
-}
-
-.mcfly-goals-month-stack__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.55rem;
-}
-
-.mcfly-goals-month-stack__cell {
-  min-width: 0;
-}
-
-.mcfly-goals-month-stack__label {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--mcfly-mute);
-}
-
-.mcfly-goals-month-stack__value {
-  display: block;
-  margin: 0.15rem 0 0;
-  font-family: var(--mcfly-display);
-  font-size: clamp(1.05rem, 3.6vw, 1.45rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
-  color: var(--mcfly-ink);
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.mcfly-desk--shot .mcfly-goals-month-stack {
-  display: none;
 }
 
 .mcfly-goals-month-bar {
@@ -13786,8 +13718,7 @@ button.mcfly-chart__month {
   overflow: hidden;
 }
 
-.mcfly-yoy--glance .mcfly-yoy__k .mcfly-icon,
-.mcfly-yoy--cpa .mcfly-yoy__k .mcfly-icon {
+.mcfly-yoy--glance .mcfly-yoy__k .mcfly-icon {
   display: none;
 }
 
@@ -13825,7 +13756,6 @@ button.mcfly-chart__month {
     display: none;
   }
 
-  /* CPA keeps the date window. Overview glance may still hide range. */
   .mcfly-cpa__windows .mcfly-yoy__range,
   .mcfly-yoy--cpa .mcfly-yoy__range {
     display: inline;
@@ -14015,8 +13945,7 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy--glance .mcfly-yoy__v {
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
@@ -17771,11 +17700,6 @@ button.mcfly-depth-legend__chip:focus-visible {
   .mcfly-cpa__payback-pair {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .mcfly-cpa__windows .mcfly-yoy__range,
-  .mcfly-yoy--cpa .mcfly-yoy__range {
-    display: inline;
-  }
 }
 
 /* =========================================================================
@@ -19938,21 +19862,6 @@ button.mcfly-depth-flag__empty:focus-visible {
   font-size: 0.68rem;
 }
 
-.mcfly-cust-watch__ticket {
-  display: block;
-  font-weight: 500;
-  color: var(--mcfly-mute);
-  font-size: 0.68rem;
-  line-height: 1.35;
-  white-space: normal;
-}
-
-.mcfly-cust-watch__ltv {
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
 .mcfly-cust-watch__last {
   color: var(--mcfly-warn);
   font-weight: 750;
@@ -19969,24 +19878,6 @@ button.mcfly-depth-flag__empty:focus-visible {
   }
 }
 
-/* Whale watchlist phone wrap — typical ticket + six-figure LTV · orders cell. */
-@media (max-width: 36rem) {
-  .mcfly-cust-watch .mcfly-cust-table__num,
-  .mcfly-cust-watch__meta,
-  .mcfly-cust-watch__ticket,
-  .mcfly-cust-watch__ltv {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .mcfly-cust-watch__head,
-  .mcfly-cust-watch__row {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    align-items: start;
-  }
-}
-
 @media (max-width: 430px) {
   .mcfly-cust-action-row,
   .mcfly-cust-rfm__segs,
@@ -19999,22 +19890,11 @@ button.mcfly-depth-flag__empty:focus-visible {
     padding: 0.7rem 0.75rem;
   }
 
-  .mcfly-cust-watch .mcfly-cust-table__num,
-  .mcfly-cust-watch__meta,
-  .mcfly-cust-watch__ticket,
-  .mcfly-cust-watch__ltv {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
   .mcfly-cust-watch__head,
   .mcfly-cust-watch__row {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.7fr) 2.4rem;
   }
 }
-/* End whale watchlist phone wrap */
 
 /* Overview mix + month-close peek — soft dense, not a dump. */
 .mcfly-ov-mix {
@@ -20880,7 +20760,6 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-lane--first .mcfly-kpi-grid--peeks-lead,
 .mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead,
 .mcfly-yoy--glance,
-.mcfly-yoy--cpa,
 .mcfly-chart--sales,
 .mcfly-chart--empty,
 .mcfly-book__glance--kpis,
@@ -20916,7 +20795,6 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-well .mcfly-kpi--soft,
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi--soft,
 .mcfly-yoy--glance .mcfly-yoy__card--soft,
-.mcfly-yoy--cpa .mcfly-yoy__card--soft,
 .mcfly-book__glance--kpis .mcfly-book__kpi--soft {
   background: var(--mcfly-well-bg-elev);
   border: 1px solid var(--mcfly-well-line);
@@ -20928,7 +20806,6 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi__label,
 .mcfly-well .mcfly-kpi__label,
 .mcfly-yoy--glance .mcfly-yoy__k,
-.mcfly-yoy--cpa .mcfly-yoy__k,
 .mcfly-book__glance--kpis .mcfly-book__kpi-k,
 .mcfly-chart--sales .mcfly-chart__title,
 .mcfly-chart--sales .mcfly-chart__serif {
@@ -20942,7 +20819,6 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi__value,
 .mcfly-well .mcfly-kpi__value,
 .mcfly-yoy--glance .mcfly-yoy__v,
-.mcfly-yoy--cpa .mcfly-yoy__v,
 .mcfly-book__glance--kpis .mcfly-book__kpi-v,
 .mcfly-chart--sales .mcfly-chart__hero {
   font-family: var(--mcfly-display);
@@ -20972,7 +20848,6 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-kpi-grid--peeks-lead .mcfly-kpi__sub,
 .mcfly-well .mcfly-kpi__sub,
 .mcfly-yoy--glance .mcfly-yoy__prior,
-.mcfly-yoy--cpa .mcfly-yoy__prior,
 .mcfly-book__glance--kpis .mcfly-book__kpi-hint {
   color: var(--mcfly-well-mute);
 }
@@ -21191,11 +21066,11 @@ button.mcfly-habit-goals__read:focus-visible {
   padding: var(--mcfly-well-pad-fold);
 }
 
-/* Overview first lane: period hero + 4 smaller peeks (kill skinny founder flex strip) */
+/* Overview first lane: hero + 3 peeks grid (kill skinny founder flex strip) */
 .mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead.mcfly-kpi-grid--peeks-4,
 .mcfly-scoreboard--overview .mcfly-lane--first .mcfly-kpi-grid--peeks-lead.mcfly-kpi-grid--peeks-4 {
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   margin: 0 0 0.85rem;
   width: 100%;
@@ -21837,35 +21712,160 @@ button.mcfly-habit-goals__read:focus-visible {
   }
 }
 
-/* Yesterday / this week / this month — stack on a phone so the dollar fits. */
-.mcfly-scoreboard--overview .mcfly-kpi-grid--windows {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
-  margin: 0.75rem 0 0;
-  width: 100%;
-  max-width: 100%;
+/* —— Overview order-book first plane (2026-09-22 rebuild) ——
+ * One composition: hero $ From orders + support strip. No soft KPI grid.
+ */
+.mcfly-overview-plane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.15rem 0 0.5rem;
+  color: var(--mcfly-ink, #0f172a);
 }
 
-.mcfly-scoreboard--overview .mcfly-kpi-grid--windows > .mcfly-kpi {
-  min-width: 0;
-  max-width: 100%;
+.mcfly-overview-plane__sentence {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.35;
+  color: var(--mcfly-mute, #475569);
 }
 
+.mcfly-overview-plane__hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+}
+
+.mcfly-overview-plane__period {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute, #64748b);
+  font-weight: 600;
+}
+
+.mcfly-overview-plane__delta {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.mcfly-overview-plane__delta--up {
+  color: var(--mcfly-good, #15803d);
+}
+
+.mcfly-overview-plane__delta--down {
+  color: var(--mcfly-bad, #b91c1c);
+}
+
+.mcfly-overview-plane__delta--even,
+.mcfly-overview-plane__delta--empty {
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-overview-plane__value {
+  margin: 0.15rem 0 0;
+  font-family: var(--mcfly-serif, "Fraunces", Georgia, serif);
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-overview-plane__prior,
+.mcfly-overview-plane__source {
+  margin: 0.25rem 0 0;
+  font-size: 0.92rem;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-overview-plane__source {
+  font-weight: 600;
+  color: var(--mcfly-ink, #334155);
+}
+
+.mcfly-overview-plane__strip {
+  margin: 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 12%, transparent);
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.45;
+  color: var(--mcfly-ink, #1e293b);
+}
+
+.mcfly-overview-plane__note {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-orders-under {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.mcfly-orders-under .mcfly-kpi {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0.35rem 0;
+  text-align: left;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 10%, transparent);
+}
+
+/* Whale watchlist phone wrap — typical ticket + six-figure LTV · orders cell. */
 @media (max-width: 36rem) {
-  .mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead.mcfly-kpi-grid--peeks-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .mcfly-scoreboard--overview .mcfly-kpi-grid--windows {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .mcfly-scoreboard--overview .mcfly-kpi-grid--windows .mcfly-kpi__value {
+  .mcfly-cust-watch .mcfly-cust-table__num,
+  .mcfly-cust-watch__meta,
+  .mcfly-cust-watch__ticket,
+  .mcfly-cust-watch__ltv {
     white-space: normal;
     overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .mcfly-cust-watch__head,
+  .mcfly-cust-watch__row {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
   }
 }
+
+@media (max-width: 430px) {
+  .mcfly-cust-action-row,
+  .mcfly-cust-rfm__segs,
+  .mcfly-cust-rfm__bands {
+    grid-template-columns: 1fr;
+  }
+
+  .mcfly-cust-rfm__empty,
+  .mcfly-cust-watch__row {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mcfly-cust-watch .mcfly-cust-table__num,
+  .mcfly-cust-watch__meta,
+  .mcfly-cust-watch__ticket,
+  .mcfly-cust-watch__ltv {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .mcfly-cust-watch__head,
+  .mcfly-cust-watch__row {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+/* End whale watchlist phone wrap */
 
 /* Phone Goals board + chips + CPA dates — Admin iframe ≤36rem.
    This month Goal / Actual / Prior stay on screen. Peek text wraps.
@@ -21950,7 +21950,7 @@ button.mcfly-habit-goals__read:focus-visible {
   }
 }
 
-/* Morning habit — three first wins + copy on Today’s read.
+/* Morning habit — three first wins + copy on Today's read.
  * APPEND ONLY. Order history only. No spend, no ad login. */
 
 .mcfly-morning-habit {
@@ -21958,161 +21958,4 @@ button.mcfly-habit-goals__read:focus-visible {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 0.45rem;
-  margin: 0.15rem 0 0.75rem;
-}
-
-.mcfly-morning-habit__k {
-  margin: 0 0.15rem 0 0;
-  font-size: 0.62rem;
-  font-weight: 750;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--mcfly-accent-ink);
-}
-
-.mcfly-morning-on-read {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.45rem;
-  margin: 0 0 0.75rem;
-}
-
-.mcfly-morning-on-read > .mcfly-ov-mix__read,
-.mcfly-morning-on-read > .mcfly-habit-goals__read,
-.mcfly-morning-on-read > .mcfly-growth-tt2__read {
-  margin-bottom: 0;
-}
-
-.mcfly-desk--shot .mcfly-morning-copy,
-.mcfly-desk--shot .mcfly-spend-pair-copy,
-.mcfly-desk--shot .mcfly-morning-habit {
-  display: none;
-}
-
-.mcfly-orders-step {
-  margin: 0.75rem 0 0.2rem;
-}
-
-.mcfly-orders-step__cap {
-  margin: 0 0 0.45rem;
-  font-size: 0.72rem;
-  color: var(--mcfly-mute);
-  line-height: 1.35;
-}
-
-.mcfly-orders-step__rows {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.mcfly-orders-step__row {
-  display: grid;
-  grid-template-columns: 3.2rem 1fr 4.4rem;
-  gap: 0.45rem;
-  align-items: center;
-  width: 100%;
-  padding: 0.28rem 0.1rem;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-}
-
-.mcfly-orders-step__k {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--mcfly-ink);
-}
-
-.mcfly-orders-step__track {
-  display: block;
-  height: 0.55rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--mcfly-line) 65%, #fff);
-  overflow: hidden;
-}
-
-.mcfly-orders-step__fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--mcfly-accent);
-}
-
-.mcfly-orders-step__v {
-  font-size: 0.78rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--mcfly-ink);
-  text-align: right;
-}
-
-.mcfly-orders-mix {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.45rem;
-  margin: 0 0 0.75rem;
-}
-
-.mcfly-orders-mix__fact {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.55rem 0.6rem 0.5rem;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
-  background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
-  cursor: pointer;
-  text-align: left;
-}
-
-.mcfly-orders-mix__k {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--mcfly-mute);
-}
-
-.mcfly-orders-mix__v {
-  font-family: var(--mcfly-display);
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--mcfly-ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.mcfly-orders-mix__s {
-  font-size: 0.64rem;
-  color: var(--mcfly-mute);
-  line-height: 1.3;
-}
-
-.mcfly-chart__day-bar--stack {
-  display: flex;
-  flex-direction: column-reverse;
-  background: transparent;
-  overflow: hidden;
-}
-
-.mcfly-chart__day-fill {
-  display: block;
-  width: 100%;
-  min-height: 2px;
-}
-
-.mcfly-chart__day-fill--first {
-  background: var(--mcfly-accent);
-}
-
-.mcfly-chart__day-fill--returning {
-  background: color-mix(in srgb, var(--mcfly-accent-ink) 72%, #fff);
-}
-
-@media (max-width: 720px) {
-  .mcfly-orders-mix {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }

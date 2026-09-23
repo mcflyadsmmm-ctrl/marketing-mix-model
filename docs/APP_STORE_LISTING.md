@@ -1,13 +1,13 @@
 # App Store listing draft — Mcfly Analytics
 
 Paste into Partner listing when Distribution = **Shopify App Store**.  
-**Pricing:** Shopify App Pricing — **one plan**: 7-day full-access trial, then **$39/store/mo** for the whole desk. **Product:** depth Shopify Analytics skips first—Overview YoY (this month / quarter / year vs last year), typical order, Customers / Growth / Orders / LTV. Spend is optional typed/CSV plus certified Total ROAS chips (honest MER: sales ÷ entered spend) and Channel Allocation. Empty spend is an em dash, not 0×. Never pixels / MTA / “true ROAS” / Profit Agent / P&L as hero. Trial includes **24 months** of order history. Admin is **Live-only**; SAMPLE is on https://mcflyads.com/demo only.
+**Pricing:** Shopify App Pricing — **one plan**: 7-day full-access trial, then **$39/store/mo** for the whole desk. **Product:** depth Shopify Analytics skips first—Overview YoY (this month / quarter / year vs last year), typical order, Customers / Growth / Orders / LTV. Spend is optional typed/CSV plus certified Total ROAS chips (honest MER: sales ÷ entered spend) and Channel Allocation. Empty spend is an em dash, not 0×. Never pixels / MTA / “true ROAS” / Profit Agent / P&L as hero. Trial includes **90 closed days** of order history; paid includes up to **24 months**. Admin is **Live-only**; SAMPLE is on https://mcflyads.com/demo only.
 **Voice:** calm operator desk — specific, factual. No anti-pixel sermon. No forever-free.  
 **Resubmit lock (2026-08-26):** Billing is live (`MCFLY_BILLING=1`). Partner Pricing **must** be ONE plan — $39/store/mo with a 7-day free trial, **no Free plan** — and never claim “no charges.” Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is Level 1 — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Tier path: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`STRATEGY.md`](../STRATEGY.md).
 
 ## Paste-ready short + long (one paid plan — copy final)
 
-**Status (2026-09-18):** Listing is **live** at https://apps.shopify.com/mcfly-analytics-public (handle `mcfly-analytics-public`, **reviews: 0**). Tagline, short, long, and feature bullets below are the **sales-first paste Marty should Save** (Shopify five first at zero spend; optional Total ROAS = honest MER; 24mo trial history; Live Admin + SAMPLE on `/demo` only). Matches Fly **331** desk + site **v19** Website. Cursor does not Submit. **4.2.2 / 4.2.3:** merchant-facing listing paste (short / long / features / captions / images) must **not** include plan prices. Put **$39** only in Partner **Pricing details** and in reviewer testing notes. One plan covers the whole desk — five analysis tabs plus Settings. Nothing is feature-gated. **Website** = `https://mcflyads.com` (**v19**; re-spot-check if **v20**). **App URL / Privacy / Support / Terms** stay on Fly `https://mcfly-analytics.fly.dev`. Never App URL = mcflyads.com. Human paste pack: [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md).
+**Status (2026-09-22):** Listing is **live** at https://apps.shopify.com/mcfly-analytics-public (handle `mcfly-analytics-public`, **reviews: 0**). Tagline, short, long, and feature bullets below are the **sales-first paste Marty should Save** (Shopify five first at zero spend; optional Total ROAS = honest MER; 90/24 trial vs paid history; Live Admin + SAMPLE on `/demo` only). Spot-check the live mcflyads.com version before Save. Cursor does not Submit. **4.2.2 / 4.2.3:** merchant-facing listing paste (short / long / features / captions / images) must **not** include plan prices. Put **$39** only in Partner **Pricing details** and in reviewer testing notes. One plan covers the whole desk — five analysis tabs plus Settings. Nothing is feature-gated. **Website** = `https://mcflyads.com`. **App URL / Privacy / Support / Terms** stay on Fly `https://mcfly-analytics.fly.dev`. Never App URL = mcflyads.com. Human paste pack: [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md).
 
 Human still must: confirm ASO checklist below, upload icon + **Live Admin** shots (**no pricing in images**, no `/demo` SAMPLE as live product), set Partner **Pricing = Shopify App Pricing (one plan, $39/store/mo, 7-day free trial — no Free plan)**; rename plan **Pro** → **Mcfly Analytics**; paste **App testing information** from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (check “My app doesn't require an account to use it”) if Shopify opens a listing re-review. **Save** in Partner. Cursor does not Submit.
 
@@ -17,14 +17,14 @@ Leave these unchecked until a human verifies in Partner. Agents do **not** flip 
 
 - [ ] **Keywords only:** `shopify analytics`, `typical order`, `customer LTV`, `sales reports`, `ROAS` — never attribution / pixel / true ROAS / Profit Agent / P&L bait
 - [ ] **Short description** ≤ ~150 chars; lead with depth Shopify Analytics skips and make spend optional — **no plan prices** (4.2.3)
-- [ ] **Long description** opens on Overview YoY and Shopify-depth tabs; Total ROAS is chapter two as honest MER; **24mo** trial history (not ~60d primary); Live Admin + SAMPLE on `/demo`; **no $ /mo in this field**
+- [ ] **Long description** opens on Overview (this month vs same days last year, typical order, returning dollars); Total ROAS is chapter two as honest MER; **90/24** trial vs paid history (not ~60d primary); Live Admin + SAMPLE on `/demo`; **no $ /mo in this field**
 - [ ] **Sales channel requirements:** do **not** check “Merchant must have online store” — this app is Admin-only (4.3.1)
-- [ ] **Trust URLs** stay on Fly: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms`. Never App URL = mcflyads.com. **Website** = `https://mcflyads.com` (**v19** / re-check **v20**).
+- [ ] **Trust URLs** stay on Fly: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms`. Never App URL = mcflyads.com. **Website** = `https://mcflyads.com`. Spot-check the live mcflyads.com version before Save.
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
 - [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) — **Live Admin only**
 
-Partner listing URLs (live listing `mcfly-analytics-public`). **Privacy / Support / Terms / App URL** stay on Fly. Partner **Website** field is `https://mcflyads.com` (site **v19**; re-spot-check if **v20**). Never App URL = mcflyads.com.
+Partner listing URLs (live listing `mcfly-analytics-public`). **Privacy / Support / Terms / App URL** stay on Fly. Partner **Website** field is `https://mcflyads.com`. Spot-check the live mcflyads.com version before Save. Never App URL = mcflyads.com.
 
 | Field | URL |
 | --- | --- |
@@ -45,12 +45,18 @@ Never set App URL to mcflyads.com.
 | Field | Draft |
 | --- | --- |
 | **App name** | Mcfly Analytics |
-| **Tagline** (≤80 chars) | Shopify Analytics skips YoY, typical order, returning dollars, and LTV |
-| **Category** | Marketing → Marketing analytics / Advertising (pick closest) — Shopify Analytics depth first; spend optional |
+| **Tagline** (≤80 chars) | See three **Marty picks** options below |
+| **Category** | Marketing → Marketing analytics / Advertising (pick closest) — orders-first Overview; spend optional |
 | **Primary language** | English |
 | **Pricing** | **Shopify App Pricing: one plan, $39/store/mo after a 7-day free trial** — see [`BILLING_TIERS.md`](./BILLING_TIERS.md). In-app Start trial / Manage plan must match Partner plans. Do **not** list a Free plan — the app has no feature gate to justify one. |
 
-**Tagline why:** Lead with depth Shopify Analytics skips (YoY, typical order, returning dollars, LTV). Spend / Total ROAS stays in short + long as optional.
+**Tagline options (≤80 chars — Marty picks one):**
+
+1. **Marty picks:** Shopify Analytics skips YoY, typical order, returning dollars, and LTV  
+2. **Marty picks:** This month vs last year, typical order, returning dollars — from orders  
+3. **Marty picks:** Your Shopify orders as a morning number. Spend next to sales, flat $39  
+
+**Tagline why:** Option 1 keeps the current line. Options 2–3 lead with the first screen without claiming what Shopify Analytics lacks. Spend / Total ROAS stays in short + long as optional.
 
 ---
 
@@ -110,8 +116,8 @@ Merchants (and reviewers) should get Shopify-depth sales immediately, before add
 FIRST STEPS (Shopify-depth tabs work before spend; no required pixel)
 1. Install Mcfly Analytics from the Shopify App Store — opens embedded in Admin
 2. Overview → this month / quarter / year vs last year, typical order, chart.
-   Trial includes up to 24 months of order history. Never invent last year as zero
-   while history is still loading.
+   Trial includes 90 closed days of order history; paid includes up to 24 months.
+   Never invent last year as zero while history is still loading.
 3. Open Customers, Growth, Orders, and LTV (work at zero spend). Then Goals.
 4. Admin is Live-only (your store orders). Labeled SAMPLE walkthrough is on
    https://mcflyads.com/demo — not inside Admin.
@@ -147,13 +153,11 @@ Shopify Analytics skips YoY, typical order, returning dollars, weekends, and 30/
 
 <!-- APP_STORE_PASTE:long -->
 ```text
-Shopify Analytics shows this period’s sales. Mcfly Analytics puts last year next to it, plus typical order, returning dollars, weekends, and 30 / 90 / 365-day LTV—the depth high-volume merchants keep exporting orders to answer.
+Overview opens on this month versus the same days last year from your Shopify orders — plus typical order and returning dollars, with this quarter and this year on the same screen and a sales chart.
 
-Overview is this month, this quarter, and this year versus last year, typical-order KPIs, and a sales chart. Install includes up to 24 months of Shopify order history so YoY and LTV have room to fill—never invent last year as zero while history is still loading.
+Customers, Growth, Orders, and LTV work with no spend: days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days. Trial includes 90 closed days of order history; paid includes up to 24 months. Admin opens on your live store orders. Never invent last year as zero while history is still loading. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
 
-Customers, Growth, Orders, and LTV work with no spend: returning dollars, days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days. Admin opens on your live store orders. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
-
-Spend is optional. Type or CSV daily spend for Meta, Google, TikTok, billboards, or another channel when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Empty spend is an em dash, not 0×. Ledger and dual-close sit on that page. Channel Allocation shows mix and spend left at goal. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
+Spend is optional. Type or CSV daily spend when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Empty spend is an em dash, not 0×. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Ledger and dual-close sit on that page. Channel Allocation shows mix and spend left at goal. For channels, you can type or CSV daily spend for Meta, Google, TikTok, billboards, or another line when you add spend. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
 
 WHAT YOU GET
 • Overview — this month / quarter / year vs last year, typical order, and a sales chart
@@ -189,7 +193,7 @@ App URL: https://mcfly-analytics.fly.dev
 
 <!-- APP_STORE_PASTE:features -->
 ```text
-This month, quarter, and year vs last year plus the typical order Shopify Analytics skips
+This month vs the same days last year from orders — typical order and returning dollars
 Returning dollars, guest checkouts, and days to a second order with no spend
 Weekend share, busiest weekday, and the range where most Shopify orders land
 New-buyer value at 30 / 90 / 365 days and Goals vs the calendar
@@ -216,7 +220,7 @@ Shot order + captions: [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md).
 
 **App icon:** upload `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only** — no wordmark).
 
-**Feature Image 1 (header media):** **Marty recapture** Live Admin Overview YoY (Fly **331** or current) and overwrite `docs/listing-assets/feature-media-1600x900.png`. Show this month / quarter / year vs last year, typical order, and the sales chart. Admin is Live-only — do not use https://mcflyads.com/demo SAMPLE for the live listing hero. Do not upload the old formula-only / three-year Total ROAS image or sample ROAS stats (`4.42x`, `Above break-even 2.86x`). Shots were **not** recaptured for this pack.
+**Feature Image 1 (header media):** **Marty recapture** Live Admin Overview YoY (current production Fly) and overwrite `docs/listing-assets/feature-media-1600x900.png`. Show this month / quarter / year vs last year, typical order, and the sales chart. Admin is Live-only — do not use https://mcflyads.com/demo SAMPLE for the live listing hero. Do not upload the old formula-only / three-year Total ROAS image or sample ROAS stats (`4.42x`, `Above break-even 2.86x`). Shots were **not** recaptured for this pack.
 
 ---
 

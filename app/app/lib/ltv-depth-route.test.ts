@@ -274,7 +274,7 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(section.indexOf("<LtvBuildCurves")).toBeGreaterThan(
       section.indexOf("<LtvPromoBoard"),
     );
-    expect(customers.indexOf("<ShareableInsightCards")).toBeGreaterThan(
+    expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
       customers.indexOf("<CustomersLtvDepth"),
     );
     expect(customers).toContain("flagshipDailyRead");

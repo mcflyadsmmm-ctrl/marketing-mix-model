@@ -12,16 +12,15 @@ function readSite(rel: string) {
 describe("public /demo phone Snowdevil Overview", () => {
   const css = readSite("site/assets/demo-desk.css");
   const home = readSite("site/index.html");
-  const demo = readSite("site/demo.html");
+  const js = readSite("site/assets/demo-desk.js");
   const mark = "P0 phone / Snowdevil /demo narrow";
 
   it("ships the phone cache-bust and keeps Snowdevil SAMPLE dollars", () => {
     expect(home).toMatch(/demo-desk\.css\?v=202609\d+v\d+/);
     expect(home).toContain("$68,457");
-    expect(home).toContain("$19,023");
-    expect(home).toContain("3.60");
     expect(home).toContain("$631");
-    expect(demo).toContain("$68,457");
+    expect(js).toMatch(/\$19,?023/);
+    expect(js).toMatch(/3\.60/);
     expect(home).not.toMatch(/\$98,?500/);
     expect(home).not.toMatch(/>—</);
   });

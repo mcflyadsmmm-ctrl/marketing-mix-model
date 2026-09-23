@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { isShopifyAppPath, shouldSkipMarketingSite } from "../../scripts/shopify-app-path.mjs";
+import { flyRouteDecision, isShopifyAppPath } from "../../scripts/shopify-app-path.mjs";
 import { withDeskBase } from "./desk-base-path";
 import {
   isPublicDemoPath,
@@ -25,9 +25,9 @@ describe("public Remix SAMPLE desk", () => {
     expect(isShopifyAppPath("/demo")).toBe(true);
     expect(isShopifyAppPath("/demo/roas")).toBe(true);
     expect(isShopifyAppPath("/demo.data")).toBe(true);
-    expect(
-      shouldSkipMarketingSite({ path: "/demo", query: {}, originalUrl: "/demo" }),
-    ).toBe(true);
+    // serve-with-site checks isShopifyAppPath first — not shouldSkipMarketingSite.
+    expect(flyRouteDecision("/demo", {}, {})).toBe("next");
+    expect(flyRouteDecision("/demo/roas", {}, {})).toBe("next");
   });
 
   it("maps Admin /app paths onto /demo", () => {
@@ -71,6 +71,17 @@ describe("public Remix SAMPLE desk", () => {
     expect(sales / spend).toBeLessThan(4.0);
     const ltv = sampleLtvAverages(book.orders, now);
     expect(ltv.revenue90).toBeGreaterThan(0);
+  });
+
+  it("defaults /demo to the Snowdevil lock window (1–16 Sep 2026)", async () => {
+    const page = await loadPublicSamplePage(
+      new Request("https://mcfly-analytics.fly.dev/demo"),
+    );
+    expect(page.orderHero.sales).toBe(68_457);
+    expect(page.orderHero.priorSales).toBe(69_891);
+    expect(page.orderHero.typicalOrder).toBeCloseTo(631, 0);
+    expect(page.orderHero.returningSales).toBe(45_409);
+    expect(page.orderHero.weekendShare).toBeCloseTo(0.23, 2);
   });
 
   it("SAMPLE forecast is next month from order history, with spend left out", async () => {

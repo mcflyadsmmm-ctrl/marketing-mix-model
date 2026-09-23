@@ -199,11 +199,45 @@ describe("runSalesFactsBackfill", () => {
     expect(fetchShopifySales).not.toHaveBeenCalled();
     expect(fetchShopifySalesDayTotals).toHaveBeenCalledTimes(1);
     expect(result.attempted).toBe(5);
+    expect(findMany.mock.calls[0][0].where.source).toBe(SALES_DAY_FACT_SOURCE);
     for (const call of upsert.mock.calls) {
       expect(call[0].where.shopId_day.day.toISOString()).not.toBe(
         "2026-07-14T00:00:00.000Z",
       );
     }
+  });
+
+  it("treats legacy order-sum SalesDayFact rows as gaps so ShopifyQL can overwrite them", async () => {
+    ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
+    // existingFactDayKeys only returns shopifyql_sales_day_v1 rows — empty means
+    // the order-sum poison rows do not block backfill.
+    findMany.mockResolvedValue([]);
+    fetchShopifySalesDayTotals.mockImplementation(
+      async (_admin: unknown, range: { since: string }) =>
+        new Map([
+          [
+            range.since,
+            {
+              dayKey: range.since,
+              totalSales: 42,
+              netSales: 40,
+              grossSales: 45,
+              orderCount: 1,
+              newCustomerNetSales: 42,
+              returningCustomerNetSales: 0,
+              customerMetricsAvailable: true,
+            },
+          ],
+        ]),
+    );
+
+    const now = new Date("2026-07-15T12:00:00.000Z");
+    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 1 });
+
+    expect(result.written).toBe(1);
+    expect(findMany.mock.calls[0][0].where.source).toBe(SALES_DAY_FACT_SOURCE);
+    expect(upsert.mock.calls[0][0].create.source).toBe(SALES_DAY_FACT_SOURCE);
+    expect(upsert.mock.calls[0][0].create.sales).toBe(42);
   });
 
   it("leaves a day missing (does not upsert) when its Shopify fetch fails, so the next call retries it", async () => {
@@ -540,6 +574,38 @@ describe("getSalesFactsTotals", () => {
     expect(salesResultFromFactsTotals(totals, null).customerMetricsAvailable).toBe(
       false,
     );
+  });
+
+  it("treats legacy zero SalesDayFact rows as gaps — totals stay empty", async () => {
+    findMany.mockResolvedValue([
+      {
+        day: new Date("2026-07-01T00:00:00.000Z"),
+        sales: 0,
+        orderCount: 0,
+        newCustomers: 0,
+        returningCustomers: 0,
+        newCustomerNetSales: 0,
+        returningCustomerNetSales: 0,
+        customerMetricsAvailable: false,
+        guestOrders: 0,
+        source: "order_sum_v0",
+      },
+    ]);
+
+    const totals = await getSalesFactsTotals(
+      "shop_1",
+      {
+        start: new Date("2026-07-01T00:00:00.000Z"),
+        end: new Date("2026-07-01T23:59:59.999Z"),
+        label: "range",
+      },
+      new Date("2026-07-15T12:00:00.000Z"),
+    );
+
+    expect(totals.totalSales).toBe(0);
+    expect(totals.dayCount).toBe(0);
+    const sales = salesResultFromFactsTotals(totals, null);
+    expect(sales.totalSales).toBe(0);
   });
 
   it("returns zeroed totals when no fact rows exist in range", async () => {

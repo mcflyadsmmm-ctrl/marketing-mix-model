@@ -129,7 +129,7 @@ describe("orders scoreboard helpers", () => {
     expect(hero.def).toMatch(/108/);
   });
 
-  it("sales clock is original · after returns · product only", () => {
+  it("sales clock stays em dash until ShopifyQL L2", () => {
     const clock = buildOrdersClock(
       {
         gross: 72_827,
@@ -139,15 +139,14 @@ describe("orders scoreboard helpers", () => {
         netKnown: true,
       },
       "USD",
+      false,
     );
     expect(clock.map((item) => item.k)).toEqual([
-      "Original",
-      "After returns",
-      "Product only",
+      "Gross sales",
+      "Total Sales",
+      "Net Sales",
     ]);
-    expect(clock[0]?.v).toBe("$72,827");
-    expect(clock[1]?.v).toBe("$68,457");
-    expect(clock[2]?.v).toBe("$60,242");
+    expect(clock.map((item) => item.v)).toEqual(["—", "—", "—"]);
   });
 
   it("depth rows cover ticket, day, discount, returns — basket peeks live on the first fold", () => {
@@ -346,7 +345,7 @@ describe("Orders page craft lock", () => {
     expect(orders).toContain("not $0");
     expect(orders).not.toContain("if (metrics.salesPending) return");
     expect(firstView).toContain("mcfly-orders-hero");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("buildOrdersHero");
     expect(firstView).toContain("<OrdersTicketBand");
     expect(scoreboard).toContain("mcfly-book__clock");

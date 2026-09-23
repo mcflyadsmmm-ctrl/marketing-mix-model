@@ -73,7 +73,7 @@ describe("Settings Sample | Live", () => {
   });
 
   it("keeps freeze honesty for ops SAMPLE without merchant CTAs", () => {
-    expect(settings).toContain("Live is parked until launch");
+    expect(settings).not.toContain("Live is parked until launch");
     expect(settings).toContain("sampleOnlyFreeze");
     expect(settings).toContain("Snowdevil");
     expect(settings).not.toContain("Harbor");

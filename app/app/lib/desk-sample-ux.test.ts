@@ -56,7 +56,7 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain("sampleHint");
     expect(bar).not.toContain("Switch in Settings");
     expect(bar).toContain("sampleOnlyFreeze");
-    expect(bar).toContain("Live is parked until launch");
+    expect(bar).toContain("Sample mode is locked");
     expect(bar).toContain("if (!useSampleDesk) return null");
     expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
     expect(bar).not.toContain("<Form");
@@ -88,7 +88,8 @@ describe("Sample data | Live data UX", () => {
     expect(spend).toMatch(/source:\s*"sample"/);
     expect(spend).toContain("setSampleDeskEnabled(shop.id, false)");
     expect(spend).toContain("isSampleOnlyFreeze()");
-    expect(spend).toContain("Live is parked until launch");
+    expect(spend).not.toContain("Live is parked until launch");
+    expect(spend).toContain("Sample mode is locked");
     expect(spend).toContain("/app/spend/import");
     expect(spend).not.toContain("Upload is paused on Practice");
     expect(spend).not.toContain("Switch to Your store to upload");
@@ -370,14 +371,14 @@ describe("Sample data | Live data UX", () => {
     expect(deskPage).toContain("<SalesLoadError");
     expect(deskPage).toContain("salesError && !shotMode && retryHref");
 
-    expect(firstView).toContain("mcfly-kpi-grid");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("OverviewDepthPeeks");
-    expect(firstView).toContain("Weekend vs weekday");
-    expect(firstView).toContain("bookTypicalOrder");
+    expect(firstView).toContain("Typical order");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(firstView).not.toContain("mcfly-first-view");
-    expect(firstView).not.toContain('value={salesPending ? "—"');
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("Live is parked until launch");
     expect(read("../routes/app._index.tsx")).toContain("<OverviewSalesChart");
     expect(read("../routes/app._index.tsx")).toContain("<OverviewYoyCards");
 
@@ -458,10 +459,13 @@ describe("Sample data | Live data UX", () => {
   it("LTV chrome drops cohort / till / ARPU / aMER glossary", () => {
     // Stored field names (tillLtv.cohorts) are data, never merchant words.
     const ltv = chrome("../components/CustomersLtvSection.tsx").replace(
-      /cohortMonth|cohorts|tillLtv/g,
+      /cohortMonth|cohorts|tillLtv|CustomersLtvTill|till-ltv/g,
       "",
     );
-    const ltvSnap = chrome("../components/LtvSnapSection.tsx");
+    const ltvSnap = chrome("../components/LtvSnapSection.tsx").replace(
+      /tillLtv|LtvSnapTill/g,
+      "",
+    );
     const labels = read("./product-labels.ts");
     for (const source of [ltv, ltvSnap]) {
       expect(source).not.toMatch(/cohort/i);
@@ -544,7 +548,7 @@ describe("Sample data | Live data UX", () => {
     expect(settings).toContain("More — privacy");
     expect(settings).not.toContain("Switch to Sample data now");
     expect(settings).not.toContain("Sample | Live");
-    expect(settings).toContain("Live is parked until launch");
+    expect(settings).not.toContain("Live is parked until launch");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
     expect(settings).toContain("add daily spend on Spend Upload");

@@ -134,19 +134,25 @@ function salesResultFromDayTotal(row: SalesDayTotal | undefined): SalesResult {
   };
 }
 
+/**
+ * Days already sealed by the ShopifyQL lane. Legacy order-sum rows
+ * (`shopify_order_current_total_v1`, etc.) count as missing so backfill can
+ * overwrite them once `read_reports` + PCD L2 actually return totals.
+ */
 async function existingFactDayKeys(
   shopId: string,
   dayKeys: string[],
 ): Promise<Set<string>> {
   if (dayKeys.length === 0) return new Set();
   const sorted = [...dayKeys].sort();
-  const rangeStart = dayKeyToUtcDate(sorted[0]);
-  const rangeEnd = dayKeyToUtcDate(sorted[sorted.length - 1]);
+  const rangeStart = dayKeyToUtcDate(sorted[0]!);
+  const rangeEnd = dayKeyToUtcDate(sorted[sorted.length - 1]!);
 
   const rows = await prisma.salesDayFact.findMany({
     where: {
       shopId,
       day: { gte: rangeStart, lte: rangeEnd },
+      source: SALES_DAY_FACT_SOURCE,
     },
     select: { day: true },
   });
@@ -216,10 +222,11 @@ async function salesIngestDayCount(
 }
 
 /**
- * Backfill/resume up to `SALES_DAY_FACT_MAX_DAYS_PER_RUN` missing closed shop-local
- * days in the commercial sales window. Idempotent and safe to call
- * repeatedly (auth callback, cron, manual) — each call re-derives the missing
- * dates from what's already in SalesDayFact, so it always resumes rather than restarts.
+ * Backfill/resume up to `SALES_DAY_FACT_MAX_DAYS_PER_RUN` closed shop-local days
+ * in the commercial sales window that still lack a ShopifyQL-sourced fact.
+ * Idempotent and safe to call repeatedly (auth callback, cron, manual) — each
+ * call re-derives the gap from SalesDayFact, so it always resumes rather than
+ * restarts. Legacy order-sum rows are treated as gaps (overwrite via upsert).
  *
  * Skips entirely (no rows touched) when the shop's ianaTimezone is unknown and a
  * metadata sync attempt does not resolve one — server-local time is never substituted.
@@ -538,13 +545,14 @@ async function countCertifiedSalesFactDays(
 ): Promise<number> {
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: start, lte: end } },
-    select: { day: true, sales: true },
+    select: { day: true, sales: true, source: true },
   });
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
   return rows.filter((row) =>
     isCertifiedSalesDayFact({
       day: row.day,
       sales: row.sales,
+      source: row.source,
       now,
       scopesAllowDeep,
     }),
@@ -698,6 +706,7 @@ export async function getSalesFactsTotals(
       returningCustomerNetSales: true,
       customerMetricsAvailable: true,
       guestOrders: true,
+      source: true,
     },
   });
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
@@ -705,6 +714,7 @@ export async function getSalesFactsTotals(
     isCertifiedSalesDayFact({
       day: row.day,
       sales: row.sales,
+      source: row.source,
       now,
       scopesAllowDeep,
     }),
@@ -879,7 +889,7 @@ export async function getSalesFactsByDay(
   const now = options?.now ?? new Date();
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: range.start, lte: range.end } },
-    select: { day: true, sales: true },
+    select: { day: true, sales: true, source: true },
   });
 
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
@@ -889,6 +899,7 @@ export async function getSalesFactsByDay(
       !isCertifiedSalesDayFact({
         day: row.day,
         sales: row.sales,
+        source: row.source,
         now,
         scopesAllowDeep,
       })
@@ -917,7 +928,7 @@ export async function getSalesOrderFactsByDay(
   const now = options?.now ?? new Date();
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: range.start, lte: range.end } },
-    select: { day: true, sales: true, orderCount: true },
+    select: { day: true, sales: true, orderCount: true, source: true },
   });
 
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
@@ -927,6 +938,7 @@ export async function getSalesOrderFactsByDay(
       !isCertifiedSalesDayFact({
         day: row.day,
         sales: row.sales,
+        source: row.source,
         now,
         scopesAllowDeep,
       })

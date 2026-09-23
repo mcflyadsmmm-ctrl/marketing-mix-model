@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   documentGoneRedirectLocation,
   embeddedAppRedirectLocation,
+  flyRouteDecision,
   hasShopifySessionContext,
   isReactRouterDataRequest,
   isShopifyAdminFrame,
@@ -145,14 +146,18 @@ describe("Shopify embedded entry vs marketing site", () => {
       originalUrl: "/app?shop=devmcflyads.myshopify.com",
     };
     expect(isShopifyAppPath(req.path)).toBe(true);
+    // Embedded query still flags skip — serve-with-site checks isShopifyAppPath first.
     expect(shouldSkipMarketingSite(req)).toBe(true);
+    expect(flyRouteDecision(req.path, req.query, {})).toBe("next");
+    expect(isShopifyAppPath("/app.data")).toBe(true);
     expect(
       shouldSkipMarketingSite({
         path: "/app.data",
         query: {},
         originalUrl: "/app.data",
       }),
-    ).toBe(true);
+    ).toBe(false);
+    expect(flyRouteDecision("/app.data", {}, {})).toBe("next");
   });
 
   it("starts OAuth from /auth/login instead of bouncing a 410 /app", () => {

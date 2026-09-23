@@ -251,7 +251,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("SCOREBOARD");
     expect(fixture).not.toContain(">Retain<");
     expect(fixture).toContain("Retry");
-    expect(fixture).toContain("Live is parked until launch");
+    expect(fixture).toContain("Sample mode is locked");
     expect(fixture).toContain("mcfly-desk--sample");
     expect(fixture).not.toContain("Switch in Settings");
     expect(fixture).not.toContain("Switch to Live data now");
