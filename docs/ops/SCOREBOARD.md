@@ -1,20 +1,22 @@
 # Mcfly accepted-work scoreboard
-**Updated:** 2026-09-23 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v456 / tip `b57b472` (merge of #214 phone six-figure wrap) / image `deployment-01M37GTFB7S45JXPYP10VDGV6W` / Live PARKED. Health ok 2026-09-23T16:17Z. v455 was L2 privacy pack.
+**Updated:** 2026-09-23 · America/Denver · Count accepted outcomes, not PR spam
+**Tip Fly note:** Runtime Live is **unparked** to `overview_orders` via Fly secrets (`MCFLY_SAMPLE_ONLY=false`). Recent release **~v460**. Health probed **200** at 2026-09-23T22:22:09Z (`db: up`; `/` 301 → mcflyads.com). Git `[env]` kill-switch stays `MCFLY_SAMPLE_ONLY=true` / `MCFLY_LIVE_STAGE=parked`; secrets override production; Marty re-asserts after any deploy. SAMPLE toggle remains. Customers / LTV **not** unlocked. Ads **NO**. Reviews **0**. PCD L2 **Approved**. `read_reports` + ShopifyQL day-totals flag **shipped**. The earlier v456 / `b57b472` / `deployment-01M37GTFB7S45JXPYP10VDGV6W` “Live PARKED” stamp is superseded. This stamp does not deploy and does not change secrets.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v456 / tip `b57b472` / Live PARKED |
-| SAMPLE smoke | WAIVED |
-| Live unpark | PARKED |
+| Tip Fly SoT | ~v460 · secrets `overview_orders` · git default still parked |
+| SAMPLE smoke | WAIVED · SAMPLE toggle still exists |
+| Live unpark | **overview_orders** (secrets). Customers / LTV locked |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
-| PCD L2 | Approved (Name, Email, Phone, Address). Git: `read_reports` + day-totals flag. Not deployed. Live PARKED. |
-| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v456 / tip `b57b472`; Live PARKED |
+| PCD L2 | Approved (Name, Email, Phone, Address). `read_reports` + day-totals flag **shipped**. Not an Analytics-parity PASS. |
+| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac · site **v45** |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; Fly runtime `overview_orders`; ads **NO**; reviews **0** |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
+
+Phone six-figure wrap shipped as #214 (the v456 stamp above). The cook rules under this heading are that ship’s constraints. They are not a command to re-park production.
 
 ## Next significant ship (the only craft allowed)
 

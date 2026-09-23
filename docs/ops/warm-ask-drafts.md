@@ -129,4 +129,4 @@ Sorry for the friction — want to sort this with you. Reply here or email hello
 
 **Tracker:** `../mcfly-company/WARM_LIST_TEMPLATE.md` (named 0/10 until Marty fills)  
 **Playbook:** `review-ask-playbook.md`  
-**Funnel:** Live PARKED · warm named 0/10 · App Store reviews 0 — do not invent counts
+**Funnel:** Live unparked `overview_orders` (Fly secrets, 2026-09-23) · Customers/LTV locked · warm named 0/10 · App Store reviews 0 · ads NO — do not invent counts

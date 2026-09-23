@@ -2,7 +2,7 @@
 
 **When:** before any real-data demo claim. This is LIVE_UNPARK_CHECKLIST **step 1 / §4**.  
 **Shop:** **one** real Admin shop. SAMPLE-on is fine for the *path*. Live dollars need Live mode.  
-**Tip:** `cursor/spend-trust-recurring` · `MCFLY_SAMPLE_ONLY=true` · do **not** flip.  
+**Tip:** `cursor/spend-trust-recurring` · production secrets `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=overview_orders` (2026-09-23 America/Denver). Git `fly.toml` stays `true` / `parked`. Do **not** flip secrets or `fly.toml` from this sheet.  
 **Helpers:** `app/app/lib/accuracy-one-shop.ts` (empty vs zero · SAMPLE guards · Admin compare).  
 **Not a Live pass:** SAMPLE audits [v336](./ACCURACY_AUDIT_DENSE_v336.md) / [v339](./ACCURACY_DELTA_v339_sample72_customers73.md) / [sample-math](./research/2026-09-16-sample-math-audit.md).
 
@@ -36,18 +36,17 @@
 | 9 | **LTV** *(stage = ltv)* | — | Unpaid: first-90 on file; year **—**. Paid $39: full book | HOLD | Year never $0 on a 90-day book | | | ☐ |
 | 10 | **Empty vs zero** | Spend empty / thin shop | Total ROAS **—** · no SAMPLE-as-Live | **RUN** | Never `0.00×` for empty spend | | | ☐ |
 
-On **today’s tip** (freeze on, SAMPLE): fill **1 · 2 · 10**. Rows **3–9** stay HOLD until a human unparks (`MCFLY_SAMPLE_ONLY=false` + stage) — not this PR.
+Production is on **`overview_orders`**. Fill **1–7 and 10** on one Live shop. Rows **8–9** stay locked until `customers` / `ltv`. This sheet does not deploy, advance the stage, or re-park.
 
 ---
 
 ## How to run (one shop, ~10 min)
 
-1. Open Mcfly on the shop. Confirm SAMPLE watermark **on** while freeze is on (rows 1, 2).
+1. Open Mcfly on the shop in **Live** mode (`overview_orders`). SAMPLE watermark belongs on SAMPLE only (rows 1, 2). Snowdevil dollars are not this shop.
 2. Spend Upload with **no** live spend: Total ROAS is **—**, not `0.00×` (row 10). Thin / missing last year is **—**, not `$0`.
-3. Settings: copy still says Live is parked; Switch to Live does nothing.
-4. **Stop.** Do not flip Fly flags. Do not compare Snowdevil dollars to Admin (that is a designed miss).
-5. After a **human** unpark + Live mode: same period on Admin Analytics vs Mcfly Overview / Orders. Write both dollars. Judge with `compareAdminMoney` / `compareTypicalTicket` (or the tols in the table). Refund: one refunded order, net drop matches Admin.
-6. Customers / LTV only after those stages unlock. Returning is **$**, not the Analytics headcount rate. Unpaid LTV year stays **—**.
+3. Kill switch still exists: freeze on forces SAMPLE and no-ops Switch to Live. Production secrets are already freeze **off**. Do not flip them from this sheet.
+4. Same period on Admin Analytics vs Mcfly Overview / Orders. Write both dollars. Judge with `compareAdminMoney` / `compareTypicalTicket` (or the tols in the table). Refund: one refunded order, net drop matches Admin.
+5. Customers / LTV only after those stages unlock. They are **not** unlocked. Returning is **$**, not the Analytics headcount rate. Unpaid LTV year stays **—**.
 
 ---
 
@@ -77,7 +76,7 @@ Prior packs: v336 **23/23** · v339 **18/18** · sample-math **7/7**. Those are 
 | Overview Total Sales ≈ Analytics | Needs Live mode on this shop |
 | Typical ticket vs 10 real orders | Needs this shop’s book |
 | Pending copy during a real backfill | Sync clamp PR not on tip; needs a crawl |
-| Live mode: watermark **off**, no `sample:` ledger | Freeze still on — must not flip here |
+| Live mode: watermark **off**, no `sample:` ledger | Needs eyes on this shop. Do not change Fly secrets from this sheet. |
 | Customers returning $ / LTV year — | Needs `MCFLY_LIVE_STAGE` + paid/unpaid truth |
 
 ---

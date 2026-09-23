@@ -1,5 +1,7 @@
 # Ship + charge gaps — 2026-09-17 (Denver)
 
+**Superseded posture (2026-09-23 America/Denver):** production Fly secrets are `MCFLY_SAMPLE_ONLY=false` and `MCFLY_LIVE_STAGE=overview_orders` (recent release **~v460**; health **200** at 22:22Z). `read_reports` is shipped. Customers / LTV stay locked. The “leave freeze on / expect parked” lines below are the 2026-09-17 packet, not current runtime. Keep the ladder. Do not re-park from this file. Git `[env]` stays the safe default; secrets override; Marty re-asserts after deploy.
+
 **Audience:** Marty tap list before Live unpark / charge claims.  
 **Branch tip read:** `cursor/spend-trust-recurring` @ `93c3aa4`  
 **Fly app:** `mcfly-analytics` · **Store:** `devmcflyads` (not `demcflyads`)  
