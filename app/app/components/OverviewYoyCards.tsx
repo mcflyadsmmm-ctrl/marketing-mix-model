@@ -10,7 +10,6 @@ import {
 } from "../lib/overview-first-viewport";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
-import { CopyYtdSales } from "./MorningHabitStrip";
 import {
   OVERVIEW_YOY_ANALYTICS_LEDE,
   OVERVIEW_YOY_IDS,
@@ -20,10 +19,7 @@ import {
   OVERVIEW_YOY_SAME_WINDOW,
   overviewWindowRange,
   overviewWindowsCollapsed,
-  overviewYoyDeltaPct,
   overviewYoyZone,
-  overviewYoyZoneLabel,
-  overviewYtdCopyText,
   type OverviewYoyCard,
   type OverviewYoyId,
   type OverviewYoyZone,
@@ -72,7 +68,10 @@ function PendingYoyShell({
   prior?: string;
 }) {
   return (
-    <article className="mcfly-yoy__card mcfly-yoy__card--empty mcfly-yoy__card--plane" key={id}>
+    <article
+      className="mcfly-yoy__card mcfly-yoy__card--empty mcfly-yoy__card--plane"
+      key={id}
+    >
       <p className="mcfly-yoy__k">
         <DeskIcon name="yoy" />
         {OVERVIEW_YOY_LABELS[id]}
@@ -88,8 +87,7 @@ function PendingYoyShell({
 
 /**
  * Overview glance spine — three certified sales windows vs last year.
- * Spend / explorer live on later tabs. Pending shells only when sales
- * are unknown — a $0 month with missing last year uses OVERVIEW_YOY_MISSING.
+ * Dense rows: label + $ + one LY/delta line. No UP pills, no YTD essay.
  */
 export function OverviewYoyCards({
   cards,
@@ -150,12 +148,6 @@ export function OverviewYoyCards({
 
   const allMissingPrior = cards.every((card) => card.missingPrior);
   const sameWindow = overviewWindowsCollapsed(cards);
-  const ytd = cards.find((card) => card.id === "ytd") ?? null;
-  const ytdCopy = overviewYtdCopyText({
-    salesPending,
-    amount: ytd?.sales ?? null,
-    currency,
-  });
 
   return (
     <section
@@ -163,13 +155,10 @@ export function OverviewYoyCards({
       id={OVERVIEW_YOY_GLANCE_ID}
       aria-label="Sales versus last year"
     >
-      <p className="mcfly-yoy__lede mcfly-yoy__lede--quiet">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
           const zone = overviewYoyZone(card);
-          const zoneLabel = overviewYoyZoneLabel(zone);
-          const glancePct = overviewYoyDeltaPct(card);
           const range = overviewWindowRange(card.fromKey, card.toKey);
           const priorAmount =
             card.missingPrior || card.priorSales == null
@@ -192,7 +181,7 @@ export function OverviewYoyCards({
                     vs ? { k: "Change", v: vs } : null,
                     {
                       k: "What this is",
-                      v: "Order-book dollars for this window next to the same calendar days last year. Not Analytics day totals.",
+                      v: "Order-book dollars for this window next to the same calendar days last year.",
                     },
                   ].filter(
                     (block): block is { k: string; v: string } => block != null,
@@ -212,40 +201,24 @@ export function OverviewYoyCards({
                     <span className="mcfly-yoy__range"> · {range}</span>
                   ) : null}
                 </span>
-                {zoneLabel ? (
-                  <span className={`mcfly-yoy__zone mcfly-yoy__zone--${zone}`}>
-                    {zoneLabel}
-                  </span>
-                ) : null}
               </p>
               <p className={`mcfly-yoy__v mcfly-yoy__v--${zone}`}>
                 {formatCurrency(card.sales, currency)}
               </p>
-              {glancePct ? (
-                <p className={`mcfly-yoy__delta mcfly-yoy__delta--${zone}`}>
-                  {glancePct}
-                </p>
-              ) : null}
               <p className="mcfly-yoy__prior">
                 <span>
                   {priorAmount == null ? priorLabel : `LY ${priorAmount}`}
                 </span>
                 {vs ? (
-                  <span className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>{vs}</span>
+                  <span className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>
+                    {vs}
+                  </span>
                 ) : null}
               </p>
             </button>
           );
         })}
       </div>
-      {ytdCopy && ytd ? (
-        <div className="mcfly-spend-pair-copy-row">
-          <p className="mcfly-yoy__note">
-            Orders YTD {formatCurrency(ytd.sales, currency)} — from orders
-          </p>
-          <CopyYtdSales text={ytdCopy} />
-        </div>
-      ) : null}
       {sameWindow ? (
         <p className="mcfly-yoy__note">{OVERVIEW_YOY_SAME_WINDOW}</p>
       ) : allMissingPrior ? (

@@ -2188,10 +2188,11 @@ body.is-mono .facts-strip {
 }
 
 .live-slice {
-  display: block;
-  color: var(--well-ink, #0f1720);
-  text-decoration: none;
-  background: var(--paper, #ffffff);
+  display: inline;
+  color: var(--sky, #0284c7);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  background: transparent;
 }
 
 .live-slice:focus-visible {
@@ -2376,18 +2377,29 @@ body.demo-page .demo-hero-actions {
   font-variant-numeric: tabular-nums;
 }
 
-.ov-still__prior {
-  margin: 0.35rem 0 0;
-  font-size: 0.92rem;
+.ov-still__meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.35rem;
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
   color: #5b6b7c;
   font-variant-numeric: tabular-nums;
 }
 
+.ov-still__prior {
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
 .ov-still__source {
-  margin: 0.45rem 0 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 650;
+  letter-spacing: 0.01em;
   color: #0284c7;
 }
 

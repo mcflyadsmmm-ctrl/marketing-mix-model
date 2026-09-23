@@ -53,13 +53,13 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(html).toContain("/demo/spend");
   });
 
-  it("sales page live slices stay on /demo?tab= so Pages does not 404", () => {
+  it("home price band links to SAMPLE desk without wireframe live-slice bars", () => {
     const html = readSite("site/index.html");
     const redirects = readSite("site/_redirects");
-    expect(html).toContain("/demo?tab=spend");
-    expect(html).toContain("/demo?tab=roas");
-    expect(html).toContain("/demo?tab=goals");
-    expect(html).toContain("/demo?tab=yoy");
+    expect(html).toContain('href="/demo"');
+    expect(html).toContain("Open the SAMPLE desk");
+    expect(html).not.toContain("/demo?tab=spend");
+    expect(html).not.toContain("Spend demo");
     expect(html).not.toContain('href="/demo/spend"');
     expect(redirects).toContain("/demo/spend /demo?tab=spend 301");
   });
