@@ -382,4 +382,85 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(pass).not.toContain("read_all_orders");
     expect(pass).not.toContain("0.00×");
   });
+
+  it("at 36rem, LTV 30/90/year stacks and the ledger keeps Week + Sales on screen", () => {
+    const wrap = lastBlock(css, "Phone six-figure wrap");
+    expect(wrap).toMatch(/@media \(max-width: 36rem\)/);
+
+    expect(wrap).toContain(
+      ".mcfly-depth-flag .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead",
+    );
+    expect(wrap).toContain("flex-wrap: wrap");
+    expect(wrap).toContain("flex: 1 1 100%");
+    expect(wrap).toContain("max-width: none !important");
+    expect(wrap).not.toContain("33.333%");
+    expect(wrap).toContain("white-space: normal");
+    expect(wrap).toContain("overflow-wrap: anywhere");
+
+    expect(wrap).toContain(".mcfly-window-triangle .mcfly-depth-table--heat");
+    expect(wrap).toContain("table-layout: fixed");
+    expect(wrap).toContain("overflow-x: hidden");
+    expect(wrap).toContain(".mcfly-depth-heat__cell--none");
+    expect(wrap).toContain("repeating-linear-gradient");
+    expect(wrap).not.toContain("$0");
+    expect(wrap).not.toMatch(/(^|[^.\d])0%/);
+
+    const parkAt = wrap.indexOf(".mcfly-orders-ledger__park");
+    expect(parkAt).toBeGreaterThan(-1);
+    const parkRule = wrap.slice(parkAt, wrap.indexOf("}", parkAt) + 1);
+    expect(parkRule).toContain("display: none");
+    expect(wrap).toContain(".mcfly-orders-ledger__lh");
+    expect(wrap).toContain(".mcfly-orders-ledger__sales");
+    expect(wrap).toContain(".mcfly-orders-ledger__aov");
+    const onScreen = wrap.slice(
+      wrap.indexOf(".mcfly-orders-ledger__lh,"),
+      wrap.indexOf(".mcfly-orders-ledger__park"),
+    );
+    expect(onScreen).toContain("white-space: normal");
+    expect(onScreen).not.toContain("display: none");
+
+    const flagship = read("../components/LtvFlagshipBoard.tsx");
+    expect(flagship).toContain("mcfly-depth-flag");
+    expect(flagship).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(flagship).toContain("point.revenue != null");
+    expect(flagship).toContain('formatCurrency(point.revenue, currency)');
+    expect(flagship).toContain(': "—"');
+
+    const triangle = read("../components/LtvWindowTriangle.tsx");
+    expect(triangle).toContain("mcfly-window-triangle");
+    expect(triangle).toContain("mcfly-depth-table--heat");
+    expect(triangle).toContain("mcfly-depth-heat__cell--none");
+    expect(triangle).toContain('cell.retention != null ? pct(cell.retention) : "—"');
+    expect(triangle).toContain('money != null ? formatCurrency(money, currency) : "—"');
+
+    const ledger = read("../components/OrdersIntelligence.tsx");
+    expect(ledger).toContain('className="mcfly-orders-ledger__lh">Week</th>');
+    expect(ledger).toContain('className="mcfly-orders-ledger__sales">Sales</th>');
+    expect(ledger).toContain('className="mcfly-orders-ledger__aov">AOV</th>');
+    expect(ledger).toContain('className="mcfly-orders-ledger__park">Codes</th>');
+    expect(ledger).toContain('className="mcfly-orders-ledger__park">Returns</th>');
+    expect(ledger).toContain('{ k: "Codes", v: codeCell(week, currency) }');
+    expect(ledger).toContain('{ k: "Returns", v: returnsCell(week, currency) }');
+    expect(ledger).toContain('"—"');
+
+    const demo = read("../routes/demo.customers.tsx");
+    const admin = read("../routes/app.customers.tsx");
+    expect(demo).toContain("<CustomersLtvWindows");
+    expect(admin).toContain("<CustomersLtvWindows");
+    expect(demo).toContain("<CustomersLtvDepth");
+    expect(admin).toContain("<CustomersLtvDepth");
+
+    const fixture = read("./desk-phone-fixture.html");
+    expect(fixture).toContain("mcfly-depth-flag");
+    expect(fixture).toContain("First 30 days");
+    expect(fixture).toContain("First 90 days");
+    expect(fixture).toContain("First year");
+    expect(fixture).toContain("$128,450");
+    expect(fixture).toContain("mcfly-window-triangle");
+    expect(fixture).toContain("mcfly-depth-heat__cell--none");
+    expect(fixture).toContain("mcfly-orders-ledger__sales");
+    expect(fixture).toContain("mcfly-orders-ledger__aov");
+    expect(fixture).toContain("mcfly-orders-ledger__park");
+    expect(fixture).toContain("Wk of Sep 7");
+  });
 });

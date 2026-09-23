@@ -550,11 +550,11 @@ function OrdersLedgerTable({
               <th scope="col" className="mcfly-orders-ledger__lh">Week</th>
               <th scope="col">Orders</th>
               <th scope="col">vs prior</th>
-              <th scope="col">Sales</th>
-              <th scope="col">AOV</th>
+              <th scope="col" className="mcfly-orders-ledger__sales">Sales</th>
+              <th scope="col" className="mcfly-orders-ledger__aov">AOV</th>
               <th scope="col">Discount</th>
-              <th scope="col">Codes</th>
-              <th scope="col">Returns</th>
+              <th scope="col" className="mcfly-orders-ledger__park">Codes</th>
+              <th scope="col" className="mcfly-orders-ledger__park">Returns</th>
             </tr>
           </thead>
           <tbody>
@@ -598,15 +598,19 @@ function OrdersLedgerTable({
                       "—"
                     )}
                   </td>
-                  <td>{formatCurrency(week.sales, currency)}</td>
-                  <td>{formatCurrency(week.aov, currency)}</td>
+                  <td className="mcfly-orders-ledger__sales">
+                    {formatCurrency(week.sales, currency)}
+                  </td>
+                  <td className="mcfly-orders-ledger__aov">
+                    {formatCurrency(week.aov, currency)}
+                  </td>
                   <td>
                     {week.discountDepth != null
                       ? `${Math.round(week.discountDepth * 100)}%`
                       : "—"}
                   </td>
-                  <td>{codeCell(week, currency)}</td>
-                  <td>{returnsCell(week, currency)}</td>
+                  <td className="mcfly-orders-ledger__park">{codeCell(week, currency)}</td>
+                  <td className="mcfly-orders-ledger__park">{returnsCell(week, currency)}</td>
                 </tr>
               );
             })}
