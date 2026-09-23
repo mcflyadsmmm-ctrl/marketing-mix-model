@@ -11,23 +11,23 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#f2f5f8" />
   <title>Pricing — 7-day then $39 | Mcfly Analytics</title>
-  <meta name="description" content="One plan: 7-day full-access trial, then $39/store/mo. Five analysis tabs plus Settings. Overview · Orders · Customers at $0 spend; Spend after you type it. Uninstall stops the charge." />
-  <meta name="mcfly-version" content="v27" />
-  <meta name="mcfly-build" content="opus-v26-p0" />
+  <meta name="description" content="One plan: 7-day full-access trial, then $39/store/mo. Trial includes 90 days of order history; paid includes up to 24 months. Uninstall stops the charge." />
+  <meta name="mcfly-version" content="v43" />
+  <meta name="mcfly-build" content="rebuild-first-screen-v43" />
   <link rel="canonical" href="https://mcflyads.com/pricing" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/pricing" />
   <meta property="og:title" content="Pricing — 7-day then $39 | Mcfly Analytics" />
-  <meta property="og:description" content="7-day free trial. Then $39/month. Full desk. Uninstall stops the charge." />
+  <meta property="og:description" content="7-day free trial. Then $39/month. Trial includes 90 days of order history; paid includes up to 24 months." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Pricing — 7-day then $39 | Mcfly Analytics" />
-  <meta name="twitter:description" content="7-day free trial. Then $39/month. Five analysis tabs plus Settings. Uninstall stops the charge." />
+  <meta name="twitter:description" content="7-day free trial. Then $39/month. One plan. Uninstall stops the charge." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
-  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260918v27" />
+  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v43" />
   <style>
     body.pricing-page {
       background: var(--bg, #f2f5f8);
@@ -38,16 +38,6 @@
     body.pricing-page .page-hero h1 {
       max-width: 18ch;
       font-size: clamp(40px, 3.6vw, 52px);
-    }
-    body.pricing-page .price-proof {
-      margin: 1.25rem 0 0;
-      font-family: var(--mono);
-      font-size: 0.88rem;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-    }
-    body.pricing-page .price-proof span {
-      color: var(--cyan-deep);
     }
     body.pricing-page .price-grid {
       display: grid;
@@ -92,184 +82,6 @@
       text-transform: uppercase;
       color: var(--mute);
     }
-    body.pricing-page .tax-band {
-      margin: clamp(2.5rem, 6vw, 4rem) 0 0;
-      padding: clamp(1.75rem, 4vw, 2.5rem) 0 0;
-      border-top: 1px solid var(--line);
-    }
-    body.pricing-page .tax-band .eyebrow {
-      margin: 0 0 0.65rem;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--mute);
-    }
-    body.pricing-page .tax-band h2 {
-      font-family: var(--display);
-      font-size: clamp(1.55rem, 3.2vw, 2.1rem);
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      margin: 0 0 0.75rem;
-      max-width: 22ch;
-    }
-    body.pricing-page .tax-lede {
-      margin: 0 0 1.75rem;
-      max-width: 52ch;
-      color: var(--mute);
-      font-size: 1.02rem;
-      line-height: 1.55;
-    }
-    body.pricing-page .tax-pane {
-      padding: 1.35rem 1.4rem 1.5rem;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.35);
-      max-width: 36rem;
-    }
-    body.pricing-page .tax-pane.mcfly {
-      border-color: rgba(10, 18, 33, 0.14);
-      background: #fff;
-    }
-    body.pricing-page .tax-pane h3 {
-      font-family: var(--display);
-      font-size: 1.15rem;
-      letter-spacing: -0.02em;
-      margin: 0 0 0.55rem;
-    }
-    body.pricing-page .tax-pane p {
-      margin: 0;
-      color: var(--mute);
-      font-size: 0.95rem;
-      line-height: 1.5;
-      max-width: 38ch;
-    }
-    body.pricing-page .tax-pane.mcfly .path {
-      margin-top: 1.1rem;
-      padding-top: 1rem;
-      border-top: 1px solid rgba(10, 18, 33, 0.12);
-      font-family: var(--mono);
-      font-size: 0.88rem;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      max-width: none;
-    }
-    body.pricing-page .tax-pane.mcfly .path span {
-      color: var(--cyan-deep);
-    }
-    body.pricing-page .tax-pane.mcfly .plan-list {
-      margin-top: 1rem;
-    }
-    body.pricing-page .tax-footnote {
-      margin: 1.35rem 0 0;
-      max-width: 54ch;
-      font-size: 0.88rem;
-      color: var(--mute);
-      line-height: 1.5;
-    }
-    body.pricing-page .custom-below {
-      margin-top: 2.5rem;
-      padding-top: 1.75rem;
-      border-top: 1px solid var(--line);
-      max-width: 42rem;
-    }
-    body.pricing-page .mer-loud {
-      margin: 1.35rem 0 0;
-      padding: 1.05rem 1.15rem 1.15rem;
-      border: 1px solid rgba(26, 184, 196, 0.35);
-      border-left: 3px solid var(--cyan-deep);
-      background:
-        linear-gradient(165deg, rgba(94, 231, 240, 0.1), transparent 55%),
-        #fff;
-      max-width: 42rem;
-    }
-    body.pricing-page .mer-loud__k {
-      margin: 0 0 0.35rem;
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--cyan-deep);
-    }
-    body.pricing-page .mer-loud__line {
-      margin: 0;
-      font-family: var(--mono);
-      font-size: clamp(0.92rem, 2vw, 1.05rem);
-      font-weight: 600;
-      color: var(--ink);
-      line-height: 1.45;
-    }
-    body.pricing-page .mer-loud__note {
-      margin: 0.5rem 0 0;
-      font-size: 0.88rem;
-      color: var(--mute);
-      line-height: 1.45;
-      max-width: 48ch;
-    }
-    body.pricing-page .float-desk {
-      margin: 1.5rem 0 0;
-      max-width: 42rem;
-    }
-    body.pricing-page .float-desk__badge {
-      display: inline-block;
-      margin: 0 0 0.65rem;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid rgba(26, 184, 196, 0.35);
-      font-family: var(--mono);
-      font-size: 0.64rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--cyan-deep);
-      background: rgba(255, 255, 255, 0.8);
-    }
-    body.pricing-page .float-desk__stack {
-      display: grid;
-      gap: 0.65rem;
-    }
-    @media (min-width: 720px) {
-      body.pricing-page .float-desk__stack {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-    body.pricing-page .float-card {
-      padding: 0.9rem 1rem 1rem;
-      border: 1px solid rgba(10, 18, 33, 0.10);
-      background: #ffffff;
-      border-radius: 14px;
-      color: #0f1720;
-      box-shadow: 0 1px 2px rgba(15, 23, 32, 0.06);
-    }
-    body.pricing-page .float-card__k {
-      margin: 0;
-      font-family: var(--mono);
-      font-size: 0.66rem;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: #5b6b7c;
-    }
-    body.pricing-page .float-card__v {
-      margin: 0.15rem 0 0;
-      font-family: var(--display);
-      font-size: 1.45rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: #0f1720;
-      font-variant-numeric: tabular-nums;
-    }
-    body.pricing-page .float-card__v--accent {
-      color: #0284c7;
-    }
-    body.pricing-page .float-card__s {
-      margin: 0.15rem 0 0;
-      font-size: 0.8rem;
-      color: #5b6b7c;
-    }
-    body.pricing-page .rhythm-line {
-      margin: 1rem 0 0;
-      max-width: 42ch;
-      font-size: 0.95rem;
-      color: var(--mute);
-      line-height: 1.5;
-    }
     body.pricing-page .btn.primary,
     body.pricing-page .btn.primary.solid {
       background: #0a1221;
@@ -305,9 +117,9 @@
           "name": "Mcfly Analytics — whole desk",
           "price": "39",
           "priceCurrency": "USD",
-          "description": "7-day full-access trial, then $39/store/mo. Five analysis tabs plus Settings. Uninstall stops the charge."
+          "description": "7-day full-access trial, then $39/store/mo. Trial includes 90 days of order history; paid includes up to 24 months. Uninstall stops the charge."
         },
-        "description": "Deeper Shopify numbers than Analytics Overview. Spend optional. Whole desk after a 7-day trial."
+        "description": "Spend next to real Shopify sales. One flat plan after a 7-day trial."
       },
       {
         "@type": "BreadcrumbList",
@@ -319,7 +131,6 @@
     ]
   }
   </script>
-  <!-- launch-v2-20260826 -->
 </head>
 <body class="pricing-page is-light is-mono">
   <a class="skip" href="#main">Skip to content</a>
@@ -328,40 +139,12 @@
   <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
-      <h1>7-day free trial. Then $39/month. Full desk.</h1>
+      <h1>7-day free trial. Then $39/month.</h1>
       <p>
-        One plan for <strong>Mcfly Analytics</strong>: seven days of full access, then
-        <span class="mono formula-inline">$39</span>/store/mo. Five analysis tabs plus Settings.
-        Overview, Orders, and Customers work at $0 spend — Customers includes returning dollars, LTV 30/90/365, and days-to-second. Then Spend (Total ROAS, mix, and CPA after you type spend) and Goals.
-        Uninstall stops the charge. Not a GMV tax. Billing is not a desk mode.
+        One plan for the whole desk. Overview, Orders, and Customers work before you type spend.
+        Total ROAS = Shopify sales ÷ spend you entered — empty stays —.
+        Uninstall stops the charge.
       </p>
-      <p class="price-proof" aria-label="What you pay for">Typical order, returning dollars, weekends, days to second, LTV — spend optional</p>
-      <p class="rhythm-line">Upload spend → see Total ROAS → hit Goals. Flat $39 — not an order-volume ladder.</p>
-      <aside class="mer-loud" aria-label="Total ROAS formula">
-        <p class="mer-loud__k">MER · Total ROAS</p>
-        <p class="mer-loud__line">Total ROAS = Shopify sales ÷ entered spend</p>
-        <p class="mer-loud__note">Empty spend paints <strong>—</strong>, never 0×. Included on every plan — there is only one plan.</p>
-      </aside>
-      <aside class="float-desk" aria-label="Snowdevil SAMPLE metrics">
-        <span class="float-desk__badge">SAMPLE · Snowdevil · not a live client</span>
-        <div class="float-desk__stack">
-          <article class="float-card">
-            <p class="float-card__k">Entered spend</p>
-            <p class="float-card__v">$19,023</p>
-            <p class="float-card__s">This month</p>
-          </article>
-          <article class="float-card">
-            <p class="float-card__k">Shopify sales</p>
-            <p class="float-card__v">$68,457</p>
-            <p class="float-card__s">Returns included</p>
-          </article>
-          <article class="float-card">
-            <p class="float-card__k">Total ROAS</p>
-            <p class="float-card__v float-card__v--accent">3.60×</p>
-            <p class="float-card__s">BE 2.50× @ 40%</p>
-          </article>
-        </div>
-      </aside>
     </header>
 
     <div class="price-block">
@@ -372,59 +155,33 @@
           <h2>Whole desk</h2>
           <p class="amount">$39 <span>/ store / mo</span></p>
           <p class="plan-lede">
-            After a 7-day full-access trial. Install opens this shop’s Live book — Shopify sales + the spend you upload. Full Snowdevil SAMPLE demo stays on <a href="/demo">/demo</a>.
+            After a 7-day full-access trial. Install from the
+            <a href="https://apps.shopify.com/mcfly-analytics-public">Shopify App Store</a>.
           </p>
           <ul class="plan-list">
-            <li>Overview: this month, quarter, and year vs last year — KPI cards, a sales chart, and the YoY year board. Spend is optional</li>
-            <li>Orders · Customers: typical order, weekends, returning dollars, days to second, LTV 30 / 90 / 365. Growth and LTV live on Customers</li>
-            <li>Spend: type or paste spend last — Total ROAS, mix, and CPA are in-page panels. Yesterday / last-N chips sit here. Goals: monthly sales plan</li>
-            <li>Settings: target Total ROAS, billing. SAMPLE showcase is on the site, not a toggle in Admin</li>
-            <li>Spend from every platform you buy, including billboards</li>
-            <li>Trial includes 24 months of order history. Spend you type can go back to 2021</li>
+            <li>Overview: this month vs the same days last year, from orders</li>
+            <li>Orders · Customers: typical order, weekends, returning dollars</li>
+            <li>Spend: type or paste spend for Total ROAS — empty is —</li>
+            <li>Trial includes 90 days of order history; paid includes up to 24 months</li>
             <li>Uninstall stops the charge</li>
           </ul>
         </div>
       </div>
-
-      <section class="tax-band" aria-labelledby="tax-title">
-        <p class="eyebrow">Why flat exists</p>
-        <h2 id="tax-title">A desk fee shouldn’t climb with GMV.</h2>
-        <p class="tax-lede">Path suites often tax growth. Mcfly is one flat store fee after trial — the question stays <span class="mono formula-inline">are we above break-even Total ROAS?</span></p>
-
-        <div class="tax-pane mcfly">
-          <h3>Mcfly order desk</h3>
-          <p>Deeper Shopify numbers than Analytics Overview. Order stats first, then ad spend next to sales if you add it. Spend from every platform you buy, including billboards. Whole desk. Flat fee after trial.</p>
-          <p class="path">Path: <span>Install</span> → 7-day trial → <span>$39/store/mo</span></p>
-          <ul class="plan-list">
-            <li>Fee stays flat when GMV grows</li>
-            <li>Uninstall stops the charge</li>
-            <li>Install from the Shopify App Store</li>
-          </ul>
-        </div>
-
-        <p class="tax-footnote">We don’t publish competitor SKUs as gospel. What we stand behind: Mcfly will not take a cut of your revenue for this desk.</p>
-        <p class="tax-footnote"><a href="/mer-calculator">MER calculator →</a> · <a href="/demo">Full Snowdevil demo →</a></p>
-      </section>
 
       <div class="price-cta">
         <div class="cta-row">
           <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
-          <a class="btn ghost" href="/support">Support</a>
+          <a class="btn ghost" href="/demo">Try the demo</a>
         </div>
         <p class="fine">
-          Install from the <a href="https://apps.shopify.com/mcfly-analytics-public">Shopify App Store</a>.
-          7-day full-access trial, then $39/store/mo. Full Snowdevil SAMPLE demo on <a href="/demo">/demo</a>.
+          7-day trial, then $39/store/mo. Trial includes 90 days of order history; paid includes up to 24 months.
         </p>
       </div>
-
-      <p class="fine" style="margin:2rem 0 0;max-width:42ch">
-        Questions? <a href="/support">Support</a>. Install from the App Store, or open the full Snowdevil demo on <a href="/demo">/demo</a>.
-      </p>
     </div>
   </main>
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260915v17"></script>
-  <script src="/assets/mcfly/chrome.js?v=20260918v27"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260922v43"></script>
 </body>
 </html>

@@ -92,7 +92,15 @@ import {
   loadDeskSalesForPeriod,
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
-import { getOrderBackfillProgress } from "../lib/order-facts.server";
+import { getOrderBackfillProgress, loadOrderDepthRows, ORDER_FACT_SOURCE } from "../lib/order-facts.server";
+import {
+  buildOverviewOrderBookHero,
+  orderBookDaySeries,
+  orderBookFirstOrderMs,
+  shiftRangeOneYear,
+  type OverviewOrderBookHero,
+  type OverviewOrderBookRow,
+} from "../lib/overview-order-book";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -447,6 +455,64 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     targets: emptyForecastTargets(),
   });
 
+  /*
+   * Overview first-fold hero — OrderFact sums labeled From orders.
+   * Never blank median / returning / weekend because SalesDayFact is pending.
+   * Do not write these day sums into SalesDayFact.
+   */
+  const orderFactSource = useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
+  const priorOrderRange = shiftRangeOneYear(range.start, range.end);
+  const lookbackStart = new Date(range.start.getTime());
+  lookbackStart.setUTCFullYear(lookbackStart.getUTCFullYear() - 2);
+  let orderHero: OverviewOrderBookHero = buildOverviewOrderBookHero({
+    windowOrders: [],
+    priorOrders: [],
+    firstByCustomer: new Map(),
+  });
+  let orderExplorerDays = explorerDays;
+  try {
+    const [windowRows, priorRows, historyRows] = await Promise.all([
+      loadOrderDepthRows(shop.id, range, orderFactSource),
+      loadOrderDepthRows(shop.id, priorOrderRange, orderFactSource),
+      loadOrderDepthRows(
+        shop.id,
+        { start: lookbackStart, end: range.end },
+        orderFactSource,
+      ),
+    ]);
+    const toBook = (
+      rows: Awaited<ReturnType<typeof loadOrderDepthRows>>,
+    ): OverviewOrderBookRow[] =>
+      rows.map((row) => ({
+        amount: row.amount,
+        orderedAt: row.orderedAt,
+        customerKey: row.customerKey,
+        shopLocalDate: row.shopLocalDate,
+      }));
+    const windowOrders = toBook(windowRows);
+    const priorOrders = toBook(priorRows);
+    const historyOrders = toBook(historyRows);
+    orderHero = buildOverviewOrderBookHero({
+      windowOrders,
+      priorOrders,
+      firstByCustomer: orderBookFirstOrderMs(historyOrders),
+      typicalOrder: metrics.shopifyDepth.medianAov,
+    });
+    if (
+      orderHero.weekendShare == null &&
+      metrics.shopifyDepth.weekendSalesShare != null
+    ) {
+      orderHero = {
+        ...orderHero,
+        weekendShare: metrics.shopifyDepth.weekendSalesShare,
+      };
+    }
+    const series = orderBookDaySeries(historyOrders);
+    if (series.length > 0) orderExplorerDays = series;
+  } catch {
+    // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
+  }
+
   return {
     metrics,
     salesError,
@@ -469,10 +535,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         sales: salesByDay.get(dateKey) ?? 0,
         spend: spendByDay.get(dateKey) ?? 0,
       })),
-    salesExplorerDays: explorerDays,
+    salesExplorerDays: orderExplorerDays,
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
+    orderHero,
   };
 };
 
@@ -512,6 +579,7 @@ export default function Dashboard() {
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
+    orderHero,
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -811,25 +879,31 @@ export default function Dashboard() {
                 className="mcfly-desk-anchor mcfly-scoreboard--overview"
                 id={DESK_SECTION.overview}
               >
-                <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL}>
+                <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
                   <OverviewFirstViewport
-                    orderCount={metrics.orderCount}
-                    typicalOrder={metrics.shopifyDepth.medianAov}
+                    orderCount={orderHero.orderCount}
+                    typicalOrder={orderHero.typicalOrder}
                     meanAov={
-                      metrics.orderCount > 0
-                        ? metrics.sales / metrics.orderCount
+                      orderHero.orderCount > 0 && orderHero.sales != null
+                        ? orderHero.sales / orderHero.orderCount
                         : null
                     }
                     typicalDay={metrics.shopifyDepth.medianDailySales}
-                    returningSalesShare={shopBook.returningSalesShare}
-                    returningSales={shopBook.returningSales}
+                    returningSalesShare={
+                      orderHero.sales != null &&
+                      orderHero.sales > 0 &&
+                      orderHero.returningSales != null
+                        ? orderHero.returningSales / orderHero.sales
+                        : shopBook.returningSalesShare
+                    }
+                    returningSales={orderHero.returningSales}
                     newSales={shopBook.newSales}
                     mixGreeting={mixRead?.line}
                     medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
-                    weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                    weekendSalesShare={orderHero.weekendShare}
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                     weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={metrics.sales}
+                    windowSales={orderHero.sales}
                     ltvPeek={ltvPeek?.amount ?? null}
                     ltvPeekDays={ltvPeek?.days ?? null}
                     ltvHistoryLimited={Boolean(
@@ -845,11 +919,12 @@ export default function Dashboard() {
                     salesPending={greetingPending}
                     ordersHref={ordersHref}
                     useSampleDesk={useSampleDesk}
-                  />
-                  <OverviewYoyCards
-                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                    salesPending={greetingPending}
-                    yoyHref={yoyHref}
+                    orderHero={orderHero}
+                    periodLabel={
+                      metrics.period.label === "Month to date"
+                        ? "This month"
+                        : metrics.period.label
+                    }
                   />
                   <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
                     <OverviewSalesChart
@@ -863,10 +938,17 @@ export default function Dashboard() {
                           : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
                       }
                       ordersHref={ordersHref}
-                      salesPending={greetingPending}
+                      salesPending={false}
                       typicalDay={metrics.shopifyDepth.medianDailySales}
                     />
                   </div>
+                </DeskLane>
+                <DeskLane rank="next" label="Same days last year">
+                  <OverviewYoyCards
+                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                    salesPending={greetingPending}
+                    yoyHref={yoyHref}
+                  />
                 </DeskLane>
                 <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                 <DeskLane rank="next" label="Mix and month close">
@@ -888,31 +970,36 @@ export default function Dashboard() {
                   defaultOpen={shotMode}
                 >
                   <OverviewDepthPeeks
-                    orderCount={metrics.orderCount}
-                    typicalOrder={metrics.shopifyDepth.medianAov}
+                    orderCount={orderHero.orderCount}
+                    typicalOrder={orderHero.typicalOrder}
                     meanAov={
-                      metrics.orderCount > 0
-                        ? metrics.sales / metrics.orderCount
+                      orderHero.orderCount > 0 && orderHero.sales != null
+                        ? orderHero.sales / orderHero.orderCount
                         : null
                     }
                     typicalDay={metrics.shopifyDepth.medianDailySales}
-                    returningSalesShare={shopBook.returningSalesShare}
-                    returningSales={shopBook.returningSales}
-                    weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                    returningSalesShare={
+                      orderHero.sales != null &&
+                      orderHero.sales > 0 &&
+                      orderHero.returningSales != null
+                        ? orderHero.returningSales / orderHero.sales
+                        : shopBook.returningSalesShare
+                    }
+                    returningSales={orderHero.returningSales}
+                    weekendSalesShare={orderHero.weekendShare}
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                     weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={metrics.sales}
+                    windowSales={orderHero.sales}
                     salesPending={greetingPending}
                     ordersHref={ordersHref}
                     useSampleDesk={useSampleDesk}
+                    orderHero={orderHero}
                   />
-                  {!greetingPending ? (
-                    <WeekdaySalesChart
-                      shares={metrics.shopifyDepth.weekdaySalesShare}
-                      windowSales={metrics.sales}
-                      peakWeekday={metrics.shopifyDepth.peakWeekday}
-                    />
-                  ) : null}
+                  <WeekdaySalesChart
+                    shares={metrics.shopifyDepth.weekdaySalesShare}
+                    windowSales={orderHero.sales ?? metrics.sales}
+                    peakWeekday={metrics.shopifyDepth.peakWeekday}
+                  />
                 </DeskLane>
                 </div>
                 <DeskLane rank="more" label="Year board vs last year">

@@ -70,7 +70,8 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const pending = chrome("./desk-phone-pending-fixture.html");
     expect(firstView).not.toContain("0.00×");
     expect(firstView).not.toContain("Edit spend");
-    expect(firstView).toContain("OVERVIEW_PENDING_LINE");
+    expect(firstView).toContain("OVERVIEW_ORDERS_EMPTY_LINE");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(pending).not.toContain("0.00×");
     expect(pending).not.toContain("Edit spend");
     expect(formatMer(null)).toBe("—");
@@ -120,9 +121,10 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(spend).not.toContain("Switch to Live in Settings");
     expect(bar).toContain("Live is parked until launch");
     expect(bar).not.toContain("Switch in Settings");
-    expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
-    expect(SAMPLE_OVERVIEW_DOOR).toContain("Live is parked");
-    expect(SAMPLE_GROWTH_DOOR).toContain("Live is parked");
+    expect(firstView).toContain("mcfly-overview-plane");
+    expect(firstView).not.toContain("Live is parked until launch");
+    expect(SAMPLE_OVERVIEW_DOOR).not.toContain("Live is parked");
+    expect(SAMPLE_GROWTH_DOOR).not.toContain("Live is parked");
     const fixture = readApp("./desk-phone-fixture.html");
     expect(fixture).toContain("Live is parked until launch");
     expect(fixture).not.toContain("Switch in Settings");
@@ -148,7 +150,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
 
     const firstView = chrome("../components/OverviewFirstViewport.tsx");
     expect(firstView).toContain("useSampleDesk");
-    expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
     expect(firstView).not.toContain("Example spend");
     expect(firstView).not.toContain("Edit spend");
@@ -190,7 +192,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(fixture).toContain("mcfly-yoy--glance");
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("QuietSpendDoor");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OverviewDepthPeeks");
     expect(firstView).not.toContain("orderCount <");
     expect(firstView).not.toContain("if (!useSampleDesk) return");

@@ -21674,3 +21674,111 @@ button.mcfly-habit-goals__read:focus-visible {
     text-align: left;
   }
 }
+
+/* —— Overview order-book first plane (2026-09-22 rebuild) ——
+ * One composition: hero $ From orders + support strip. No soft KPI grid.
+ */
+.mcfly-overview-plane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.15rem 0 0.5rem;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-overview-plane__sentence {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.35;
+  color: var(--mcfly-mute, #475569);
+}
+
+.mcfly-overview-plane__hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+}
+
+.mcfly-overview-plane__period {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute, #64748b);
+  font-weight: 600;
+}
+
+.mcfly-overview-plane__delta {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.mcfly-overview-plane__delta--up {
+  color: var(--mcfly-good, #15803d);
+}
+
+.mcfly-overview-plane__delta--down {
+  color: var(--mcfly-bad, #b91c1c);
+}
+
+.mcfly-overview-plane__delta--even,
+.mcfly-overview-plane__delta--empty {
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-overview-plane__value {
+  margin: 0.15rem 0 0;
+  font-family: var(--mcfly-serif, "Fraunces", Georgia, serif);
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-overview-plane__prior,
+.mcfly-overview-plane__source {
+  margin: 0.25rem 0 0;
+  font-size: 0.92rem;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-overview-plane__source {
+  font-weight: 600;
+  color: var(--mcfly-ink, #334155);
+}
+
+.mcfly-overview-plane__strip {
+  margin: 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 12%, transparent);
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.45;
+  color: var(--mcfly-ink, #1e293b);
+}
+
+.mcfly-overview-plane__note {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-orders-under {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.mcfly-orders-under .mcfly-kpi {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0.35rem 0;
+  text-align: left;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 10%, transparent);
+}

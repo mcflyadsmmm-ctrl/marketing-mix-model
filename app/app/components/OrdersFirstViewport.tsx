@@ -6,7 +6,6 @@ import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SAMPLE_ORDERS_DOOR } from "../lib/sample-live-handoff";
 import {
-  ORDERS_PENDING_LINE,
   ORDERS_THIN_EMPTY_LINE,
   buildOrdersLeadPeeks,
   ordersOperatorGreeting,
@@ -34,7 +33,7 @@ function PeekCard({
   return (
     <button
       type="button"
-      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
+      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek"
       onClick={() =>
         drill?.openDrill({
           title: label,
@@ -59,13 +58,13 @@ function PeekCard({
 }
 
 /**
- * First-fold Orders — typical (median) vs Shopify’s average, then discount
- * and basket peeks Analytics does not put next to Average Order.
- * SAMPLE Snowdevil is the craft canvas. Spend stays off Orders.
+ * First-fold Orders — typical (median) hero, mean as a quiet foil.
+ * Days to second and 2+ items may sit under the hero. Do not lead with a
+ * scoreboard. salesPending (SalesDayFact) must not blank OrderFact depth.
  */
 export function OrdersFirstViewport({
   depth,
-  salesPending,
+  salesPending: _salesPending,
   useSampleDesk = false,
 }: {
   depth: ShopifyDepthStats;
@@ -73,11 +72,10 @@ export function OrdersFirstViewport({
   useSampleDesk?: boolean;
 }) {
   const currency = useDeskCurrency();
-  const hero = buildOrdersHero(depth, currency, salesPending);
-  const typicalLabel =
-    salesPending || hero.v === "—" ? null : hero.v;
+  // Order book paints even when Analytics day facts are still landing.
+  const hero = buildOrdersHero(depth, currency, false);
+  const typicalLabel = hero.v === "—" ? null : hero.v;
   const averageLabel =
-    !salesPending &&
     depth.medianAov != null &&
     Number.isFinite(depth.medianAov) &&
     depth.meanAov != null &&
@@ -85,33 +83,18 @@ export function OrdersFirstViewport({
       ? formatCurrency(depth.meanAov, currency)
       : null;
   const greeting = ordersOperatorGreeting({
-    salesPending,
+    salesPending: false,
     orderCount: depth.orderCount,
     typicalOrderLabel: typicalLabel,
     averageOrderLabel: averageLabel,
   });
-  const peeks = salesPending ? [] : buildOrdersLeadPeeks(depth, currency);
-  const trust = useSampleDesk && !salesPending ? SAMPLE_ORDERS_DOOR : null;
-
-  if (salesPending) {
-    return (
-      <section
-        className="mcfly-score mcfly-book mcfly-score--orders-hero mcfly-score--soft"
-        aria-label={PRODUCT_NOUN.ordersTitle}
-      >
-        <p className="mcfly-score__greeting">{ORDERS_PENDING_LINE}</p>
-        <p className="mcfly-state__copy">
-          Typical order, discounts, and 2+ item orders fill as closed days land —
-          not $0.
-        </p>
-      </section>
-    );
-  }
+  const peeks = buildOrdersLeadPeeks(depth, currency);
+  const trust = useSampleDesk ? SAMPLE_ORDERS_DOOR : null;
 
   if (!useSampleDesk && !(depth.orderCount > 0)) {
     return (
       <section
-        className="mcfly-score mcfly-book mcfly-score--orders-hero mcfly-score--soft"
+        className="mcfly-score mcfly-book mcfly-score--orders-hero"
         aria-label={PRODUCT_NOUN.ordersTitle}
       >
         <p className="mcfly-score__greeting">{greeting}</p>
@@ -122,25 +105,29 @@ export function OrdersFirstViewport({
 
   return (
     <section
-      className="mcfly-score mcfly-book mcfly-score--orders-hero mcfly-score--soft"
+      className="mcfly-score mcfly-book mcfly-score--orders-hero"
       aria-label={PRODUCT_NOUN.ordersTitle}
     >
       <p className="mcfly-score__greeting">{greeting}</p>
       {trust ? <p className="mcfly-score__trust">{trust}</p> : null}
 
-      <article className="mcfly-orders-hero mcfly-orders-hero--soft">
+      <article className="mcfly-orders-hero">
         <p className="mcfly-orders-hero__k">
           <DeskIcon name="orders" />
           {hero.k}
         </p>
         <p className="mcfly-orders-hero__v">{hero.v}</p>
-        {hero.sub ? <p className="mcfly-orders-hero__sub">{hero.sub}</p> : null}
+        {averageLabel ? (
+          <p className="mcfly-orders-hero__sub">Average {averageLabel}</p>
+        ) : hero.sub ? (
+          <p className="mcfly-orders-hero__sub">{hero.sub}</p>
+        ) : null}
         <p className="mcfly-orders-hero__def">{hero.def}</p>
-        <OrdersTicketBand depth={depth} pending={salesPending} />
+        <OrdersTicketBand depth={depth} pending={false} />
       </article>
 
       {peeks.length > 0 ? (
-        <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
+        <div className="mcfly-orders-under">
           {peeks.map((row) => (
             <PeekCard
               key={row.k}

@@ -2,31 +2,30 @@ import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
 /**
- * Overview first viewport — Shopify-order-data only.
- * Typical order, returning dollars, weekend vs weekday, and an open sales
- * chart live here. Marketing tabs own entered cash later.
+ * Overview first viewport — OrderFact book only on the first fold.
+ * Hero dollars are order sums labeled From orders — never Shopify Total
+ * Sales / Analytics-matched. Spend stays off Overview. Marketing tabs own cash.
  */
 
 export const OVERVIEW_COVERAGE_LINE =
-  "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included";
+  "From orders on file · up to 24 months · returns included";
 
 export const OVERVIEW_PENDING_LINE =
-  "Waiting on reports scope / sales totals ingest — not $0.";
+  "Orders still loading — not $0.";
 
-/** First-lane label — Mcfly-only heroes, not a Total Sales scoreboard. */
+/** First-lane label — morning YoY from orders, not a soft KPI farm. */
 export const OVERVIEW_FIRST_LANE_LABEL =
-  "Typical order, returning $, weekends, typical day";
+  "This period vs last year · from orders";
 
 /**
- * Uninstall-killer contrast. Shopify Analytics Overview is Total Sales +
- * a returning-customer *rate*. Mcfly is dollars, typical ticket, weekends.
+ * Kept for deeper copy — never a first-fold apology essay.
+ * Do not claim the order-book hero matches Shopify Analytics.
  */
 export const OVERVIEW_ANALYTICS_CONTRAST =
-  "Shopify Analytics Overview is Total Sales and a returning-customer rate.";
+  "Order-book dollars — not Shopify Analytics day totals.";
 
 export const OVERVIEW_THIN_EMPTY_LINE =
   "Typical order, returning $, and weekends fill after paid orders land — not $0.";
-
 /**
  * Deterministic empty-state rhythm (steal map craft) — never an AI analyst.
  * Signal = what we see · Evidence = why the board is — · Next move = what fills.
@@ -40,7 +39,7 @@ export type OverviewFinding = {
 /** Pending sales — scoreboard shells stay up; values stay — not $0. */
 export function overviewPendingFinding(): OverviewFinding {
   return {
-    signal: "Sales day totals still landing",
+    signal: "Orders still landing",
     evidence: OVERVIEW_PENDING_LINE,
     next: "Typical order, returning $, and weekend fill as closed days land — not $0.",
   };

@@ -31,6 +31,15 @@ import {
 } from "./shareable-insights";
 import { buildOverviewYoyCards, type OverviewYoyCard } from "./overview-yoy";
 import {
+  buildOverviewOrderBookHero,
+  filterOrdersInRange,
+  orderBookDaySeries,
+  orderBookFirstOrderMs,
+  shiftRangeOneYear,
+  type OverviewOrderBookHero,
+  type OverviewOrderBookRow,
+} from "./overview-order-book";
+import {
   parsePeriodPreset,
   resolvePeriod,
   type PeriodPreset,
@@ -100,6 +109,8 @@ export type PublicSamplePage = {
   book: ShopifyNativePeriodStats;
   cashControl: CashControlBoard;
   yoyCards: OverviewYoyCard[];
+  /** OrderFact first-fold hero — From orders, never SalesDayFact. */
+  orderHero: OverviewOrderBookHero;
   explorerDays: Array<{ dateKey: string; sales: number; orders: number }>;
   mixForecast: OverviewMixForecastView;
   orderHistoryForecast: OrderHistoryForecastView;
@@ -123,6 +134,15 @@ function toDepthRows(orders: SampleOrderFactRow[]): OrderDepthRow[] {
     discountAmount: row.discountAmount,
     sourceName: row.sourceName,
     unitCount: row.unitCount,
+  }));
+}
+
+function toOrderBookRows(orders: SampleOrderFactRow[]): OverviewOrderBookRow[] {
+  return orders.map((row) => ({
+    customerKey: row.customerKey,
+    amount: row.amount,
+    orderedAt: row.orderedAt,
+    shopLocalDate: row.shopLocalDate,
   }));
 }
 
@@ -271,13 +291,31 @@ export async function loadPublicSamplePage(
 
   const periodStartMs = range.start.getTime();
   const periodEndMs = range.end.getTime();
+  const allOrderBook = toOrderBookRows(book.orders);
+  const periodOrderBook = filterOrdersInRange(
+    allOrderBook,
+    range.start,
+    range.end,
+  );
+  const priorRange = shiftRangeOneYear(range.start, range.end);
+  const priorOrderBook = filterOrdersInRange(
+    allOrderBook,
+    priorRange.start,
+    priorRange.end,
+  );
+  const orderHeroBase = buildOverviewOrderBookHero({
+    windowOrders: periodOrderBook,
+    priorOrders: priorOrderBook,
+    firstByCustomer: orderBookFirstOrderMs(allOrderBook),
+    typicalOrder: null,
+  });
   const periodOrders = book.orders.filter((row) => {
     const t = row.orderedAt.getTime();
     return t >= periodStartMs && t <= periodEndMs;
   });
   const depth = shopifyDepthStats({
     orders: toDepthRows(periodOrders),
-    totalSales: sales.totalSales,
+    totalSales: orderHeroBase.sales ?? sales.totalSales,
     netSales: sales.netSales,
     netSalesKnown: true,
     grossSales: sales.grossSales,
@@ -285,6 +323,17 @@ export async function loadPublicSamplePage(
     timeZone: PUBLIC_SAMPLE_TZ,
     windowEnd: range.end,
   });
+  const orderHero: OverviewOrderBookHero = {
+    ...orderHeroBase,
+    typicalOrder:
+      depth.medianAov != null && Number.isFinite(depth.medianAov)
+        ? depth.medianAov
+        : orderHeroBase.typicalOrder,
+    weekendShare:
+      depth.weekendSalesShare != null
+        ? depth.weekendSalesShare
+        : orderHeroBase.weekendShare,
+  };
   const native = shopifyNativePeriodStats({
     sales: sales.totalSales,
     orderCount: sales.orderCount,
@@ -304,11 +353,8 @@ export async function loadPublicSamplePage(
   );
   const yoyCards = buildOverviewYoyCards(cashControl.chips);
 
-  const explorerDays = periodDays.map((day) => ({
-    dateKey: day.dateKey,
-    sales: day.sales,
-    orders: day.orderCount,
-  }));
+  // Chart = order-book day sums for display only — never upserted as SalesDayFact.
+  const explorerDays = orderBookDaySeries(allOrderBook);
   const ymd = shopLocalYmd(now, PUBLIC_SAMPLE_TZ);
   const monthPrefix = `${ymd.y}-${String(ymd.m).padStart(2, "0")}`;
   const clock = overviewMonthClock(ymd.y, ymd.m, ymd.d);
@@ -435,6 +481,7 @@ export async function loadPublicSamplePage(
     book: native,
     cashControl,
     yoyCards,
+    orderHero,
     explorerDays,
     mixForecast,
     orderHistoryForecast,

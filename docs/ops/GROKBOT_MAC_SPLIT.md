@@ -30,18 +30,22 @@ After a P0 PR **merges to `cursor/spend-trust-recurring`**, Grok Bot / Mac Curso
 
 ---
 
-## Mac prerequisites (verified 2026-09-16 19:58 MT)
+## Mac prerequisites (re-verified 2026-09-22 ~18:52 MT)
 
 | Check | Status |
 | --- | --- |
 | Machine | `Martys-MacBook-Pro.local` connected |
-| Repo | `~/Documents/MCFLY ANALYTICS APP/marketing-mix-model` on `cursor/spend-trust-recurring` |
+| Repo | `~/Documents/MCFLY ANALYTICS APP/marketing-mix-model` on `cursor/spend-trust-recurring` (**default ship tree**) |
+| Worktree trap | `mcfly-analytics/` is secondary (`cursor/ads-readiness-mac`); do not Fly or Desk-ship from a detached/stale tip |
 | `gh` | `mcflyadsmmm-ctrl` · scopes `repo` + `workflow` |
-| `flyctl` | `~/.fly/bin/flyctl` · `mcflyadsmmm@gmail.com` · app `mcfly-analytics` **v329** started, check passing |
-| Wrangler | logged in `martysmithson04@gmail.com` · Pages project `mcflyads` (mcflyads.com) |
+| `flyctl` | `~/.fly/bin/flyctl` · `mcflyadsmmm@gmail.com` · app `mcfly-analytics` deployed · `/health` db up |
+| Wrangler | `~/.npm-global/bin/wrangler` · OAuth `martysmithson04@gmail.com` · Pages `mcflyads` → mcflyads.com |
+| Shopify CLI | `~/.npm-global/bin/shopify` · install to user prefix only (system `/usr/local` EACCES caused agent hangs) |
+| MCP ready | Shopify Dev · Cloudflare bindings · Gmail · Granola (authed 2026-09-22) · browser |
+| MCP skip | Vercel / X / Canva / Subtext / GitLab / 1Password — not required for Mcfly ship |
 | `suite/` | never commit (`.env.local`) |
 
-**Gap vs “clean except `?? suite/`”:** tree is **dirty** — four Desk lanes uncommitted (+1145/−313) plus untracked `shopify-book-visible.test.ts` / `yoy-settings-visible.test.ts`. Do not treat that as Fly 329.
+**Agent rule:** If `wrangler` / `shopify` “not found”, prepend `export PATH="$HOME/.npm-global/bin:$PATH"` — do not start a connect-debug loop.
 
 ---
 

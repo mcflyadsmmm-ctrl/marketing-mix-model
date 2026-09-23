@@ -4,22 +4,23 @@ import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
-  OVERVIEW_COVERAGE_LINE,
-  OVERVIEW_PENDING_LINE,
   OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
   overviewHandoffPeeks,
   overviewLtvWindowLabel,
-  overviewOperatorGreeting,
-  overviewPendingFinding,
   overviewReturningCompactDollars,
-  overviewThinEmptyFinding,
   overviewWeekendWeekday,
-  type OverviewFinding,
   type OverviewHandoffPeek,
   type OverviewLtvPeekDays,
 } from "../lib/overview-first-viewport";
-import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
+import {
+  OVERVIEW_FROM_ORDERS_LABEL,
+  OVERVIEW_ORDERS_EMPTY_LINE,
+  OVERVIEW_PRIOR_MISSING_LINE,
+  overviewOrderDeltaLabel,
+  overviewOrderHeroSentence,
+  type OverviewOrderBookHero,
+} from "../lib/overview-order-book";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskHref } from "../lib/desk-base-path";
 import { deskNavHref } from "../lib/desk-nav";
@@ -46,10 +47,17 @@ export type OverviewPeekProps = {
   monthClose?: number | null;
   monthCloseRemainingDays?: number | null;
   monthCloseClosed?: boolean;
+  /**
+   * SalesDayFact / Analytics pending — must NOT blank order-book median,
+   * returning $, or weekend on the Overview first fold.
+   */
   salesPending: boolean;
   ordersHref: string;
   settingsHref?: string;
   useSampleDesk?: boolean;
+  /** OrderFact hero for the first fold. When set, drives the morning number. */
+  orderHero?: OverviewOrderBookHero | null;
+  periodLabel?: string;
 };
 
 function PeekCard({
@@ -83,8 +91,8 @@ function PeekCard({
       type="button"
       className={
         hero
-          ? "mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft mcfly-kpi--hero"
-          : "mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
+          ? "mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--hero"
+          : "mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek"
       }
       data-empty={value === "—" ? "true" : undefined}
       onClick={() =>
@@ -125,7 +133,6 @@ function useOverviewPeekValues({
   peakWeekday,
   weekdaySalesShare,
   windowSales,
-  salesPending,
 }: OverviewPeekProps) {
   const currency = useDeskCurrency();
   const typicalIsMedian =
@@ -139,37 +146,31 @@ function useOverviewPeekValues({
     typicalValue != null ? formatCurrency(typicalValue, currency) : null;
   const returningDollars = overviewReturningCompactDollars(returningSales);
   const returningValue =
-    salesPending || returningDollars == null
+    returningDollars == null
       ? "—"
       : formatCurrency(returningDollars, currency);
   const newDollars =
-    !salesPending && newSales != null && Number.isFinite(newSales) && newSales > 0
+    newSales != null && Number.isFinite(newSales) && newSales > 0
       ? formatCurrency(newSales, currency)
       : null;
   const returningShare =
-    !salesPending &&
-    returningSalesShare != null &&
-    Number.isFinite(returningSalesShare)
+    returningSalesShare != null && Number.isFinite(returningSalesShare)
       ? newDollars
         ? `${Math.round(returningSalesShare * 100)}% · new ${newDollars}`
         : `${Math.round(returningSalesShare * 100)}% of sales`
       : undefined;
-  const weekend = salesPending
-    ? null
-    : overviewWeekendWeekday(weekendSalesShare);
-  const typicalCardValue = salesPending ? "—" : (typical ?? "—");
+  const weekend = overviewWeekendWeekday(weekendSalesShare);
+  const typicalCardValue = typical ?? "—";
   const typicalDayValue =
-    salesPending || typicalDay == null || !Number.isFinite(typicalDay)
+    typicalDay == null || !Number.isFinite(typicalDay)
       ? "—"
       : formatCurrency(typicalDay, currency);
-  const ordersValue = salesPending ? "—" : orderCount.toLocaleString();
-  const busiest = salesPending
-    ? null
-    : overviewBusiestWeekday({
-        peakWeekday,
-        weekdaySalesShare,
-        windowSales,
-      });
+  const ordersValue = orderCount.toLocaleString();
+  const busiest = overviewBusiestWeekday({
+    peakWeekday,
+    weekdaySalesShare,
+    windowSales,
+  });
   const busiestValue = busiest
     ? busiest.dollars != null
       ? formatCurrency(busiest.dollars, currency)
@@ -213,7 +214,7 @@ function handoffPeekCard(
         nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
         next: "Open Customers for the habit clock and who to reach.",
         formulaBlock:
-          "Typical wait is the median first→second gap. Win-back is that wait plus 15 days. Shopify Analytics Overview is a returning-customer rate.",
+          "Typical wait is the median first→second gap. Win-back is that wait plus 15 days.",
         icon: "clock",
         label: "Days to second",
         value: `${peek.days}d`,
@@ -256,198 +257,162 @@ function handoffPeekCard(
   }
 }
 
-function FindingStrip({ finding }: { finding: OverviewFinding }) {
+/**
+ * Overview first fold — one morning plane from OrderFact sums.
+ * Hero $ labeled From orders. No soft KPI grid. No spend / ROAS.
+ * salesPending (SalesDayFact) must not blank median / returning / weekend.
+ */
+export function OverviewFirstViewport({
+  "aria-label": ariaLabel = "Orders this period",
+  ordersHref,
+  useSampleDesk = false,
+  salesPending: _salesPending,
+  orderCount,
+  mixGreeting: _mixGreeting = null,
+  orderHero = null,
+  periodLabel = "This month",
+  ...rest
+}: OverviewPeekProps) {
+  const currency = useDeskCurrency();
+  const money = (n: number) => formatCurrency(n, currency);
+
+  const hero = orderHero;
+  const empty = hero?.empty ?? !(orderCount > 0);
+  const salesLabel =
+    hero?.sales != null && Number.isFinite(hero.sales)
+      ? money(hero.sales)
+      : null;
+  const missingPrior = hero == null || hero.priorSales == null;
+  const sentence = overviewOrderHeroSentence({
+    periodLabel,
+    salesLabel,
+    yoyPct: hero?.yoyPct ?? null,
+    empty,
+    missingPrior,
+  });
+  const delta = overviewOrderDeltaLabel({
+    yoyPct: hero?.yoyPct ?? null,
+    missingPrior,
+  });
+  const zone = hero?.zone ?? "empty";
+
+  const returning =
+    hero?.returningSales != null && hero.returningSales > 0
+      ? money(hero.returningSales)
+      : overviewReturningCompactDollars(rest.returningSales) != null
+        ? money(overviewReturningCompactDollars(rest.returningSales)!)
+        : "—";
+  const typical =
+    hero?.typicalOrder != null && hero.typicalOrder > 0
+      ? money(hero.typicalOrder)
+      : rest.typicalOrder != null && Number.isFinite(rest.typicalOrder)
+        ? money(rest.typicalOrder)
+        : "—";
+  const weekendShare =
+    hero?.weekendShare ?? rest.weekendSalesShare ?? null;
+  const weekend = overviewWeekendWeekday(weekendShare);
+  const weekendLabel = weekend ? `${weekend.weekendPct}%` : "—";
+
   return (
-    <div className="mcfly-book__clock" aria-label="What to notice">
-      <div>
-        <p className="mcfly-book__clock-k">Signal</p>
-        <p className="mcfly-book__clock-v">{finding.signal}</p>
+    <section
+      className="mcfly-overview-plane"
+      aria-label={ariaLabel}
+      data-sample={useSampleDesk ? "true" : undefined}
+    >
+      <p className="mcfly-overview-plane__sentence">{sentence}</p>
+
+      <div className={`mcfly-overview-plane__hero mcfly-overview-plane__hero--${zone}`}>
+        <div className="mcfly-overview-plane__hero-top">
+          <p className="mcfly-overview-plane__period">{periodLabel}</p>
+          {delta ? (
+            <p className={`mcfly-overview-plane__delta mcfly-overview-plane__delta--${zone}`}>
+              {delta}
+            </p>
+          ) : (
+            <p className="mcfly-overview-plane__delta mcfly-overview-plane__delta--empty">
+              {empty ? OVERVIEW_ORDERS_EMPTY_LINE : OVERVIEW_PRIOR_MISSING_LINE}
+            </p>
+          )}
+        </div>
+        <p className="mcfly-overview-plane__value">{salesLabel ?? "—"}</p>
+        <p className="mcfly-overview-plane__prior">
+          {missingPrior || hero?.priorSales == null
+            ? OVERVIEW_PRIOR_MISSING_LINE
+            : `same days last year ${money(hero.priorSales)}`}
+        </p>
+        <p className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</p>
       </div>
-      <div>
-        <p className="mcfly-book__clock-k">Evidence</p>
-        <p className="mcfly-book__clock-v">{finding.evidence}</p>
-      </div>
-      <div>
-        <p className="mcfly-book__clock-k">Next move</p>
-        <p className="mcfly-book__clock-v">{finding.next}</p>
-      </div>
-    </div>
+
+      <p className="mcfly-overview-plane__strip">
+        <span>Returning {returning}</span>
+        <span aria-hidden="true"> · </span>
+        <span>Typical order {typical}</span>
+        <span aria-hidden="true"> · </span>
+        <span>Weekend {weekendLabel}</span>
+      </p>
+
+      {empty && !useSampleDesk ? (
+        <p className="mcfly-overview-plane__note">{OVERVIEW_THIN_EMPTY_LINE}</p>
+      ) : null}
+    </section>
   );
 }
 
-/**
- * First-fold Mcfly peeks — typical order, returning $, weekend, typical day —
- * then days-to-second / LTV / month-close handoffs. SAMPLE Snowdevil is the
- * craft canvas. Spend stays off Overview. YoY sits beside this board.
- * Depth peeks stay after the open sales chart.
- * Pending / thin empty keep the KPI shells as — plus Signal / Evidence / Next
- * move — never a pamphlet, never an AI analyst theater.
- */
-export function OverviewFirstViewport({
-  "aria-label": ariaLabel = "Shopify sales this period",
+/** Orders + busiest weekday — after the open sales chart. Typical day leads above. */
+export function OverviewDepthPeeks({
   ordersHref,
-  useSampleDesk = false,
-  salesPending,
+  salesPending: _salesPending,
   orderCount,
-  mixGreeting = null,
   ...rest
 }: OverviewPeekProps) {
   const deskHref = useDeskHref();
-  const {
-    currency,
-    typicalIsMedian,
-    returningValue,
-    returningShare,
-    weekend,
-    typicalCardValue,
-    typicalDayValue,
-  } = useOverviewPeekValues({
+  const { ordersValue, busiest, busiestValue, currency } = useOverviewPeekValues({
     ...rest,
     orderCount,
     ordersHref,
-    useSampleDesk,
-    salesPending,
+    salesPending: false,
   });
-  const typicalLabel =
-    salesPending || typicalCardValue === "—" ? null : typicalCardValue;
-  const greeting = salesPending
-    ? OVERVIEW_PENDING_LINE
-    : overviewOperatorGreeting({
-        salesPending: false,
-        orderCount,
-        typicalOrderLabel: typicalLabel,
-        returningSalesShare: rest.returningSalesShare,
-        weekendSalesShare: rest.weekendSalesShare,
-      });
-  const trust = useSampleDesk
-    ? SAMPLE_OVERVIEW_DOOR
-    : mixGreeting && mixGreeting !== greeting
-      ? mixGreeting
-      : null;
-  const handoffs = salesPending
-    ? []
-    : overviewHandoffPeeks({
-        medianDaysToSecond: rest.medianDaysToSecond,
-        ltvPeek: rest.ltvPeek,
-        ltvPeekDays: rest.ltvPeekDays,
-        historyLimited: rest.ltvHistoryLimited,
-        monthClose: rest.monthClose,
-        monthCloseRemainingDays: rest.monthCloseRemainingDays,
-        monthCloseClosed: rest.monthCloseClosed,
-      });
-
-  let finding: OverviewFinding | null = null;
-  if (salesPending) {
-    finding = {
-      ...overviewPendingFinding(),
-      next: "Typical order, returning $, and weekend fill as closed days land — not $0.",
-    };
-  } else if (!useSampleDesk && !(orderCount > 0)) {
-    finding = {
-      ...overviewThinEmptyFinding(),
-      evidence: OVERVIEW_THIN_EMPTY_LINE,
-    };
-  }
+  const handoffs = overviewHandoffPeeks({
+    medianDaysToSecond: rest.medianDaysToSecond,
+    ltvPeek: rest.ltvPeek,
+    ltvPeekDays: rest.ltvPeekDays,
+    historyLimited: rest.ltvHistoryLimited,
+    monthClose: rest.monthClose,
+    monthCloseRemainingDays: rest.monthCloseRemainingDays,
+    monthCloseClosed: rest.monthCloseClosed,
+  });
 
   return (
-    <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
-      <p className="mcfly-score__greeting">{greeting}</p>
-      {trust ? <p className="mcfly-score__trust">{trust}</p> : null}
-      {finding ? <FindingStrip finding={finding} /> : null}
-
-      <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--peeks-4 mcfly-kpi-grid--soft">
+    <section
+      className="mcfly-score mcfly-book mcfly-score--depth"
+      aria-label="More Shopify order depth"
+    >
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth mcfly-kpi-grid--peeks-2">
         <PeekCard
-          hero
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
-          formulaBlock={
-            typicalIsMedian
-              ? PRODUCT_NOUN.bookTypicalOrderDef
-              : "Average order value when median is not available yet."
-          }
+          next="Open Orders for ticket, discounts, and items."
+          formulaBlock="Paid orders in this window after returns. Typical order is the middle ticket, not this count."
           icon="orders"
-          label={typicalIsMedian ? PRODUCT_NOUN.bookTypicalOrder : "AOV"}
-          value={typicalCardValue}
-          sub={
-            salesPending || typicalCardValue === "—"
-              ? undefined
-              : typicalIsMedian
-                ? "Median"
-                : undefined
-          }
-        />
-        <PeekCard
-          to={deskHref("/app/customers")}
-          nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
-          next="Open Customers for returning dollars and guest checkouts."
-          formulaBlock="Sales from returning customers in this window. Shopify Analytics Overview is a returning-customer rate."
-          icon="customers"
-          label="Returning"
-          value={returningValue}
-          sub={returningShare}
-          foot="Dollars, not headcount."
-          extra={
-            !salesPending &&
-            rest.returningSalesShare != null &&
-            Number.isFinite(rest.returningSalesShare) ? (
-              <span
-                className="mcfly-split"
-                aria-hidden="true"
-                title={returningShare}
-              >
-                <span
-                  className="mcfly-split__return"
-                  style={{
-                    width: `${Math.round(rest.returningSalesShare * 100)}%`,
-                  }}
-                />
-              </span>
-            ) : null
-          }
+          label="Orders"
+          value={ordersValue}
+          sub={!(orderCount > 0) ? undefined : "This window"}
         />
         <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Open Orders for the weekday breakdown."
-          formulaBlock="Weekend vs weekday sales share, shop-local. Shopify Analytics Overview does not put this next to typical order."
+          next="Open Orders for the weekday breakdown and busiest hour."
+          formulaBlock={PRODUCT_NOUN.bookBusiestWeekday}
           icon="weekend"
-          label="Weekend"
-          value={weekend ? `${weekend.weekendPct}%` : "—"}
-          sub={weekend ? `vs weekday ${weekend.weekdayPct}%` : undefined}
-          extra={
-            weekend ? (
-              <span
-                className="mcfly-split"
-                aria-hidden="true"
-                title={`Weekend ${weekend.weekendPct}%`}
-              >
-                <span
-                  className="mcfly-split__weekend"
-                  style={{ width: `${weekend.weekendPct}%` }}
-                />
-              </span>
-            ) : null
-          }
-        />
-        <PeekCard
-          to={ordersHref}
-          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Open Orders for typical day, discounts, and the sales clock. The open sales chart paints each day vs this typical."
-          formulaBlock={PRODUCT_NOUN.bookTypicalDayDef}
-          icon="clock"
-          label={PRODUCT_NOUN.bookTypicalDay}
-          value={typicalDayValue}
+          label={PRODUCT_NOUN.bookBusiestWeekday}
+          value={busiestValue}
           sub={
-            salesPending || typicalDayValue === "—"
-              ? undefined
-              : "Median daily sales · day vs typical on the chart"
+            busiest ? `${busiest.label} · ${busiest.pct}% of sales` : undefined
           }
         />
       </div>
-
       {handoffs.length > 0 ? (
-        <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-handoff mcfly-kpi-grid--soft">
+        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-handoff">
           {handoffs.map((peek) => {
             const card = handoffPeekCard(peek, currency, deskHref);
             return (
@@ -467,59 +432,6 @@ export function OverviewFirstViewport({
           })}
         </div>
       ) : null}
-
-      {!finding ? (
-        <p className="mcfly-score__trust">{OVERVIEW_COVERAGE_LINE}</p>
-      ) : null}
-    </section>
-  );
-}
-
-/** Orders + busiest weekday — after the open sales chart. Typical day leads above. */
-export function OverviewDepthPeeks({
-  ordersHref,
-  salesPending,
-  orderCount,
-  ...rest
-}: OverviewPeekProps) {
-  const { ordersValue, busiest, busiestValue } = useOverviewPeekValues({
-    ...rest,
-    orderCount,
-    ordersHref,
-    salesPending,
-  });
-
-  return (
-    <section
-      className="mcfly-score mcfly-book mcfly-score--depth mcfly-score--soft"
-      aria-label="More Shopify order depth"
-    >
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth mcfly-kpi-grid--peeks-2 mcfly-kpi-grid--soft">
-        <PeekCard
-          to={ordersHref}
-          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Open Orders for ticket, discounts, and items."
-          formulaBlock="Paid orders in this window after returns. Typical order is the middle ticket, not this count."
-          icon="orders"
-          label="Orders"
-          value={ordersValue}
-          sub={
-            salesPending || !(orderCount > 0) ? undefined : "This window"
-          }
-        />
-        <PeekCard
-          to={ordersHref}
-          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Open Orders for the weekday breakdown and busiest hour."
-          formulaBlock={PRODUCT_NOUN.bookBusiestWeekday}
-          icon="weekend"
-          label={PRODUCT_NOUN.bookBusiestWeekday}
-          value={busiestValue}
-          sub={
-            busiest ? `${busiest.label} · ${busiest.pct}% of sales` : undefined
-          }
-        />
-      </div>
     </section>
   );
 }

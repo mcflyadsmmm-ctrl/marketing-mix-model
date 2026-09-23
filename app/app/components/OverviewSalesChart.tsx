@@ -8,6 +8,7 @@ import {
 } from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { OVERVIEW_PENDING_LINE } from "../lib/overview-first-viewport";
+import { OVERVIEW_CHART_CAPTION } from "../lib/overview-order-book";
 import {
   overviewAov,
   overviewBucketize,
@@ -86,11 +87,11 @@ const PRESETS: readonly { key: OverviewRangePreset; label: string; long: string 
 
 function ChartEmptyFrame({ copy }: { copy: string }) {
   return (
-    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label="Sales by day">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label="Orders by day">
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
-          Sales
+          {OVERVIEW_CHART_CAPTION}
         </p>
       </div>
       <p className="mcfly-chart__empty">{copy}</p>
@@ -385,10 +386,10 @@ export function OverviewSalesChart({
   };
 
   return (
-    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales mcfly-chart--soft" aria-label="Sales by day">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales" aria-label="Orders by day">
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
-          <h3 className="mcfly-chart__serif">Sales explorer</h3>
+          <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
           {ledeParts.length > 0 ? (
             <p className="mcfly-chart__muted">{ledeParts.join(" · ")}</p>
           ) : null}
@@ -592,7 +593,7 @@ export function OverviewSalesChart({
                   point.weekend ? { k: "Day type", v: "Weekend" } : null,
                   {
                     k: "What this is",
-                    v: "Shopify Total Sales for this bar next to typical daily sales, orders, and AOV. Grain and range live on the chart — never spend.",
+                    v: "Order-book day sum for this bar next to typical daily sales, orders, and AOV. Grain and range live on the chart — never spend. Not Analytics day totals.",
                   },
                 ].filter((block): block is { k: string; v: string } => block != null),
                 next: "Open Orders for typical ticket, discounts, and weekend.",

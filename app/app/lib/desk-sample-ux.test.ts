@@ -369,14 +369,14 @@ describe("Sample data | Live data UX", () => {
     expect(deskPage).toContain("<SalesLoadError");
     expect(deskPage).toContain("salesError && !shotMode && retryHref");
 
-    expect(firstView).toContain("mcfly-kpi-grid");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("OverviewDepthPeeks");
-    expect(firstView).toContain("Weekend vs weekday");
-    expect(firstView).toContain("bookTypicalOrder");
+    expect(firstView).toContain("Typical order");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
     expect(firstView).not.toContain("mcfly-first-view");
-    expect(firstView).not.toContain('value={salesPending ? "—"');
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("Live is parked until launch");
     expect(read("../routes/app._index.tsx")).toContain("<OverviewSalesChart");
     expect(read("../routes/app._index.tsx")).toContain("<OverviewYoyCards");
 

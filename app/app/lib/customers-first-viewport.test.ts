@@ -167,11 +167,13 @@ describe("Customers first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(customers.indexOf("<CustomerRetentionBoard")).toBeLessThan(
       customers.indexOf("<CustomerRfmBoard"),
     );
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("mcfly-customers-hero");
-    expect(firstView).toContain("if (salesPending)");
+    expect(firstView).toContain("mcfly-split");
+    expect(firstView).toContain("salesPending: _salesPending");
     expect(firstView).toContain("CUSTOMERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_CUSTOMERS_DOOR");
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("mcfly-kpi--soft");
     expect(firstView).not.toContain("0.00×");
     expect(firstView).not.toMatch(/>\$0</);
     expect(firstView).not.toContain("Klaviyo");

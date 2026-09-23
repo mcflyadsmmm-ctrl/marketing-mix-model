@@ -174,26 +174,32 @@ export default function PublicDemoOverview() {
 
         {onHome ? (
           <div className="mcfly-desk-anchor mcfly-scoreboard--overview" id={DESK_SECTION.overview}>
-            <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL}>
+            <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
               {embed === "yoy" ? null : (
                 <OverviewFirstViewport
-                  orderCount={data.sales.orderCount}
-                  typicalOrder={data.depth.medianAov}
+                  orderCount={data.orderHero.orderCount}
+                  typicalOrder={data.orderHero.typicalOrder}
                   meanAov={
-                    data.sales.orderCount > 0
-                      ? data.sales.totalSales / data.sales.orderCount
+                    data.orderHero.orderCount > 0 && data.orderHero.sales != null
+                      ? data.orderHero.sales / data.orderHero.orderCount
                       : null
                   }
                   typicalDay={data.depth.medianDailySales}
-                  returningSalesShare={data.book.returningSalesShare}
-                  returningSales={data.book.returningSales}
+                  returningSalesShare={
+                    data.orderHero.sales != null &&
+                    data.orderHero.sales > 0 &&
+                    data.orderHero.returningSales != null
+                      ? data.orderHero.returningSales / data.orderHero.sales
+                      : data.book.returningSalesShare
+                  }
+                  returningSales={data.orderHero.returningSales}
                   newSales={data.book.newSales}
                   mixGreeting={mixRead?.line}
                   medianDaysToSecond={data.depth.medianDaysToSecond}
-                  weekendSalesShare={data.depth.weekendSalesShare}
+                  weekendSalesShare={data.orderHero.weekendShare}
                   peakWeekday={data.depth.peakWeekday}
                   weekdaySalesShare={data.depth.weekdaySalesShare}
-                  windowSales={data.sales.totalSales}
+                  windowSales={data.orderHero.sales}
                   ltvPeek={ltvPeek?.amount ?? null}
                   ltvPeekDays={ltvPeek?.days ?? null}
                   ltvHistoryLimited={false}
@@ -203,16 +209,11 @@ export default function PublicDemoOverview() {
                   salesPending={false}
                   ordersHref={ordersHref}
                   useSampleDesk
+                  orderHero={data.orderHero}
+                  periodLabel={data.rangeLabel === "Month to date" ? "This month" : data.rangeLabel}
                 />
               )}
               {embed === "typical" ? null : (
-                <OverviewYoyCards
-                  cards={data.yoyCards}
-                  salesPending={false}
-                  yoyHref={yoyHref}
-                />
-              )}
-              {embed === "overview" || embed === "yoy" || embed === "typical" ? null : (
                 <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
                   <OverviewSalesChart
                     days={data.explorerDays}
@@ -225,6 +226,13 @@ export default function PublicDemoOverview() {
             </DeskLane>
             {embed ? null : (
               <>
+                <DeskLane rank="next" label="Same days last year">
+                  <OverviewYoyCards
+                    cards={data.yoyCards}
+                    salesPending={false}
+                    yoyHref={yoyHref}
+                  />
+                </DeskLane>
                 <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                 <DeskLane rank="next" label="Mix and month close">
                   <OverviewMixForecast
@@ -245,27 +253,34 @@ export default function PublicDemoOverview() {
                   defaultOpen={data.shotMode}
                 >
                   <OverviewDepthPeeks
-                    orderCount={data.sales.orderCount}
-                    typicalOrder={data.depth.medianAov}
+                    orderCount={data.orderHero.orderCount}
+                    typicalOrder={data.orderHero.typicalOrder}
                     meanAov={
-                      data.sales.orderCount > 0
-                        ? data.sales.totalSales / data.sales.orderCount
+                      data.orderHero.orderCount > 0 && data.orderHero.sales != null
+                        ? data.orderHero.sales / data.orderHero.orderCount
                         : null
                     }
                     typicalDay={data.depth.medianDailySales}
-                    returningSalesShare={data.book.returningSalesShare}
-                    returningSales={data.book.returningSales}
-                    weekendSalesShare={data.depth.weekendSalesShare}
+                    returningSalesShare={
+                      data.orderHero.sales != null &&
+                      data.orderHero.sales > 0 &&
+                      data.orderHero.returningSales != null
+                        ? data.orderHero.returningSales / data.orderHero.sales
+                        : data.book.returningSalesShare
+                    }
+                    returningSales={data.orderHero.returningSales}
+                    weekendSalesShare={data.orderHero.weekendShare}
                     peakWeekday={data.depth.peakWeekday}
                     weekdaySalesShare={data.depth.weekdaySalesShare}
-                    windowSales={data.sales.totalSales}
+                    windowSales={data.orderHero.sales}
                     salesPending={false}
                     ordersHref={ordersHref}
                     useSampleDesk
+                    orderHero={data.orderHero}
                   />
                   <WeekdaySalesChart
                     shares={data.depth.weekdaySalesShare}
-                    windowSales={data.sales.totalSales}
+                    windowSales={data.orderHero.sales ?? data.sales.totalSales}
                     peakWeekday={data.depth.peakWeekday}
                   />
                 </DeskLane>

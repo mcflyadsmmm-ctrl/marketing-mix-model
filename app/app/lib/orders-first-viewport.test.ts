@@ -160,11 +160,13 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
       orders.indexOf("<OrdersIntelligence"),
     );
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("mcfly-orders-under");
     expect(firstView).toContain("mcfly-orders-hero");
-    expect(firstView).toContain("if (salesPending)");
+    expect(firstView).toContain("salesPending: _salesPending");
     expect(firstView).toContain("ORDERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_ORDERS_DOOR");
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("mcfly-kpi--soft");
     expect(firstView).not.toContain("0.00×");
     for (const ban of ORDERS_SPEND_BANS) {
       expect(firstView).not.toContain(ban);

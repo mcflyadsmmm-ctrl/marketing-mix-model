@@ -16,7 +16,8 @@ export const DESK_LANE_HINT: Record<DeskLaneRank, string> = {
 export const DESK_DRILL_MORE = "More about this number";
 
 export function deskLaneHint(rank: DeskLaneRank, hint?: string): string {
-  if (hint && hint.trim()) return hint.trim();
+  // Explicit hint (including "") wins — Overview first fold suppresses theater.
+  if (hint !== undefined) return hint.trim();
   switch (rank) {
     case "first":
       return DESK_LANE_HINT.first;

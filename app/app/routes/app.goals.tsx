@@ -802,16 +802,9 @@ export default function GoalsPage() {
         ) : null}
 
         <div className="mcfly-goals__main">
-          <OrderHistoryGoalsBoard
-            view={habitGoals}
-            year={year}
-            busy={isSaving || isRevalidating}
-          />
-          <OrderHistoryForecast view={orderForecast} variant="goals" />
-
-          {/* One hero, drill rows — same book language as Orders and Buyers. */}
+          {/* Sales figure first — habit board + forecast stay below. */}
           <section
-            className="mcfly-book mcfly-book--soft mcfly-goals-hero--soft"
+            className="mcfly-book mcfly-goals-hero"
             aria-label={`Sales · ${periodMetrics.period.label}`}
           >
             <p className="mcfly-book__lede">
@@ -888,6 +881,13 @@ export default function GoalsPage() {
               />
             ) : null}
           </section>
+
+          <OrderHistoryGoalsBoard
+            view={habitGoals}
+            year={year}
+            busy={isSaving || isRevalidating}
+          />
+          <OrderHistoryForecast view={orderForecast} variant="goals" />
 
           <SalesGoalGauges
             periods={periods}

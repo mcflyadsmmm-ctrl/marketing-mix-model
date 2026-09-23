@@ -41,7 +41,9 @@ export function DeskLane({
     return (
       <section className={className} aria-label={label}>
         <header className="mcfly-lane__head">
-          <p className="mcfly-lane__hint">{resolvedHint}</p>
+          {resolvedHint ? (
+            <p className="mcfly-lane__hint">{resolvedHint}</p>
+          ) : null}
           <p className="mcfly-lane__label">{label}</p>
         </header>
         <div className="mcfly-lane__body">{children}</div>
@@ -58,7 +60,9 @@ export function DeskLane({
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="mcfly-lane__hint">{resolvedHint}</span>
+        {resolvedHint ? (
+          <span className="mcfly-lane__hint">{resolvedHint}</span>
+        ) : null}
         <span className="mcfly-lane__label">{label}</span>
         <span className="mcfly-lane__chev">{deskLaneFoldLabel(label, open)}</span>
       </button>
