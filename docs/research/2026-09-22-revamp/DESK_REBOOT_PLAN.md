@@ -34,7 +34,7 @@ Craft density without a **pending religion** and a **tab religion** is lipstick.
 
 - **Goals** → Settings subsection or Home “Targets” fold (`rank="more"`). Not a top tab.
 - **Settings** → Shopify Admin app menu / gear only (Polaris pattern). Not a sixth pill.
-- Kill `DeskPanelRail` jump chips on Home until Home is boringly clear.
+- Kill `DeskPanelRail` jump chips (**Returning · LTV · Growth · Depth**) and `MorningHabitStrip` pill row — three chrome rows is an uninstall by itself.
 - Public `/demo` mirrors the same three tabs.
 
 ### 2. Pending religion — one breath, never a farm
