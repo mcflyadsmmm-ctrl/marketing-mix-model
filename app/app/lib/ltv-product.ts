@@ -24,6 +24,7 @@ import {
   FIRST_PRODUCT_TITLES_COPY,
   FIRST_PRODUCT_TITLES_VERB,
 } from "./ltv-first-product";
+import { paintedYearDollars } from "./ltv-year-honesty";
 
 /** Same 30 / 90 / 365 seals as the LTV flagship — copied, not imported, to keep this chunk isolated. */
 type ProductWindow = 30 | 90 | 365;
@@ -148,7 +149,11 @@ function sealedWindow(
   asOf: Date,
   days: ProductWindow,
   minMature: number,
+  yearBlocked = false,
 ): { value: number | null; n: number; comeBack: number | null } {
+  if (days === 365 && yearBlocked) {
+    return { value: null, n: 0, comeBack: null };
+  }
   const mature = matureForWindow(members, asOf, days);
   if (mature.length < minMature) {
     return { value: null, n: mature.length, comeBack: null };
@@ -157,8 +162,9 @@ function sealedWindow(
   for (const c of mature) {
     if (c.reorderDays != null && c.reorderDays <= days) back += 1;
   }
+  const value = mean(mature.map((c) => windowSpend(c, days)));
   return {
-    value: mean(mature.map((c) => windowSpend(c, days))),
+    value: days === 365 ? paintedYearDollars(value) : value,
     n: mature.length,
     comeBack: back / mature.length,
   };
@@ -269,10 +275,13 @@ function shopWindow(
   asOf: Date,
   days: ProductWindow,
   minMature: number,
+  yearBlocked = false,
 ): number | null {
+  if (days === 365 && yearBlocked) return null;
   const mature = matureForWindow(customers, asOf, days);
   if (mature.length < minMature) return null;
-  return mean(mature.map((c) => windowSpend(c, days)));
+  const value = mean(mature.map((c) => windowSpend(c, days)));
+  return days === 365 ? paintedYearDollars(value) : value;
 }
 
 function sortProductRows(rows: FirstProductLtvRow[]): FirstProductLtvRow[] {
@@ -404,11 +413,12 @@ function summarizeProduct(
   shop90: number | null,
   shop365: number | null,
   minMature: number,
+  yearBlocked = false,
 ): FirstProductLtvRow | null {
   if (members.length < minMature) return null;
-  const d30 = sealedWindow(members, asOf, 30, minMature);
-  const d90 = sealedWindow(members, asOf, 90, minMature);
-  const d365 = sealedWindow(members, asOf, 365, minMature);
+  const d30 = sealedWindow(members, asOf, 30, minMature, yearBlocked);
+  const d90 = sealedWindow(members, asOf, 90, minMature, yearBlocked);
+  const d365 = sealedWindow(members, asOf, 365, minMature, yearBlocked);
   const lifetime = mean(members.map((c) => c.lifetimeSpend));
   if (lifetime == null) return null;
 
@@ -481,17 +491,18 @@ function summarizeProduct(
 export function buildProductLtv(
   orders: DepthOrder[],
   asOf: Date,
-  options?: { minBuyers?: number; maxRows?: number },
+  options?: { minBuyers?: number; maxRows?: number; yearBlocked?: boolean },
 ): ProductLtvView {
   const minBuyers = options?.minBuyers ?? PRODUCT_MIN_BUYERS;
   const maxRows = options?.maxRows ?? PRODUCT_MAX_ROWS;
+  const yearBlocked = Boolean(options?.yearBlocked);
   const customers = rollUpCustomers(orders);
   const productsKnown = orders.some((o) => o.product != null && o.product !== "");
   const named = customers.filter(
     (c) => c.firstProduct != null && c.firstProduct !== "",
   );
-  const shop90 = shopWindow(customers, asOf, 90, minBuyers);
-  const shop365 = shopWindow(customers, asOf, 365, minBuyers);
+  const shop90 = shopWindow(customers, asOf, 90, minBuyers, yearBlocked);
+  const shop365 = shopWindow(customers, asOf, 365, minBuyers, yearBlocked);
 
   const groups = new Map<string, CustomerDepth[]>();
   for (const c of named) {
@@ -510,6 +521,7 @@ export function buildProductLtv(
       shop90,
       shop365,
       minBuyers,
+      yearBlocked,
     );
     if (row) rows.push(row);
   }

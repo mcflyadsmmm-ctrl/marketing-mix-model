@@ -49,6 +49,7 @@ export async function loadCustomersStackPage(request: Request) {
       loadLtvDepth({
         shopId: shop.id,
         useSampleDesk: base.useSampleDesk,
+        orderBookDepth: base.orderBookDepth,
         historyLimited: Boolean(
           !base.useSampleDesk &&
             (base.orderBackfillProgress?.historyLimited ||

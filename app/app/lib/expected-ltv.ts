@@ -10,6 +10,7 @@
  */
 
 import type { CustomerDepth } from "./ltv-depth";
+import { paintedYearDollars } from "./ltv-year-honesty";
 
 /** Same floor as the first-order triangle. Locked equal in tests. */
 export const EXPECTED_LTV_MIN_MATURE = 8;
@@ -180,13 +181,17 @@ function sealedBuyers(
 export function expectedLtvFromRetention(
   customers: CustomerDepth[],
   asOf: Date,
+  options?: { omitYear?: boolean },
 ): ExpectedLtvEstimate {
   const monthKeys = recentMonthKeys(customers);
   if (monthKeys.length < 2) return missingEstimate();
+  const windows = options?.omitYear
+    ? WINDOWS.filter((days) => days !== 365)
+    : WINDOWS;
 
   let horizon: HorizonDays | null = null;
   let buyers: CustomerDepth[] = [];
-  for (const days of WINDOWS) {
+  for (const days of windows) {
     const sealed = sealedBuyers(customers, monthKeys, asOf, days);
     if (sealed.length < EXPECTED_LTV_MIN_MATURE) continue;
     horizon = days;
@@ -217,6 +222,9 @@ export function expectedLtvFromRetention(
     !Number.isFinite(expectedOrders) ||
     !Number.isFinite(expected)
   ) {
+    return missingEstimate();
+  }
+  if (horizon === 365 && paintedYearDollars(expected) == null) {
     return missingEstimate();
   }
 

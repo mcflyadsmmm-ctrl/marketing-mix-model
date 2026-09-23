@@ -133,8 +133,11 @@ describe("LTV route mounts the Black Clover value build", () => {
     expect(ltv).toContain('label: "First 30 days"');
     expect(ltv).toContain('label: "First 90 days"');
     expect(ltv).toContain('label: "First year"');
-    // Year is pending until enough buyers have lived it — not a 60-day cap.
-    expect(ltv).toContain("const yearOnFile = isNum(ltv.avgRevenueD365)");
+    // Year is pending until it is a certified dollar — not $0, not a short book.
+    expect(ltv).toContain(
+      "const yearDollars = paintedYearDollars(ltv.avgRevenueD365)",
+    );
+    expect(ltv).toContain("const yearOnFile = yearDollars != null");
     expect(ltv).toContain("pending: yearPending");
   });
 });

@@ -8,6 +8,13 @@ import {
 } from "./order-facts.server";
 import { cashPaybackDays } from "./cash-payback";
 import { ORDER_STEP_MIN_BUYERS } from "./customers-analytics";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import {
+  cohortHasLivedYear,
+  firstYearBlocked,
+  orderBookSpanDays,
+  paintedYearDollars,
+} from "./ltv-year-honesty";
 
 export { cashPaybackDays } from "./cash-payback";
 export { truncatedLifetimeLine } from "./till-ltv";
@@ -114,6 +121,14 @@ export function summarizeTillLtvFromCohorts(
     useSampleDesk?: boolean;
     ianaTimezone?: string | null;
     truncatedLifetimeBuyers?: number;
+    /**
+     * Unpaid 90-day slice, Shopify history cap, or a book that does not
+     * span a year. First year stays null — never a certified $0.
+     */
+    yearBlocked?: boolean;
+    /** When set with `gateYearOnElapsed`, only year-old cohorts count. */
+    asOf?: Date;
+    gateYearOnElapsed?: boolean;
   },
 ): TillLtvSummary {
   const withCustomers = allCohorts.filter((c) => c.customers > 0);
@@ -144,11 +159,19 @@ export function summarizeTillLtvFromCohorts(
   const avgRevenueD90 = sealLtv
     ? customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD90)
     : null;
-  // ~60-day `read_orders` is not a calendar year — never seal 365 as a dollar.
+  // A short, capped, or still-young book is not a calendar year — never seal
+  // 365 as a dollar, and never as a certified $0.
+  const yearAsOf = options.asOf;
+  const yearRows =
+    options.gateYearOnElapsed && yearAsOf
+      ? withCustomers.filter((row) => cohortHasLivedYear(row.cohortMonth, yearAsOf))
+      : withCustomers;
   const avgRevenueD365 =
-    !sealLtv || historyLimited
+    !sealLtv || historyLimited || options.yearBlocked
       ? null
-      : customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD365);
+      : paintedYearDollars(
+          customerWeightedAvgRevenue(yearRows, (r) => r.revenueD365),
+        );
   const avgOrdersD90 = sealLtv
     ? customerWeightedAvgRevenue(withCustomers, (r) => r.ordersD90)
     : null;
@@ -248,6 +271,17 @@ export async function buildTillLtvSummary(
   ]);
 
   const truncatedLifetimeBuyers = computeCohortRollups(depthRows).truncatedBuyers;
+  const asOf = new Date();
+  const yearBlocked = options.useSampleDesk
+    ? false
+    : firstYearBlocked({
+        historyLimited,
+        orderBookDepth: await shopLiveIngestDepth(shopId),
+        bookSpanDays: orderBookSpanDays(
+          depthRows.map((row) => row.orderedAt),
+          asOf,
+        ),
+      });
 
   return summarizeTillLtvFromCohorts(
     allCohorts.map((c) => ({
@@ -272,6 +306,9 @@ export async function buildTillLtvSummary(
       useSampleDesk: options.useSampleDesk,
       ianaTimezone: options.ianaTimezone,
       truncatedLifetimeBuyers,
+      yearBlocked,
+      asOf,
+      gateYearOnElapsed: !options.useSampleDesk,
     },
   );
 }

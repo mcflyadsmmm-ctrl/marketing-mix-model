@@ -25,6 +25,7 @@ import {
   type CustomerDepth,
   type DepthOrder,
 } from "./ltv-depth";
+import { paintedYearDollars } from "./ltv-year-honesty";
 
 /** Same 30 / 90 / 365 seals as Product→LTV — copied, not imported, to keep this chunk isolated. */
 type PromoWindow = 30 | 90 | 365;
@@ -260,8 +261,9 @@ function sealedWindow(
   for (const c of mature) {
     if (c.reorderDays != null && c.reorderDays <= days) back += 1;
   }
+  const raw = mean(mature.map((c) => windowSpend(c, days)));
   return {
-    value: mean(mature.map((c) => windowSpend(c, days))),
+    value: days === 365 ? paintedYearDollars(raw) : raw,
     n: mature.length,
     comeBack: back / mature.length,
   };

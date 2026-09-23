@@ -28,6 +28,7 @@ import {
   type FirstProductDriversView,
 } from "./ltv-first-product";
 import { buildProductLtv, type ProductLtvView } from "./ltv-product";
+import { paintedYearDollars } from "./ltv-year-honesty";
 import { buildPromoLtv, type PromoLtvView } from "./ltv-promo";
 import { buildLtvBySource, type SourceLtvView } from "./ltv-by-source";
 
@@ -251,13 +252,15 @@ export function windowRevenue(
   customers: CustomerDepth[],
   asOf: Date,
   days: LtvFlagshipWindow,
-  options?: { minMature?: number },
+  options?: { minMature?: number; yearBlocked?: boolean },
 ): { revenue: number | null; n: number } {
+  if (days === 365 && options?.yearBlocked) return { revenue: null, n: 0 };
   const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
   const mature = matureForWindow(customers, asOf, days);
   if (mature.length < minMature) return { revenue: null, n: mature.length };
+  const revenue = mean(mature.map((c) => windowSpend(c, days)));
   return {
-    revenue: mean(mature.map((c) => windowSpend(c, days))),
+    revenue: days === 365 ? paintedYearDollars(revenue) : revenue,
     n: mature.length,
   };
 }
@@ -291,13 +294,19 @@ function addedAfterPriorAmong(
 export function flagshipWindowCurve(
   customers: CustomerDepth[],
   asOf: Date,
-  options?: { minMature?: number },
+  options?: { minMature?: number; yearBlocked?: boolean },
 ): FlagshipWindowCurve | null {
   if (customers.length === 0) return null;
   const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
+  const yearBlocked = Boolean(options?.yearBlocked);
   const points = LTV_FLAGSHIP_WINDOWS.map((days) => {
-    const retain = windowRetention(customers, asOf, days, options);
-    const rev = windowRevenue(customers, asOf, days, options);
+    const blockedYear = yearBlocked && days === 365;
+    const retain = blockedYear
+      ? { rate: null, n: 0 }
+      : windowRetention(customers, asOf, days, options);
+    const rev = blockedYear
+      ? { revenue: null, n: 0 }
+      : windowRevenue(customers, asOf, days, options);
     const added =
       rev.revenue != null
         ? addedAfterPriorAmong(customers, asOf, days, minMature)
@@ -320,12 +329,16 @@ function monthWindowCell(
   members: CustomerDepth[],
   asOf: Date,
   days: LtvFlagshipWindow,
+  yearBlocked = false,
 ): {
   retain: number | null;
   revenue: number | null;
   grossRevenue: number | null;
   n: number;
 } {
+  if (days === 365 && yearBlocked) {
+    return { retain: null, revenue: null, grossRevenue: null, n: 0 };
+  }
   const mature = matureForWindow(members, asOf, days);
   if (mature.length === 0) {
     return { retain: null, revenue: null, grossRevenue: null, n: 0 };
@@ -344,10 +357,12 @@ function monthWindowCell(
     }
     grossValues.push(gross);
   }
+  const net = mean(mature.map((c) => windowSpend(c, days)));
+  const gross = grossKnown ? mean(grossValues) : null;
   return {
     retain: back / mature.length,
-    revenue: mean(mature.map((c) => windowSpend(c, days))),
-    grossRevenue: grossKnown ? mean(grossValues) : null,
+    revenue: days === 365 ? paintedYearDollars(net) : net,
+    grossRevenue: days === 365 ? paintedYearDollars(gross) : gross,
     n: mature.length,
   };
 }
@@ -359,9 +374,10 @@ function monthWindowCell(
 export function flagshipMonthRows(
   customers: CustomerDepth[],
   asOf: Date,
-  options?: { maxRows?: number },
+  options?: { maxRows?: number; yearBlocked?: boolean },
 ): FlagshipMonthRow[] {
   const maxRows = options?.maxRows ?? FLAGSHIP_MAX_MONTH_ROWS;
+  const yearBlocked = Boolean(options?.yearBlocked);
   const groups = new Map<string, CustomerDepth[]>();
   for (const c of customers) {
     const list = groups.get(c.cohortMonth) ?? [];
@@ -373,9 +389,9 @@ export function flagshipMonthRows(
   for (const cohortMonth of months.slice(-maxRows)) {
     const members = groups.get(cohortMonth) ?? [];
     if (members.length === 0) continue;
-    const d30 = monthWindowCell(members, asOf, 30);
-    const d90 = monthWindowCell(members, asOf, 90);
-    const d365 = monthWindowCell(members, asOf, 365);
+    const d30 = monthWindowCell(members, asOf, 30, yearBlocked);
+    const d90 = monthWindowCell(members, asOf, 90, yearBlocked);
+    const d365 = monthWindowCell(members, asOf, 365, yearBlocked);
     rows.push({
       cohortMonth,
       label: monthLabel(cohortMonth),
@@ -631,9 +647,10 @@ function formulaLine(
 export function predictiveLtv(
   customers: CustomerDepth[],
   asOf: Date,
-  options?: { minMature?: number },
+  options?: { minMature?: number; yearBlocked?: boolean },
 ): PredictiveLtv | null {
   const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
+  const yearBlocked = Boolean(options?.yearBlocked);
   const mature90 = matureForWindow(customers, asOf, 90);
   const mature365 = matureForWindow(customers, asOf, 365);
 
@@ -652,14 +669,20 @@ export function predictiveLtv(
   const firstOrder365 = mean(mature365.map((c) => c.firstAmount));
   const extraOrders365 = extraOrderAverage(mature365, 365);
   const laterOrder365 = laterOrderAverage(mature365, 365);
-  const predicted365 =
-    mature365.length >= minMature
-      ? predictedFromParts(firstOrder365, extraOrders365, laterOrder365)
-      : null;
-  const observed365 =
-    mature365.length >= minMature
-      ? mean(mature365.map((c) => c.day365Spend))
-      : null;
+  const predicted365 = yearBlocked
+    ? null
+    : paintedYearDollars(
+        mature365.length >= minMature
+          ? predictedFromParts(firstOrder365, extraOrders365, laterOrder365)
+          : null,
+      );
+  const observed365 = yearBlocked
+    ? null
+    : paintedYearDollars(
+        mature365.length >= minMature
+          ? mean(mature365.map((c) => c.day365Spend))
+          : null,
+      );
 
   if (predicted90 == null && predicted365 == null) return null;
 
@@ -982,22 +1005,27 @@ export interface LtvFlagshipView extends LtvDepthView {
 export function buildLtvFlagship(
   orders: DepthOrder[],
   asOf: Date,
-  options: { sample: boolean; historyLimited?: boolean },
+  options: { sample: boolean; historyLimited?: boolean; yearBlocked?: boolean },
 ): LtvFlagshipView {
   const view = buildLtvDepth(orders, asOf, options);
   const customers = rollUpCustomers(orders);
+  const yearBlocked =
+    !options.sample &&
+    (Boolean(options.historyLimited) || Boolean(options.yearBlocked));
   return {
     ...view,
-    windows: flagshipWindowCurve(customers, asOf),
-    monthWindows: flagshipMonthRows(customers, asOf),
-    predictive: predictiveLtv(customers, asOf),
-    expectedLtv: expectedLtvFromRetention(customers, asOf),
+    windows: flagshipWindowCurve(customers, asOf, { yearBlocked }),
+    monthWindows: flagshipMonthRows(customers, asOf, { yearBlocked }),
+    predictive: predictiveLtv(customers, asOf, { yearBlocked }),
+    expectedLtv: expectedLtvFromRetention(customers, asOf, {
+      omitYear: yearBlocked,
+    }),
     refunds: refundHonesty(orders, options),
     pathClarity: pathClarity(view.paths, customers),
-    productLtv: buildProductLtv(orders, asOf),
+    productLtv: buildProductLtv(orders, asOf, { yearBlocked }),
     firstProductDrivers: buildFirstProductDrivers(orders),
     promoLtv: buildPromoLtv(orders, asOf, {
-      historyLimited: Boolean(options.historyLimited),
+      historyLimited: yearBlocked || Boolean(options.historyLimited),
     }),
     sourceLtv: buildLtvBySource(orders),
   };

@@ -17,6 +17,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { flagshipDailyRead, type LtvFlagshipView } from "../lib/ltv-flagship";
 import { truncatedLifetimeLine } from "../lib/till-ltv";
+import { paintedYearDollars } from "../lib/ltv-year-honesty";
 import {
   ltvPeekSlackInsight,
   pickShareableLtvPeek,
@@ -156,7 +157,8 @@ function useCustomersLtvPack({
    * Order revenue only; the year bar stays a — until enough buyers have lived
    * a year (thin / young shop), never a fake complete 365. — is not $0 LTV.
    */
-  const yearOnFile = isNum(ltv.avgRevenueD365);
+  const yearDollars = paintedYearDollars(ltv.avgRevenueD365);
+  const yearOnFile = yearDollars != null;
   const yearPending = !yearOnFile;
   const buildWindows: LtvBuildWindow[] = [
     {
@@ -174,7 +176,7 @@ function useCustomersLtvPack({
     {
       key: "d365",
       label: "First year",
-      value: yearOnFile ? ltv.avgRevenueD365 : null,
+      value: yearOnFile ? yearDollars : null,
       detail: yearOnFile
         ? PRODUCT_NOUN.ltv365Def
         : "Not on file yet — not enough buyers have lived a full year. Not $0 LTV.",
@@ -200,10 +202,10 @@ function useCustomersLtvPack({
       d: "Average orders per new-on-file buyer in the first 90 days after their first visible order. A buyer with earlier Shopify orders is not counted as new.",
     });
   }
-  if (isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0) {
+  if (isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0 && yearDollars != null) {
     orderRows.push({
       k: "First year",
-      v: formatCurrency(ltv.avgRevenueD365, currency),
+      v: formatCurrency(yearDollars, currency),
       d: PRODUCT_NOUN.ltv365Def,
     });
   } else if (isNum(ltv.avgRevenueD90) || isNum(ltv.avgRevenueD30)) {
@@ -231,7 +233,7 @@ function useCustomersLtvPack({
       x: [
         ltv.paybackDays != null
           ? `Interpolated average about ${ltv.paybackDays} days versus first 90 — not a recovery date.`
-          : ltv.historyLimited
+          : yearPending || ltv.historyLimited
             ? "Payback past 90 days needs a full year of orders — not on file yet."
             : "Not recovered inside the first year on average.",
         ...(ltv.newBuyers > 0
@@ -258,7 +260,9 @@ function useCustomersLtvPack({
   const monthRows: LtvRow[] = ltv.cohorts.map((row) => {
     const d90 = perCustomerRevenue(row.revenueD90, row.customers);
     const d30 = perCustomerRevenue(row.revenueD30, row.customers);
-    const d365 = perCustomerRevenue(row.revenueD365, row.customers);
+    const d365 = yearOnFile
+      ? paintedYearDollars(perCustomerRevenue(row.revenueD365, row.customers))
+      : null;
     const later = [
       d30 != null && d30 > 0 ? `30 days ${formatCurrency(d30, currency)}` : null,
       d365 != null && d365 > 0

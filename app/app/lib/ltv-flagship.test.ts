@@ -107,6 +107,55 @@ describe("30 / 90 / 365 come-back + revenue", () => {
     expect(d90.added).toBe(0);
   });
 
+  it("keeps first 30 and 90 on a short book and does not paint the year as $0", () => {
+    const asOf = new Date("2026-09-23T00:00:00.000Z");
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(order(`s${i}`, "2026-06-01", 80));
+      rows.push(order(`s${i}`, "2026-06-20", 40));
+    }
+    const curve = flagshipWindowCurve(rollUpCustomers(rows), asOf)!;
+    expect(curve.points.find((p) => p.days === 30)?.revenue).toBeCloseTo(120, 5);
+    expect(curve.points.find((p) => p.days === 90)?.revenue).toBeCloseTo(120, 5);
+    const year = curve.points.find((p) => p.days === 365)!;
+    expect(year.revenue).toBeNull();
+    expect(year.retention).toBeNull();
+    expect(year.revenue).not.toBe(0);
+  });
+
+  it("withholds a matured year when the commercial book cannot certify it", () => {
+    const asOf = new Date("2025-01-01T00:00:00.000Z");
+    const view = buildLtvFlagship(maturedBook(), asOf, {
+      sample: false,
+      historyLimited: true,
+      yearBlocked: true,
+    });
+    const year = view.windows?.points.find((p) => p.days === 365);
+    const d90 = view.windows?.points.find((p) => p.days === 90);
+    expect(d90?.revenue).not.toBeNull();
+    expect(year?.revenue).toBeNull();
+    expect(year?.revenue).not.toBe(0);
+    expect(year?.retention).toBeNull();
+    expect(view.predictive?.predicted365 ?? null).toBeNull();
+    expect(view.predictive?.observed365 ?? null).toBeNull();
+    expect(view.monthWindows.every((row) => row.rev365 == null)).toBe(true);
+    expect(view.monthWindows.every((row) => row.n365 === 0)).toBe(true);
+    expect(view.promoLtv.fullPrice365).toBeNull();
+    expect(view.promoLtv.historyLimited).toBe(true);
+  });
+
+  it("does not certify a lived year that nets to $0", () => {
+    const asOf = new Date("2025-06-01T00:00:00.000Z");
+    const rows = Array.from({ length: 8 }, (_, i) =>
+      order(`z${i}`, "2024-01-10", 0, { grossAmount: 80 }),
+    );
+    const revenue = windowRevenue(rollUpCustomers(rows), asOf, 365);
+    expect(revenue.revenue).toBeNull();
+    expect(revenue.revenue).not.toBe(0);
+    const curve = flagshipWindowCurve(rollUpCustomers(rows), asOf);
+    expect(curve?.points.find((p) => p.days === 365)?.revenue ?? null).toBeNull();
+  });
+
   it("leaves the year lift null when the year window is unsealed", () => {
     const youngAsOf = new Date("2024-02-15");
     const curve = flagshipWindowCurve(rollUpCustomers(maturedBook()), youngAsOf)!;
