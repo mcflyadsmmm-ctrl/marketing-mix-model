@@ -25,6 +25,7 @@ import {
   overviewMedian,
   overviewPresetRange,
   overviewPriorWindow,
+  overviewCertifiedSpanSales,
   overviewSameDatesSales,
   overviewSameDatesSentence,
   overviewVsTypical,
@@ -115,18 +116,28 @@ export function OverviewSalesChart({
   ordersHref = "/app/orders",
   salesPending = false,
   typicalDay = null,
-  historyDays = null,
   initialPreset = "30d",
   initialCustom = null,
+  shopifyTotalsLive = false,
+  shopifyDayTotals = null,
+  shopifyTotalsPending = false,
 }: {
   days: SalesDayPoint[];
   ordersHref?: string;
   salesPending?: boolean;
   typicalDay?: number | null;
-  /** Sales days already on the desk, including last year when the chart window is shorter. */
+  /**
+   * Order / sample history for other compares. Never the Shopify Total Sales
+   * sentence — that reads `shopifyDayTotals` only, and only when Live.
+   */
   historyDays?: SalesDayPoint[] | null;
   initialPreset?: OverviewRangePreset | "custom";
   initialCustom?: { fromKey: string; toKey: string } | null;
+  /** True only when `deskAnalyticsDayTotalsLive` is on. SAMPLE stays false. */
+  shopifyTotalsLive?: boolean;
+  /** Certified ShopifyQL SalesDayFact days. Not OrderFact page sums. */
+  shopifyDayTotals?: SalesDayPoint[] | null;
+  shopifyTotalsPending?: boolean;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -304,30 +315,24 @@ export function OverviewSalesChart({
       ? overviewDeltaPct(rangeAov, priorAov)
       : null;
 
-  const sameDatesSource = new Map<string, number>();
-  for (const day of historyDays ?? []) {
-    if (Number.isFinite(day.sales)) sameDatesSource.set(day.dateKey, day.sales);
-  }
-  for (const day of sorted) {
-    if (!sameDatesSource.has(day.dateKey) && Number.isFinite(day.sales)) {
-      sameDatesSource.set(day.dateKey, day.sales);
-    }
-  }
+  const shopifyDays = shopifyTotalsLive ? (shopifyDayTotals ?? []) : [];
   const sameDatesSentence =
-    customRange && range
+    customRange && range && shopifyTotalsLive
       ? overviewSameDatesSentence({
           fromKey: range.fromKey,
           toKey: range.toKey,
-          sales: total,
+          sales: overviewCertifiedSpanSales(
+            shopifyDays,
+            range.fromKey,
+            range.toKey,
+          ),
           priorSales: overviewSameDatesSales(
-            [...sameDatesSource.entries()].map(([dateKey, sales]) => ({
-              dateKey,
-              sales,
-            })),
+            shopifyDays,
             range.fromKey,
             range.toKey,
           ),
           money: (amount) => formatCurrency(amount, currency),
+          pending: shopifyTotalsPending,
         })
       : null;
 

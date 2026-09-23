@@ -20,6 +20,7 @@ import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import {
   overviewAov,
   overviewBucketize,
+  overviewCertifiedSpanSales,
   overviewChartAxis,
   overviewChartDayLabel,
   overviewCalendarDateLastYear,
@@ -353,6 +354,27 @@ describe("same dates last year", () => {
       (dateKey) => ({ dateKey, sales: 0 }),
     );
     expect(overviewSameDatesSales(days, "2026-09-08", "2026-09-14")).toBe(0);
+    expect(overviewCertifiedSpanSales(days, days[0]!.dateKey, days[days.length - 1]!.dateKey)).toBe(0);
+  });
+
+  it("refuses a partial span — a missing day is not $0 and not a short sum", () => {
+    const days = daySeries("2026-09-08", 7, 1000).filter(
+      (day) => day.dateKey !== "2026-09-11",
+    );
+    expect(overviewCertifiedSpanSales(days, "2026-09-08", "2026-09-14")).toBeNull();
+    const sentence = overviewSameDatesSentence({
+      fromKey: "2026-09-08",
+      toKey: "2026-09-14",
+      sales: null,
+      priorSales: 5600,
+      money,
+      pending: true,
+    });
+    expect(sentence).toBe(
+      "Shopify Total Sales for Sep 8–14, 2026 is still loading — not $0.",
+    );
+    expect(sentence).not.toContain("$6,000");
+    expect(sentence).not.toMatch(/is \$0/);
   });
 
   it("does not treat Feb 29 as Feb 28", () => {
@@ -549,6 +571,9 @@ describe("month close and the period hero stay put", () => {
       "utf8",
     );
     expect(chart).toContain("overviewSameDatesSentence");
+    expect(chart).toContain("overviewCertifiedSpanSales");
+    expect(chart).toContain("shopifyTotalsLive");
+    expect(chart).not.toContain("sales: total");
     expect(chart).toContain("overviewPriorWindow");
     expect(chart).toContain('data-overview-compare="same-dates"');
     expect(chart).not.toContain('data-overview-compare="clock"');
@@ -569,6 +594,8 @@ describe("Overview paints the labeled lines", () => {
         createElement(OverviewSalesChart, {
           days: current,
           historyDays: prior,
+          shopifyTotalsLive: true,
+          shopifyDayTotals: [...current, ...prior],
           initialPreset: "custom",
           initialCustom: { fromKey: "2026-09-08", toKey: "2026-09-14" },
           typicalDay: 1200,
@@ -589,6 +616,8 @@ describe("Overview paints the labeled lines", () => {
         createElement(OverviewSalesChart, {
           days: current,
           historyDays: gapped,
+          shopifyTotalsLive: true,
+          shopifyDayTotals: [...current, ...gapped],
           initialPreset: "custom",
           initialCustom: { fromKey: "2026-09-08", toKey: "2026-09-14" },
           typicalDay: 1200,
@@ -635,5 +664,51 @@ describe("Overview paints the labeled lines", () => {
     expect(onFile).toContain("$68,457");
     expect(onFile).toContain("same days last year $69,891");
     expect(onFile).not.toContain("Shopify Total Sales through");
+  });
+
+  it("labels Shopify Total Sales from fact days, not the order-bar sum", () => {
+    const orderDays = daySeries("2026-09-08", 7, 1200);
+    const factDays = daySeries("2026-09-08", 7, 1000);
+    const priorFacts = overviewSameDatesLastYear("2026-09-08", "2026-09-14")!.dateKeys.map(
+      (dateKey) => ({ dateKey, sales: 800 }),
+    );
+    const live = renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(OverviewSalesChart, {
+          days: orderDays,
+          shopifyTotalsLive: true,
+          shopifyDayTotals: [...factDays, ...priorFacts],
+          initialPreset: "custom",
+          initialCustom: { fromKey: "2026-09-08", toKey: "2026-09-14" },
+        }),
+      ),
+    );
+    const sentence = live.match(
+      /data-overview-compare="same-dates">([^<]+)/,
+    )?.[1];
+    expect(sentence).toBe(
+      "Shopify Total Sales for Sep 8–14, 2026 is $7,000 versus $5,600 those dates last year (+25%).",
+    );
+    expect(sentence).not.toContain("$8,400");
+    expect(live).toContain('aria-label="Orders"');
+    expect(live).toContain("$8,400");
+
+    const sample = renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(OverviewSalesChart, {
+          days: orderDays,
+          shopifyTotalsLive: false,
+          shopifyDayTotals: [...factDays, ...priorFacts],
+          initialPreset: "custom",
+          initialCustom: { fromKey: "2026-09-08", toKey: "2026-09-14" },
+        }),
+      ),
+    );
+    expect(sample).not.toContain("Shopify Total Sales");
+    expect(sample).toContain("Orders");
   });
 });
