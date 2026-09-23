@@ -12779,6 +12779,11 @@ button.mcfly-chart__month {
   font-weight: 750;
 }
 
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill--locked:not(.mcfly-desk-tabs__pill--on),
+.mcfly-desk-tabs__pill--locked:not(.mcfly-desk-tabs__pill--on) {
+  border-style: dashed;
+}
+
 /* === P0 phone / Admin-iframe narrow ===
    Founder reviews on ~390×844 and ~430px. 11 analysis tabs stay 11.
    Nav wraps as small pills (not a nowrap scroll strip). Chart / table

@@ -29,7 +29,11 @@ import {
 
 export { parseCustomersPanel, customersPanelRedirectPath };
 
-export async function loadCustomersStackPage(request: Request) {
+export async function loadCustomersStackPage(
+  request: Request,
+  options?: { includeLtv?: boolean },
+) {
+  const includeLtv = options?.includeLtv !== false;
   const base = await loadDeskSalesPage(request, "/app/customers");
   const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
@@ -46,16 +50,18 @@ export async function loadCustomersStackPage(request: Request) {
         useSampleDesk: base.useSampleDesk,
         windowEnd: base.metrics.period.end,
       }),
-      loadLtvDepth({
-        shopId: shop.id,
-        useSampleDesk: base.useSampleDesk,
-        orderBookDepth: base.orderBookDepth,
-        historyLimited: Boolean(
-          !base.useSampleDesk &&
-            (base.orderBackfillProgress?.historyLimited ||
-              base.metrics.tillLtv.historyLimited),
-        ),
-      }),
+      includeLtv
+        ? loadLtvDepth({
+            shopId: shop.id,
+            useSampleDesk: base.useSampleDesk,
+            orderBookDepth: base.orderBookDepth,
+            historyLimited: Boolean(
+              !base.useSampleDesk &&
+                (base.orderBackfillProgress?.historyLimited ||
+                  base.metrics.tillLtv.historyLimited),
+            ),
+          })
+        : Promise.resolve(null),
       prisma.spendEntry.count({
         where: { shopId: shop.id, NOT: { source: "sample" } },
       }),

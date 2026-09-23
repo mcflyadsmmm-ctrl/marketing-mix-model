@@ -40,7 +40,9 @@ Code: `app/app/lib/live-unpark.ts`. Env: `MCFLY_LIVE_STAGE`.
 | **customers** | `customers` | + Customers · Growth | Returning $, guests out, win-back |
 | **ltv** | `ltv` | + LTV | Paid $39 = full history LTV. Unpaid/trial Live = **90 closed days** (honest empties, not $0 year) |
 
-Billing is **not** a tab gate. Trial and paid both see the whole desk. The difference is **ingest depth**, not a hidden LTV paywall.
+Billing is **not** a tab gate. Once a stage is open, trial and paid both see that rung. The difference is **ingest depth**, not a hidden LTV paywall.
+
+**Wired on the desk:** `liveDeskTabAllowed` (`app/app/lib/live-desk-surface.ts`) drives Admin nav and the Customers, Growth, and LTV loaders. At `overview_orders`, `/app/customers` (and Growth / LTV redirects) render a locked empty — not Live returning dollars, whales, or LTV. SAMPLE freeze still paints the Snowdevil book and the SAMPLE watermark. Overview and Orders stay open on that rung. Git `fly.toml` stays `parked`. Do not set stage to `ltv` in git.
 
 ---
 
