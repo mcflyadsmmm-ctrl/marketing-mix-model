@@ -3,12 +3,12 @@ import { useLoaderData, useNavigation } from "react-router";
 
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskLane } from "../components/DeskLane";
+import { OrdersCompareGlance } from "../components/OrdersCompareGlance";
 import { OrdersFirstViewport } from "../components/OrdersFirstViewport";
 import { OrdersFrequencyChart } from "../components/OrdersFrequencyChart";
 import { OrdersIntelligence } from "../components/OrdersIntelligence";
 import { OrdersScoreboard } from "../components/OrdersScoreboard";
 import { OrdersTimingChart } from "../components/OrdersTimingChart";
-import { deskBookLede } from "../lib/desk-history";
 import {
   assembleOrdersIntelligence,
   ordersIntelPeriodBadge,
@@ -112,23 +112,28 @@ export default function PublicDemoOrders() {
       retryHref="/demo/orders"
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--orders">
-        <p className="mcfly-book__lede">
-          {deskBookLede(
-            "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS.",
-            "paid_full",
-          )}
-        </p>
-        <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL}>
-          <OrdersFirstViewport
-            depth={data.depth}
+        <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL} hint="">
+          <div className="mcfly-overview-first-beat mcfly-orders-first-beat">
+            <OrdersFirstViewport
+              depth={data.depth}
+              salesPending={false}
+              useSampleDesk
+              stepMix={ordersIntel?.stepMix ?? null}
+              tickets={ordersIntel?.tickets ?? null}
+              todaySalesTruncated={false}
+              periodLabel="This month"
+            />
+            <OrdersCompareGlance intel={ordersIntel ?? null} salesPending={false} />
+          </div>
+          <OrdersTimingChart
+            weekdayShares={data.depth.weekdaySalesShare}
+            hourlyShares={data.depth.hourlySalesShare}
+            peakWeekday={data.depth.peakWeekday}
             salesPending={false}
-            useSampleDesk
-            stepMix={ordersIntel?.stepMix ?? null}
-            tickets={ordersIntel?.tickets ?? null}
-            todaySalesTruncated={false}
+            timingSplit={ordersIntel?.timingSplit ?? null}
           />
         </DeskLane>
-        <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>
+        <DeskLane rank="more" label={ORDERS_CLOCK_LANE_LABEL} fold defaultOpen={data.shotMode}>
           <OrdersScoreboard
             book={data.book}
             depth={data.depth}
@@ -143,15 +148,6 @@ export default function PublicDemoOrders() {
             useSampleDesk
           />
           {ordersIntel ? <OrdersIntelligence intel={ordersIntel} /> : null}
-        </DeskLane>
-        <DeskLane rank="next" label="Weekday and hour">
-          <OrdersTimingChart
-            weekdayShares={data.depth.weekdaySalesShare}
-            hourlyShares={data.depth.hourlySalesShare}
-            peakWeekday={data.depth.peakWeekday}
-            salesPending={false}
-            timingSplit={ordersIntel?.timingSplit ?? null}
-          />
           {ordersFrequency && ordersFrequency.length > 1 ? (
             <OrdersFrequencyChart buckets={ordersFrequency} />
           ) : null}

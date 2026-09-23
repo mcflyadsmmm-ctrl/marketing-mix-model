@@ -190,11 +190,12 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     const order = [
       'rank="first"',
       "<OrdersFirstViewport",
-      'rank="next" label={ORDERS_CLOCK_LANE_LABEL}',
+      "<OrdersCompareGlance",
+      "<OrdersTimingChart",
+      'rank="more"',
+      'label={ORDERS_CLOCK_LANE_LABEL}',
       "<OrdersScoreboard",
       "<OrdersIntelligence",
-      'rank="next" label="Weekday and hour"',
-      "<OrdersTimingChart",
       "<OrdersFrequencyChart",
     ].map((tag) => orders.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
@@ -206,9 +207,10 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(scoreboard).toContain("<OrdersClockBar");
     expect(scoreboard).not.toContain("<details");
     const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf("<DeskLane", firstStart + 1);
+    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
     const firstLane = orders.slice(firstStart, firstEnd);
     expect(firstLane).toContain("<OrdersFirstViewport");
+    expect(firstLane).toContain("<OrdersTimingChart");
     expect(firstLane).not.toContain("<OrdersScoreboard");
     expect(firstLane).not.toContain("<OrdersIntelligence");
   });

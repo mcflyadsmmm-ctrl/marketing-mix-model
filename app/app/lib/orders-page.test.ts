@@ -7,35 +7,48 @@ const here = dirname(fileURLToPath(import.meta.url));
 const orders = readFileSync(join(here, "../routes/app.orders.tsx"), "utf8");
 const demoOrders = readFileSync(join(here, "../routes/demo.orders.tsx"), "utf8");
 
+const firstView = readFileSync(
+  join(here, "../components/OrdersFirstViewport.tsx"),
+  "utf8",
+);
+
 describe("Orders page", () => {
-  it("contrast lede names average vs typical/median and Shopify Analytics", () => {
-    expect(orders).toMatch(/Shopify Analytics/);
-    expect(orders).toMatch(/average/i);
-    expect(orders).toMatch(/typical/i);
-    expect(orders).toMatch(/median/i);
+  it("names average vs typical in the craft plane — no essay lede", () => {
+    expect(orders).not.toContain("mcfly-book__lede");
+    expect(firstView).toContain("ORDERS_ANALYTICS_AVERAGE_LINE");
+    expect(readFileSync(join(here, "orders-first-viewport.ts"), "utf8")).toMatch(
+      /Shopify Analytics/,
+    );
+    expect(firstView).toMatch(/average/i);
+    expect(firstView).toMatch(/Typical order|typical/i);
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
   });
 
-  it("mounts the typical-order first fold, then scoreboard, then weekday/hour chart", () => {
+  it("mounts hero + compare + chart in first lane; clock and intel fold below", () => {
     expect(orders).toContain("<OrdersFirstViewport");
+    expect(orders).toContain("<OrdersCompareGlance");
     expect(orders).toContain("<OrdersScoreboard");
     expect(orders).toContain("<OrdersTimingChart");
     expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
-      orders.indexOf("<OrdersScoreboard"),
-    );
-    expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
       orders.indexOf("<OrdersTimingChart"),
     );
+    expect(orders.indexOf("<OrdersTimingChart")).toBeLessThan(
+      orders.indexOf("<OrdersScoreboard"),
+    );
     const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf("<DeskLane", firstStart + 1);
+    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
     const firstLane = orders.slice(firstStart, firstEnd);
     expect(firstLane).toContain("<OrdersFirstViewport");
+    expect(firstLane).toContain("<OrdersCompareGlance");
+    expect(firstLane).toContain("<OrdersTimingChart");
     expect(firstLane).not.toContain("<OrdersScoreboard");
     expect(firstLane).not.toContain("<OrdersIntelligence");
   });
 
   it("pending sales are not $0", () => {
     expect(orders).toContain("salesPending");
-    expect(orders).toContain("not $0");
+    expect(firstView).toContain("ORDERS_PENDING_LINE");
+    expect(firstView).toContain("ORDERS_THIN_EMPTY_LINE");
   });
 
   it("does not put SpendExplorer, Total ROAS, or Spend Upload as the hero", () => {
@@ -45,13 +58,14 @@ describe("Orders page", () => {
   });
 
   it("mounts the same orders intelligence stack on the public orders page", () => {
+    expect(demoOrders).not.toContain("mcfly-book__lede");
     expect(demoOrders).toContain("<OrdersIntelligence");
     expect(demoOrders).toContain("<OrdersFrequencyChart");
+    expect(demoOrders.indexOf("<OrdersTimingChart")).toBeLessThan(
+      demoOrders.indexOf("<OrdersScoreboard"),
+    );
     expect(demoOrders.indexOf("<OrdersScoreboard")).toBeLessThan(
       demoOrders.indexOf("<OrdersIntelligence"),
-    );
-    expect(demoOrders.indexOf("<OrdersIntelligence")).toBeLessThan(
-      demoOrders.indexOf("<OrdersTimingChart"),
     );
   });
 });

@@ -43,23 +43,25 @@ describe("Shopify five books are visible cards", () => {
 
   it("Orders mounts the typical-order first fold then the weekday/hour chart", () => {
     expect(orders).toContain("<OrdersFirstViewport");
+    expect(orders).toContain("<OrdersCompareGlance");
     expect(orders).toContain("<OrdersScoreboard");
     expect(orders).toContain("<OrdersTimingChart");
     expect(orders).toContain("mcfly-scoreboard--orders");
-    expect(orders).toMatch(/typical/i);
-    expect(orders).toMatch(/median/i);
-    expect(orders).toMatch(/Online vs POS/);
+    const firstView = read("../components/OrdersFirstViewport.tsx");
+    const scoreboard = read("../components/OrdersScoreboard.tsx");
+    expect(`${firstView}\n${scoreboard}`).toMatch(/typical/i);
+    expect(scoreboard).toMatch(/Online vs POS/);
   });
 
   it("pending sales is a banner — the Orders board still mounts", () => {
     const pending = orders.indexOf("metrics.salesPending");
-    const section = orders.indexOf("<OrdersScoreboard");
     const chart = orders.indexOf("<OrdersTimingChart");
+    const section = orders.indexOf("<OrdersScoreboard");
     expect(pending).toBeGreaterThan(-1);
-    expect(section).toBeGreaterThan(pending);
-    expect(chart).toBeGreaterThan(section);
+    expect(chart).toBeGreaterThan(pending);
+    expect(section).toBeGreaterThan(chart);
     expect(orders).not.toContain("if (metrics.salesPending) return");
-    expect(orders).toContain("not $0");
+    expect(read("../components/OrdersFirstViewport.tsx")).toContain("ORDERS_PENDING_LINE");
   });
 
   it("Customers keeps returning dollars and an honest empty — no buyers book dump", () => {

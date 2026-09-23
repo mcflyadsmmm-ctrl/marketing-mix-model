@@ -11,6 +11,7 @@ import {
   ordersPct,
   type OrdersChartGrain,
 } from "../lib/orders-scoreboard";
+import { ORDERS_CHART_SECTION_LABEL } from "../lib/orders-first-viewport";
 import type { OrdersTimingSplit } from "../lib/orders-intelligence";
 
 export const ORDERS_CHART_EMPTY = "Needs five days with sales — not $0.";
@@ -100,10 +101,10 @@ export function OrdersTimingChart({
         aria-label="Sales by weekday or hour"
       >
         <div className="mcfly-chart__head mcfly-chart__board">
-          <p className="mcfly-chart__title">
+          <h3 className="mcfly-chart__h">
             <DeskIcon name="chart" />
-            When sales land
-          </p>
+            {ORDERS_CHART_SECTION_LABEL}
+          </h3>
           <GrainToggle grain={grain} onChange={setGrain} />
         </div>
         <p className="mcfly-chart__empty">{emptyCopy}</p>
@@ -127,15 +128,15 @@ export function OrdersTimingChart({
       aria-label="Sales by weekday or hour"
     >
       <div className="mcfly-chart__head mcfly-chart__board">
-        <p className="mcfly-chart__title">
+        <h3 className="mcfly-chart__h">
           <DeskIcon name="chart" />
-          When sales land
-        </p>
+          {ORDERS_CHART_SECTION_LABEL}
+        </h3>
         {timingSplit?.weekday.first != null ||
         timingSplit?.hourly.first != null ? (
-          <p className="mcfly-chart__sub">
+          <span className="mcfly-chart__sr">
             First-time vs already-bought. Guests out of returning.
-          </p>
+          </span>
         ) : null}
         {active ? (
           <div className="mcfly-chart__readout" role="status">

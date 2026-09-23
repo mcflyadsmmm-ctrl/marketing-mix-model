@@ -127,10 +127,12 @@ describe("Snowdevil SAMPLE math smoke", () => {
     expect(read("../lib/product-labels.ts")).toContain("Typical order");
 
     const orders = read("../routes/app.orders.tsx");
-    expect(orders).toMatch(/median/i);
-    expect(orders).toMatch(/average/i);
-    expect(orders).toMatch(/weekend/i);
-    expect(orders).toMatch(/Online vs POS/);
+    const ordersFirst = read("../components/OrdersFirstViewport.tsx");
+    const ordersScore = read("../components/OrdersScoreboard.tsx");
+    expect(`${ordersFirst}\n${ordersScore}`).toMatch(/average/i);
+    expect(`${ordersFirst}\n${orders}`).toMatch(/weekend/i);
+    expect(ordersScore).toMatch(/Online vs POS/);
+    expect(orders).not.toContain("mcfly-book__lede");
 
     const customers = read("../routes/app.customers.tsx");
     expect(customers).toMatch(/Returning dollars/i);
