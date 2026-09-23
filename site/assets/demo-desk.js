@@ -272,7 +272,7 @@
       customers: ["Customers", "Returning dollars · LTV 30/90/365 · days-to-second"],
       spend: ["Spend", "Optional · type a day or paste CSV · Total ROAS · mix · CPA"],
       goals: ["Goals", "Monthly sales plan · spend optional"],
-      settings: ["Settings", "Sample data · Live is parked · $39/mo"],
+      settings: ["Settings", "Sample data · Snowdevil · $39/mo"],
     };
     var copy = labels[key] || labels.overview;
     if (title) title.textContent = copy[0];

@@ -191,7 +191,7 @@ export const PRODUCT_NOUN = {
   samplePreviewOffReviewKicker: "You are viewing Sample data",
   samplePreviewOffReviewTitle: "These are example numbers",
   samplePreviewOffReviewBody:
-    "These are Snowdevil example numbers, not this shop. Live is parked until launch. Hide Sample data stays off until then.",
+    "These are Snowdevil example numbers, not this shop. Sample mode stays on until your orders replace it.",
   samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
     "This shop’s Shopify sales. Add daily spend on Spend Upload. Switch to Sample data in Settings to try example numbers.",

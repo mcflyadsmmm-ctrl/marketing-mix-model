@@ -9,6 +9,7 @@ import {
 } from "../lib/shopify-depth-stats";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { deskAnalyticsDayTotalsLive } from "../lib/shopify-analytics-totals";
 
 export type ShopifyBookGroup = "period" | "buyers" | "timing" | "growth";
 
@@ -758,7 +759,18 @@ function groupRows(
   }
 }
 
-function clockItems(clocks: SalesClocks, currency: string): ClockItem[] {
+function clockItems(
+  clocks: SalesClocks,
+  currency: string,
+  useSampleDesk: boolean,
+): ClockItem[] {
+  if (!deskAnalyticsDayTotalsLive(useSampleDesk)) {
+    return [
+      { k: "Gross sales", v: "—" },
+      { k: "Total Sales", v: "—" },
+      { k: "Net Sales", v: "—" },
+    ];
+  }
   return [
     clocks.grossKnown
       ? { k: "Original", v: formatCurrency(clocks.gross, currency) }
@@ -781,6 +793,7 @@ export function ShopifyBookSection({
   title,
   muted,
   id,
+  useSampleDesk = false,
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;
@@ -789,6 +802,7 @@ export function ShopifyBookSection({
   title?: string;
   muted?: string;
   id?: string;
+  useSampleDesk?: boolean;
 }) {
   const currency = useDeskCurrency();
 
@@ -807,7 +821,8 @@ export function ShopifyBookSection({
         const rows = groupRows(group, book, depth, currency).filter(
           (row) => row.k !== hero.k,
         );
-        const clock = group === "period" ? clockItems(clocks, currency) : [];
+        const clock =
+          group === "period" ? clockItems(clocks, currency, useSampleDesk) : [];
         return (
           <div key={group}>
             <div className="mcfly-book__hero">

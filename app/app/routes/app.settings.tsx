@@ -356,7 +356,7 @@ export default function SettingsPage() {
           <SampleDeskBanner
             note={
               sampleOnlyFreeze
-                ? `Settings here are real. ${PRODUCT_NOUN.totalRoas} is Snowdevil SAMPLE — Live is parked until launch.`
+                ? `Settings here are real. ${PRODUCT_NOUN.totalRoas} is Snowdevil SAMPLE — sample mode stays on until your orders replace it.`
                 : `Settings here are real. ${PRODUCT_NOUN.totalRoas} may still show Sample data.`
             }
           />

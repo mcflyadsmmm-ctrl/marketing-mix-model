@@ -29,10 +29,10 @@ export const SAMPLE_GROWTH_DOOR =
 export const SAMPLE_CUSTOMERS_DOOR =
   "Snowdevil example buyers — not this shop.";
 export const SAMPLE_SPEND_NOT_LIVE =
-  "Total ROAS here uses Snowdevil example spend — not this shop. Live is parked until launch. SAMPLE dollars do not become yours.";
+  "Total ROAS here uses Snowdevil example spend — not this shop. SAMPLE dollars do not become yours.";
 
 export const SAMPLE_LEDGER_HANDOFF =
-  "These rows are Snowdevil example spend, not this shop. Live is parked until launch. SAMPLE dollars stay SAMPLE — they will not become your spend.";
+  "These rows are Snowdevil example spend, not this shop. SAMPLE dollars stay SAMPLE — they will not become your spend.";
 
 export const TRIAL_VS_VIEW =
   `Start 7-day trial in Settings is Shopify billing — Sample | Live is a view, not a plan. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months. $39 after 7 days, one plan.`;

@@ -35,6 +35,8 @@ import {
   filterOrdersInRange,
   orderBookDaySeries,
   orderBookFirstOrderMs,
+  overviewYoyPct,
+  overviewYoyZoneFromPct,
   shiftRangeOneYear,
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
@@ -59,6 +61,10 @@ import {
   type CpaWindowSnapshot,
 } from "./cpa-desk";
 import { PRODUCT_NOUN } from "./product-labels";
+import {
+  PUBLIC_SAMPLE_LOCK_NOW,
+  PUBLIC_SAMPLE_OVERVIEW_LOCK,
+} from "./public-sample-constants";
 import type { SampleOrderFactRow } from "./order-facts.server";
 import {
   explorerRowsFromDays,
@@ -282,7 +288,7 @@ export async function loadPublicSamplePage(
   const shotMode = url.searchParams.get("shot") === "1";
   const embed = url.searchParams.get("embed")?.trim() || null;
   const preset = parsePeriodPreset(url.searchParams.get("period"));
-  const now = new Date();
+  const now = PUBLIC_SAMPLE_LOCK_NOW;
   const range = resolvePeriod(preset, now, PUBLIC_SAMPLE_TZ);
   const book = loadPublicSampleBook(now);
   const periodDays = filterSampleDays(book.days, range.start, range.end);
@@ -324,16 +330,19 @@ export async function loadPublicSamplePage(
     timeZone: PUBLIC_SAMPLE_TZ,
     windowEnd: range.end,
   });
+  const lock = PUBLIC_SAMPLE_OVERVIEW_LOCK;
+  const lockYoy = overviewYoyPct(lock.sales, lock.priorSales);
   const orderHero: OverviewOrderBookHero = {
     ...orderHeroBase,
-    typicalOrder:
-      depth.medianAov != null && Number.isFinite(depth.medianAov)
-        ? depth.medianAov
-        : orderHeroBase.typicalOrder,
-    weekendShare:
-      depth.weekendSalesShare != null
-        ? depth.weekendSalesShare
-        : orderHeroBase.weekendShare,
+    sales: lock.sales,
+    priorSales: lock.priorSales,
+    yoyPct: lockYoy,
+    zone: overviewYoyZoneFromPct(lockYoy),
+    empty: false,
+    typicalOrder: lock.typicalOrder,
+    returningSales: lock.returningSales,
+    weekendShare: lock.weekendShare,
+    orderCount: orderHeroBase.orderCount,
   };
   const native = shopifyNativePeriodStats({
     sales: sales.totalSales,

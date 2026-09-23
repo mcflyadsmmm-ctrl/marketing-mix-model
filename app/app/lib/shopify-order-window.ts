@@ -84,9 +84,18 @@ export function isUnseenShopifySalesDay(opts: {
 export function isCertifiedSalesDayFact(opts: {
   day: Date;
   sales: number;
+  /** Non-ShopifyQL rows are gaps on the read path until L2 backfill overwrites them. */
+  source?: string | null;
   now?: Date;
   scopesAllowDeep?: boolean;
 }): boolean {
+  if (
+    opts.source != null &&
+    opts.source !== "" &&
+    opts.source !== "shopifyql_sales_day_v1"
+  ) {
+    return false;
+  }
   const now = opts.now ?? new Date();
   const deep =
     opts.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();

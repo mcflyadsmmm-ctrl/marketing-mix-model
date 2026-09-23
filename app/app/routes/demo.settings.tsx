@@ -32,7 +32,7 @@ export default function PublicDemoSettings() {
       retryHref="/demo/settings"
     >
       <p className="mcfly-book__lede">
-        {PRODUCT_NOUN.sampleHint} Live is parked until launch. This public demo
+        {PRODUCT_NOUN.sampleHint} Sample mode is locked. This public demo
         cannot switch to a live shop.
       </p>
       <div className="mcfly-well mcfly-well--scoreboard mcfly-well--soft">

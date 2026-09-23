@@ -576,6 +576,38 @@ describe("getSalesFactsTotals", () => {
     );
   });
 
+  it("treats legacy zero SalesDayFact rows as gaps — totals stay empty", async () => {
+    findMany.mockResolvedValue([
+      {
+        day: new Date("2026-07-01T00:00:00.000Z"),
+        sales: 0,
+        orderCount: 0,
+        newCustomers: 0,
+        returningCustomers: 0,
+        newCustomerNetSales: 0,
+        returningCustomerNetSales: 0,
+        customerMetricsAvailable: false,
+        guestOrders: 0,
+        source: "order_sum_v0",
+      },
+    ]);
+
+    const totals = await getSalesFactsTotals(
+      "shop_1",
+      {
+        start: new Date("2026-07-01T00:00:00.000Z"),
+        end: new Date("2026-07-01T23:59:59.999Z"),
+        label: "range",
+      },
+      new Date("2026-07-15T12:00:00.000Z"),
+    );
+
+    expect(totals.totalSales).toBe(0);
+    expect(totals.dayCount).toBe(0);
+    const sales = salesResultFromFactsTotals(totals, null);
+    expect(sales.totalSales).toBe(0);
+  });
+
   it("returns zeroed totals when no fact rows exist in range", async () => {
     findMany.mockResolvedValue([]);
 

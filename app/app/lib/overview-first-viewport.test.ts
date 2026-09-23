@@ -16,6 +16,7 @@ import {
   OVERVIEW_WINBACK_PAD_DAYS,
   overviewBusiestWeekday,
   overviewGreetingPending,
+  overviewOrderBackfillLine,
   overviewHandoffPeeks,
   overviewHeroBeatsShopifyAnalytics,
   overviewNoticeSentence,
@@ -126,6 +127,10 @@ describe("overview first viewport", () => {
     expect(overviewCoverageLine("paid_full")).toBe(OVERVIEW_COVERAGE_LINE);
     expect(overviewCoverageLine("trial_slice")).toMatch(/90 closed days/);
     expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
+    expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/ShopifyQL|read_reports|day totals/i);
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(
+      /ShopifyQL|read_reports|day totals/i,
+    );
     expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/60 days/);
     expect(OVERVIEW_PENDING_LINE).toMatch(/Orders still loading|not \$0/i);
     expect(OVERVIEW_SALES_ONLY_LINE).toMatch(/Shopify orders/i);
@@ -406,6 +411,19 @@ describe("overviewGreetingPending", () => {
     ).toBe(false);
   });
 
+  it("does not pending-seal the greeting when OrderFact rows exist", () => {
+    expect(
+      overviewGreetingPending({
+        salesPending: true,
+        sales: 0,
+        coverageComplete: false,
+        factDays: 0,
+        orderCount: 118,
+        useSampleDesk: false,
+      }),
+    ).toBe(false);
+  });
+
   it("follows salesPending and never pending-seals SAMPLE", () => {
     expect(
       overviewGreetingPending({
@@ -433,6 +451,17 @@ describe("overviewGreetingPending", () => {
         useSampleDesk: true,
       }),
     ).toBe(false);
+  });
+});
+
+describe("overviewOrderBackfillLine", () => {
+  it("states N days on file while the crawl is still short of the window", () => {
+    expect(overviewOrderBackfillLine(9)).toBe(
+      "Orders still loading — 9 days on file — not $0.",
+    );
+    expect(overviewOrderBackfillLine(0)).toBe(
+      "Orders still loading — 0 days on file — not $0.",
+    );
   });
 });
 

@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v16");
-  ensureMeta("mcfly-build", "fly311-desk");
+  ensureMeta("mcfly-version", "v43");
+  ensureMeta("mcfly-build", "rebuild-first-screen-v43");
 
   var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
   var primary =
@@ -89,7 +89,7 @@
       '<a href="/support">Support</a>' +
       '<a href="/terms">Terms</a>' +
       "</nav>" +
-      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — spend next to Shopify sales. 7-day trial, then $39/store/mo.</p>' +
+      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — spend next to Shopify sales. 7-day trial, then $39/store/mo. Trial includes 90 days of order history; paid includes up to 24 months.</p>' +
       "</div>" +
       "</footer>";
   }

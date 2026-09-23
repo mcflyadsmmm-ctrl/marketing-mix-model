@@ -375,6 +375,6 @@ describe("preserved desk chrome", () => {
     const freeze = read("./sample-desk.server.ts");
     expect(freeze).toContain("isSampleOnlyFreeze");
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("Live is parked until launch");
+    expect(bar).toContain("Sample mode is locked");
   });
 });

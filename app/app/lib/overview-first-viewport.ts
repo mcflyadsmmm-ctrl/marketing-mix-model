@@ -1,4 +1,3 @@
-import { deskHistoryCaption } from "./desk-history";
 import type { LiveIngestDepth } from "./live-ingest-depth";
 import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
@@ -9,9 +8,18 @@ import { resolveSalesReadiness } from "./sales-pending";
  * Sales / Analytics-matched. Spend stays off Overview. Marketing tabs own cash.
  */
 
-/** Paid book coverage — trial uses {@link overviewCoverageLine}("trial_slice"). */
+/** First-fold coverage — order book depth only, no ShopifyQL wording. */
 export function overviewCoverageLine(depth: LiveIngestDepth): string {
-  return deskHistoryCaption(new Date(), "sales", depth);
+  switch (depth) {
+    case "trial_slice":
+      return "Trial: 90 closed days of orders";
+    case "paid_full":
+      return "Paid: up to 24 months of orders";
+    default: {
+      const _never: never = depth;
+      return _never;
+    }
+  }
 }
 
 export const OVERVIEW_COVERAGE_LINE = overviewCoverageLine("paid_full");
@@ -24,6 +32,12 @@ export const OVERVIEW_SHOP_NOT_COMPANY =
 
 export const OVERVIEW_PENDING_LINE =
   "Orders still loading — not $0.";
+
+/** Order-fact crawl resume — N complete closed days on file, window still filling. */
+export function overviewOrderBackfillLine(completeDays: number): string {
+  const n = Math.max(0, Math.floor(completeDays));
+  return `Orders still loading — ${n} days on file — not $0.`;
+}
 
 /** Chart / YoY card label — deeper sections; first-fold hero uses From orders. */
 export const OVERVIEW_PERIOD_TOTAL_LABEL = "Shopify Total Sales";
@@ -159,6 +173,8 @@ export type OverviewGreetingInput = {
   coverageComplete?: boolean | null;
   periodExceedsFactWindow?: boolean;
   useSampleDesk?: boolean;
+  /** Paid orders in the selected window — OrderFact book paints the hero. */
+  orderCount?: number;
   /** Certified SalesDayFact rows in the selected window. */
   factDays?: number | null;
 };
@@ -190,6 +206,11 @@ function wholePercent(share: number): number {
  */
 export function overviewGreetingPending(input: OverviewGreetingInput): boolean {
   if (input.useSampleDesk) return false;
+  const orderCount =
+    input.orderCount != null && Number.isFinite(input.orderCount)
+      ? Math.max(0, Math.trunc(input.orderCount))
+      : 0;
+  if (orderCount > 0) return false;
   if (input.salesPending) return true;
 
   const sales = Number.isFinite(input.sales) ? input.sales : 0;

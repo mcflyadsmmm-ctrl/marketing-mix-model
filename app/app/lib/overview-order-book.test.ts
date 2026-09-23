@@ -66,7 +66,7 @@ describe("overview order book", () => {
   it("builds hero YoY from order windows and withholds fake +∞% prior", () => {
     const windowOrders = [
       row({
-        amount: 108_666,
+        amount: 42_000,
         orderedAt: new Date("2026-09-10T12:00:00.000Z"),
         customerKey: "a",
         shopLocalDate: new Date("2026-09-10T00:00:00.000Z"),
@@ -74,7 +74,7 @@ describe("overview order book", () => {
     ];
     const priorOrders = [
       row({
-        amount: 96_947,
+        amount: 37_500,
         orderedAt: new Date("2025-09-10T12:00:00.000Z"),
         customerKey: "a",
         shopLocalDate: new Date("2025-09-10T00:00:00.000Z"),
@@ -86,9 +86,9 @@ describe("overview order book", () => {
       firstByCustomer: orderBookFirstOrderMs([...priorOrders, ...windowOrders]),
       typicalOrder: 602,
     });
-    expect(hero.sales).toBe(108_666);
-    expect(hero.priorSales).toBe(96_947);
-    expect(hero.yoyPct).toBeCloseTo(12.09, 1);
+    expect(hero.sales).toBe(42_000);
+    expect(hero.priorSales).toBe(37_500);
+    expect(hero.yoyPct).toBeCloseTo(12, 0);
     expect(hero.zone).toBe("up");
     expect(hero.empty).toBe(false);
 
@@ -106,21 +106,21 @@ describe("overview order book", () => {
     expect(
       overviewOrderHeroSentence({
         periodLabel: "This month",
-        salesLabel: "$108,666",
-        yoyPct: 12.09,
+        salesLabel: "$42,000",
+        yoyPct: 12,
         empty: false,
         missingPrior: false,
       }),
-    ).toBe("This month is $108,666 — up 12% vs the same days last year.");
+    ).toBe("This month is $42,000 — up 12% vs the same days last year.");
     expect(
       overviewOrderHeroSentence({
         periodLabel: "This month",
-        salesLabel: "$108,666",
+        salesLabel: "$42,000",
         yoyPct: null,
         empty: false,
         missingPrior: true,
       }),
-    ).toBe(`This month is $108,666 — ${OVERVIEW_PRIOR_MISSING_LINE}`);
+    ).toBe(`This month is $42,000 — ${OVERVIEW_PRIOR_MISSING_LINE}`);
     expect(
       overviewOrderHeroSentence({
         periodLabel: "This month",

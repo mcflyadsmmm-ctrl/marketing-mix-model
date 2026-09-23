@@ -5,6 +5,7 @@
  */
 
 import { formatCurrency } from "./mer-format";
+import { deskAnalyticsDayTotalsLive } from "./shopify-analytics-totals";
 import { PRODUCT_NOUN } from "./product-labels";
 import {
   WEEKDAY_SHORT,
@@ -188,7 +189,15 @@ export function buildOrdersHero(
 export function buildOrdersClock(
   clocks: OrdersSalesClocks,
   currency: string,
+  useSampleDesk = false,
 ): OrdersClockItem[] {
+  if (!deskAnalyticsDayTotalsLive(useSampleDesk)) {
+    return [
+      { k: "Gross sales", v: "—" },
+      { k: "Total Sales", v: "—" },
+      { k: "Net Sales", v: "—" },
+    ];
+  }
   return [
     clocks.grossKnown
       ? { k: "Original", v: formatCurrency(clocks.gross, currency) }

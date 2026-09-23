@@ -115,7 +115,7 @@ export function OrdersScoreboard({
   useSampleDesk?: boolean;
 }) {
   const currency = useDeskCurrency();
-  const clock = buildOrdersClock(clocks, currency);
+  const clock = buildOrdersClock(clocks, currency, useSampleDesk);
   const depthFacts = buildOrdersDepthFacts(book, depth, currency);
   const timingFacts = buildOrdersTimingFacts(depth, currency);
   const kicker = salesPending

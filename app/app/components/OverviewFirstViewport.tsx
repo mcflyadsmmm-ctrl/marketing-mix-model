@@ -65,6 +65,8 @@ export type OverviewPeekProps = {
   periodLabel?: string;
   /** Unpaid = 90 closed days. Paid = up to 24 months. Required on live Overview. */
   orderBookDepth: LiveIngestDepth;
+  /** Order-fact crawl resume — N days on file, window still filling. */
+  orderBackfillLine?: string | null;
 };
 
 function PeekCard({
@@ -279,6 +281,7 @@ export function OverviewFirstViewport({
   orderHero = null,
   periodLabel = "This month",
   orderBookDepth,
+  orderBackfillLine = null,
   ...rest
 }: OverviewPeekProps) {
   const currency = useDeskCurrency();
@@ -354,7 +357,9 @@ export function OverviewFirstViewport({
         </p>
       </div>
 
-      {salesPending ? (
+      {orderBackfillLine ? (
+        <p className="mcfly-overview-plane__pending">{orderBackfillLine}</p>
+      ) : salesPending ? (
         <p className="mcfly-overview-plane__pending">{OVERVIEW_PENDING_LINE}</p>
       ) : null}
 

@@ -56,7 +56,7 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain("sampleHint");
     expect(bar).not.toContain("Switch in Settings");
     expect(bar).toContain("sampleOnlyFreeze");
-    expect(bar).toContain("Live is parked until launch");
+    expect(bar).toContain("Sample mode is locked");
     expect(bar).toContain("if (!useSampleDesk) return null");
     expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
     expect(bar).not.toContain("<Form");
@@ -88,7 +88,8 @@ describe("Sample data | Live data UX", () => {
     expect(spend).toMatch(/source:\s*"sample"/);
     expect(spend).toContain("setSampleDeskEnabled(shop.id, false)");
     expect(spend).toContain("isSampleOnlyFreeze()");
-    expect(spend).toContain("Live is parked until launch");
+    expect(spend).not.toContain("Live is parked until launch");
+    expect(spend).toContain("Sample mode is locked");
     expect(spend).toContain("/app/spend/import");
     expect(spend).not.toContain("Upload is paused on Practice");
     expect(spend).not.toContain("Switch to Your store to upload");
@@ -547,7 +548,7 @@ describe("Sample data | Live data UX", () => {
     expect(settings).toContain("More — privacy");
     expect(settings).not.toContain("Switch to Sample data now");
     expect(settings).not.toContain("Sample | Live");
-    expect(settings).toContain("Live is parked until launch");
+    expect(settings).not.toContain("Live is parked until launch");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
     expect(settings).toContain("add daily spend on Spend Upload");

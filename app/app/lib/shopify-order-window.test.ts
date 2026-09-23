@@ -76,6 +76,28 @@ describe("isUnseenShopifySalesDay / isCertifiedSalesDayFact", () => {
     ).toBe(false);
   });
 
+  it("rejects legacy order-sum SalesDayFact sources on the read path", () => {
+    const day = new Date(horizon.getTime() + 86_400_000);
+    expect(
+      isCertifiedSalesDayFact({
+        day,
+        sales: 500,
+        source: "order_sum_v0",
+        now,
+        scopesAllowDeep: false,
+      }),
+    ).toBe(false);
+    expect(
+      isCertifiedSalesDayFact({
+        day,
+        sales: 500,
+        source: "shopifyql_sales_day_v1",
+        now,
+        scopesAllowDeep: false,
+      }),
+    ).toBe(true);
+  });
+
   it("certifies a real $0 inside the window and any non-zero day", () => {
     expect(
       isUnseenShopifySalesDay({

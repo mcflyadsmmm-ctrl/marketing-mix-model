@@ -63,6 +63,7 @@ import {
   OVERVIEW_YOY_YEAR_ID,
   OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
+  overviewOrderBackfillLine,
 } from "../lib/overview-first-viewport";
 import {
   buildOrderHistoryForecast,
@@ -603,8 +604,17 @@ export default function Dashboard() {
       salesFactsCoverage?.periodExceedsFactWindow,
     ),
     useSampleDesk,
+    orderCount: orderHero?.orderCount ?? metrics.orderCount,
     factDays: salesFactsCoverage?.factDays,
   });
+  const orderBackfillResumeLine =
+    !useSampleDesk &&
+    orderBackfillProgress != null &&
+    orderBackfillProgress.remainingDays > 0 &&
+    (orderBackfillProgress.truncated ||
+      orderBackfillProgress.completeDays < orderBackfillProgress.windowDays)
+      ? overviewOrderBackfillLine(orderBackfillProgress.completeDays)
+      : null;
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel =
@@ -946,6 +956,7 @@ export default function Dashboard() {
                         : metrics.period.label
                     }
                     orderBookDepth={orderBookDepth}
+                    orderBackfillLine={orderBackfillResumeLine}
                   />
                   <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
                     <OverviewSalesChart

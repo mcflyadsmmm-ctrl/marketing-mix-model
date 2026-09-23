@@ -545,13 +545,14 @@ async function countCertifiedSalesFactDays(
 ): Promise<number> {
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: start, lte: end } },
-    select: { day: true, sales: true },
+    select: { day: true, sales: true, source: true },
   });
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
   return rows.filter((row) =>
     isCertifiedSalesDayFact({
       day: row.day,
       sales: row.sales,
+      source: row.source,
       now,
       scopesAllowDeep,
     }),
@@ -705,6 +706,7 @@ export async function getSalesFactsTotals(
       returningCustomerNetSales: true,
       customerMetricsAvailable: true,
       guestOrders: true,
+      source: true,
     },
   });
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
@@ -712,6 +714,7 @@ export async function getSalesFactsTotals(
     isCertifiedSalesDayFact({
       day: row.day,
       sales: row.sales,
+      source: row.source,
       now,
       scopesAllowDeep,
     }),
@@ -886,7 +889,7 @@ export async function getSalesFactsByDay(
   const now = options?.now ?? new Date();
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: range.start, lte: range.end } },
-    select: { day: true, sales: true },
+    select: { day: true, sales: true, source: true },
   });
 
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
@@ -896,6 +899,7 @@ export async function getSalesFactsByDay(
       !isCertifiedSalesDayFact({
         day: row.day,
         sales: row.sales,
+        source: row.source,
         now,
         scopesAllowDeep,
       })
@@ -924,7 +928,7 @@ export async function getSalesOrderFactsByDay(
   const now = options?.now ?? new Date();
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: range.start, lte: range.end } },
-    select: { day: true, sales: true, orderCount: true },
+    select: { day: true, sales: true, orderCount: true, source: true },
   });
 
   const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
@@ -934,6 +938,7 @@ export async function getSalesOrderFactsByDay(
       !isCertifiedSalesDayFact({
         day: row.day,
         sales: row.sales,
+        source: row.source,
         now,
         scopesAllowDeep,
       })

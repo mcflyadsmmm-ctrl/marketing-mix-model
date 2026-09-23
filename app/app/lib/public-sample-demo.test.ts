@@ -73,6 +73,17 @@ describe("public Remix SAMPLE desk", () => {
     expect(ltv.revenue90).toBeGreaterThan(0);
   });
 
+  it("defaults /demo to the Snowdevil lock window (1–16 Sep 2026)", async () => {
+    const page = await loadPublicSamplePage(
+      new Request("https://mcfly-analytics.fly.dev/demo"),
+    );
+    expect(page.orderHero.sales).toBe(68_457);
+    expect(page.orderHero.priorSales).toBe(69_891);
+    expect(page.orderHero.typicalOrder).toBeCloseTo(631, 0);
+    expect(page.orderHero.returningSales).toBe(45_409);
+    expect(page.orderHero.weekendShare).toBeCloseTo(0.23, 2);
+  });
+
   it("SAMPLE forecast is next month from order history, with spend left out", async () => {
     const page = await loadPublicSamplePage(
       new Request("https://mcflyads.com/demo"),
