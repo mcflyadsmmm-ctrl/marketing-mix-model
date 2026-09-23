@@ -749,7 +749,11 @@ export function SpendExplorer({
     >
       {quiet ? null : (
         <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
-          <h2>{explorerTitle}</h2>
+          {basePath.endsWith("/spend") ? (
+            <h3 className="mcfly-chart__h">{explorerTitle}</h3>
+          ) : (
+            <h2>{explorerTitle}</h2>
+          )}
         </div>
       )}
 

@@ -267,18 +267,15 @@ describe("book coverage honesty — Spend today cap and no 60-day truncated clau
     ).toMatch(/Still loading — not \$0/);
 
     const spend = read("../routes/app.spend.tsx");
-    const firstFoldStart = spend.indexOf('id="mcfly-roas"');
-    const firstFoldEnd = spend.indexOf("</section>", firstFoldStart);
-    const firstFold = spend.slice(firstFoldStart, firstFoldEnd);
-    expect(firstFold).toContain("spendFirstFoldSalesHint");
-    expect(firstFold).toContain("todaySalesTruncated");
-    expect(firstFold).toContain("todaySalesUnavailable");
+    const viewport = read("../components/SpendFirstViewport.tsx");
+    expect(spend).toContain("<SpendFirstViewport");
+    expect(viewport).toContain("spendFirstFoldSalesHint");
+    expect(spend).toContain("todaySalesTruncated");
+    expect(spend).toContain("todaySalesUnavailable");
 
     const demo = read("../routes/demo.spend.tsx");
-    const demoFoldStart = demo.indexOf('id="mcfly-roas"');
-    const demoFoldEnd = demo.indexOf("</section>", demoFoldStart);
-    const demoFold = demo.slice(demoFoldStart, demoFoldEnd);
-    expect(demoFold).toContain("spendFirstFoldSalesHint");
+    expect(demo).toContain("<SpendFirstViewport");
+    expect(viewport).toContain("spendFirstFoldSalesHint");
   });
 
   it("truncated-closed-day banners do not say about 60 days", () => {

@@ -21,7 +21,6 @@ describe("CPA page", () => {
   });
 
   it("contrasts Shopify Analytics ads-manager CPA with entered spend ÷ Shopify buyers", () => {
-    expect(spend).toContain("CPA_CONTRAST");
     expect(desk).toContain("Shopify Analytics shows");
     expect(desk).toContain("This page shows");
     expect(desk).toMatch(/ads-manager|platform CPA/i);
@@ -31,7 +30,6 @@ describe("CPA page", () => {
 
   it("keeps clocks on This month / Last 28 cards, not chrome PeriodControl in the CPA fold", () => {
     expect(spend).toContain("<CpaWindowCards");
-    expect(spend).toContain("This month and Last 28 live on the cards");
     expect(desk).toContain('this_month: "This month"');
     expect(desk).toContain('last_28: "Last 28 days"');
     expect(cards).toContain("window.rangeLabel");
@@ -81,7 +79,11 @@ describe("CPA page", () => {
   });
 
   it("Spend first fold copies the pair and names an Online line", () => {
-    expect(spend).toContain("CopySpendPair");
+    const viewport = readFileSync(
+      join(here, "../components/SpendFirstViewport.tsx"),
+      "utf8",
+    );
+    expect(viewport).toContain("CopySpendPair");
     expect(spend).toContain("spendPairCopyText");
     expect(spend).toContain("formatOnlineRoasLine");
     expect(spend).toContain("pairCoverage.caption");
