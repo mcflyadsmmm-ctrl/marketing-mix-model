@@ -219,11 +219,11 @@ describe("P1-D stays on the LTV chip and out of the niche locks", () => {
     expect(chrome).not.toMatch(/\bCAC\b/);
     expect(chrome).not.toMatch(/\bcohort\b/i);
     expect(chrome).not.toMatch(/\bAI\b/);
-    expect(nav).toContain('label: "Overview"');
-    expect(nav).toContain('label: "Orders"');
+    expect(nav).toContain('label: "Home"');
     expect(nav).toContain('label: "Customers"');
     expect(nav).toContain('label: "Spend"');
-    expect(nav).toContain('label: "Goals"');
+    expect(nav).not.toContain('label: "Orders"');
+    expect(nav).not.toContain('label: "Goals"');
     expect(rail).toContain('chip("mcfly-ltv", "LTV")');
     expect(rail).not.toContain("Predictive");
     const windowsFn = section.slice(

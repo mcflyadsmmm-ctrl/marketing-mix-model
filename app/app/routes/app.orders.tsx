@@ -1,5 +1,6 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { redirect, useLoaderData, useNavigation } from "react-router";
+import { deskBaseFromPathname, withDeskBase } from "../lib/desk-base-path";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
@@ -20,6 +21,10 @@ import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const home = withDeskBase("/app", deskBaseFromPathname(url.pathname));
+  const qs = url.searchParams.toString();
+  throw redirect(`${home}${qs ? `?${qs}` : ""}`);
   return loadDeskSalesPage(request, "/app/orders", {
     includeOrdersIntelligence: true,
   });

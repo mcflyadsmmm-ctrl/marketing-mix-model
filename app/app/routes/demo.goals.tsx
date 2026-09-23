@@ -1,5 +1,6 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { redirect, useLoaderData, useNavigation } from "react-router";
+import { deskBaseFromPathname, withDeskBase } from "../lib/desk-base-path";
 
 import { BookFactGrid } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
@@ -29,6 +30,10 @@ const GOALS_ANALYTICS_LEDE =
   "Shopify Analytics shows this period's sales. This page shows plan vs actual for MTD/QTD/YTD.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const settings = withDeskBase("/app/settings", deskBaseFromPathname(url.pathname));
+  const qs = url.searchParams.toString();
+  throw redirect(`${settings}${qs ? `?${qs}` : ""}`);
   const page = await loadPublicSamplePage(request);
   const now = new Date();
   const book = loadPublicSampleBook(now);

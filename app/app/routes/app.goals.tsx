@@ -182,8 +182,10 @@ function formatYoyPct(pct: number | null): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
+  const qs = url.searchParams.toString();
+  throw redirect(`/app/settings${qs ? `?${qs}` : ""}`);
+  const { admin, session } = await requireAdmin(request);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   // y3 stays shot-only. L12M is a desk preset (PeriodControl) — do not redirect.

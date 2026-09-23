@@ -237,7 +237,8 @@ describe("Sample data | Live data UX", () => {
     expect(bookPage).toContain("truncatedOrderFactsMessage");
     expect(bookPage).not.toMatch(/about 60 days/);
     expect(buyers).toContain('throw redirect(`/app/customers');
-    expect(timing).toContain('throw redirect(`/app/orders');
+    expect(timing).toContain('throw redirect(`/app');
+    expect(orders).toContain("throw redirect");
   });
 
   it("Overview stays Shopify-only — no spend doors, peeks stay dense", () => {

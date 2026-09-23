@@ -7,7 +7,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
   const url = new URL(request.url);
   const qs = url.searchParams.toString();
-  throw redirect(`/app/orders${qs ? `?${qs}` : ""}`);
+  throw redirect(`/app${qs ? `?${qs}` : ""}`);
 };
 
 export default function TimingRedirect() {

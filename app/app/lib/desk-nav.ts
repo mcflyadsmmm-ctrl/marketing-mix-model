@@ -8,8 +8,8 @@ import {
  * Desk links keep the scoreboard clock (`period`) and listing-shot flag (`shot`).
  * Shopify App Bridge already owns `shop` / `host`.
  *
- * Admin nav is five analysis pages plus Settings. Time windows live on
- * cards, not as nav items. Retired hashes land on Overview home.
+ * Admin nav is three analysis pages plus Settings. Time windows live on
+ * cards, not as nav items. Retired hashes land on Home.
  */
 
 export type DeskNavOpts = {
@@ -108,26 +108,24 @@ export function deskStageHeading(stage: DeskSectionId): string {
 }
 
 /**
- * Shopify Admin left nav — five analysis pages, then Settings.
- * Compact lock: Overview · Orders · Customers · Spend · Goals · Settings.
+ * Shopify Admin left nav — three analysis pages, then Settings.
+ * Compact lock: Home · Customers · Spend · Settings.
  */
 export const DESK_PRIMARY_NAV: readonly DeskNavItem[] = [
-  { path: "/app", label: "Overview" },
-  { path: "/app/orders", label: "Orders" },
+  { path: "/app", label: "Home" },
   { path: "/app/customers", label: "Customers" },
   { path: "/app/spend", label: "Spend" },
-  { path: "/app/goals", label: "Goals" },
   { path: "/app/settings", label: "Settings" },
 ];
 
-/** In-iframe top toggles — 5 analysis pages. Settings stays a side shortcut. */
+/** In-iframe top toggles — Home · Customers · Spend. Settings stays a side shortcut. */
 export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
   (item) => item.path !== "/app/settings",
 );
 
 /**
  * Painted iframe rail. Same order as DESK_TOP_NAV — no SCOREBOARD / RETAIN /
- * SPEND path sets that parked CPA next to Overview.
+ * SPEND path sets that parked CPA next to Home.
  */
 export const DESK_IFRAME_NAV: readonly DeskNavItem[] = DESK_TOP_NAV;
 
