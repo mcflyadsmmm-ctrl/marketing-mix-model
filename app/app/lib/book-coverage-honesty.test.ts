@@ -120,7 +120,7 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
     expect(orders).toContain("includeShopifyOrderWindow: true");
     expect(orders).toMatch(/includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/);
     expect(orders).toContain("orderBookDepth={orderBookDepth}");
-    expect(orders).toMatch(/deskBookLede\(\s*"[\s\S]*?",\s*orderBookDepth,/);
+    expect(orders).not.toContain("deskBookLede");
 
     const customers = read("../routes/app.customers.tsx");
     expect(customers).toContain("includeShopifyOrderWindow: true");

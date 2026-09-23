@@ -79,12 +79,9 @@ describe("ordersOperatorGreeting", () => {
         typicalOrderLabel: "$631",
         averageOrderLabel: "$634",
       }),
-    ).toBe(
-      "Typical order around $631. Average is $634. Shopify Analytics Orders is the average order.",
-    );
+    ).toBe("Typical $631 · average $634.");
     expect(ORDERS_ANALYTICS_CONTRAST).not.toMatch(/sessions|ROAS|spend/i);
     expect(ORDERS_FIRST_LANE_LABEL).toMatch(/Typical order/);
-    expect(ORDERS_FIRST_LANE_LABEL).toMatch(/average/i);
     expect(ORDERS_CLOCK_LANE_LABEL).toMatch(/clock/i);
     expect(ORDERS_CLOCK_LANE_LABEL).toMatch(/intelligence/i);
     expect(ORDERS_THIN_EMPTY_LINE).toMatch(/not \$0/);
@@ -160,15 +157,19 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
       orders.indexOf("<OrdersIntelligence"),
     );
-    expect(firstView).not.toContain("mcfly-orders-under");
-    expect(firstView).toContain("mcfly-orders-hero");
+    expect(firstView).toContain("mcfly-overview-plane");
+    expect(firstView).toContain("mcfly-orders-plane");
     expect(firstView).toContain("OrdersTicketBand");
-    expect(firstView).toContain("salesPending: _salesPending");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(firstView).toContain("ORDERS_ANALYTICS_AVERAGE_LINE");
+    expect(firstView).not.toContain("mcfly-score__greeting");
+    expect(firstView).not.toContain("mcfly-orders-hero__def");
     expect(firstView).toContain("ORDERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_ORDERS_DOOR");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).not.toContain("mcfly-kpi--soft");
     expect(firstView).not.toContain("0.00×");
+    expect(firstView).not.toContain("<s-section");
     for (const ban of ORDERS_SPEND_BANS) {
       expect(firstView).not.toContain(ban);
       expect(orders).not.toContain(ban);
@@ -182,7 +183,7 @@ describe("Uninstall FAIL #3 SCORECARD — first Orders lane is typical-order her
   it("PASS when Total Sales clock and OrdersIntelligence sit below the first fold", () => {
     const orders = read("../routes/app.orders.tsx");
     const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf("<DeskLane", firstStart + 1);
+    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
     expect(firstStart).toBeGreaterThan(-1);
     expect(firstEnd).toBeGreaterThan(firstStart);
     const firstLane = orders.slice(firstStart, firstEnd);
@@ -193,15 +194,16 @@ describe("Uninstall FAIL #3 SCORECARD — first Orders lane is typical-order her
     expect(firstLane).not.toContain("mcfly-book__clock");
     expect(firstLane).not.toContain("totalSalesDisplay");
 
-    const clockLane = orders.slice(firstEnd);
-    expect(clockLane).toContain("ORDERS_CLOCK_LANE_LABEL");
-    expect(clockLane).toContain("<OrdersScoreboard");
-    expect(clockLane).toContain("<OrdersIntelligence");
-    expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
-      orders.indexOf('rank="next" label={ORDERS_CLOCK_LANE_LABEL}'),
+    const moreLane = orders.slice(firstEnd);
+    expect(moreLane).toContain("ORDERS_CLOCK_LANE_LABEL");
+    expect(moreLane).toContain("<OrdersScoreboard");
+    expect(moreLane).toContain("<OrdersIntelligence");
+    expect(orders.indexOf("<OrdersTimingChart")).toBeLessThan(
+      orders.indexOf('rank="more"'),
     );
-    expect(orders.indexOf('rank="next" label={ORDERS_CLOCK_LANE_LABEL}')).toBeLessThan(
-      orders.indexOf('rank="next" label="Weekday and hour"'),
+    expect(orders.indexOf("<OrdersCompareGlance")).toBeLessThan(
+      orders.indexOf("<OrdersTimingChart"),
     );
+    expect(orders).not.toContain("mcfly-book__lede");
   });
 });

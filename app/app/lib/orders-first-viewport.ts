@@ -24,12 +24,17 @@ export const ORDERS_PENDING_LINE =
 export const ORDERS_THIN_EMPTY_LINE =
   "Typical order, discounts, and 2+ item orders fill after paid orders land — not $0.";
 
-/** First-lane label — median typical vs Shopify’s average, not an AOV explorer. */
-export const ORDERS_FIRST_LANE_LABEL = "Typical order vs Shopify’s average";
+/** First-lane label — one hero + compare + chart. */
+export const ORDERS_FIRST_LANE_LABEL = "Typical order";
+
+export const ORDERS_PRIOR_SECTION_LABEL = "Vs prior period";
+
+export const ORDERS_PRIOR_MISSING_LINE = "Prior period not on file.";
+
+export const ORDERS_CHART_SECTION_LABEL = "When sales land";
 
 /**
- * Later lane — Total Sales clock + Order intelligence sit below the
- * typical-order first fold so the greeting is not an Analytics-list stack.
+ * Folded lane — Total Sales clock + Order intelligence below the first two scrolls.
  */
 export const ORDERS_CLOCK_LANE_LABEL = "Sales clock and intelligence";
 
@@ -39,6 +44,9 @@ export const ORDERS_CLOCK_LANE_LABEL = "Sales clock and intelligence";
  */
 export const ORDERS_ANALYTICS_CONTRAST =
   "Shopify Analytics Orders is the average order.";
+
+/** Screen-reader contrast — not a visible first-fold lede. */
+export const ORDERS_ANALYTICS_AVERAGE_LINE = ORDERS_ANALYTICS_CONTRAST;
 
 export const ORDERS_FIRST_FOLD_HEROES = [
   "typicalOrder",
@@ -97,17 +105,13 @@ export function ordersOperatorGreeting(
   if (!(input.orderCount > 0)) {
     return "No orders in this window yet.";
   }
-  const typical = input.typicalOrderLabel
-    ? `Typical order around ${input.typicalOrderLabel}.`
-    : null;
-  const average = input.averageOrderLabel
-    ? `Average is ${input.averageOrderLabel}.`
-    : null;
-  const parts = [typical, average].filter((part): part is string => part != null);
-  if (parts.length === 0) {
-    return ORDERS_ANALYTICS_CONTRAST;
+  if (input.typicalOrderLabel && input.averageOrderLabel) {
+    return `Typical ${input.typicalOrderLabel} · average ${input.averageOrderLabel}.`;
   }
-  return `${parts.join(" ")} ${ORDERS_ANALYTICS_CONTRAST}`;
+  if (input.typicalOrderLabel) {
+    return `Typical ${input.typicalOrderLabel}.`;
+  }
+  return ORDERS_ANALYTICS_CONTRAST;
 }
 
 /**

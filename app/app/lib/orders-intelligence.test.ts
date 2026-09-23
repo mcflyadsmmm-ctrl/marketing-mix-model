@@ -977,7 +977,7 @@ describe("orders step mix assemble + paint locks", () => {
     expect(board).not.toContain("waitDays");
     expect(board).not.toContain("Shopify Total Sales clock");
     expect(firstView).toContain("buildOrdersHero");
-    expect(firstView).toContain("mcfly-orders-hero");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OrdersTicketBand");
     expect(readFileSync(join(here, "orders-scoreboard.ts"), "utf8")).toContain(
       "Shipping + tax",

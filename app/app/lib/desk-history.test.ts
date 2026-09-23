@@ -168,7 +168,11 @@ describe("Customers / Growth / Orders honesty wiring", () => {
         "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
       );
       expect(src).toContain("includeShopifyOrderWindow: true");
-      expect(src).toContain("deskBookLede");
+      if (file === "app.customers.tsx") {
+        expect(src).toContain("deskBookLede");
+      } else {
+        expect(src).not.toContain("deskBookLede");
+      }
     }
   });
 

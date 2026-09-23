@@ -3,13 +3,14 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { OrdersCompareGlance } from "../components/OrdersCompareGlance";
 import { OrdersFirstViewport } from "../components/OrdersFirstViewport";
 import { OrdersScoreboard } from "../components/OrdersScoreboard";
 import { OrdersTimingChart } from "../components/OrdersTimingChart";
 import { OrdersIntelligence } from "../components/OrdersIntelligence";
 import { OrdersFrequencyChart } from "../components/OrdersFrequencyChart";
 import { DeskLane } from "../components/DeskLane";
-import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
+import { deskPeriodTillLabel } from "../lib/desk-history";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   ORDERS_CLOCK_LANE_LABEL,
@@ -100,29 +101,43 @@ export default function OrdersPage() {
       salesErrorBody="Sales didn’t load. Retry to see typical order and weekends."
       retryHref={`/app/orders?period=${preset}`}
     >
-      {metrics.salesPending ? (
-        <p className="mcfly-book__lede">
-          Sales for closed days are still loading — not $0.
-        </p>
-      ) : null}
       <div className="mcfly-desk-anchor mcfly-scoreboard--orders">
-        <p className="mcfly-book__lede">
-          {deskBookLede(
-            "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS. Pending sales are a banner — the board still paints from orders on file.",
-            orderBookDepth,
-          )}
-        </p>
-        <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL}>
-          <OrdersFirstViewport
-            depth={metrics.shopifyDepth}
+        <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL} hint="">
+          <div className="mcfly-overview-first-beat mcfly-orders-first-beat">
+            <OrdersFirstViewport
+              depth={metrics.shopifyDepth}
+              salesPending={Boolean(metrics.salesPending)}
+              useSampleDesk={useSampleDesk}
+              stepMix={ordersIntel?.stepMix ?? null}
+              tickets={ordersIntel?.tickets ?? null}
+              todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+              periodLabel={
+                metrics.period.label === "Month to date"
+                  ? "This month"
+                  : metrics.period.label
+              }
+            />
+            <OrdersCompareGlance
+              intel={ordersIntel ?? null}
+              salesPending={Boolean(metrics.salesPending)}
+            />
+          </div>
+          <OrdersTimingChart
+            weekdayShares={metrics.shopifyDepth.weekdaySalesShare}
+            hourlyShares={metrics.shopifyDepth.hourlySalesShare}
+            windowSales={metrics.sales}
+            peakWeekday={metrics.shopifyDepth.peakWeekday}
+            peakHour={metrics.shopifyDepth.peakHour}
             salesPending={Boolean(metrics.salesPending)}
-            useSampleDesk={useSampleDesk}
-            stepMix={ordersIntel?.stepMix ?? null}
-            tickets={ordersIntel?.tickets ?? null}
-            todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+            timingSplit={ordersIntel?.timingSplit ?? null}
           />
         </DeskLane>
-        <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>
+        <DeskLane
+          rank="more"
+          label={ORDERS_CLOCK_LANE_LABEL}
+          fold
+          defaultOpen={shotMode}
+        >
           <OrdersScoreboard
             book={book}
             depth={metrics.shopifyDepth}
@@ -139,17 +154,6 @@ export default function OrdersPage() {
           {ordersIntel && !metrics.salesPending ? (
             <OrdersIntelligence intel={ordersIntel} />
           ) : null}
-        </DeskLane>
-        <DeskLane rank="next" label="Weekday and hour">
-          <OrdersTimingChart
-            weekdayShares={metrics.shopifyDepth.weekdaySalesShare}
-            hourlyShares={metrics.shopifyDepth.hourlySalesShare}
-            windowSales={metrics.sales}
-            peakWeekday={metrics.shopifyDepth.peakWeekday}
-            peakHour={metrics.shopifyDepth.peakHour}
-            salesPending={Boolean(metrics.salesPending)}
-            timingSplit={ordersIntel?.timingSplit ?? null}
-          />
           {ordersFrequency && ordersFrequency.length > 1 && !metrics.salesPending ? (
             <OrdersFrequencyChart buckets={ordersFrequency} />
           ) : null}
