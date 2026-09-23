@@ -458,10 +458,13 @@ describe("Sample data | Live data UX", () => {
   it("LTV chrome drops cohort / till / ARPU / aMER glossary", () => {
     // Stored field names (tillLtv.cohorts) are data, never merchant words.
     const ltv = chrome("../components/CustomersLtvSection.tsx").replace(
-      /cohortMonth|cohorts|tillLtv/g,
+      /cohortMonth|cohorts|tillLtv|CustomersLtvTill|till-ltv/g,
       "",
     );
-    const ltvSnap = chrome("../components/LtvSnapSection.tsx");
+    const ltvSnap = chrome("../components/LtvSnapSection.tsx").replace(
+      /tillLtv|LtvSnapTill/g,
+      "",
+    );
     const labels = read("./product-labels.ts");
     for (const source of [ltv, ltvSnap]) {
       expect(source).not.toMatch(/cohort/i);

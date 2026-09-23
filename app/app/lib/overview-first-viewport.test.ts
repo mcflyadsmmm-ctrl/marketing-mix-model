@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   OVERVIEW_ANALYTICS_CONTRAST,
   OVERVIEW_COVERAGE_LINE,
+  overviewCoverageLine,
   OVERVIEW_FIRST_FOLD_HEROES,
   OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_LIVE_HANDOFF_BODY,
@@ -122,7 +123,9 @@ describe("overview first viewport", () => {
 
   it("coverage line names order book + 24mo orders, not a blanket 60d", () => {
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
-    expect(OVERVIEW_COVERAGE_LINE).toMatch(/From orders/i);
+    expect(overviewCoverageLine("paid_full")).toBe(OVERVIEW_COVERAGE_LINE);
+    expect(overviewCoverageLine("trial_slice")).toMatch(/90 closed days/);
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
     expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/60 days/);
     expect(OVERVIEW_PENDING_LINE).toMatch(/Orders still loading|not \$0/i);
     expect(OVERVIEW_SALES_ONLY_LINE).toMatch(/Shopify orders/i);

@@ -110,7 +110,7 @@ describe("Spend MER desk", () => {
 
   it("pending sales KPI is an em dash, never a painted $0", () => {
     expect(spend).toContain("metrics.salesPending ? \"—\"");
-    expect(spend).toContain("Still loading — not $0");
+    expect(spend).toContain("spendFirstFoldSalesHint");
   });
 
   it("owns the explorer, dual-close, certified chips, and spend-only pacing", () => {
@@ -136,7 +136,7 @@ describe("Spend MER desk", () => {
   });
 
   it("empty Total ROAS is an em dash, never 0.00×, with an add-a-day link", () => {
-    expect(spend).toContain('? `${formatMer(metrics.mer)}×`');
+    expect(spend).toContain('? `${formatMer(paintedMer)}×`');
     expect(spend).toContain(': "—"');
     expect(spend).not.toContain("0.00×");
     expect(spend).toContain('href="#mcfly-spend-add"');

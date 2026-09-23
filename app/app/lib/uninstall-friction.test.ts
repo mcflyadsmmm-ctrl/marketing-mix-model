@@ -18,16 +18,16 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
   const trust = read("../components/CashTrustBanners.tsx");
   const unlock = read("../components/UnlockFullHistoryBanner.tsx");
 
-  it("1) Overview still ranks Look here first — pending keeps scoreboard shells as —, not a peek graveyard of $0", () => {
+  it("1) Overview first fold is order-book hero — pending keeps — shells, not a peek graveyard of $0", () => {
     expect(overview).toContain('rank="first"');
     expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(firstView).toContain("if (salesPending)");
-    expect(firstView).toContain("fill as closed days land");
-    expect(firstView).toContain("FindingStrip");
-    expect(pending).toContain("Look here first");
-    expect(pending).toContain("Typical day");
-    expect(pending).toContain("Signal");
+    expect(firstView).toContain("salesPending");
+    expect(firstView).toContain("OVERVIEW_PENDING_LINE");
+    expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(firstView).not.toContain("Look here first");
+    expect(firstView).not.toContain("FindingStrip");
+    expect(pending).toContain("Typical order");
     expect(pending).toContain("not $0");
     expect(pending).not.toContain("0.00×");
   });

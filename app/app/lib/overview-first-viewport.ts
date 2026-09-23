@@ -1,3 +1,5 @@
+import { deskHistoryCaption } from "./desk-history";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
@@ -7,11 +9,29 @@ import { resolveSalesReadiness } from "./sales-pending";
  * Sales / Analytics-matched. Spend stays off Overview. Marketing tabs own cash.
  */
 
-export const OVERVIEW_COVERAGE_LINE =
-  "From orders on file · up to 24 months · returns included";
+/** Paid book coverage — trial uses {@link overviewCoverageLine}("trial_slice"). */
+export function overviewCoverageLine(depth: LiveIngestDepth): string {
+  return deskHistoryCaption(new Date(), "sales", depth);
+}
+
+export const OVERVIEW_COVERAGE_LINE = overviewCoverageLine("paid_full");
+
+export const OVERVIEW_PENDING_IN_TOTAL_SALES =
+  "Pending, authorized, COD, and Klarna sit in this Shopify Total Sales.";
+
+export const OVERVIEW_SHOP_NOT_COMPANY =
+  "This is Shopify Total Sales for orders on this shop — not the company book.";
 
 export const OVERVIEW_PENDING_LINE =
   "Orders still loading — not $0.";
+
+/** Chart / YoY card label — deeper sections; first-fold hero uses From orders. */
+export const OVERVIEW_PERIOD_TOTAL_LABEL = "Shopify Total Sales";
+
+export const OVERVIEW_PERIOD_TOTAL_SENTENCE =
+  "Shopify Total Sales for this period.";
+
+export const OVERVIEW_LAST_YEAR_NOT_ON_FILE = "not on file";
 
 /** First-lane label — morning YoY from orders, not a soft KPI farm. */
 export const OVERVIEW_FIRST_LANE_LABEL =

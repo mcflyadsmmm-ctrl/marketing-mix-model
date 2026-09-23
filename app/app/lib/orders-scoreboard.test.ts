@@ -346,7 +346,7 @@ describe("Orders page craft lock", () => {
     expect(orders).toContain("not $0");
     expect(orders).not.toContain("if (metrics.salesPending) return");
     expect(firstView).toContain("mcfly-orders-hero");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("buildOrdersHero");
     expect(firstView).toContain("<OrdersTicketBand");
     expect(scoreboard).toContain("mcfly-book__clock");

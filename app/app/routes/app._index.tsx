@@ -53,6 +53,8 @@ import {
   isOverviewHomeStage,
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
+import { deskPeriodTillLabel } from "../lib/desk-history";
+import { shopLiveIngestDepth } from "../lib/live-ingest-depth.server";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_LIVE_HANDOFF_BODY,
@@ -174,6 +176,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const orderBookDepth = useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(shop.id);
   await materializeRecurringSpendForShop({
     shopId: shop.id,
     currencyCode: shop.currencyCode,
@@ -540,6 +545,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderForecast,
     yoyYearWorkspace,
     orderHero,
+    orderBookDepth,
   };
 };
 
@@ -580,6 +586,7 @@ export default function Dashboard() {
     orderForecast,
     yoyYearWorkspace,
     orderHero,
+    orderBookDepth,
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -600,17 +607,30 @@ export default function Dashboard() {
   });
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
-  const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
-    : shotMode
-      ? metrics.period.label
-      : salesError ||
-          metrics.blockedMockAsLive ||
-          metrics.salesSource === "mock"
-        ? `${metrics.period.label} · sales unavailable`
-        : greetingPending
-          ? `${metrics.period.label}${OVERVIEW_PENDING_ASOF}`
-          : `${metrics.period.label} · live sales`;
+  const tillLabel =
+    greetingPending &&
+    !useSampleDesk &&
+    !shotMode &&
+    !salesError &&
+    !metrics.blockedMockAsLive &&
+    metrics.salesSource !== "mock"
+      ? `${metrics.period.label}${OVERVIEW_PENDING_ASOF}`
+      : deskPeriodTillLabel({
+          periodLabel: metrics.period.label,
+          useSampleDesk,
+          shotMode,
+          salesError,
+          blockedMockAsLive: metrics.blockedMockAsLive,
+          salesSource: metrics.salesSource,
+          todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
+          todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
+          shopifyOrderWindowLimited:
+            !useSampleDesk &&
+            (Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
+              periodMayExceedShopifyOrderWindow(metrics.period)),
+          includeShopifyOrderWindow: true,
+          orderBookDepth,
+        });
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
     salesPulledAt: metrics.freshness.salesPulledAt,
@@ -925,6 +945,7 @@ export default function Dashboard() {
                         ? "This month"
                         : metrics.period.label
                     }
+                    orderBookDepth={orderBookDepth}
                   />
                   <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
                     <OverviewSalesChart
@@ -963,6 +984,7 @@ export default function Dashboard() {
                   />
                   <ShareableInsightCards view={insightView} shotMode={shotMode} />
                 </DeskLane>
+                </div>
                 <DeskLane
                   rank="more"
                   label="More order detail"
@@ -1001,7 +1023,6 @@ export default function Dashboard() {
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                   />
                 </DeskLane>
-                </div>
                 <DeskLane rank="more" label="Year board vs last year">
                   <OverviewYoyYearSection
                     {...yoyYearWorkspace}

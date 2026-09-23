@@ -19,8 +19,7 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(desk).toMatch(/\$68,?457/);
     expect(desk).toMatch(/\$19,?023/);
     expect(desk).toMatch(/3\.60/);
-    expect(html).toContain("$68,457");
-    expect(html).not.toMatch(/>—</);
+    expect(desk).not.toMatch(/>—</);
 
     expect(desk).not.toContain("Harbor Home Co");
     expect(desk).not.toContain("Northline Supply");
@@ -28,20 +27,21 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(desk).not.toMatch(/4\.19×/);
     expect(js).not.toContain("0.00×");
     expect(js).toContain('return "—"');
-    expect(html).toMatch(/Live book only|Live-only/);
-    expect(html).toContain("no Sample|Live toggle");
+    expect(html).toMatch(/SAMPLE|not a live merchant/i);
+    expect(html).toContain("hosted=1");
   });
 
-  it("sales page live Overview slice has YoY / Shopify-five (spend stays off Overview)", () => {
+  it("sales page hero still is order-book Snowdevil — spend copy stays below the fold", () => {
     const html = readSite("site/index.html");
-    expect(html).toMatch(/This month/i);
-    expect(html).toMatch(/This quarter|This year/i);
-    expect(html).toMatch(/vs last year/i);
-    expect(html).toMatch(/Typical order|returning/i);
-    const overviewIdx = html.indexOf('data-dd-section="overview"');
-    expect(overviewIdx).toBeGreaterThan(0);
-    expect(html.indexOf("Typical order", overviewIdx)).toBeGreaterThan(overviewIdx);
-    expect(html.slice(overviewIdx, overviewIdx + 1800)).not.toMatch(/Total ROAS|Ad spend/i);
+    const heroStart = html.indexOf('class="ov-still"');
+    expect(heroStart).toBeGreaterThan(-1);
+    const hero = html.slice(heroStart, heroStart + 2200);
+    expect(hero).toMatch(/This month/i);
+    expect(hero).toMatch(/vs last year/i);
+    expect(hero).toMatch(/Typical order|returning/i);
+    expect(hero).toContain("From orders");
+    expect(hero).toContain("$68,457");
+    expect(hero).not.toMatch(/Total ROAS|Ad spend/i);
     expect(html).not.toContain('data-dd-period="l7d"');
   });
 

@@ -3,9 +3,14 @@ import { DeskIcon, type DeskIconName } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import {
+  OVERVIEW_PENDING_IN_TOTAL_SALES,
+  OVERVIEW_PENDING_LINE,
+  OVERVIEW_SHOP_NOT_COMPANY,
   OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
+  overviewCoverageLine,
   overviewHandoffPeeks,
   overviewLtvWindowLabel,
   overviewReturningCompactDollars,
@@ -58,6 +63,8 @@ export type OverviewPeekProps = {
   /** OrderFact hero for the first fold. When set, drives the morning number. */
   orderHero?: OverviewOrderBookHero | null;
   periodLabel?: string;
+  /** Unpaid = 90 closed days. Paid = up to 24 months. Required on live Overview. */
+  orderBookDepth: LiveIngestDepth;
 };
 
 function PeekCard({
@@ -266,11 +273,12 @@ export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Orders this period",
   ordersHref,
   useSampleDesk = false,
-  salesPending: _salesPending,
+  salesPending,
   orderCount,
   mixGreeting: _mixGreeting = null,
   orderHero = null,
   periodLabel = "This month",
+  orderBookDepth,
   ...rest
 }: OverviewPeekProps) {
   const currency = useDeskCurrency();
@@ -341,7 +349,14 @@ export function OverviewFirstViewport({
             : `same days last year ${money(hero.priorSales)}`}
         </p>
         <p className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</p>
+        <p className="mcfly-overview-plane__coverage">
+          {overviewCoverageLine(orderBookDepth)}
+        </p>
       </div>
+
+      {salesPending ? (
+        <p className="mcfly-overview-plane__pending">{OVERVIEW_PENDING_LINE}</p>
+      ) : null}
 
       <p className="mcfly-overview-plane__strip">
         <span>Returning {returning}</span>
@@ -354,6 +369,9 @@ export function OverviewFirstViewport({
       {empty && !useSampleDesk ? (
         <p className="mcfly-overview-plane__note">{OVERVIEW_THIN_EMPTY_LINE}</p>
       ) : null}
+      <p className="mcfly-overview-plane__trust" hidden>
+        {OVERVIEW_PENDING_IN_TOTAL_SALES} {OVERVIEW_SHOP_NOT_COMPANY}
+      </p>
     </section>
   );
 }

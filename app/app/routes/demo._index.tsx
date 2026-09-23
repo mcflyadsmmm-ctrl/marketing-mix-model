@@ -211,6 +211,7 @@ export default function PublicDemoOverview() {
                   useSampleDesk
                   orderHero={data.orderHero}
                   periodLabel={data.rangeLabel === "Month to date" ? "This month" : data.rangeLabel}
+                  orderBookDepth="paid_full"
                 />
               )}
               {embed === "typical" ? null : (
@@ -246,6 +247,7 @@ export default function PublicDemoOverview() {
                   />
                   <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
                 </DeskLane>
+                </div>
                 <DeskLane
                   rank="more"
                   label="More order detail"
@@ -284,7 +286,6 @@ export default function PublicDemoOverview() {
                     peakWeekday={data.depth.peakWeekday}
                   />
                 </DeskLane>
-                </div>
                 <DeskLane rank="more" label="Year board vs last year">
                   <OverviewYoyYearSection
                     {...yoyYearWorkspace}
