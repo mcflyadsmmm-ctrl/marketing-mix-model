@@ -1034,6 +1034,12 @@ export default function SpendEntryPage() {
             pairEquation={hasSpend && pairEquation ? pairEquation : null}
             pairCopyText={hasSpend && pairCopyText ? pairCopyText : null}
             shotMode={shotMode}
+            cashChips={
+              hasSpend && cashControl && cashControl.chips.length > 0
+                ? cashControl.chips
+                : undefined
+            }
+            targetMer={cashControl?.targetMer ?? 0}
           />
           <SpendCompareGlance
             deltas={metrics.deltas}
@@ -1194,7 +1200,7 @@ export default function SpendEntryPage() {
           }
         >
         <section id="mcfly-explorer-depth" aria-label="Certified windows and spend analysis">
-          {cashControl && cashControl.chips.length > 0 ? (
+          {cashControl && cashControl.chips.length > 0 && !hasSpend ? (
             <CertifiedScoreboard
               chips={cashControl.chips}
               targetMer={cashControl.targetMer}

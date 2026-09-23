@@ -253,6 +253,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     const order = [
       'rank="first"',
       "<SpendFirstViewport",
+      "cashChips=",
       'id="mcfly-explorer"',
       'rank="more"',
       "<SpendMixSection",

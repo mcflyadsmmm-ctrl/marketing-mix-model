@@ -248,6 +248,12 @@ export default function PublicDemoSpend() {
               pairEquation={hasSpend && pairEquation ? pairEquation : null}
               pairCopyText={hasSpend && pairCopyText ? pairCopyText : null}
               shotMode={data.shotMode}
+              cashChips={
+                hasSpend && data.cashControl.chips.length > 0
+                  ? data.cashControl.chips
+                  : undefined
+              }
+              targetMer={data.targetMer}
             />
           </div>
           <section id="mcfly-explorer" aria-label="Spend explorer">
@@ -269,11 +275,13 @@ export default function PublicDemoSpend() {
           fold
           defaultOpen={data.shotMode}
         >
-          <CertifiedScoreboard
-            chips={data.cashControl.chips}
-            targetMer={data.targetMer}
-            plan={data.cashControl.plan}
-          />
+          {data.cashControl.chips.length > 0 && !hasSpend ? (
+            <CertifiedScoreboard
+              chips={data.cashControl.chips}
+              targetMer={data.targetMer}
+              plan={data.cashControl.plan}
+            />
+          ) : null}
           {data.cashControl.dualClose ? (
             <DualCloseLine
               close={data.cashControl.dualClose}

@@ -1,6 +1,8 @@
+import { CertifiedScoreboard } from "./CertifiedScoreboard";
 import { CopySpendPair } from "./MorningHabitStrip";
 import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
 import { useDeskCurrency } from "../lib/desk-currency";
+import type { CashChip } from "../lib/mer-control";
 import { formatCurrency } from "../lib/mer-format";
 import { formatSpendOnFile } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -24,6 +26,8 @@ export function SpendFirstViewport({
   todaySalesUnavailable,
   pairEquation,
   pairCopyText,
+  cashChips,
+  targetMer = 0,
   shotMode = false,
 }: {
   roasValue: string;
@@ -36,6 +40,8 @@ export function SpendFirstViewport({
   todaySalesUnavailable: boolean;
   pairEquation: string | null;
   pairCopyText: string | null;
+  cashChips?: CashChip[];
+  targetMer?: number;
   shotMode?: boolean;
 }) {
   const currency = useDeskCurrency();
@@ -81,6 +87,15 @@ export function SpendFirstViewport({
         </p>
         <span className="mcfly-overview-plane__sr">{SPEND_ANALYTICS_SR_LINE}</span>
       </div>
+
+      {hasSpend && cashChips && cashChips.length > 0 ? (
+        <CertifiedScoreboard
+          chips={cashChips}
+          targetMer={targetMer}
+          plan={null}
+          placement="firstFold"
+        />
+      ) : null}
 
       {hasSpend && pairEquation && pairCopyText ? (
         <div className="mcfly-spend-pair-copy-row">

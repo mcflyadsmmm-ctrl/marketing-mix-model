@@ -31,8 +31,12 @@ export const SPEND_ANALYTICS_CONTRAST =
 
 export const SPEND_ANALYTICS_SR_LINE = SPEND_ANALYTICS_CONTRAST;
 
+/** Certified five-window strip (Yesterday · L7 · MTD · QTD · YTD) on Spend first fold. */
+export const SPEND_FIRST_FOLD_CHIP_MARKER = "mcfly-scoreboard--first-fold";
+
 export const SPEND_FIRST_FOLD_HEROES = [
   "totalRoas",
+  "cashWindows",
   "salesSpendPair",
   "priorCompare",
   "explorerChart",
@@ -119,6 +123,7 @@ export function buildSpendCompareKpis(input: {
 export function spendHeroBeatsShopifyAnalytics(hero: SpendFirstFoldHero): boolean {
   switch (hero) {
     case "totalRoas":
+    case "cashWindows":
     case "salesSpendPair":
     case "priorCompare":
     case "explorerChart":

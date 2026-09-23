@@ -21866,6 +21866,25 @@ button.mcfly-habit-goals__read:focus-visible {
   margin-bottom: 0;
 }
 
+.mcfly-spend-first-beat .mcfly-scoreboard--first-fold {
+  margin-top: 0.55rem;
+  margin-bottom: 0.15rem;
+  padding: 0.55rem 0.65rem 0.6rem;
+  border-radius: 10px;
+}
+
+.mcfly-spend-first-beat .mcfly-scoreboard--first-fold .mcfly-scoreboard__row {
+  gap: 0.45rem;
+}
+
+.mcfly-spend-first-beat .mcfly-scoreboard--first-fold .mcfly-scoreboard__chip--soft {
+  padding: 0.45rem 0.5rem 0.5rem;
+}
+
+.mcfly-spend-first-beat .mcfly-scoreboard--first-fold .mcfly-scoreboard__v {
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+}
+
 .mcfly-spend-first-beat + section#mcfly-explorer .mcfly-explorer--soft {
   margin-top: 0.75rem;
 }
