@@ -33,9 +33,10 @@ const scoreboardLib = read("./customers-scoreboard.ts");
 
 describe("Customers route — one RETAIN spine, order history only", () => {
   it("contrasts Shopify Analytics returning rate with returning dollars", () => {
-    expect(customers).toContain("Shopify Analytics");
+    expect(firstView).toContain("CUSTOMERS_ANALYTICS_SR_LINE");
     expect(customers).toMatch(/dollars/i);
     expect(customers).toMatch(/returning/i);
+    expect(customers).not.toContain("mcfly-book__lede");
   });
 
   it("leads with returning dollars, then LTV, Growth, then RFM depth", () => {
@@ -43,8 +44,9 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     const order = [
       'id="mcfly-returning"',
       "<CustomersFirstViewport",
-      "<ShareableInsightCards",
+      "<CustomersCompareGlance",
       "<CustomerMixChart",
+      "<ShareableInsightCards",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
       "<UnlockFullHistoryBanner",
@@ -64,11 +66,23 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]).toBeGreaterThan(order[i - 1]!);
     }
-    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
+    expect(customers.indexOf("<CustomersCompareGlance")).toBeLessThan(
       customers.indexOf("<CustomerMixChart"),
     );
     expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
       customers.indexOf("<CustomersScoreboard"),
+    );
+    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
+      customers.indexOf("<CustomersScoreboard"),
+    );
+    const firstStart = customers.indexOf('<DeskLane rank="first"');
+    const firstEnd = customers.indexOf('label="Returning mix and facts"');
+    const firstLane = customers.slice(firstStart, firstEnd);
+    expect(firstLane).toContain("<CustomersCompareGlance");
+    expect(firstLane).not.toContain("<CustomersScoreboard");
+    expect(firstLane).not.toContain("<ShareableInsightCards");
+    expect(customers).toMatch(
+      /rank="more"[\s\S]*?label="Returning mix and facts"[\s\S]*?\bfold\b/,
     );
     expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
       customers.indexOf("<CustomersLtvDepth"),
@@ -142,8 +156,10 @@ describe("Customers truncated-today leftover — first-fold omit-path", () => {
     const firstEnd = customers.indexOf("<DeskLane", firstStart + 1);
     const firstLane = customers.slice(firstStart, firstEnd);
     expect(firstLane).toContain("<CustomersFirstViewport");
-    expect(firstLane).toContain("<ShareableInsightCards");
-    expect(firstLane).toContain("returningInsight");
+    expect(firstLane).toContain("<CustomersCompareGlance");
+    expect(firstLane).toContain("<CustomerMixChart");
+    expect(firstLane).not.toContain("<ShareableInsightCards");
+    expect(demo).not.toContain("mcfly-book__lede");
   });
 });
 
@@ -367,8 +383,9 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(mix).toContain("mcfly-chart__readout");
   });
 
-  it("wears the Overview explorer scaffold — serif masthead, KPI strip, dark tooltip", () => {
-    expect(mix).toContain("mcfly-chart__serif");
+  it("wears the Overview explorer scaffold — section heading, KPI strip, dark tooltip", () => {
+    expect(mix).toContain("mcfly-chart__h");
+    expect(mix).toContain("CUSTOMERS_MIX_SECTION_LABEL");
     expect(mix).toContain("mcfly-chart__stats");
     expect(mix).toContain("mcfly-chart__plot");
     expect(mix).toContain("mcfly-chart__axis-y");

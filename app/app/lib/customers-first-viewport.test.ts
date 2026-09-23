@@ -9,11 +9,13 @@ import {
   CUSTOMERS_PENDING_LINE,
   CUSTOMERS_SPEND_BANS,
   CUSTOMERS_THIN_EMPTY_LINE,
+  buildCustomersCompareKpis,
   buildCustomersHero,
   buildCustomersLeadPeeks,
   customersHeroBeatsShopifyAnalytics,
   customersOperatorGreeting,
 } from "./customers-first-viewport";
+import { CUSTOMERS_LAST_YEAR_EMPTY } from "./customers-analytics";
 import type { ShopifyNativePeriodStats } from "./shopify-native-stats";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -56,9 +58,7 @@ describe("customersOperatorGreeting", () => {
         returningShare: 0.62,
         newShare: 0.38,
       }),
-    ).toBe(
-      "Returning dollars 62% vs new 38%. Shopify Analytics Customers is a customer list.",
-    );
+    ).toBe("Returning 62% · New 38%");
     expect(CUSTOMERS_ANALYTICS_CONTRAST).not.toMatch(/sessions|ROAS|spend|email/i);
     expect(CUSTOMERS_FIRST_LANE_LABEL).not.toMatch(/RFM-lite/);
     expect(CUSTOMERS_FIRST_LANE_LABEL).toMatch(/Returning/i);
@@ -134,6 +134,23 @@ describe("buildCustomersHero + lead peeks", () => {
   });
 });
 
+describe("buildCustomersCompareKpis", () => {
+  it("compares returning and new dollars to last year when on file", () => {
+    const book = dollarBook();
+    const kpis = buildCustomersCompareKpis(
+      book,
+      { onFile: true, returningSales: 500, newSales: 300 },
+      (n) => `$${n}`,
+    );
+    expect(kpis.map((k) => k.key)).toEqual(["returning", "new", "perBuyer"]);
+    expect(kpis[0]?.delta?.dir).toBe("up");
+    expect(
+      buildCustomersCompareKpis(book, CUSTOMERS_LAST_YEAR_EMPTY, (n) => `$${n}`)[0]
+        ?.delta,
+    ).toBeNull();
+  });
+});
+
 describe("Customers first-fold SCORECARD vs free Shopify Analytics", () => {
   it("PASS only when every first-fold hero is Mcfly-differentiated", () => {
     expect([...CUSTOMERS_FIRST_FOLD_HEROES]).toEqual([
@@ -149,7 +166,12 @@ describe("Customers first-fold SCORECARD vs free Shopify Analytics", () => {
     const firstView = read("../components/CustomersFirstViewport.tsx");
     expect(customers).toContain("CUSTOMERS_FIRST_LANE_LABEL");
     expect(customers).toContain("<CustomersFirstViewport");
+    expect(customers).toContain("<CustomersCompareGlance");
+    expect(customers).not.toContain("mcfly-book__lede");
     expect(customers.indexOf("<CustomersFirstViewport")).toBeLessThan(
+      customers.indexOf("<CustomersCompareGlance"),
+    );
+    expect(customers.indexOf("<CustomersCompareGlance")).toBeLessThan(
       customers.indexOf("<CustomerMixChart"),
     );
     expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
@@ -167,11 +189,13 @@ describe("Customers first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(customers.indexOf("<CustomerRetentionBoard")).toBeLessThan(
       customers.indexOf("<CustomerRfmBoard"),
     );
-    expect(firstView).toContain("mcfly-customers-hero");
+    expect(firstView).toContain("mcfly-customers-plane");
+    expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("mcfly-split");
-    expect(firstView).toContain("salesPending: _salesPending");
     expect(firstView).toContain("CUSTOMERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_CUSTOMERS_DOOR");
+    expect(firstView).toContain("CUSTOMERS_ANALYTICS_SR_LINE");
+    expect(firstView).not.toContain("<s-section");
     expect(firstView).not.toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).not.toContain("mcfly-kpi--soft");
     expect(firstView).not.toContain("0.00×");

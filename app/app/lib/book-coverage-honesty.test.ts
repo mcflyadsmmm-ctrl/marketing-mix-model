@@ -128,7 +128,8 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
       /includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/,
     );
     expect(customers).toContain("orderBookDepth={orderBookDepth}");
-    expect(customers).toContain("deskBookLede(CUSTOMERS_CONTRAST, orderBookDepth)");
+    expect(customers).not.toContain("deskBookLede");
+    expect(customers).toContain("<CustomersCompareGlance");
 
     const overview = read("../routes/app._index.tsx");
     expect(overview).toContain("includeShopifyOrderWindow: true");

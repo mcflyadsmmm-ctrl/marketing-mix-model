@@ -3,6 +3,7 @@ import { useLoaderData, useNavigation } from "react-router";
 
 import { CustomerMixChart } from "../components/CustomerMixChart";
 import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
+import { CustomersCompareGlance } from "../components/CustomersCompareGlance";
 import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
 import { CustomersScoreboard } from "../components/CustomersScoreboard";
 import { CustomerWhaleWatch } from "../components/CustomerWhaleWatch";
@@ -20,7 +21,6 @@ import {
   CustomersLtvWindows,
   type CustomersLtvMetrics,
 } from "../components/CustomersLtvSection";
-import { deskBookLede } from "../lib/desk-history";
 import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -151,33 +151,42 @@ export default function PublicDemoCustomers() {
       orderBookDepth="paid_full"
       retryHref="/demo/customers"
     >
-      <p className="mcfly-book__lede">
-        Customer depth below reads SAMPLE Snowdevil order history — not this
-        shop’s Shopify orders.
-      </p>
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
-        <p className="mcfly-book__lede">
-          {deskBookLede(
-            "Shopify Analytics Customers is a customer list. Deeper: returning dollars vs new, dollars per buyer, then LTV, growth, and who the dollars sit with.",
-            "paid_full",
-          )}
-        </p>
         <div id="mcfly-returning">
-          <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL}>
-            <CustomersFirstViewport
-              analytics={data.customers}
-              book={data.book}
-              salesPending={false}
-              useSampleDesk
-              todaySalesTruncated={false}
-            />
+          <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL} hint="">
+            <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
+              <CustomersFirstViewport
+                analytics={data.customers}
+                book={data.book}
+                salesPending={false}
+                useSampleDesk
+                todaySalesTruncated={false}
+                periodLabel={
+                  data.rangeLabel === "Month to date"
+                    ? "This month"
+                    : data.rangeLabel
+                }
+              />
+              <CustomersCompareGlance
+                book={data.book}
+                lastYear={data.customers.lastYearMix}
+                salesPending={false}
+              />
+            </div>
+            <CustomerMixChart analytics={data.customers} salesPending={false} />
+          </DeskLane>
+          <DeskLane
+            rank="more"
+            label="Returning mix and facts"
+            fold
+            defaultOpen={data.shotMode}
+          >
             {returningInsight.cards.length > 0 ? (
               <ShareableInsightCards
                 view={returningInsight}
                 shotMode={data.shotMode}
               />
             ) : null}
-            <CustomerMixChart analytics={data.customers} salesPending={false} />
             <CustomersScoreboard
               book={data.book}
               depth={data.depth}

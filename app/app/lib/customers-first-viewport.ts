@@ -34,12 +34,21 @@ export const CUSTOMERS_LAST_YEAR_NOT_ON_FILE = "not on file";
 /** First-lane label — returning $ vs new, all store sizes, not RFM-lite. */
 export const CUSTOMERS_FIRST_LANE_LABEL = "Returning dollars vs new";
 
+export const CUSTOMERS_COMPARE_SECTION_LABEL = "Same window last year";
+
+export const CUSTOMERS_COMPARE_MISSING_LINE = "Last year not on file.";
+
+export const CUSTOMERS_MIX_SECTION_LABEL = "New vs returning dollars";
+
 /**
  * Uninstall-killer contrast. Shopify Analytics Customers is names, emails,
  * order counts, and amount spent. Mcfly is returning dollars next to new.
  */
 export const CUSTOMERS_ANALYTICS_CONTRAST =
   "Shopify Analytics Customers is a customer list.";
+
+/** Screen-reader contrast — not a visible first-fold lede. */
+export const CUSTOMERS_ANALYTICS_SR_LINE = CUSTOMERS_ANALYTICS_CONTRAST;
 
 export const CUSTOMERS_FIRST_FOLD_HEROES = [
   "returningDollars",
@@ -179,15 +188,15 @@ export function customersOperatorGreeting(
       ? wholePercent(input.newShare)
       : null;
   if (returningPct != null && newPct != null) {
-    return `Returning dollars ${returningPct}% vs new ${newPct}%. ${CUSTOMERS_ANALYTICS_CONTRAST}`;
+    return `Returning ${returningPct}% · New ${newPct}%`;
   }
   if (returningPct != null) {
-    return `Returning dollars ${returningPct}% of this window. ${CUSTOMERS_ANALYTICS_CONTRAST}`;
+    return `Returning ${returningPct}% of sales`;
   }
   if (newPct != null) {
-    return `New dollars ${newPct}% of this window. ${CUSTOMERS_ANALYTICS_CONTRAST}`;
+    return `New ${newPct}% of sales`;
   }
-  return CUSTOMERS_ANALYTICS_CONTRAST;
+  return "";
 }
 
 export function customersLastYearLine(
@@ -249,7 +258,7 @@ export function buildCustomersHero(
       amount: book.returningSales,
       counterpartAmount: newSales,
       counterpartShare: isNum(book.newSalesShare) ? book.newSalesShare : null,
-      def: "Sales from buyers who had ordered before. Shopify Analytics Customers is a list — it does not put returning dollars next to new.",
+      def: "Sales from buyers who had ordered before.",
       todayTruncated: honesty.todaySalesTruncated,
       ...year,
     };
@@ -263,7 +272,7 @@ export function buildCustomersHero(
       counterpartShare: isNum(book.returningSalesShare)
         ? book.returningSalesShare
         : null,
-      def: "Sales from first-time buyers in this window. Returning dollars fill after paid orders — not $0.",
+      def: "Sales from first-time buyers in this window.",
       todayTruncated: honesty.todaySalesTruncated,
       ...year,
     };
@@ -329,4 +338,74 @@ export function buildCustomersLeadPeeks(
     });
   }
   return rows;
+}
+
+export type CustomersCompareKpi = {
+  key: "returning" | "new" | "perBuyer";
+  label: string;
+  value: string;
+  delta: { dir: "up" | "down" | "flat"; pct: number } | null;
+};
+
+function customersCompareDelta(
+  current: number | null | undefined,
+  prior: number | null | undefined,
+): { dir: "up" | "down" | "flat"; pct: number } | null {
+  if (!isNum(current) || current <= 0 || !isNum(prior) || prior <= 0) {
+    return null;
+  }
+  const raw = ((current - prior) / prior) * 100;
+  const pct = Math.abs(Math.round(raw * 10) / 10);
+  if (pct < 0.05) return { dir: "flat", pct: 0 };
+  return { dir: raw > 0 ? "up" : "down", pct };
+}
+
+/** Compact last-year compare — returning $, new $, dollars per buyer. */
+export function buildCustomersCompareKpis(
+  book: Pick<
+    ShopifyNativePeriodStats,
+    | "returningSales"
+    | "newSales"
+    | "newBuyerArpu"
+    | "returningBuyerArpu"
+  >,
+  lastYear: LastYearMix,
+  money: (n: number) => string,
+): CustomersCompareKpi[] {
+  const rows: CustomersCompareKpi[] = [];
+  if (isNum(book.returningSales) && book.returningSales > 0) {
+    rows.push({
+      key: "returning",
+      label: "Returning dollars",
+      value: money(book.returningSales),
+      delta: lastYear.onFile
+        ? customersCompareDelta(book.returningSales, lastYear.returningSales)
+        : null,
+    });
+  }
+  if (isNum(book.newSales) && book.newSales > 0) {
+    rows.push({
+      key: "new",
+      label: "New dollars",
+      value: money(book.newSales),
+      delta: lastYear.onFile
+        ? customersCompareDelta(book.newSales, lastYear.newSales)
+        : null,
+    });
+  }
+  const perBuyer =
+    isNum(book.returningBuyerArpu) && book.returningBuyerArpu > 0
+      ? book.returningBuyerArpu
+      : isNum(book.newBuyerArpu) && book.newBuyerArpu > 0
+        ? book.newBuyerArpu
+        : null;
+  if (perBuyer != null) {
+    rows.push({
+      key: "perBuyer",
+      label: "Dollars per buyer",
+      value: money(perBuyer),
+      delta: null,
+    });
+  }
+  return rows.slice(0, 3);
 }

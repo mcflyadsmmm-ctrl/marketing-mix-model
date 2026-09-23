@@ -43,8 +43,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(customers.indexOf("<ShareableInsightCards")).toBeGreaterThan(
       customers.indexOf("<CustomersFirstViewport"),
     );
-    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
-      customers.indexOf("<CustomerMixChart"),
+    expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
+      customers.indexOf("<ShareableInsightCards"),
     );
     expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
       customers.indexOf("<CustomersLtvDepth"),
@@ -61,8 +61,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(demo.indexOf("<ShareableInsightCards")).toBeGreaterThan(
       demo.indexOf("<CustomersFirstViewport"),
     );
-    expect(demo.indexOf("<ShareableInsightCards")).toBeLessThan(
-      demo.indexOf("<CustomerMixChart"),
+    expect(demo.indexOf("<CustomerMixChart")).toBeLessThan(
+      demo.indexOf("<ShareableInsightCards"),
     );
   });
 
