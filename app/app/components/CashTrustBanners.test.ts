@@ -50,5 +50,11 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).toContain("hasSpend");
     expect(source).toContain("salesFactsIncompleteMessage");
   });
+
+  it("collapses Home pending into one banner and bans engineer ingest copy", () => {
+    expect(source).toContain("singlePendingSurface");
+    expect(source).toContain("homePendingBannerMessage");
+    expect(source).not.toMatch(/reports scope|sales totals ingest|not an orders crawl/i);
+  });
 });
 

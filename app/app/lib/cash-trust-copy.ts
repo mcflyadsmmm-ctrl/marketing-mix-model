@@ -71,8 +71,85 @@ export function truncatedOrderFactsMessage(): {
 } {
   return {
     heading: "Order history still loading",
-    body: "A busy closed day has more orders than one crawl can fetch. Typical order, returning dollars, and LTV wait — incomplete sales are not $0. Refresh in a few minutes.",
+    body: "A busy closed day has more orders than one fetch can finish in one pass. Typical order, returning dollars, and LTV wait — incomplete sales are not $0. Refresh in a few minutes.",
   };
+}
+
+export type HomePendingBannerInput = {
+  periodLabel: string;
+  hasSpend?: boolean;
+  salesFactsIncomplete?: {
+    factDays: number;
+    expectedClosedDays: number;
+  } | null;
+  orderBackfillProgress?: OrderHistoryProgressInput | null;
+  orderFactsTruncated?: boolean;
+  todaySalesTruncated?: boolean;
+  todaySalesUnavailable?: boolean;
+};
+
+const BANNED_MERCHANT_PHRASES =
+  /reports scope|sales totals ingest|orders crawl|not an orders crawl/i;
+
+/** One Home banner when sales / order history is still landing — never stack three. */
+export function homePendingBannerMessage(
+  input: HomePendingBannerInput,
+): { heading: string; body: string } | null {
+  const periodLabel = input.periodLabel.trim() || "this period";
+  const factDays = Math.max(
+    0,
+    Math.floor(input.salesFactsIncomplete?.factDays ?? 0),
+  );
+  const expectedClosedDays = Math.max(
+    0,
+    Math.floor(input.salesFactsIncomplete?.expectedClosedDays ?? 0),
+  );
+  const orderProgress = input.orderBackfillProgress
+    ? orderHistoryProgressMessage(input.orderBackfillProgress)
+    : null;
+
+  if (
+    input.salesFactsIncomplete &&
+    expectedClosedDays > 0 &&
+    factDays < expectedClosedDays
+  ) {
+    return salesFactsIncompleteMessage({
+      factDays,
+      expectedClosedDays,
+      periodLabel,
+      hasSpend: input.hasSpend,
+    });
+  }
+
+  if (input.todaySalesUnavailable && !input.todaySalesTruncated) {
+    return {
+      heading: "Today’s sales unavailable",
+      body: `Couldn’t refresh today’s live orders. Closed-day sales still drive ${periodLabel} — retry shortly for a complete today top-up.`,
+    };
+  }
+
+  if (input.todaySalesTruncated) {
+    return {
+      heading: "Today’s sales may be incomplete",
+      body: `Live today is capped at ~100 orders for a fast desk load. High-volume shops can undercount today until the day closes into stored sales facts. Closed days in ${periodLabel} are unaffected.`,
+    };
+  }
+
+  if (orderProgress) {
+    return orderProgress;
+  }
+
+  if (input.orderFactsTruncated) {
+    return truncatedOrderFactsMessage();
+  }
+
+  return null;
+}
+
+export function assertMerchantCopy(text: string): void {
+  if (BANNED_MERCHANT_PHRASES.test(text)) {
+    throw new Error(`Banned merchant phrase in copy: ${text.slice(0, 80)}`);
+  }
 }
 
 /** Spend first-fold Sales KPI — same today-cap honesty as CashTrustBanners. */

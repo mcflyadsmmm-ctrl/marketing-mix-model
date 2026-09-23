@@ -97,7 +97,7 @@ describe("YoY last-year honesty", () => {
   it("uses OVERVIEW_YOY_MISSING when last-year sales are null, not only a missing row id", () => {
     expect(yoyRoute).toContain("OVERVIEW_YOY_MISSING");
     expect(yoyRoute).not.toContain('byId.has("lastYear")');
-    expect(OVERVIEW_YOY_MISSING).toMatch(/reports scope/);
+    expect(OVERVIEW_YOY_MISSING).toMatch(/Orders still loading/i);
     expect(OVERVIEW_YOY_MISSING).toMatch(/not \$0/);
   });
 });

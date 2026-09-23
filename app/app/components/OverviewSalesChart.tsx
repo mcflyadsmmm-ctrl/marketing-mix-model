@@ -197,12 +197,12 @@ export function OverviewSalesChart({
     ]),
   );
 
+  if (salesPending) {
+    return null;
+  }
+
   if (sorted.length < 2) {
-    return (
-      <ChartEmptyFrame
-        copy={salesPending ? OVERVIEW_PENDING_LINE : OVERVIEW_CHART_EMPTY}
-      />
-    );
+    return <ChartEmptyFrame copy={OVERVIEW_CHART_EMPTY} />;
   }
 
   const noun = GRAIN_NOUN[effectiveGrain];

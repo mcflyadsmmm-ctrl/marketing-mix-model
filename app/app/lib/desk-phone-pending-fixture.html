@@ -11,15 +11,7 @@
   </style>
 </head>
 <body>
-  <p class="fixture-note">Pending Live Overview at 390×844 — scoreboard shells as —, not a sealed $0 year.</p>
-
-  <nav class="mcfly-desk-tabs mcfly-desk-tabs--pills" aria-label="Desk pages" role="tablist">
-    <a class="mcfly-desk-tabs__pill mcfly-desk-tabs__pill--on" role="tab" aria-selected="true" aria-current="page" href="#overview">Overview</a>
-    <a class="mcfly-desk-tabs__pill" role="tab" href="#orders">Orders</a>
-    <a class="mcfly-desk-tabs__pill" role="tab" href="#customers">Customers</a>
-    <a class="mcfly-desk-tabs__pill" role="tab" href="#spend">Spend</a>
-    <a class="mcfly-desk-tabs__pill" role="tab" href="#goals">Goals</a>
-  </nav>
+  <p class="fixture-note">Pending Live Overview at 390×844 — one status banner, hero —, no $0 chart.</p>
 
   <div class="mcfly-desk">
     <div class="mcfly-ctx">
@@ -30,80 +22,27 @@
       </div>
     </div>
 
-    <section class="mcfly-state mcfly-state--empty mcfly-state--soft" aria-label="Sales still loading">
-      <p class="mcfly-state__copy">Sales loaded for 0 of 23 days. Nothing is wrong. Incomplete sales are not $0.</p>
-    </section>
+    <s-banner tone="info" heading="Sales are still loading">
+      <s-paragraph>Shopify sales for month to date are still filling in (0 of 23 days ready). Nothing is wrong and nothing is lost. Incomplete sales are not $0. Refresh in a few minutes.</s-paragraph>
+    </s-banner>
 
     <div class="mcfly-desk-anchor mcfly-scoreboard--overview">
-    <section class="mcfly-lane mcfly-lane--first" aria-label="Typical order, returning $, weekends, typical day">
-      <header class="mcfly-lane__head">
-        <p class="mcfly-lane__hint">Look here first</p>
-        <p class="mcfly-lane__label">Typical order, returning $, weekends, typical day</p>
-      </header>
-    <section class="mcfly-score mcfly-book mcfly-score--soft" aria-label="Shopify sales this period">
-      <p class="mcfly-score__greeting">Waiting on reports scope / sales totals ingest — not $0.</p>
-      <div class="mcfly-book__clock" aria-label="What to notice">
-        <div>
-          <p class="mcfly-book__clock-k">Signal</p>
-          <p class="mcfly-book__clock-v">Sales day totals still landing</p>
+      <section class="mcfly-overview-plane" aria-label="Orders this period">
+        <div class="mcfly-overview-plane__hero mcfly-overview-plane__hero--empty">
+          <p class="mcfly-overview-plane__period">This month</p>
+          <p class="mcfly-overview-plane__value">—</p>
+          <p class="mcfly-overview-plane__meta">
+            <span class="mcfly-overview-plane__source">From orders</span>
+          </p>
         </div>
-        <div>
-          <p class="mcfly-book__clock-k">Evidence</p>
-          <p class="mcfly-book__clock-v">Waiting on reports scope / sales totals ingest — not $0.</p>
-        </div>
-        <div>
-          <p class="mcfly-book__clock-k">Next move</p>
-          <p class="mcfly-book__clock-v">Typical order, returning $, and weekend fill as closed days land — not $0.</p>
-        </div>
-      </div>
-      <div class="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--peeks-4 mcfly-kpi-grid--soft">
-        <article class="mcfly-kpi"><p class="mcfly-kpi__k">Typical order</p><p class="mcfly-kpi__v">—</p></article>
-        <article class="mcfly-kpi"><p class="mcfly-kpi__k">Returning $</p><p class="mcfly-kpi__v">—</p></article>
-        <article class="mcfly-kpi"><p class="mcfly-kpi__k">Weekends</p><p class="mcfly-kpi__v">—</p></article>
-        <article class="mcfly-kpi"><p class="mcfly-kpi__k">Typical day</p><p class="mcfly-kpi__v">—</p></article>
-      </div>
-    </section>
-    <section class="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
-      <p class="mcfly-yoy__lede">Waiting on reports scope / sales totals ingest — not $0.</p>
-      <div class="mcfly-yoy__grid">
-        <article class="mcfly-yoy__card mcfly-yoy__card--empty">
-          <p class="mcfly-yoy__k">This month</p>
-          <p class="mcfly-yoy__v">—</p>
-          <p class="mcfly-yoy__prior"><span>Last year</span><span>—</span></p>
-        </article>
-        <article class="mcfly-yoy__card mcfly-yoy__card--empty">
-          <p class="mcfly-yoy__k">This quarter</p>
-          <p class="mcfly-yoy__v">—</p>
-          <p class="mcfly-yoy__prior"><span>Last year</span><span>—</span></p>
-        </article>
-        <article class="mcfly-yoy__card mcfly-yoy__card--empty">
-          <p class="mcfly-yoy__k">This year</p>
-          <p class="mcfly-yoy__v">—</p>
-          <p class="mcfly-yoy__prior"><span>Last year</span><span>—</span></p>
-        </article>
-      </div>
-    </section>
-    </section>
-
-    <div class="mcfly-desk-anchor mcfly-scoreboard--customers" id="customers">
-      <section class="mcfly-lane mcfly-lane--first" aria-label="RFM-lite, whales, repurchase clock">
-        <header class="mcfly-lane__head">
-          <p class="mcfly-lane__hint">Look here first</p>
-          <p class="mcfly-lane__label">RFM-lite, whales, repurchase clock</p>
-        </header>
-        <section class="mcfly-score mcfly-book mcfly-score--customers-hero" aria-label="Customers">
-          <p class="mcfly-score__greeting">Waiting on reports scope / sales totals ingest — not $0.</p>
-          <p class="mcfly-state__copy">RFM-lite, whale watch, and the repurchase clock fill as closed days land — not $0.</p>
-        </section>
+        <p class="mcfly-overview-plane__strip">
+          <span>Returning —</span>
+          <span aria-hidden="true"> · </span>
+          <span>Typical order —</span>
+          <span aria-hidden="true"> · </span>
+          <span>Weekend —</span>
+        </p>
       </section>
-    </div>
-
-    <section class="mcfly-chart mcfly-chart--empty" aria-label="Sales by day">
-      <div class="mcfly-chart__head">
-        <p class="mcfly-chart__title">Sales</p>
-      </div>
-      <p class="mcfly-chart__empty">Waiting on reports scope / sales totals ingest — not $0.</p>
-    </section>
     </div>
   </div>
 </body>

@@ -764,9 +764,18 @@ export default function Dashboard() {
     salesFactsIncomplete != null ||
     Boolean(orderProgressInput && orderProgressInput.remainingDays > 0) ||
     Boolean(orderBackfillProgress?.truncated);
+  const closedDaysOnFile = useSampleDesk
+    ? 1
+    : Math.max(
+        salesFactsCoverage?.factDays ?? 0,
+        orderBackfillProgress?.completeDays ?? 0,
+      );
+  const showOverviewChartBeat =
+    useSampleDesk || (closedDaysOnFile >= 1 && !greetingPending);
 
   const trustBanners = (
     <CashTrustBanners
+      singlePendingSurface
       blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
       spendCoverage={null}
       periodLabel={metrics.period.label}
@@ -958,29 +967,37 @@ export default function Dashboard() {
                     }
                     orderBookDepth={orderBookDepth}
                     orderBackfillLine={orderBackfillResumeLine}
+                    hideInlinePending={syncNeedsTop}
                   />
-                  <OverviewYoyCards
-                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                    salesPending={greetingPending}
-                    yoyHref={yoyHref}
-                  />
-                  </div>
-                  <div className="mcfly-desk-anchor mcfly-overview-chart-beat" id={DESK_SECTION.chart}>
-                    <OverviewSalesChart
-                      days={
-                        salesExplorerDays.length >= 2
-                          ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
-                              dateKey,
-                              sales,
-                              orders,
-                            }))
-                          : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
-                      }
-                      ordersHref={ordersHref}
-                      salesPending={false}
-                      typicalDay={metrics.shopifyDepth.medianDailySales}
+                  {showOverviewChartBeat ? (
+                    <OverviewYoyCards
+                      cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                      salesPending={greetingPending}
+                      yoyHref={yoyHref}
                     />
+                  ) : null}
                   </div>
+                  {showOverviewChartBeat ? (
+                    <div
+                      className="mcfly-desk-anchor mcfly-overview-chart-beat"
+                      id={DESK_SECTION.chart}
+                    >
+                      <OverviewSalesChart
+                        days={
+                          salesExplorerDays.length >= 2
+                            ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
+                                dateKey,
+                                sales,
+                                orders,
+                              }))
+                            : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
+                        }
+                        ordersHref={ordersHref}
+                        salesPending={greetingPending}
+                        typicalDay={metrics.shopifyDepth.medianDailySales}
+                      />
+                    </div>
+                  ) : null}
                 </DeskLane>
                 <DeskLane
                   rank="more"

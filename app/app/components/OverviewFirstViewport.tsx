@@ -64,6 +64,8 @@ export type OverviewPeekProps = {
   orderBookDepth: LiveIngestDepth;
   /** Order-fact crawl resume — N days on file, window still filling. */
   orderBackfillLine?: string | null;
+  /** When Home already shows one pending banner, skip duplicate inline lines. */
+  hideInlinePending?: boolean;
 };
 
 function PeekCard({
@@ -279,6 +281,7 @@ export function OverviewFirstViewport({
   periodLabel = "This month",
   orderBookDepth,
   orderBackfillLine = null,
+  hideInlinePending = false,
   ...rest
 }: OverviewPeekProps) {
   const currency = useDeskCurrency();
@@ -286,10 +289,14 @@ export function OverviewFirstViewport({
 
   const hero = orderHero;
   const empty = hero?.empty ?? !(orderCount > 0);
+  const heroSales =
+    hero?.sales != null && Number.isFinite(hero.sales) ? hero.sales : null;
   const salesLabel =
-    hero?.sales != null && Number.isFinite(hero.sales)
-      ? money(hero.sales)
-      : null;
+    heroSales != null && Number.isFinite(heroSales) ? money(heroSales) : null;
+  const heroValue =
+    salesPending && (heroSales == null || heroSales === 0)
+      ? "—"
+      : (salesLabel ?? "—");
   const missingPrior = hero == null || hero.priorSales == null;
   const delta = overviewOrderDeltaLabel({
     yoyPct: hero?.yoyPct ?? null,
@@ -333,7 +340,7 @@ export function OverviewFirstViewport({
             </p>
           )}
         </div>
-                  <p className="mcfly-overview-plane__value">{salesLabel ?? "—"}</p>
+                  <p className="mcfly-overview-plane__value">{heroValue}</p>
         <p className="mcfly-overview-plane__meta">
           <span className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</span>
           <span aria-hidden="true"> · </span>
@@ -348,9 +355,9 @@ export function OverviewFirstViewport({
         </span>
       </div>
 
-      {orderBackfillLine ? (
+      {!hideInlinePending && orderBackfillLine ? (
         <p className="mcfly-overview-plane__pending">{orderBackfillLine}</p>
-      ) : salesPending ? (
+      ) : !hideInlinePending && salesPending ? (
         <p className="mcfly-overview-plane__pending">{OVERVIEW_PENDING_LINE}</p>
       ) : null}
 

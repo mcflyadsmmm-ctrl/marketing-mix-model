@@ -190,12 +190,15 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("Margin {Math.round(metrics.marginPct * 100)}%");
     expect(overview).not.toMatch(/Margin \{Math\.round\(metrics\.marginPct/);
     expect(overview).toContain("!greetingPending");
+    expect(overview).toContain("showOverviewChartBeat");
+    expect(overview).toContain("hideInlinePending");
     expect(overview).toContain("factDays: salesFactsCoverage?.factDays");
     const chart = read("../components/OverviewSalesChart.tsx");
     expect(chart).not.toContain(
       "salesPending || !hasSales || points.length < 2",
     );
     expect(chart).not.toMatch(/if \(points\.length < 2\)\s*return null/);
+    expect(chart).toContain("if (salesPending)");
     expect(chart).toContain("ChartEmptyFrame");
     expect(chart).toContain("OVERVIEW_CHART_EMPTY");
     expect(chart).toContain("No days in this window yet");

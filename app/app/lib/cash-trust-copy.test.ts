@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  homePendingBannerMessage,
   orderHistoryProgressMessage,
   salesFactsIncompleteMessage,
   spendFirstFoldSalesHint,
@@ -93,6 +94,36 @@ describe("truncatedOrderFactsMessage", () => {
     expect(copy.heading.toLowerCase()).toContain("order history still loading");
     expect(copy.body.toLowerCase()).toContain("not $0");
     expect(copy.body.toLowerCase()).not.toContain("about 60 days");
+  });
+});
+
+describe("homePendingBannerMessage", () => {
+  it("returns one sales-facts banner instead of stacking order + today", () => {
+    const copy = homePendingBannerMessage({
+      periodLabel: "Month to date",
+      salesFactsIncomplete: { factDays: 0, expectedClosedDays: 23 },
+      orderBackfillProgress: {
+        completeDays: 0,
+        windowDays: 90,
+        remainingDays: 90,
+      },
+      todaySalesTruncated: true,
+    });
+    expect(copy?.heading.toLowerCase()).toContain("sales are still loading");
+    expect(copy?.body).toContain("0 of 23");
+    expect(copy?.body.toLowerCase()).not.toMatch(/reports scope|sales totals ingest/i);
+  });
+
+  it("falls through to order progress when sales facts are complete", () => {
+    const copy = homePendingBannerMessage({
+      periodLabel: "This month",
+      orderBackfillProgress: {
+        completeDays: 3,
+        windowDays: 90,
+        remainingDays: 87,
+      },
+    });
+    expect(copy?.heading).toContain("3 of 90");
   });
 });
 
