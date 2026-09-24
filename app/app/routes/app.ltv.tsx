@@ -17,7 +17,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sampleDesk: await getSampleDeskEnabled(session.shop),
     stage: resolveLiveUnparkStage(),
   });
-  if (decision.serve === "locked") {
+  if (decision.serve !== "open" || !decision.ltvOpen) {
     throw redirect(customersStageLockedPath(request));
   }
   throw redirect(customersPanelRedirectPath(request, "/app/customers", "ltv"));

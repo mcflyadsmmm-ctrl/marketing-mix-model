@@ -148,6 +148,65 @@ describe("live desk stage gate", () => {
     );
   });
 
+  it("/app/customers loader: gate closed → locked page, no stack read", () => {
+    const customers = read("../routes/app.customers.tsx");
+    const loaderStart = customers.indexOf("export const loader");
+    const loaderEnd = customers.indexOf("export default function");
+    const loaderSrc = customers.slice(loaderStart, loaderEnd);
+    expect(loaderSrc.indexOf("customersLivePageDecision")).toBeGreaterThan(-1);
+    expect(loaderSrc.indexOf("customersLivePageDecision")).toBeLessThan(
+      loaderSrc.indexOf("loadCustomersStackPage"),
+    );
+    expect(loaderSrc).toContain('serve === "locked"');
+    expect(loaderSrc).not.toMatch(
+      /serve === "locked"[\s\S]*loadCustomersStackPage[\s\S]*serve === "locked"/,
+    );
+    expect(customers.indexOf('data.kind === "locked"')).toBeLessThan(
+      customers.indexOf("<CustomersFirstViewport"),
+    );
+    expect(customers.indexOf("<LiveDeskLockedPage")).toBeLessThan(
+      customers.indexOf("<CustomersFirstViewport"),
+    );
+    expect(
+      customersLivePageDecision({
+        sampleDesk: false,
+        stage: "overview_orders",
+      }).serve,
+    ).toBe("locked");
+  });
+
+  it("/app/growth loader: gate closed → locked customers redirect, no stack read", () => {
+    const growth = read("../routes/app.growth.tsx");
+    const growthLoader = growth.slice(growth.indexOf("export const loader"));
+    expect(growthLoader.indexOf("customersLivePageDecision")).toBeLessThan(
+      growthLoader.indexOf("customersStageLockedPath"),
+    );
+    expect(growthLoader.indexOf("customersStageLockedPath")).toBeLessThan(
+      growthLoader.indexOf("customersPanelRedirectPath"),
+    );
+    expect(growthLoader).toContain("!decision.growthOpen");
+    expect(growth).not.toContain("loadCustomersStackPage");
+    expect(growth).not.toContain("loadCustomerAnalytics");
+    expect(growth).not.toContain("loadGrowthComeback");
+    expect(growth).not.toContain("loadLtvDepth");
+  });
+
+  it("/app/ltv loader: gate closed → locked customers redirect, no stack read", () => {
+    const ltv = read("../routes/app.ltv.tsx");
+    const ltvLoader = ltv.slice(ltv.indexOf("export const loader"));
+    expect(ltvLoader.indexOf("customersLivePageDecision")).toBeLessThan(
+      ltvLoader.indexOf("customersStageLockedPath"),
+    );
+    expect(ltvLoader.indexOf("customersStageLockedPath")).toBeLessThan(
+      ltvLoader.indexOf("customersPanelRedirectPath"),
+    );
+    expect(ltvLoader).toContain("!decision.ltvOpen");
+    expect(ltv).not.toContain("loadCustomersStackPage");
+    expect(ltv).not.toContain("loadCustomerAnalytics");
+    expect(ltv).not.toContain("loadGrowthComeback");
+    expect(ltv).not.toContain("loadLtvDepth");
+  });
+
   it("wires nav and route loaders so /app/customers cannot paint Live chrome while locked", () => {
     const customers = read("../routes/app.customers.tsx");
     const loaderStart = customers.indexOf("export const loader");
@@ -208,7 +267,7 @@ describe("live desk stage gate", () => {
     expect(ltvLoader.indexOf("customersLivePageDecision")).toBeLessThan(
       ltvLoader.indexOf("customersPanelRedirectPath"),
     );
-    expect(ltvLoader).toContain('serve === "locked"');
+    expect(ltvLoader).toContain("!decision.ltvOpen");
     expect(ltvLoader.indexOf("customersStageLockedPath")).toBeLessThan(
       ltvLoader.indexOf("customersPanelRedirectPath"),
     );
