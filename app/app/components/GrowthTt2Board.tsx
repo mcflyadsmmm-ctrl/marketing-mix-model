@@ -1,3 +1,7 @@
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import { growthCopyLine, morningSentence } from "../lib/morning-habit";
 import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
@@ -110,8 +114,43 @@ function emptyFloor(kind: GrowthTt2EmptyKind, need: number): string {
  * three ActionCards, a cadence histogram, and still-waiting buckets. First-win
  * empties are ActionCard-shaped. Order history only. Not a Customers dump.
  */
-export function GrowthTt2Board({ tt2 }: { tt2: GrowthTt2View }) {
+function GrowthWindowDaysBoard({
+  windowDays,
+}: {
+  windowDays: CustomersWindowDays;
+}) {
+  const copy = customersDaysToSecondCopy(windowDays);
+  return (
+    <section
+      className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-growth-tt2 mcfly-desk-anchor"
+      aria-label={`Days to a second order · ${windowDays.label}`}
+    >
+      <div className="mcfly-panel__head">
+        <h2>Days to a second order</h2>
+        <p className="mcfly-panel__muted">{windowDays.label}</p>
+      </div>
+      <p className="mcfly-growth-tt2__read-k">Today’s read</p>
+      <p className="mcfly-growth-tt2__read-v">{copy?.value ?? "—"}</p>
+      <p className="mcfly-growth-tt2__read-line">
+        {copy?.line ??
+          `Needs a second order in ${windowDays.label} — not $0.`}
+      </p>
+    </section>
+  );
+}
+
+export function GrowthTt2Board({
+  tt2,
+  windowDays,
+}: {
+  tt2: GrowthTt2View;
+  /** Period on screen. When set, this board does not print another wait. */
+  windowDays?: CustomersWindowDays;
+}) {
   const drill = useDeskDrill();
+  if (windowDays) {
+    return <GrowthWindowDaysBoard windowDays={windowDays} />;
+  }
   const empty = tt2.empty;
   const read = growthTt2Read(tt2);
 

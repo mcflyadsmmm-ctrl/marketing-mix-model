@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { DeskIcon, type DeskIconName } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import { SAMPLE_GROWTH_DOOR } from "../lib/sample-live-handoff";
 import {
   GROWTH_ANALYTICS_CONTRAST,
@@ -165,6 +169,47 @@ function GrowthHabitStrip({ depth }: { depth: GrowthHabitDepth }) {
 }
 
 /**
+ * On-screen period only. A full-book wait and a longer comeback window
+ * are different facts and do not share this hero.
+ */
+function GrowthWindowDaysHero({
+  windowDays,
+  salesPending,
+  useSampleDesk,
+}: {
+  windowDays: CustomersWindowDays;
+  salesPending: boolean;
+  useSampleDesk: boolean;
+}) {
+  const copy = salesPending ? null : customersDaysToSecondCopy(windowDays);
+  const greeting = salesPending
+    ? `Days to a second order in ${windowDays.label} fills as closed days land — not $0.`
+    : copy
+      ? `${copy.line} ${GROWTH_ANALYTICS_CONTRAST}`
+      : `Days to a second order in ${windowDays.label} needs a second order on file — not $0.`;
+  return (
+    <section
+      className="mcfly-score mcfly-book mcfly-score--growth-hero mcfly-score--soft"
+      aria-label={`Days to a second order · ${windowDays.label}`}
+    >
+      <p className="mcfly-score__greeting">{greeting}</p>
+      {useSampleDesk ? (
+        <p className="mcfly-score__trust">{SAMPLE_GROWTH_DOOR}</p>
+      ) : null}
+      <article className="mcfly-growth-hero mcfly-growth-hero--soft">
+        <p className="mcfly-growth-hero__k">
+          <DeskIcon name="clock" />
+          Days to a second order
+        </p>
+        <p className="mcfly-growth-hero__v">{copy?.value ?? "—"}</p>
+        <p className="mcfly-growth-hero__sub">{windowDays.label}</p>
+        {copy ? <p className="mcfly-growth-hero__def">{copy.line}</p> : null}
+      </article>
+    </section>
+  );
+}
+
+/**
  * First-fold Growth — typical wait to a second order vs Shopify’s
  * returning-customer rate, then win-back / reach-now / 30-day peeks
  * Analytics does not put next to that rate. Habit depth (days-to-second
@@ -175,11 +220,23 @@ export function GrowthFirstViewport({
   tt2,
   salesPending,
   useSampleDesk = false,
+  windowDays,
 }: {
   tt2: GrowthTt2View;
   salesPending: boolean;
   useSampleDesk?: boolean;
+  /** Period already on the Customers screen. When set, this hero is that wait only. */
+  windowDays?: CustomersWindowDays;
 }) {
+  if (windowDays) {
+    return (
+      <GrowthWindowDaysHero
+        windowDays={windowDays}
+        salesPending={salesPending}
+        useSampleDesk={useSampleDesk}
+      />
+    );
+  }
   const greeting = growthOperatorGreeting({ salesPending, tt2 });
   const typical = salesPending && !tt2.available ? null : growthTypicalWaitLabel(tt2);
   const habitSub = salesPending && !tt2.available ? null : growthHabitSub(tt2);

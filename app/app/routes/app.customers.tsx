@@ -48,6 +48,11 @@ import {
   emptyShareableInsights,
   pickShareableLtvPeek,
 } from "../lib/shareable-insights";
+import {
+  customersOnScreenWindow,
+  labelCustomersDaysToSecondCard,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await requireAdmin(request);
@@ -203,12 +208,19 @@ export default function CustomersPage() {
     cards: insightView.cards.filter((card) => card.kind === "returning"),
     empty: null,
   };
+  const windowDays: CustomersWindowDays = {
+    label: customersOnScreenWindow(metrics.period.label),
+    days: metrics.shopifyDepth.medianDaysToSecond,
+    cameBack: metrics.shopifyDepth.repeatBuyers,
+  };
   const depthInsight = {
     ...insightView,
-    cards: insightView.cards.filter(
-      (card) =>
-        card.kind !== "returning" && (ltvOpen || card.kind !== "ltvPeek"),
-    ),
+    cards: insightView.cards
+      .filter(
+        (card) =>
+          card.kind !== "returning" && (ltvOpen || card.kind !== "ltvPeek"),
+      )
+      .map((card) => labelCustomersDaysToSecondCard(card, windowDays)),
   };
 
   return (
@@ -322,6 +334,7 @@ export default function CustomersPage() {
           quietBack={analytics.quietBack}
           comebackWait={analytics.comebackWait}
           lifetimeSpan={analytics.lifetimeSpan}
+          windowDays={windowDays}
         />
       </DeskLane>
       ) : (
@@ -340,7 +353,7 @@ export default function CustomersPage() {
         defaultOpen={shotMode || panel === "depth"}
       >
         <div className="mcfly-cust-action-row">
-          <CustomerRetentionBoard analytics={analytics} />
+          <CustomerRetentionBoard analytics={analytics} windowDays={windowDays} />
           <CustomerWhaleWatch rfm={analytics.rfm} />
         </div>
         <CustomerRfmBoard rfm={analytics.rfm} />

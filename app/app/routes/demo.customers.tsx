@@ -21,7 +21,10 @@ import {
   CustomersLtvWindows,
   type CustomersLtvMetrics,
 } from "../components/CustomersLtvSection";
-import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
+import {
+  CUSTOMERS_FIRST_LANE_LABEL,
+  parseCustomersPanel,
+} from "../lib/customers-first-viewport";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
@@ -30,7 +33,6 @@ import {
   type PublicSamplePage,
 } from "../lib/public-sample-page.server";
 import { loadLtvDepth } from "../lib/ltv-depth-page.server";
-import { parseCustomersPanel } from "../lib/customers-first-viewport";
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { flagshipDailyRead } from "../lib/ltv-flagship";
@@ -38,6 +40,11 @@ import {
   buildShareableInsights,
   pickShareableLtvPeek,
 } from "../lib/shareable-insights";
+import {
+  customersOnScreenWindow,
+  labelCustomersDaysToSecondCard,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
 
@@ -129,6 +136,11 @@ export default function PublicDemoCustomers() {
     },
     (n) => formatCurrency(n, currency),
   );
+  const windowDays: CustomersWindowDays = {
+    label: customersOnScreenWindow(data.rangeLabel),
+    days: data.depth.medianDaysToSecond,
+    cameBack: data.depth.repeatBuyers,
+  };
   const returningInsight = {
     ...insightView,
     cards: insightView.cards.filter((card) => card.kind === "returning"),
@@ -136,7 +148,9 @@ export default function PublicDemoCustomers() {
   };
   const depthInsight = {
     ...insightView,
-    cards: insightView.cards.filter((card) => card.kind !== "returning"),
+    cards: insightView.cards
+      .filter((card) => card.kind !== "returning")
+      .map((card) => labelCustomersDaysToSecondCard(card, windowDays)),
   };
 
   return (
@@ -221,6 +235,7 @@ export default function PublicDemoCustomers() {
               quietBack={data.customers.quietBack}
               comebackWait={data.customers.comebackWait}
               lifetimeSpan={data.customers.lifetimeSpan}
+              windowDays={windowDays}
             />
           </DeskLane>
         </div>
@@ -232,7 +247,10 @@ export default function PublicDemoCustomers() {
             defaultOpen={data.shotMode || data.panel === "depth"}
           >
             <div className="mcfly-cust-action-row">
-              <CustomerRetentionBoard analytics={data.customers} />
+              <CustomerRetentionBoard
+                analytics={data.customers}
+                windowDays={windowDays}
+              />
               <CustomerWhaleWatch rfm={data.customers.rfm} />
             </div>
             <CustomerRfmBoard rfm={data.customers.rfm} />

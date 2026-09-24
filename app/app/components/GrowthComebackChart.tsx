@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import { formatCurrency } from "../lib/mer-format";
 import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
 import {
@@ -162,6 +166,7 @@ export function GrowthComebackChart({
   drillNext = "Open LTV for what each first order is worth in 30 / 90 / 365 days.",
   drillHref = "#mcfly-ltv",
   drillLabel,
+  windowDays,
 }: {
   depthBars: GrowthBar[];
   months: GrowthMonthBar[];
@@ -172,6 +177,8 @@ export function GrowthComebackChart({
   drillNext?: string;
   drillHref?: string;
   drillLabel?: string;
+  /** Period on screen. When set, days-to-2nd is that wait only. */
+  windowDays?: CustomersWindowDays;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -352,7 +359,18 @@ export function GrowthComebackChart({
       nextLabel: drillLabel,
     });
 
-  const muted = growthComebackSentence(depth, repeatRate);
+  const windowCopy =
+    windowDays && !salesPending ? customersDaysToSecondCopy(windowDays) : null;
+  const comebackLine = growthComebackSentence(depth, repeatRate);
+  const otherWaitDays =
+    depth.medianDaysToSecond != null && Number.isFinite(depth.medianDaysToSecond)
+      ? `${Math.round(depth.medianDaysToSecond)} days`
+      : null;
+  const muted =
+    windowDays && otherWaitDays && comebackLine.includes(otherWaitDays)
+      ? (windowCopy?.line ??
+        `Days to a second order in ${windowDays.label} needs a second order on file — not $0.`)
+      : comebackLine;
   const firstTimeText =
     firstTimeDollars != null && firstTimeDollars > 0
       ? money(firstTimeDollars)
@@ -373,12 +391,13 @@ export function GrowthComebackChart({
           : "needs 30 days of follow-up",
     },
     {
-      k: "Days to 2nd",
-      v:
-        depth.medianDaysToSecond != null
+      k: windowDays ? `Days to 2nd · ${windowDays.label}` : "Days to 2nd",
+      v: windowDays
+        ? (windowCopy?.value ?? "—")
+        : depth.medianDaysToSecond != null
           ? `${Math.round(depth.medianDaysToSecond)}d`
           : "—",
-      sub: "typical wait",
+      sub: windowDays ? windowDays.label : "typical wait",
     },
     {
       k: "Extra orders",

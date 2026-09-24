@@ -1,3 +1,7 @@
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { VerticalBars } from "./CustomerCharts";
@@ -124,9 +128,17 @@ function RetentionEmptyFrame() {
  * metric dump. Order history only — no email, no spend. Product-level cross-sell
  * is withheld (no SKU/title in Level-1 facts), never guessed.
  */
-export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnalytics }) {
+export function CustomerRetentionBoard({
+  analytics,
+  windowDays,
+}: {
+  analytics: CustomerAnalytics;
+  /** Period on screen. Typical repurchase uses that wait, not a longer window. */
+  windowDays?: CustomersWindowDays;
+}) {
   const drill = useDeskDrill();
   const a = analytics;
+  const windowCopy = windowDays ? customersDaysToSecondCopy(windowDays) : null;
 
   if (!a.available) {
     return <RetentionEmptyFrame />;
@@ -178,19 +190,35 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">
         <ActionCard
           label="Typical repurchase"
-          value={day(a.repurchaseTypicalDays)}
-          sub={clockSub}
+          value={
+            windowDays
+              ? (windowCopy?.value ?? "—")
+              : day(a.repurchaseTypicalDays)
+          }
+          sub={windowDays ? windowDays.label : clockSub}
           tone="good"
           verb="Repurchase"
-          detail="Time the ask around this day — when identified buyers typically place a second order from this shop's order history."
+          detail={
+            windowCopy
+              ? windowCopy.line
+              : "Time the ask around this day — when identified buyers typically place a second order from this shop's order history."
+          }
         />
         <ActionCard
           label="Win-back by"
-          value={day(a.winBackDay)}
-          sub="typical repurchase + 15 days"
+          value={
+            windowDays ? (windowCopy?.value ?? "—") : day(a.winBackDay)
+          }
+          sub={
+            windowDays ? windowDays.label : "typical repurchase + 15 days"
+          }
           tone="warn"
           verb="Win-back"
-          detail="Reach one-order buyers by this day — just past typical repurchase, before the slow tail falls off."
+          detail={
+            windowCopy
+              ? windowCopy.line
+              : "Reach one-order buyers by this day — just past typical repurchase, before the slow tail falls off."
+          }
           href="#mcfly-win-back"
         />
         <ActionCard
@@ -263,14 +291,16 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
           <DeskIcon name="clock" /> Win-back play
         </p>
         <p className="mcfly-cust-play__body">
-          {isNum(a.winBackDay)
-            ? `Reach the ${a.saveNowOneOrder.toLocaleString()} one-order buyers already past ${day(a.winBackDay).toLowerCase()} — just beyond the typical repurchase, before the slow tail.`
-            : "Win-back timing needs more repeat orders on file — not zero."}
+          {windowCopy
+            ? windowCopy.line
+            : isNum(a.winBackDay)
+              ? `Reach the ${a.saveNowOneOrder.toLocaleString()} one-order buyers already past ${day(a.winBackDay).toLowerCase()} — just beyond the typical repurchase, before the slow tail.`
+              : "Win-back timing needs more repeat orders on file — not zero."}
         </p>
         {everLine ? <p className="mcfly-cust-play__meta">{everLine}. {within30Line}</p> : null}
         <p className="mcfly-cust-play__note">
           Suggesting a specific 2nd-order product needs order line items (SKUs / titles), which
-          <code> read_orders</code> Level-1 facts don't include — so Mcfly won't guess one. Timing above is from real order history.
+          <code> read_orders</code> Level-1 facts do not include — so Mcfly will not guess one. Timing above is from real order history.
         </p>
       </div>
     </section>
