@@ -1,6 +1,8 @@
 /**
  * Shopify App Pricing — one plan, $39 flat / store / mo after a 7-day trial.
  * Public apps use Shopify-hosted plan selection (not appSubscriptionCreate).
+ * Subscription state comes from the Partner API activeSubscription query.
+ * The Admin activeSubscriptions query is only a legacy Billing API fallback.
  * Docs: https://shopify.dev/docs/apps/launch/billing/shopify-app-pricing
  *
  * Religion: flat desk fee, never GMV tax.
@@ -16,11 +18,23 @@ import {
   type BillingTier,
 } from "./billing-flag.server";
 import {
+  clearPaidCycle,
+  readPaidCycleEnd,
+  writePaidCycle,
+} from "./billing-cycle.server";
+import { decideSubscriptionAccess, type PartnerView } from "./billing-subscription";
+import {
   DESK_FEATURE_BULLETS,
   getShopEntitlements,
   PRO_UPSELL,
   type ShopEntitlements,
 } from "./entitlements.server";
+import {
+  queryPartnerActiveSubscription,
+  readPartnerBillingConfig,
+  shopifyGid,
+  type ParsedPartnerSubscription,
+} from "./partner-subscription.server";
 
 export { subscriptionMatchesProPlan } from "./billing-flag.server";
 
@@ -33,6 +47,14 @@ const ACTIVE_SUBSCRIPTIONS_QUERY = `#graphql
         status
         test
       }
+    }
+  }
+`;
+
+const SHOP_ID_QUERY = `#graphql
+  query McflyShopId {
+    shop {
+      id
     }
   }
 `;
@@ -146,26 +168,126 @@ export async function fetchActiveAppSubscriptions(
     }));
 }
 
+function partnerViewFromParsed(parsed: ParsedPartnerSubscription): PartnerView {
+  switch (parsed.status) {
+    case "error":
+      return { status: "unavailable" };
+    case "tiered":
+    case "none":
+      return { status: "none" };
+    case "flat":
+      return {
+        status: "flat",
+        inTrial: parsed.inTrial,
+        paidCycleEndsAt: parsed.paidCycleEndsAt,
+        cancelAtEndOfCycle: parsed.cancelAtEndOfCycle,
+        legacySubscriptionId: parsed.legacySubscriptionId,
+      };
+    default: {
+      const _exhaustive: never = parsed;
+      throw new Error(`Unhandled subscription parse: ${JSON.stringify(_exhaustive)}`);
+    }
+  }
+}
+
+async function fetchShopGid(admin: AdminApiContext): Promise<string | null> {
+  const response = await admin.graphql(SHOP_ID_QUERY);
+  const json = (await response.json()) as {
+    data?: { shop?: { id?: string | null } };
+    errors?: Array<{ message?: string }>;
+  };
+  if (json.errors?.length) return null;
+  const id = json.data?.shop?.id?.trim();
+  return id ? shopifyGid("Shop", id) : null;
+}
+
 /**
- * Pull active subscriptions from Shopify and cache Pro on Shop.
- * Works with Shopify App Pricing (legacy Admin activeSubscriptions).
+ * Pull the Shopify App Pricing contract (Partner API) and cache it on Shop.
+ * A flat trial or paid contract entitles the desk. A paid cycle end is kept
+ * after the contract disappears so that period can run out. A tiered price
+ * is not this plan. Missing Partner credentials do not wipe a cached grant.
  */
 export async function syncShopProFromShopify(
   admin: AdminApiContext,
   shopId: string,
 ): Promise<{ active: boolean; subscriptionGid: string | null }> {
-  const subs = await fetchActiveAppSubscriptions(admin);
-  const pro = pickActiveProSubscription(subs);
-  const active = pro != null;
-  const subscriptionGid = pro?.id ?? null;
-  await prisma.shop.update({
+  const shop = await prisma.shop.findUnique({
     where: { id: shopId },
+    select: { id: true, domain: true, proBillingActive: true, proSubscriptionGid: true },
+  });
+  if (!shop) return { active: false, subscriptionGid: null };
+
+  const now = new Date();
+  const storedEnd = await readPaidCycleEnd(shop.domain);
+  const config = readPartnerBillingConfig();
+  let partner: PartnerView;
+  if (!config) {
+    partner = { status: "unconfigured" };
+  } else {
+    try {
+      const shopGid = await fetchShopGid(admin);
+      if (!shopGid) {
+        partner = { status: "unavailable" };
+      } else {
+        const parsed = await queryPartnerActiveSubscription({
+          config,
+          shopGid,
+          now,
+        });
+        partner = partnerViewFromParsed(parsed);
+      }
+    } catch {
+      partner = { status: "unavailable" };
+    }
+  }
+
+  let legacyAdminActive = false;
+  let legacyGid: string | null = null;
+  if (partner.status !== "flat") {
+    try {
+      const subs = await fetchActiveAppSubscriptions(admin);
+      const pro = pickActiveProSubscription(subs);
+      legacyAdminActive = pro != null;
+      legacyGid = pro?.id ?? null;
+    } catch {
+      if (partner.status !== "unconfigured") partner = { status: "unavailable" };
+    }
+  }
+
+  const decision = decideSubscriptionAccess({
+    partner,
+    legacyAdminActive,
+    storedPaidCycleEndsAt: storedEnd ? storedEnd.toISOString() : null,
+    now,
+  });
+  if (!decision.persist) {
+    return {
+      active: shop.proBillingActive,
+      subscriptionGid: shop.proSubscriptionGid,
+    };
+  }
+
+  if (decision.paidCycleEndsAt) {
+    await writePaidCycle({
+      shopDomain: shop.domain,
+      paidCycleEndsAt: new Date(decision.paidCycleEndsAt),
+      cancelAtEndOfCycle: decision.cancelAtEndOfCycle,
+    });
+  } else {
+    await clearPaidCycle(shop.domain);
+  }
+
+  const subscriptionGid = decision.entitled
+    ? decision.legacySubscriptionId ?? legacyGid ?? shop.proSubscriptionGid
+    : null;
+  await prisma.shop.update({
+    where: { id: shop.id },
     data: {
-      proBillingActive: active,
+      proBillingActive: decision.entitled,
       proSubscriptionGid: subscriptionGid,
     },
   });
-  return { active, subscriptionGid };
+  return { active: decision.entitled, subscriptionGid };
 }
 
 export function getShopBillingSnapshot(
@@ -225,24 +347,14 @@ export async function requestProSubscription(input: {
   }
 
   try {
-    const existing = await fetchActiveAppSubscriptions(input.admin);
-    const alreadyPro = pickActiveProSubscription(existing);
-    if (alreadyPro) {
-      const shop = await prisma.shop.findUnique({
-        where: { domain: input.shopDomain.trim().toLowerCase() },
-        select: { id: true },
-      });
-      if (shop) {
-        await prisma.shop.update({
-          where: { id: shop.id },
-          data: {
-            proBillingActive: true,
-            proSubscriptionGid: alreadyPro.id,
-          },
-        });
-      }
-      // Still open Managed Pricing so the merchant can change/downgrade plans.
+    const shop = await prisma.shop.findUnique({
+      where: { domain: input.shopDomain.trim().toLowerCase() },
+      select: { id: true },
+    });
+    if (shop) {
+      await syncShopProFromShopify(input.admin, shop.id);
     }
+    // Still open Shopify App Pricing so the merchant can review the plan.
   } catch {
     // Still open plan page — sync may work after approve.
   }

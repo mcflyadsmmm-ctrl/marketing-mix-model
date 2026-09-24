@@ -9,6 +9,7 @@ import {
 } from "../lib/compliance-redact.server";
 import { enqueueJob } from "../lib/job-queue.server";
 import { RECOMPUTE_COHORT_FACTS_JOB } from "../lib/order-webhook";
+import { clearPaidCycle } from "../lib/billing-cycle.server";
 import {
   purgeWebhookDeliveriesForShop,
   recordWebhookDelivery,
@@ -55,6 +56,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await db.session.deleteMany({ where: { shop } });
       await db.complianceDataExport.deleteMany({ where: { shopDomain: shop } });
       await purgeWebhookDeliveriesForShop(shop);
+      await clearPaidCycle(shop);
       await db.shop.deleteMany({ where: { domain: shop } });
       console.log(`Compliance SHOP_REDACT shop=${shop} ok`);
       return new Response();

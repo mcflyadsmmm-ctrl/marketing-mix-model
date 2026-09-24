@@ -438,6 +438,25 @@ model WebhookDelivery {
   @@index([receivedAt])
 }
 
+/// Paid Shopify App Pricing cycle for one shop domain.
+///
+/// No Shop FK: app/uninstalled deletes the shop and its order rows, and this
+/// row stays so a period already paid can run to its end on reinstall.
+/// It is not a trial tombstone. Shopify's own trial ledger (about 180 days)
+/// decides whether a reinstall still has trial days.
+///
+/// shop/redact deletes this row with the rest of that shop's data.
+/// No customer name, email, phone, or address.
+model ShopBillingCycle {
+  shopDomain         String    @id
+  /// End of the current paid cycle from Partner API currentBillingCycle.endTime.
+  /// Null is not stored: a trial has no paid cycle, and the row is removed.
+  paidCycleEndsAt    DateTime
+  /// Uninstall or a scheduled cancel stops the next cycle. This one still runs.
+  cancelAtEndOfCycle Boolean   @default(false)
+  updatedAt          DateTime  @updatedAt
+}
+
 enum JobStatus {
   pending
   running

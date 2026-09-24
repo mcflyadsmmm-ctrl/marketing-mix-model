@@ -5,6 +5,12 @@
 
 import prisma from "../db.server";
 import { subscriptionMatchesProPlan } from "./billing-flag.server";
+import {
+  clearPaidCycle,
+  normalizeBillingShopDomain,
+  readPaidCycleEnd,
+} from "./billing-cycle.server";
+import { futureIso } from "./billing-subscription";
 
 export type AppSubscriptionWebhookPayload = {
   app_subscription?: {
@@ -22,33 +28,57 @@ export function proActiveFromSubscriptionStatus(
 }
 
 /**
- * Update Shop.proBillingActive from webhook body for this shop domain.
- * Only mutates when the subscription name matches Mcfly Pro (or known GID).
+ * Update Shop.proBillingActive from a legacy APP_SUBSCRIPTIONS_UPDATE body.
+ * Shopify App Pricing stopped sending this webhook after April 2026; the
+ * Partner API sync is the source of truth. While the webhook still arrives,
+ * CANCELLED keeps the desk when a paid cycle has not ended. DECLINED,
+ * EXPIRED, and FROZEN do not.
+ * Only mutates when the subscription name matches the flat plan (or known GID).
  */
 export async function applyAppSubscriptionWebhook(
   shopDomain: string,
   payload: AppSubscriptionWebhookPayload,
+  now: Date = new Date(),
 ): Promise<{ touched: boolean; active: boolean }> {
   const sub = payload.app_subscription;
   if (!sub) return { touched: false, active: false };
 
   const gid = sub.admin_graphql_api_id?.trim() || null;
   const name = sub.name ?? "";
-  const status = sub.status ?? "";
-  const domain = shopDomain.trim().toLowerCase();
+  const status = (sub.status ?? "").toUpperCase();
+  const domain = normalizeBillingShopDomain(shopDomain);
 
   const shop = await prisma.shop.findUnique({
     where: { domain },
     select: { id: true, proSubscriptionGid: true, proBillingActive: true },
   });
-  if (!shop) return { touched: false, active: false };
+  const nameMatches = subscriptionMatchesProPlan(name);
+  if (!shop) {
+    if (!nameMatches || !proActiveFromSubscriptionStatus(status)) {
+      return { touched: false, active: false };
+    }
+    await prisma.shop.create({
+      data: {
+        domain,
+        proBillingActive: true,
+        proSubscriptionGid: gid,
+      },
+    });
+    return { touched: true, active: true };
+  }
 
   const isOurPlan =
-    subscriptionMatchesProPlan(name) ||
-    (gid != null && shop.proSubscriptionGid === gid);
+    nameMatches || (gid != null && shop.proSubscriptionGid === gid);
   if (!isOurPlan) return { touched: false, active: shop.proBillingActive };
 
-  const active = proActiveFromSubscriptionStatus(status);
+  const paidEnd = await readPaidCycleEnd(domain);
+  const paidStillRuns =
+    futureIso(paidEnd ? paidEnd.toISOString() : null, now) != null;
+  const cutsPaidPeriod = status === "EXPIRED" || status === "FROZEN";
+  const active =
+    proActiveFromSubscriptionStatus(status) ||
+    (paidStillRuns && !cutsPaidPeriod);
+
   await prisma.shop.update({
     where: { id: shop.id },
     data: {
@@ -56,5 +86,6 @@ export async function applyAppSubscriptionWebhook(
       proSubscriptionGid: active ? gid ?? shop.proSubscriptionGid : null,
     },
   });
+  if (!active) await clearPaidCycle(domain);
   return { touched: true, active };
 }

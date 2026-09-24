@@ -29,7 +29,10 @@ import { DeskTopTabs } from "../components/DeskTopTabs";
 import { DataModeBar } from "../components/DataModeBar";
 import { BillingExitProvider } from "../lib/billing-exit-context";
 import { isBillingEnabled } from "../lib/billing-flag.server";
-import { buildManagedPricingPlansUrl } from "../lib/billing.server";
+import {
+  buildManagedPricingPlansUrl,
+  syncShopProFromShopify,
+} from "../lib/billing.server";
 import { deskNavHrefFromSearch, DESK_PRIMARY_NAV } from "../lib/desk-nav";
 import { deskShellShouldRevalidate } from "../lib/desk-tab-flow";
 import { deskNavLabel, liveDeskNavState } from "../lib/live-desk-surface";
@@ -72,8 +75,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return { ...PUBLIC_APP, shop: url.searchParams.get("shop") };
   }
   let session;
+  let admin;
   try {
-    ({ session } = await authenticate.admin(request));
+    ({ session, admin } = await authenticate.admin(request));
   } catch (error) {
     if (isGoneResponse(error) && !isEmbeddedAdminRequest(request)) {
       return { ...PUBLIC_APP, shop: url.searchParams.get("shop") };
@@ -81,6 +85,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw error;
   }
   const shop = await ensureShop(session.shop);
+  if (isBillingEnabled()) {
+    try {
+      await syncShopProFromShopify(admin, shop.id);
+    } catch {
+      // Cached subscription stands when Partner or Admin billing is down.
+    }
+  }
   await getOrCreateSettings(shop.id);
   await hydrateSampleOnlyFreeze(shop.id);
   const shotMode = url.searchParams.get("shot") === "1";
