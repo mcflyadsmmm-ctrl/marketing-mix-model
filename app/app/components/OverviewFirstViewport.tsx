@@ -11,6 +11,7 @@ import {
   overviewCoverageLine,
   overviewHandoffPeeks,
   overviewLtvWindowLabel,
+  OVERVIEW_OLDER_MONTHS_LINE,
   overviewReturningCompactDollars,
   overviewWeekendWeekday,
   type OverviewHandoffPeek,
@@ -18,7 +19,6 @@ import {
 } from "../lib/overview-first-viewport";
 import {
   OVERVIEW_FROM_ORDERS_LABEL,
-  OVERVIEW_OLDER_MONTHS_LINE,
   OVERVIEW_ORDERS_EMPTY_LINE,
   OVERVIEW_PRIOR_MISSING_LINE,
   overviewOrderDeltaLabel,
