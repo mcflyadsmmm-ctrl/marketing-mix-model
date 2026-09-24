@@ -1,11 +1,16 @@
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
-import { buildOverviewMoneyFold } from "../lib/overview-money-fold";
+import {
+  buildOverviewMoneyFold,
+  type OverviewMoneySource,
+} from "../lib/overview-money-fold";
 
 /**
- * First thing on cold Overview: period Shopify Total Sales, then Total ROAS.
- * Sales render with or without spend. Empty spend is an em dash.
- * No ad-platform login or cost-of-goods step sits in front of the sales figure.
+ * First thing on cold Overview: period sales, then Total ROAS.
+ * Live Shopify Total Sales are the SalesDayFact clock total when it is on
+ * file. Order-book dollars use From orders. Sales render with or without
+ * spend. Empty spend is an em dash. No ad-platform login or cost-of-goods
+ * step sits in front of the sales figure.
  */
 export function OverviewMoneyFold({
   sales,
@@ -13,12 +18,14 @@ export function OverviewMoneyFold({
   spend,
   useSampleDesk,
   periodLabel,
+  source,
 }: {
   sales: number | null;
   salesPending: boolean;
   spend: number | null;
   useSampleDesk: boolean;
   periodLabel: string;
+  source: OverviewMoneySource;
 }) {
   const currency = useDeskCurrency();
   const model = buildOverviewMoneyFold({
@@ -26,6 +33,7 @@ export function OverviewMoneyFold({
     salesPending,
     spend,
     useSampleDesk,
+    source,
   });
   const salesText =
     model.sales == null ? "—" : formatCurrency(model.sales, currency);
@@ -33,7 +41,8 @@ export function OverviewMoneyFold({
   return (
     <section
       className="mcfly-overview-money"
-      aria-label="Shopify Total Sales"
+      aria-label={model.label}
+      data-money-source={model.source}
       data-sample={model.sample ? "true" : undefined}
       data-desk-mode={model.sample ? "sample" : "live"}
       data-sales-ungated="true"

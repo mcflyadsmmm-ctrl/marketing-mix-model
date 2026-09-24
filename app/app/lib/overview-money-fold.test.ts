@@ -10,6 +10,8 @@ import {
   OVERVIEW_MONEY_SENTENCE,
   buildOverviewMoneyFold,
   overviewCashTotalRoasText,
+  resolveOverviewMoneyFold,
+  type OverviewMoneySource,
 } from "./overview-money-fold";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -24,6 +26,7 @@ function paint(props: {
   spend: number | null;
   useSampleDesk?: boolean;
   periodLabel?: string;
+  source?: OverviewMoneySource;
 }) {
   return renderToStaticMarkup(
     createElement(
@@ -35,6 +38,7 @@ function paint(props: {
         spend: props.spend,
         useSampleDesk: props.useSampleDesk ?? false,
         periodLabel: props.periodLabel ?? "This month",
+        source: props.source ?? "shopify",
       }),
     ),
   );
@@ -48,6 +52,7 @@ describe("overview money fold — empty spend Total ROAS", () => {
         salesPending: false,
         spend,
         useSampleDesk: false,
+        source: "shopify",
       });
       expect(model.roasText).toBe("—");
       expect(model.roasFailing).toBe(false);
@@ -59,6 +64,7 @@ describe("overview money fold — empty spend Total ROAS", () => {
       salesPending: false,
       spend: 0,
       useSampleDesk: false,
+      source: "shopify",
     });
     expect(zeroMonth.roasText).toBe("—");
     expect(zeroMonth.roasText).not.toContain("0.00");
@@ -78,6 +84,7 @@ describe("overview money fold — empty spend Total ROAS", () => {
       salesPending: false,
       spend: 200,
       useSampleDesk: false,
+      source: "shopify",
     });
     expect(model.roasText).toBe("4.00×");
     expect(model.roasFailing).toBe(false);
@@ -95,12 +102,14 @@ describe("overview money fold — sales are not spend-gated", () => {
       salesPending: false,
       spend: 0,
       useSampleDesk: false,
+      source: "shopify",
     });
     const funded = buildOverviewMoneyFold({
       sales: 18_400,
       salesPending: false,
       spend: 4_000,
       useSampleDesk: false,
+      source: "shopify",
     });
     expect(bare.salesVisibleWithoutSpend).toBe(true);
     expect(bare.sales).toBe(18_400);
@@ -112,6 +121,41 @@ describe("overview money fold — sales are not spend-gated", () => {
     expect(html).toContain("This month");
     expect(html).toContain("$18,400");
     expect(html).toContain('data-sales-ungated="true"');
+    expect(html).toContain('aria-label="Shopify Total Sales"');
+    expect(html).toContain('data-money-source="shopify"');
+    expect(html).toContain(OVERVIEW_MONEY_SENTENCE);
+  });
+
+  it("keeps From orders dollars visible without spend and never names them Shopify Total Sales", () => {
+    const bare = buildOverviewMoneyFold({
+      sales: 68_457,
+      salesPending: false,
+      spend: 0,
+      useSampleDesk: false,
+      source: "orders",
+    });
+    const funded = buildOverviewMoneyFold({
+      sales: 68_457,
+      salesPending: false,
+      spend: 4_000,
+      useSampleDesk: false,
+      source: "orders",
+    });
+    expect(bare.label).toBe("From orders");
+    expect(bare.source).toBe("orders");
+    expect(bare.sales).toBe(68_457);
+    expect(funded.sales).toBe(bare.sales);
+    expect(bare.roasText).toBe("—");
+    expect(bare.salesVisibleWithoutSpend).toBe(true);
+
+    const html = paint({ sales: 68_457, spend: 0, source: "orders" });
+    expect(html).toContain("From orders");
+    expect(html).toContain('aria-label="From orders"');
+    expect(html).toContain('data-money-source="orders"');
+    expect(html).toContain("$68,457");
+    expect(html).toContain("Total ROAS —");
+    expect(html).not.toContain("Shopify Total Sales");
+    expect(html).not.toContain("0.00×");
     expect(html).toContain(OVERVIEW_MONEY_SENTENCE);
   });
 
@@ -121,6 +165,7 @@ describe("overview money fold — sales are not spend-gated", () => {
       salesPending: true,
       spend: 0,
       useSampleDesk: false,
+      source: "shopify",
     });
     expect(missing.sales).toBeNull();
     expect(missing.roasText).toBe("—");
@@ -134,9 +179,95 @@ describe("overview money fold — sales are not spend-gated", () => {
       salesPending: true,
       spend: 650,
       useSampleDesk: false,
+      source: "shopify",
     });
     expect(pendingZero.sales).toBeNull();
     expect(pendingZero.roasText).toBe("—");
+  });
+});
+
+describe("overview money fold — Live Shopify total vs order book", () => {
+  it("uses the SalesDayFact period total when the clock has it", () => {
+    expect(
+      resolveOverviewMoneyFold({
+        useSampleDesk: false,
+        orderSales: 68_457,
+        orderSalesPending: true,
+        shopifyPeriodSales: 12_400,
+      }),
+    ).toEqual({
+      sales: 12_400,
+      salesPending: false,
+      source: "shopify",
+    });
+
+    const certifiedZero = resolveOverviewMoneyFold({
+      useSampleDesk: false,
+      orderSales: 68_457,
+      orderSalesPending: true,
+      shopifyPeriodSales: 0,
+    });
+    expect(certifiedZero).toEqual({
+      sales: 0,
+      salesPending: false,
+      source: "shopify",
+    });
+    const zeroHtml = paint({
+      sales: certifiedZero.sales,
+      salesPending: certifiedZero.salesPending,
+      spend: 0,
+      source: certifiedZero.source,
+    });
+    expect(zeroHtml).toContain("Shopify Total Sales");
+    expect(zeroHtml).toContain(">$0<");
+    expect(zeroHtml).toContain("Total ROAS —");
+    expect(zeroHtml).not.toContain("0.00×");
+  });
+
+  it("labels the order book From orders when the Shopify period total is not on file", () => {
+    const pending = resolveOverviewMoneyFold({
+      useSampleDesk: false,
+      orderSales: 68_457,
+      orderSalesPending: false,
+      shopifyPeriodSales: null,
+    });
+    expect(pending).toEqual({
+      sales: 68_457,
+      salesPending: false,
+      source: "orders",
+    });
+    const html = paint({
+      sales: pending.sales,
+      salesPending: pending.salesPending,
+      spend: 0,
+      source: pending.source,
+    });
+    expect(html).toContain("From orders");
+    expect(html).toContain("$68,457");
+    expect(html).not.toContain("Shopify Total Sales");
+
+    const notANumber = resolveOverviewMoneyFold({
+      useSampleDesk: false,
+      orderSales: 18_400,
+      orderSalesPending: false,
+      shopifyPeriodSales: Number.NaN,
+    });
+    expect(notANumber.source).toBe("orders");
+    expect(notANumber.sales).toBe(18_400);
+  });
+
+  it("keeps sample on the order book even if a Shopify total is passed", () => {
+    const sample = resolveOverviewMoneyFold({
+      useSampleDesk: true,
+      orderSales: 68_457,
+      orderSalesPending: false,
+      shopifyPeriodSales: 12_400,
+    });
+    expect(sample).toEqual({
+      sales: 68_457,
+      salesPending: false,
+      source: "orders",
+    });
   });
 });
 
@@ -147,14 +278,26 @@ describe("overview money fold — sample honesty and no platform CTA", () => {
       salesPending: false,
       spend: 0,
       useSampleDesk: true,
+      source: "shopify",
     });
     expect(model.modeLabel).toBe("SAMPLE");
+    expect(model.source).toBe("orders");
+    expect(model.label).toBe("From orders");
     expect(model.sentence.startsWith("SAMPLE")).toBe(true);
     expect(model.sentence).toContain(OVERVIEW_MONEY_SENTENCE);
     expect(model.sentence).not.toMatch(/your store/i);
 
-    const html = paint({ sales: 68_457, spend: 0, useSampleDesk: true });
+    const html = paint({
+      sales: 68_457,
+      spend: 0,
+      useSampleDesk: true,
+      source: "shopify",
+    });
     expect(html).toContain("SAMPLE");
+    expect(html).toContain("From orders");
+    expect(html).toContain('aria-label="From orders"');
+    expect(html).toContain('data-money-source="orders"');
+    expect(html).not.toContain("Shopify Total Sales");
     expect(html).toContain('data-desk-mode="sample"');
     expect(html).toContain('data-sample="true"');
     expect(html).not.toMatch(/your store/i);
@@ -189,7 +332,15 @@ describe("overview money fold — first on the phone stack", () => {
     const heroAt = overview.indexOf("<OverviewFirstViewport");
     expect(moneyAt).toBeGreaterThan(-1);
     expect(moneyAt).toBeLessThan(heroAt);
-    expect(overview).toContain("sales={orderHero.sales}");
+    const moneyJsx = overview.slice(moneyAt, overview.indexOf("/>", moneyAt));
+    expect(moneyJsx).toContain("sales={moneyFold.sales}");
+    expect(moneyJsx).toContain("source={moneyFold.source}");
+    expect(moneyJsx).not.toContain("orderHero");
+    expect(overview).toContain("resolveOverviewMoneyFold");
+    expect(overview).toContain(
+      "shopifyPeriodSales: shopifyPeriodClock?.periodSales ?? null",
+    );
+    expect(overview).toContain("orderSales: orderHero.sales");
     expect(overview).toContain("spend={metrics.totalSpend}");
     expect(overview).not.toMatch(
       /hasSpend[\s\S]{0,120}<OverviewMoneyFold/,
@@ -197,10 +348,14 @@ describe("overview money fold — first on the phone stack", () => {
     expect(overview).toContain("mcfly-trust__chip--sample");
     expect(overview).toContain("ORDER_FACT_SOURCE");
 
-    expect(demo.indexOf("<OverviewMoneyFold")).toBeLessThan(
-      demo.indexOf("<OverviewFirstViewport"),
-    );
-    expect(demo).toContain("useSampleDesk");
+    const demoAt = demo.indexOf("<OverviewMoneyFold");
+    expect(demoAt).toBeLessThan(demo.indexOf("<OverviewFirstViewport"));
+    const demoJsx = demo.slice(demoAt, demo.indexOf("/>", demoAt));
+    expect(demoJsx).toContain("sales={moneyFold.sales}");
+    expect(demoJsx).toContain("source={moneyFold.source}");
+    expect(demoJsx).not.toContain("orderHero");
+    expect(demo).toContain("useSampleDesk: true");
+    expect(demo).toContain("shopifyPeriodSales: null");
     expect(demo).toContain("spend={data.spend}");
   });
 

@@ -106,6 +106,7 @@ import {
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
 } from "../lib/overview-order-book";
+import { resolveOverviewMoneyFold } from "../lib/overview-money-fold";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -670,6 +671,12 @@ export default function Dashboard() {
     orderCount: orderHero?.orderCount ?? metrics.orderCount,
     factDays: salesFactsCoverage?.factDays,
   });
+  const moneyFold = resolveOverviewMoneyFold({
+    useSampleDesk,
+    orderSales: orderHero.sales,
+    orderSalesPending: greetingPending,
+    shopifyPeriodSales: shopifyPeriodClock?.periodSales ?? null,
+  });
   const orderBackfillResumeLine =
     !useSampleDesk &&
     orderBackfillProgress != null &&
@@ -984,8 +991,9 @@ export default function Dashboard() {
                 <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
                   <div className="mcfly-overview-first-beat">
                   <OverviewMoneyFold
-                    sales={orderHero.sales}
-                    salesPending={greetingPending}
+                    sales={moneyFold.sales}
+                    salesPending={moneyFold.salesPending}
+                    source={moneyFold.source}
                     spend={metrics.totalSpend}
                     useSampleDesk={useSampleDesk}
                     periodLabel={
