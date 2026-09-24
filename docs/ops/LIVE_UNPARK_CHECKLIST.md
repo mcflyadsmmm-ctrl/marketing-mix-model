@@ -3,6 +3,8 @@
 **Audience:** Marty, before any real-data demo claim.  
 **Tip:** `cursor/spend-trust-recurring` · git kill-switch in `fly.toml` stays `MCFLY_SAMPLE_ONLY=true` and `MCFLY_LIVE_STAGE=parked` (do **not** flip in git).  
 **Production 2026-09-23 America/Denver:** Fly secrets override that default — `MCFLY_SAMPLE_ONLY=false`, `MCFLY_LIVE_STAGE=overview_orders`. Health **200** at 22:22Z (`db: up`). Recent release **~v460**. Customers and LTV stay locked. SAMPLE book stays. After a deploy, Marty re-asserts those secrets so `[env]` does not park production again.  
+**Open gate — Marty only.** `DESK_FEATURE_BULLETS` sells "Customer LTV and payback on your store" at $39, and production pins `MCFLY_LIVE_STAGE=overview_orders`, so a paying merchant's Customers tab currently reads "locked". Steps 4–5 below close that gap. Code default is now the whole desk, so clearing the secret also works — but changing or clearing it is a Marty action on Fly, never an agent's.
+
 **This page is the ladder.** It does not deploy and it does not change secrets. It does not go Live wide (`customers` / `ltv`).
 
 | Kill switch | Keep SAMPLE | No fake Live |
@@ -36,7 +38,8 @@ Code: `app/app/lib/live-unpark.ts`. Env: `MCFLY_LIVE_STAGE`.
 | Stage | Env | Live tabs | What you are proving |
 | --- | --- | --- | --- |
 | **parked** | freeze on, **or** `MCFLY_LIVE_STAGE=parked` | none | SAMPLE only. Git `[env]` default. Not current production. |
-| **overview_orders** | freeze **off** + `overview_orders` (also the default if freeze is off and stage is unset) | Overview · Orders | **Current production** (Fly secrets, 2026-09-23). Sales / typical ticket / clock vs Admin. |
+| _(unset)_ | freeze **off** + no `MCFLY_LIVE_STAGE` | whole desk | Default since `cursor/forward-desk-gap`. Parking a rung is an explicit act; a deploy no longer falls back to a partial desk, and a stage string that names no rung serves the whole desk and warns instead of going dark. |
+| **overview_orders** | freeze **off** + `overview_orders` | Overview · Orders | **Current production** (Fly secrets, 2026-09-23). Sales / typical ticket / clock vs Admin. |
 | **customers** | `customers` | + Customers · Growth | Returning $, guests out, win-back |
 | **ltv** | `ltv` | + LTV | Paid $39 = full history LTV. Unpaid/trial Live = **90 closed days** (honest empties, not $0 year) |
 

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { DESK_HISTORY_YEARS_BACK } from "./desk-history";
 import {
+  LIVE_DEFAULT_STAGE,
   LIVE_SYNC_LAW_PR_REF,
   LIVE_UNPAID_INGEST_DAYS,
   liveDeskTabAllowed,
@@ -12,6 +13,7 @@ import {
   liveShopifyWindowShouldSchedule,
   liveUnparkIngestPolicyFromEnv,
   parseLiveUnparkStage,
+  readLiveUnparkStage,
   resolveLiveUnparkStage,
   sampleOnlyFreezeOn,
   type LiveUnparkStage,
@@ -83,10 +85,18 @@ describe("live unpark policy", () => {
     ).toBe("parked");
   });
 
-  it("defaults to overview_orders when freeze is off and stage is unset", () => {
-    expect(resolveLiveUnparkStage({ MCFLY_SAMPLE_ONLY: "false" })).toBe(
-      "overview_orders",
-    );
+  it("defaults to the whole desk when freeze is off and stage is unset", () => {
+    expect(LIVE_DEFAULT_STAGE).toBe("ltv");
+    expect(resolveLiveUnparkStage({ MCFLY_SAMPLE_ONLY: "false" })).toBe("ltv");
+    expect(
+      resolveLiveUnparkStage({
+        MCFLY_SAMPLE_ONLY: "false",
+        MCFLY_LIVE_STAGE: "  ",
+      }),
+    ).toBe("ltv");
+  });
+
+  it("still parks exactly the rung an operator names", () => {
     expect(
       resolveLiveUnparkStage({
         MCFLY_SAMPLE_ONLY: "false",
@@ -96,9 +106,40 @@ describe("live unpark policy", () => {
     expect(
       resolveLiveUnparkStage({
         MCFLY_SAMPLE_ONLY: "false",
+        MCFLY_LIVE_STAGE: "overview_orders",
+      }),
+    ).toBe("overview_orders");
+    expect(
+      resolveLiveUnparkStage({
+        MCFLY_SAMPLE_ONLY: "false",
+        MCFLY_LIVE_STAGE: "customers",
+      }),
+    ).toBe("customers");
+    expect(
+      resolveLiveUnparkStage({
+        MCFLY_SAMPLE_ONLY: "false",
         MCFLY_LIVE_STAGE: "ltv",
       }),
     ).toBe("ltv");
+  });
+
+  it("reads strictly, and a stage nobody can parse does not park a paid desk", () => {
+    expect(readLiveUnparkStage("wide")).toBeNull();
+    expect(readLiveUnparkStage("")).toBeNull();
+    expect(readLiveUnparkStage("orders")).toBe("overview_orders");
+    expect(
+      resolveLiveUnparkStage({
+        MCFLY_SAMPLE_ONLY: "false",
+        MCFLY_LIVE_STAGE: "full",
+      }),
+    ).toBe(LIVE_DEFAULT_STAGE);
+  });
+
+  it("opens Customers, Growth, and LTV for a week-one Live shop", () => {
+    const stage = resolveLiveUnparkStage({ MCFLY_SAMPLE_ONLY: "false" });
+    for (const tab of ALL_TABS) {
+      expect(liveDeskTabAllowed(tab, stage)).toBe(true);
+    }
   });
 
   it("unlocks Live tabs progressively and never mixes SAMPLE as Live", () => {

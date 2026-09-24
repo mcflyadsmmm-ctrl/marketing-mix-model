@@ -7,7 +7,10 @@
  *
  * Stages (`MCFLY_LIVE_STAGE`) after freeze is off:
  *   parked | overview_orders | customers | ltv
- * Freeze off + unset stage → first slice (Overview / Orders), not wide LTV.
+ * Freeze off + unset stage → the whole desk ({@link LIVE_DEFAULT_STAGE}).
+ * Parking a rung is an explicit ops act, not what a deploy falls back to:
+ * `DESK_FEATURE_BULLETS` sells LTV and payback at $39, so a paid desk that
+ * answers "Customers · locked" is the app breaking its own price promise.
  *
  * Commercial ingest is data depth, not a tab feature gate:
  *   unpaid / Shopify trial → {@link LIVE_UNPAID_INGEST_DAYS} closed days
@@ -34,6 +37,9 @@ export const LIVE_UNPARK_STAGES = [
 
 export type LiveUnparkStage = (typeof LIVE_UNPARK_STAGES)[number];
 
+/** Live with nothing pinned is the whole desk. Rungs are for staging a rollout. */
+export const LIVE_DEFAULT_STAGE: LiveUnparkStage = "ltv";
+
 export type LiveUnparkTab =
   | "overview"
   | "orders"
@@ -47,9 +53,10 @@ export function sampleOnlyFreezeOn(
   return raw === "true" || raw === "1";
 }
 
-export function parseLiveUnparkStage(
+/** Strict read. Null when the value names no rung — aliases still resolve. */
+export function readLiveUnparkStage(
   raw: string | undefined,
-): LiveUnparkStage {
+): LiveUnparkStage | null {
   const value = String(raw ?? "")
     .trim()
     .toLowerCase();
@@ -63,17 +70,46 @@ export function parseLiveUnparkStage(
     case "orders":
       return "overview_orders";
     default:
-      return "parked";
+      return null;
   }
 }
 
+export function parseLiveUnparkStage(
+  raw: string | undefined,
+): LiveUnparkStage {
+  return readLiveUnparkStage(raw) ?? "parked";
+}
+
+/** Warn once per process. The value is a Fly secret — log the names, not it. */
+let unknownStageWarned = false;
+
+function warnUnknownLiveStage(): void {
+  if (unknownStageWarned) return;
+  unknownStageWarned = true;
+  console.warn(
+    `[live] MCFLY_LIVE_STAGE is set to a value that names no rung (expected one of ${LIVE_UNPARK_STAGES.join(
+      " | ",
+    )}). Serving the whole desk (${LIVE_DEFAULT_STAGE}).`,
+  );
+}
+
+/**
+ * Freeze wins, then an explicit rung, then the whole desk.
+ *
+ * A stage string nobody can parse used to fall through to `parked`, which
+ * turned one operator typo into a dark desk for every paying shop. Parking
+ * now requires spelling a rung correctly.
+ */
 export function resolveLiveUnparkStage(
   env: NodeJS.ProcessEnv = process.env,
 ): LiveUnparkStage {
   if (sampleOnlyFreezeOn(env.MCFLY_SAMPLE_ONLY)) return "parked";
-  const raw = env.MCFLY_LIVE_STAGE;
-  if (!String(raw ?? "").trim()) return "overview_orders";
-  return parseLiveUnparkStage(raw);
+  const raw = String(env.MCFLY_LIVE_STAGE ?? "").trim();
+  if (!raw) return LIVE_DEFAULT_STAGE;
+  const stage = readLiveUnparkStage(raw);
+  if (stage) return stage;
+  warnUnknownLiveStage();
+  return LIVE_DEFAULT_STAGE;
 }
 
 /**
