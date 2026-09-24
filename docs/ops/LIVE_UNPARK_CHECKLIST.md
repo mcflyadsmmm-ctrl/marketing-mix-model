@@ -127,3 +127,15 @@ Prior SAMPLE-only audits (v336 / v339) are **not** a Live pass.
 - Call 365 / first-year LTV on an unpaid 90-closed-day book.
 - Re-crawl a sealed shop from every tab.
 - Website, ads, Partner Galaxy paste, or metering in this lane.
+
+---
+
+## Deploy re-assert (Mac)
+
+After any `flyctl deploy` of `mcfly-analytics`:
+
+1. `./scripts/assert-live-secrets.sh --print-fix` (echo only)
+2. Marty: `flyctl secrets set MCFLY_SAMPLE_ONLY=false MCFLY_LIVE_STAGE=overview_orders -a mcfly-analytics` if assert would fail
+3. `./scripts/assert-live-secrets.sh` must **PASS** or roll back
+
+Do not trust `fly secrets list` digests. Do not flip git `fly.toml` `[env]` kill-switch to Live.

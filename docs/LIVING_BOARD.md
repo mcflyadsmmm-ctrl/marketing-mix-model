@@ -4,15 +4,15 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-23 · America/Denver · Site **v45** Pages `ea0cd6f9` (privacy L2-aligned) · occupancy **0/4** · ads **NO** · reviews **0** · **PCD L2 Approved** (Name, Email, Phone, Address) · `read_reports` + `SHOPIFYQL_ANALYTICS_DAY_TOTALS_LIVE` **shipped** · SAMPLE desk does not paint QL clocks · SAMPLE toggle **still exists** · Fly secrets **unparked** `MCFLY_SAMPLE_ONLY=false` · `MCFLY_LIVE_STAGE=overview_orders` · Customers / LTV **not unlocked** |
+| **Updated** | 2026-09-23 · America/Denver · Site **v45** · occupancy **0/4** · ads **NO** · reviews **0** · **PCD L2 Approved** · `read_reports` + QL clocks **shipped** · #219 Live Shopify Total Sales · **#220 merged** Customers/Growth/LTV locked at `overview_orders` · assert-live-secrets.sh on tip · Mac finalize **blocked on Marty Result** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v45** · quality-rescue · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · home → Open the SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · recent release **~v460** · `/health` **200** probed 2026-09-23T22:22:09Z (`ok`, `db: up`) · `/` **301** → mcflyads.com · runtime secrets `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=overview_orders` · git `[env]` kill-switch stays `true` / `parked` (secrets override; Marty re-asserts after deploy) · git `SCOPES` = `read_orders,read_customers,read_all_orders,read_reports` |
+| **Fly** | https://mcfly-analytics.fly.dev · **v467** · image `deployment-01M386Y8YGPSJHNMG9SBN2QP0Z` · `/health` **200** · SSH `MCFLY_SAMPLE_ONLY=false` · `MCFLY_LIVE_STAGE=overview_orders` · `scripts/assert-live-secrets.sh` PASS · git `[env]` kill-switch `true`/`parked` · tip SHA `58023c4` · **Fly deploy skipped** tonight · git `SCOPES` includes `read_reports` |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
 | **App code** | **UNFROZEN** 2026-08-29 · Fly + `app/**` open for App Store approval |
-| **Conductor** | One Cursor chat · read board + skill every turn · Mac-shell split [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
+| **Conductor** | **This Mac Cursor chat = Mcfly Conductor** · SoT [`research/2026-09-23-CURSOR_FINISH_PLAN.md`](./research/2026-09-23-CURSOR_FINISH_PLAN.md) · Mac-shell [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
 
 Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/mcfly-site/SKILL.md`](../.cursor/skills/mcfly-site/SKILL.md)
 

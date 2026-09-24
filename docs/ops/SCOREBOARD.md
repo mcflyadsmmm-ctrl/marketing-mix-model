@@ -1,34 +1,28 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-23 · America/Denver · Count accepted outcomes, not PR spam
-**Tip Fly note:** Runtime Live is **unparked** to `overview_orders` via Fly secrets (`MCFLY_SAMPLE_ONLY=false`). Recent release **~v460**. Health probed **200** at 2026-09-23T22:22:09Z (`db: up`; `/` 301 → mcflyads.com). Git `[env]` kill-switch stays `MCFLY_SAMPLE_ONLY=true` / `MCFLY_LIVE_STAGE=parked`; secrets override production; Marty re-asserts after any deploy. SAMPLE toggle remains. Customers / LTV **not** unlocked. Ads **NO**. Reviews **0**. PCD L2 **Approved**. `read_reports` + ShopifyQL day-totals flag **shipped**. The earlier v456 / `b57b472` / `deployment-01M37GTFB7S45JXPYP10VDGV6W` “Live PARKED” stamp is superseded. This stamp does not deploy and does not change secrets.
+**Tip Fly note:** Runtime Live **unparked** to `overview_orders` via Fly secrets (`MCFLY_SAMPLE_ONLY=false`). Fly **v467** · image `deployment-01M386Y8YGPSJHNMG9SBN2QP0Z` · machine `d895906f3e5ed8`. `/health` **200**. Secrets re-verified by `scripts/assert-live-secrets.sh` **PASS** 2026-09-23 (SSH printenv). Git `[env]` kill-switch stays `MCFLY_SAMPLE_ONLY=true` / `MCFLY_LIVE_STAGE=parked`; secrets override; Marty re-asserts after any deploy. SAMPLE toggle remains. Customers / LTV **locked in desk** (#220 merged). Ads **NO**. Reviews **0**. PCD L2 **Approved**. `read_reports` + ShopifyQL day-totals + Live Shopify Total Sales clock (#219) **shipped**. This stamp does not deploy and does not change secrets.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | ~v460 · secrets `overview_orders` · git default still parked |
+| Tip Fly SoT | **v467** · secrets `overview_orders` · assert script PASS · git default still parked |
 | SAMPLE smoke | WAIVED · SAMPLE toggle still exists |
-| Live unpark | **overview_orders** (secrets). Customers / LTV locked |
+| Live unpark | **overview_orders** (secrets). Customers / Growth / LTV **locked** (#220) |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Approved (Name, Email, Phone, Address). `read_reports` + day-totals flag **shipped**. Not an Analytics-parity PASS. |
-| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac · site **v45** |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; Fly runtime `overview_orders`; ads **NO**; reviews **0** |
+| Site P0 on box | DONE — site **v45**; Pages after Marty Listing Save |
+| Money prep | Listing paste ready; Mac finalize click card open; ads **NO**; reviews **0** |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
+| Tip SHA | `58023c4` (#220 merge) · assert `275a7f5` |
 
-Phone six-figure wrap shipped as #214 (the v456 stamp above). The cook rules under this heading are that ship’s constraints. They are not a command to re-park production.
+Phone six-figure wrap (#214) and first-90 honesty (#217) are **shipped** — not the next cook.
 
 ## Next significant ship (the only craft allowed)
 
-**Phone six-figure wrap.** “On my phone I cannot read first 30 / 90 / first year — they sit three across. The LTV triangle is a nowrap heat table. The Orders weekly ledger is eight nowrap columns.”
+**Mac finalize + Accuracy F** (Marty). Re-grant `read_reports` on `devmcflyads` · scorecard 1–7 · Accuracy F closed prior day · Listing Save from `docs/ops/LISTING_LIVE_PASTE.md`. If Accuracy F FAIL → Overview/Orders reconciliation, **not** Customers unlock. Do not jump `MCFLY_LIVE_STAGE=customers` until Result PASS. Do not buy ads. Do not invent reviews.
 
-Customers → LTV (flagship tiles + open-lane triangle) · Orders weekly ledger. Public `/demo` and Admin `/app`. Under 36rem, 30 / 90 / first year stack the way Goals / Orders / Growth already wrap. Triangle sealed six-figure dollars stay on screen; unsealed stays — / hatch, never `$0` / `0%`. Ledger keeps Week + Sales (+ AOV) on screen; park Codes / Returns in the existing drill. Missing prior stays —. Dollar may wrap. Never a fake `$0`. Do not recook whale 430px. Do not edit the morning-habit block. Do not recook wrong-lane leftover. Do not unpark Live. Do not change the 90.
-
-Branch `cursor/phone-six-figure-wrap-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 8 and 10–14 of the third-queue stay queued. Do not rebuild wrong-lane leftover, spend leftover honesty, site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
-
-Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 7. After PASS, stamp first-90 honesty (`cursor/ltv-first90-honesty-5bc6`), not rank 10.
-
-A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
+Fly only after a new merchant sentence **and** `./scripts/assert-live-secrets.sh` PASS post-deploy. SoT stamps alone do not deploy.
 
 ## Accepted work log
 - Enterprise tip cooks through v387 wave + tip advanced to v403
