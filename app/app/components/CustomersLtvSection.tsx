@@ -1,5 +1,4 @@
 import { BookFactGrid, type BookFact } from "./ShopifyBookSection";
-import { LtvValueBuild, type LtvBuildWindow } from "./LtvValueBuild";
 import { LtvBuildCurves } from "./LtvBuildCurves";
 import { LtvRetentionHeat } from "./LtvRetentionHeat";
 import { LtvTierTables } from "./LtvTierTables";
@@ -15,7 +14,7 @@ import { LtvPromoBoard } from "./LtvPromoBoard";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
-import { flagshipDailyRead, type LtvFlagshipView } from "../lib/ltv-flagship";
+import type { LtvFlagshipView } from "../lib/ltv-flagship";
 import { truncatedLifetimeLine } from "../lib/till-ltv";
 import { paintedYearDollars } from "../lib/ltv-year-honesty";
 import {
@@ -109,19 +108,10 @@ function useCustomersLtvPack({
 }: LtvPackProps) {
   const currency = useDeskCurrency();
   const ltv = metrics.tillLtv;
-  const daily = flagshipDailyRead(depth.windows, depth.predictive);
   const historyLimited = Boolean(
     !useSampleDesk &&
       (orderBackfillProgress?.historyLimited || ltv.historyLimited),
   );
-  const ltvPeek = daily
-    ? { amount: daily.worth, days: daily.worthDays }
-    : pickShareableLtvPeek({
-        revenue30: ltv.avgRevenueD30,
-        revenue90: ltv.avgRevenueD90,
-        revenue365: ltv.avgRevenueD365,
-        historyLimited,
-      });
   const chartLtvPeek = pickShareableLtvPeek({
     revenue30: ltv.avgRevenueD30,
     revenue90: ltv.avgRevenueD90,
@@ -153,67 +143,20 @@ function useCustomersLtvPack({
         : null;
 
   /*
-   * The signature LTV build — how a new customer's spend grows 30 → 90 → 365.
-   * Order revenue only; the year bar stays a — until enough buyers have lived
-   * a year (thin / young shop), never a fake complete 365. — is not $0 LTV.
+   * Year stays a — until enough buyers have lived a year. — is not $0 LTV.
+   * First-90 worth is one figure, painted once above. 30-day and year
+   * dollars are a different window and do not share that label.
    */
   const yearDollars = paintedYearDollars(ltv.avgRevenueD365);
   const yearOnFile = yearDollars != null;
   const yearPending = !yearOnFile;
-  const buildWindows: LtvBuildWindow[] = [
-    {
-      key: "d30",
-      label: "First 30 days",
-      value: isNum(ltv.avgRevenueD30) ? ltv.avgRevenueD30 : null,
-      detail: PRODUCT_NOUN.ltv30Def,
-    },
-    {
-      key: "d90",
-      label: "First 90 days",
-      value: isNum(ltv.avgRevenueD90) ? ltv.avgRevenueD90 : null,
-      detail: PRODUCT_NOUN.ltv90Def,
-    },
-    {
-      key: "d365",
-      label: "First year",
-      value: yearOnFile ? yearDollars : null,
-      detail: yearOnFile
-        ? PRODUCT_NOUN.ltv365Def
-        : "Not on file yet — not enough buyers have lived a full year. Not $0 LTV.",
-      pending: yearPending,
-    },
-  ];
-  const buildCaption = yearPending
-    ? "First year is not on file yet — not enough buyers have lived a year. Not $0."
-    : undefined;
 
   const orderRows: LtvRow[] = [];
-  if (isNum(ltv.avgRevenueD30) && ltv.avgRevenueD30 > 0) {
-    orderRows.push({
-      k: "First 30 days",
-      v: formatCurrency(ltv.avgRevenueD30, currency),
-      d: PRODUCT_NOUN.ltv30Def,
-    });
-  }
   if (isNum(ltv.avgOrdersD90) && ltv.avgOrdersD90 > 0) {
     orderRows.push({
       k: "Orders in first 90 days on file",
       v: ltv.avgOrdersD90.toFixed(1),
       d: "Average orders per new-on-file buyer in the first 90 days after their first visible order. A buyer with earlier Shopify orders is not counted as new.",
-    });
-  }
-  if (isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0 && yearDollars != null) {
-    orderRows.push({
-      k: "First year",
-      v: formatCurrency(yearDollars, currency),
-      d: PRODUCT_NOUN.ltv365Def,
-    });
-  } else if (isNum(ltv.avgRevenueD90) || isNum(ltv.avgRevenueD30)) {
-    orderRows.push({
-      k: "First year",
-      v: "—",
-      d: "Not on file yet — not enough buyers have lived a full year. Not $0 LTV.",
-      keepDash: true,
     });
   }
   if (isNum(ltv.repeatRate)) {
@@ -309,9 +252,13 @@ function useCustomersLtvPack({
       (depth.refunds && depth.refunds.orderCount > 0),
   );
 
+  const first90 =
+    isNum(ltv.avgRevenueD90) && ltv.avgRevenueD90 > 0
+      ? ltv.avgRevenueD90
+      : null;
   const worthSlack: SlackInsight | null = ltvPeekSlackInsight({
-    amount: ltvPeek?.amount ?? null,
-    days: ltvPeek?.days ?? null,
+    amount: first90,
+    days: 90,
     historyLimited,
     shopLabel,
     sample: useSampleDesk,
@@ -325,8 +272,6 @@ function useCustomersLtvPack({
     worthSlack,
     yearOnFile,
     yearPending,
-    buildWindows,
-    buildCaption,
     orderRows,
     economicsRows,
     monthRows,
@@ -339,15 +284,12 @@ function useCustomersLtvPack({
   };
 }
 
-/** LTV 30/90/365 windows — first-90 hero, value build, triangle, first-product LTV, then the predictive formula. */
+/** First-90 worth is one named figure. Depth explorers sit under it. */
 export function CustomersLtvWindows(props: LtvPackProps) {
   const {
     ltv,
     yearPending,
-    buildWindows,
-    buildCaption,
     orderRows,
-    chartTargetLine,
     emptyLine,
     worthSlack,
     truncatedLine,
@@ -364,7 +306,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
 
       {ltv.available && isNum(ltv.avgRevenueD90) && ltv.avgRevenueD90 > 0 ? (
         <div className="mcfly-book__hero">
-          <p className="mcfly-book__hero-k">First 90 days on file</p>
+          <p className="mcfly-book__hero-k">First 90 days</p>
           <p className="mcfly-book__hero-v">
             {formatCurrency(ltv.avgRevenueD90, currency)}
           </p>
@@ -380,13 +322,6 @@ export function CustomersLtvWindows(props: LtvPackProps) {
       )}
 
       <SlackInsightCard insight={worthSlack} shotMode={shotMode} />
-
-      <LtvValueBuild
-        windows={buildWindows}
-        newBuyers={metrics.tillLtv.newBuyers}
-        caption={buildCaption}
-        targetLine={chartTargetLine}
-      />
 
       <BookFactGrid facts={orderRows} />
 

@@ -62,7 +62,7 @@ describe("LTV route mounts the depth pack", () => {
     expect(customers.indexOf("<CustomersLtvEconomics")).toBeLessThan(
       customers.indexOf("<CustomersLtvDepth"),
     );
-    expect(section.indexOf("<LtvValueBuild")).toBeLessThan(
+    expect(section.indexOf("mcfly-book__hero-k\">First 90 days")).toBeLessThan(
       section.indexOf("<LtvWindowTriangle"),
     );
     expect(section.indexOf("<LtvWindowTriangle")).toBeLessThan(
@@ -186,9 +186,10 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(flagship).toContain("not $0");
     expect(flagship).toContain("average first order");
     expect(flagship).toContain("we do not invent a refund total");
-    expect(flagship).toContain("flagshipDailyRead");
-    expect(flagship).toContain("windowAddedAfterPrior");
-    expect(flagship).toContain("after first 30 days");
+    expect(flagship).not.toContain("flagshipDailyRead");
+    expect(flagship).not.toContain("windowAddedAfterPrior");
+    expect(flagship).not.toContain("Today’s read");
+    expect(flagship).not.toContain("predicted365");
     expect(flagship).toContain("First order");
     expect(flagship).toContain("mcfly-depth-formula__parts");
     expect(flagship).toContain("flagshipEmptyState");

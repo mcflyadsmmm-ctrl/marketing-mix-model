@@ -127,11 +127,15 @@ describe("LTV tab vs Shopify Analytics", () => {
     expect(ltvSection).toContain("Orders still syncing — not $0");
   });
 
-  it("does not paint First year as a complete dollar when the year is unsealed", () => {
-    expect(ltvSection).toMatch(
-      /else if \(isNum\(ltv\.avgRevenueD90\) \|\| isNum\(ltv\.avgRevenueD30\)\) \{[\s\S]*k: "First year"[\s\S]*v: "—"[\s\S]*keepDash: true/,
-    );
-    expect(ltvSection).toContain("isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0");
+  it("paints first-90 worth as one named window, not a year dollar", () => {
+    expect(ltvSection).toContain('className="mcfly-book__hero-k">First 90 days');
+    expect(ltvSection).toContain("formatCurrency(ltv.avgRevenueD90, currency)");
+    expect(ltvSection).not.toContain("<LtvValueBuild");
+    const orderStart = ltvSection.indexOf("const orderRows: LtvRow[] = []");
+    const orderEnd = ltvSection.indexOf("const economicsRows: LtvRow[] = []");
+    const orderBlock = ltvSection.slice(orderStart, orderEnd);
+    expect(orderBlock).not.toContain('k: "First year"');
+    expect(orderBlock).not.toContain('k: "First 30 days"');
     expect(ltvSection).toContain("d365 != null && d365 > 0");
   });
 

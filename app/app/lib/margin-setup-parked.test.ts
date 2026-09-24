@@ -60,7 +60,8 @@ describe("Profit-margin / COGS setup is parked", () => {
     const orderBlock = ltv.slice(orderStart, orderEnd);
     expect(orderStart).toBeGreaterThan(-1);
     expect(orderEnd).toBeGreaterThan(orderStart);
-    expect(orderBlock).toContain('k: "First year"');
+    expect(orderBlock).not.toContain('k: "First year"');
+    expect(orderBlock).not.toContain('k: "First 30 days"');
     expect(orderBlock).not.toContain("contrib365");
     expect(orderBlock).not.toMatch(/kept\./);
     expect(orderBlock).not.toMatch(/after margin/i);

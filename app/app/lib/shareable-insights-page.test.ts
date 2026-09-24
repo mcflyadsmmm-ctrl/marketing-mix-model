@@ -117,7 +117,7 @@ describe("Shareable insight cards — habit, not a dump", () => {
       ltv.indexOf("mcfly-book__hero"),
     );
     expect(ltv.indexOf("<SlackInsightCard")).toBeLessThan(
-      ltv.indexOf("<LtvValueBuild"),
+      ltv.indexOf("<LtvWindowTriangle"),
     );
     expect(whale).toContain("whaleSlackInsight");
     expect(whale).toContain("coldShare: whales.coldShare");

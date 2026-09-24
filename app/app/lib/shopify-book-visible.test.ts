@@ -86,12 +86,13 @@ describe("Shopify five books are visible cards", () => {
     expect(book).toContain("PRODUCT_NOUN.bookSecondWithin30Empty");
   });
 
-  it("LTV keeps 60-day First year honesty and readable month cards", () => {
-    expect(ltv).toContain('v: "—"');
-    expect(ltv).toContain("keepDash: true");
+  it("LTV names First 90 days and does not paint an unsealed year as $0", () => {
+    expect(ltv).toContain('className="mcfly-book__hero-k">First 90 days');
     expect(ltv).toContain("not $0 LTV");
+    expect(ltv).toContain("Not $0.");
     expect(ltv).toContain("First on file · ");
     expect(ltv).toContain('row.v !== "—"');
+    expect(ltv).not.toContain('k: "First year"');
     expect(ltv).not.toContain("read_all_orders");
   });
 

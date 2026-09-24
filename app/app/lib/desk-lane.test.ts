@@ -207,7 +207,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
   it("ranks LTV value first, explorers next, spend last — no details FAQ", () => {
     const section = read("../components/CustomersLtvSection.tsx");
     const order = [
-      "<LtvValueBuild",
+      "mcfly-book__hero-k\">First 90 days",
       "<LtvFirstProductDrivers",
       "<LtvPromoBoard",
       "<LtvFlagshipBoard",

@@ -116,29 +116,26 @@ describe("resolveLtvBuild (value-build honesty)", () => {
   });
 });
 
-describe("LTV route mounts the Black Clover value build", () => {
-  it("imports and renders the value-build chart with the new-buyer count", () => {
-    expect(ltv).toContain(
-      'import { LtvValueBuild, type LtvBuildWindow } from "./LtvValueBuild"',
-    );
-    expect(ltv).toContain("<LtvValueBuild");
-    expect(ltv).toContain("windows={buildWindows}");
-    expect(ltv).toContain("newBuyers={metrics.tillLtv.newBuyers}");
-    expect(ltv).toContain("targetLine={chartTargetLine}");
-    expect(ltv).toContain("chartLtvPeek");
+describe("LTV route shows one first-90 figure", () => {
+  it("names First 90 days on the hero and does not mount a second ladder", () => {
+    expect(ltv).toContain('className="mcfly-book__hero-k">First 90 days');
+    expect(ltv).toContain("formatCurrency(ltv.avgRevenueD90, currency)");
+    expect(ltv).not.toContain("<LtvValueBuild");
+    expect(ltv).not.toContain("windows={buildWindows}");
+    expect(ltv).toContain("metrics.tillLtv.newBuyers");
     expect(customers).toContain("<CustomersLtvWindows");
+    const flagship = read("../components/LtvFlagshipBoard.tsx");
+    expect(flagship).not.toContain("Today’s read");
+    expect(flagship).not.toContain("predicted365");
+    expect(flagship).not.toContain("mcfly-kpi-grid--peeks-lead");
   });
 
-  it("builds 30 / 90 / first-year windows, year honest when history-limited", () => {
-    expect(ltv).toContain('label: "First 30 days"');
-    expect(ltv).toContain('label: "First 90 days"');
-    expect(ltv).toContain('label: "First year"');
-    // Year is pending until it is a certified dollar — not $0, not a short book.
+  it("keeps the year unsealed until it is a certified dollar", () => {
     expect(ltv).toContain(
       "const yearDollars = paintedYearDollars(ltv.avgRevenueD365)",
     );
     expect(ltv).toContain("const yearOnFile = yearDollars != null");
-    expect(ltv).toContain("pending: yearPending");
+    expect(ltv).toContain("yearPending");
   });
 });
 
@@ -167,7 +164,7 @@ describe("LTV is order-led first; margin & Cash CAC only on spend", () => {
     const orderBlock = ltv.slice(orderStart, orderEnd);
     expect(orderStart).toBeGreaterThan(-1);
     expect(orderEnd).toBeGreaterThan(orderStart);
-    expect(orderBlock).toContain('k: "First year"');
+    expect(orderBlock).not.toContain('k: "First year"');
     expect(orderBlock).not.toContain("contrib365");
     expect(orderBlock).not.toContain("kept.");
     expect(orderBlock).not.toContain("marginNote");
@@ -181,7 +178,7 @@ describe("LTV is order-led first; margin & Cash CAC only on spend", () => {
     const orderBlock = ltv.slice(orderStart, orderEnd);
     expect(orderStart).toBeGreaterThan(-1);
     expect(orderEnd).toBeGreaterThan(orderStart);
-    expect(orderBlock).toContain('k: "First 30 days"');
+    expect(orderBlock).not.toContain('k: "First 30 days"');
     expect(orderBlock).toContain('k: "Orders in first 90 days on file"');
     expect(orderBlock).toContain('k: "Repeat orders"');
     expect(orderBlock).not.toContain("cashCac");

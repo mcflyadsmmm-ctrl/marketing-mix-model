@@ -423,10 +423,10 @@ describe("Admin desk phone / narrow iframe", () => {
 
     const flagship = read("../components/LtvFlagshipBoard.tsx");
     expect(flagship).toContain("mcfly-depth-flag");
-    expect(flagship).toContain("mcfly-kpi-grid--peeks-lead");
-    expect(flagship).toContain("point.revenue != null");
-    expect(flagship).toContain('formatCurrency(point.revenue, currency)');
-    expect(flagship).toContain(': "—"');
+    expect(flagship).toContain("First 90 days");
+    expect(flagship).not.toContain("Today’s read");
+    expect(flagship).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(flagship).not.toContain("predicted365");
 
     const triangle = read("../components/LtvWindowTriangle.tsx");
     expect(triangle).toContain("mcfly-window-triangle");
