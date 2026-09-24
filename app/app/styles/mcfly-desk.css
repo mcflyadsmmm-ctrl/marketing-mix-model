@@ -22082,6 +22082,70 @@ button.mcfly-habit-goals__read:focus-visible {
   display: none;
 }
 
+/* Cold-open money answer — Shopify Total Sales above the fold, empty ROAS is —. */
+.mcfly-overview-money {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mcfly-ink, #0f172a) 12%, transparent);
+}
+
+.mcfly-overview-first-beat > .mcfly-overview-money {
+  grid-column: 1 / -1;
+}
+
+.mcfly-overview-money__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+}
+
+.mcfly-overview-money__k,
+.mcfly-overview-money__period {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent, #0284c7);
+}
+
+.mcfly-overview-money__period {
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-overview-money__v {
+  margin: 0;
+  font-family: var(--mcfly-serif, "Fraunces", Georgia, serif);
+  font-size: clamp(2.4rem, 8vw, 3.2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-overview-money__roas {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-overview-money__roas[data-empty="true"] {
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-overview-money__sentence {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  line-height: 1.35;
+  color: var(--mcfly-mute, #475569);
+}
+
 .mcfly-overview-chart-beat {
   margin-top: 0.85rem;
   padding-top: 0.85rem;

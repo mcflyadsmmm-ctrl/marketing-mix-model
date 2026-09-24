@@ -8,6 +8,8 @@ import {
 } from "../components/OverviewFirstViewport";
 import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
+import { OverviewMoneyFold } from "../components/OverviewMoneyFold";
+import { resolveOverviewMoneyFold } from "../lib/overview-money-fold";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
 import {
@@ -132,6 +134,12 @@ export default function PublicDemoOverview() {
     },
     (n) => formatCurrency(n, currency),
   );
+  const moneyFold = resolveOverviewMoneyFold({
+    useSampleDesk: true,
+    orderSales: data.orderHero.sales,
+    orderSalesPending: false,
+    shopifyPeriodSales: null,
+  });
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk: true,
     salesPulledAt: null,
@@ -176,6 +184,16 @@ export default function PublicDemoOverview() {
           <div className="mcfly-desk-anchor mcfly-scoreboard--overview" id={DESK_SECTION.overview}>
             <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
               <div className="mcfly-overview-first-beat">
+              <OverviewMoneyFold
+                sales={moneyFold.sales}
+                salesPending={moneyFold.salesPending}
+                source={moneyFold.source}
+                spend={data.spend}
+                useSampleDesk
+                periodLabel={
+                  data.rangeLabel === "Month to date" ? "This month" : data.rangeLabel
+                }
+              />
               {embed === "yoy" ? null : (
                 <OverviewFirstViewport
                   orderCount={data.orderHero.orderCount}

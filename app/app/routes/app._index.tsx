@@ -30,6 +30,7 @@ import {
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewLivePeriodClock } from "../components/OverviewLivePeriodClock";
+import { OverviewMoneyFold } from "../components/OverviewMoneyFold";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { DeskLane } from "../components/DeskLane";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -105,6 +106,7 @@ import {
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
 } from "../lib/overview-order-book";
+import { resolveOverviewMoneyFold } from "../lib/overview-money-fold";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -669,6 +671,12 @@ export default function Dashboard() {
     orderCount: orderHero?.orderCount ?? metrics.orderCount,
     factDays: salesFactsCoverage?.factDays,
   });
+  const moneyFold = resolveOverviewMoneyFold({
+    useSampleDesk,
+    orderSales: orderHero.sales,
+    orderSalesPending: greetingPending,
+    shopifyPeriodSales: shopifyPeriodClock?.periodSales ?? null,
+  });
   const orderBackfillResumeLine =
     !useSampleDesk &&
     orderBackfillProgress != null &&
@@ -982,6 +990,18 @@ export default function Dashboard() {
               >
                 <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
                   <div className="mcfly-overview-first-beat">
+                  <OverviewMoneyFold
+                    sales={moneyFold.sales}
+                    salesPending={moneyFold.salesPending}
+                    source={moneyFold.source}
+                    spend={metrics.totalSpend}
+                    useSampleDesk={useSampleDesk}
+                    periodLabel={
+                      metrics.period.label === "Month to date"
+                        ? "This month"
+                        : metrics.period.label
+                    }
+                  />
                   <OverviewFirstViewport
                     orderCount={orderHero.orderCount}
                     typicalOrder={orderHero.typicalOrder}
