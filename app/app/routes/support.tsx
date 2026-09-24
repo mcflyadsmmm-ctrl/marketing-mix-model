@@ -40,15 +40,18 @@ export default function SupportPage() {
         <ul>
           <li>
             <strong>7-day trial</strong>, then{" "}
-            <strong>$39</strong> per store / month for the whole desk. Trial is
-            90 days of order history; paid is up to 24 months. One plan.
-            Includes every named platform plus extras like billboard, Total
-            ROAS, break-even, Allocation, Customer LTV, and the full-year Goals
-            board.
+            <strong>$39</strong> per store per month, flat. Not a GMV tax.
+            Trial and paid share the full desk and up to 24 months of orders.
+            One plan. Includes every named platform plus extras like billboard,
+            Total ROAS, break-even, Allocation, Customer LTV, and the full-year
+            Goals board. No ads. No pixels, path credit, or multi-touch
+            attribution.
           </li>
           <li>
-            Shopify App Pricing bills this in Admin. Uninstall stops the next
-            30-day cycle.
+            Shopify bills the subscription. Shopify does not host the app — it
+            runs at https://mcfly-analytics.fly.dev. Uninstall stops the next
+            cycle. A period already paid may run to its end. Pricing:{" "}
+            <a href="https://mcflyads.com/pricing">mcflyads.com/pricing</a>.
           </li>
         </ul>
         <p>

@@ -25,11 +25,13 @@ export default function TermsPage() {
         <h2>Plans</h2>
         <p>
           Shopify App Pricing: one plan at{" "}
-          <strong>$39/store/mo after a 7-day trial</strong> — the whole desk,
-          including Customer LTV, the full-year Goals board, every named ad
-          platform, and extras like billboards. Shopify bills this app.
-          Uninstall to stop the next 30-day cycle; the current cycle may still
-          charge.
+          <strong>$39/store/mo after a 7-day trial</strong> — flat, not a GMV
+          tax. Trial and paid share the full desk and up to 24 months of
+          orders, including Customer LTV, the full-year Goals board, every
+          named ad platform, and extras like billboards. Shopify bills this
+          app. Shopify does not host it — the app runs at
+          https://mcfly-analytics.fly.dev. Uninstall stops the next cycle. A
+          period already paid may run to its end.
         </p>
 
         <h2>Your store</h2>
