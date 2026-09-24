@@ -116,6 +116,7 @@ export function OverviewSalesChart({
   ordersHref = "/app/orders",
   salesPending = false,
   typicalDay = null,
+  typicalDayWindow = null,
   initialPreset = "30d",
   initialCustom = null,
   shopifyTotalsLive = false,
@@ -126,6 +127,11 @@ export function OverviewSalesChart({
   ordersHref?: string;
   salesPending?: boolean;
   typicalDay?: number | null;
+  /**
+   * Named window for the one typical-day figure (month close).
+   * Day grain quotes this instead of a second median of the bars on screen.
+   */
+  typicalDayWindow?: string | null;
   /**
    * Order / sample history for other compares. Never the Shopify Total Sales
    * sentence — that reads `shopifyDayTotals` only, and only when Live.
@@ -221,13 +227,19 @@ export function OverviewSalesChart({
   const totalOrders = points.reduce((sum, bucket) => sum + bucket.orders, 0);
   const hasOrders = points.some((bucket) => bucket.orders > 0);
   const cumulative = overviewCumulative(points);
-  const typical = points.length > 0 ? overviewMedian(points.map((p) => p.sales)) : null;
+  const rangeMedian =
+    points.length > 0 ? overviewMedian(points.map((p) => p.sales)) : null;
+  const quotedTypical =
+    effectiveGrain === "day" &&
+    typicalDayWindow != null &&
+    typicalDayWindow.length > 0 &&
+    typicalDay != null &&
+    typicalDay > 0
+      ? typicalDay
+      : null;
   const typicalRef =
-    typical != null && typical > 0
-      ? typical
-      : typicalDay != null && typicalDay > 0
-        ? typicalDay
-        : null;
+    quotedTypical ??
+    (rangeMedian != null && rangeMedian > 0 ? rangeMedian : null);
   const avgBucket = points.length > 0 ? total / points.length : 0;
   const rangeAov = overviewAov(total, totalOrders);
   const aovValues = points.map((bucket) => overviewAov(bucket.sales, bucket.orders));
@@ -342,6 +354,10 @@ export function OverviewSalesChart({
       : range
         ? `${overviewChartDayLabel(range.fromKey)} – ${overviewChartDayLabel(range.toKey)}`
         : "Range";
+  const typicalLabel =
+    quotedTypical != null
+      ? `Typical day · ${typicalDayWindow}`
+      : `Typical ${noun} · ${rangeLabel}`;
 
   const bestBucket = points.reduce(
     (best, bucket) => (bucket.sales > best.sales ? bucket : best),
@@ -360,7 +376,7 @@ export function OverviewSalesChart({
           sub: "per order",
         },
         {
-          k: `Typical ${noun} · ${rangeLabel}`,
+          k: typicalLabel,
           v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
           sub: "median",
         },
@@ -368,7 +384,7 @@ export function OverviewSalesChart({
     : [
         { k: `Sales · ${rangeLabel}`, v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
         {
-          k: `Typical ${noun} · ${rangeLabel}`,
+          k: typicalLabel,
           v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
           sub: "median",
         },
@@ -705,7 +721,7 @@ export function OverviewSalesChart({
             style={{ top: `${yPct(railY)}%`, left: `${xPct(PLOT_LEFT + 6)}%` }}
             aria-hidden="true"
           >
-            typical {noun} · {rangeLabel} {formatCurrency(typicalRef!, currency)}
+            {typicalLabel} {formatCurrency(typicalRef!, currency)}
           </span>
         ) : null}
 
@@ -768,7 +784,7 @@ export function OverviewSalesChart({
               {typicalRef != null ? (
                 <li className="mcfly-chart__tip-row">
                   <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--typical" />
-                  <span className="mcfly-chart__tip-k">Typical {noun} · {rangeLabel}</span>
+                  <span className="mcfly-chart__tip-k">{typicalLabel}</span>
                   <span className="mcfly-chart__tip-v">
                     {formatCurrency(typicalRef, currency)}
                   </span>

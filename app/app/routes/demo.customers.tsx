@@ -180,6 +180,7 @@ export default function PublicDemoCustomers() {
                     ? "This month"
                     : data.rangeLabel
                 }
+                windowSales={data.sales.totalSales}
               />
               <CustomersCompareGlance
                 book={data.book}
@@ -187,7 +188,16 @@ export default function PublicDemoCustomers() {
                 salesPending={false}
               />
             </div>
-            <CustomerMixChart analytics={data.customers} salesPending={false} />
+            <CustomerMixChart
+              analytics={data.customers}
+              salesPending={false}
+              quotedShare={data.book.returningSalesShare}
+              quotedWindow={
+                data.rangeLabel === "Month to date"
+                  ? "This month"
+                  : data.rangeLabel
+              }
+            />
           </DeskLane>
           <DeskLane
             rank="more"
@@ -236,6 +246,14 @@ export default function PublicDemoCustomers() {
               comebackWait={data.customers.comebackWait}
               lifetimeSpan={data.customers.lifetimeSpan}
               windowDays={windowDays}
+              quotedComeback={{
+                historyDays: data.customers.historyDays,
+                within30Share: data.customers.within30Share,
+                within30Count: data.customers.within30Count,
+                eligible30: data.customers.eligible30,
+                winBackDay: data.customers.winBackDay,
+                saveNowOneOrder: data.customers.saveNowOneOrder,
+              }}
             />
           </DeskLane>
         </div>

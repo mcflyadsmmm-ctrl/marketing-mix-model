@@ -77,8 +77,8 @@ describe("public Remix SAMPLE desk", () => {
     const page = await loadPublicSamplePage(
       new Request("https://mcfly-analytics.fly.dev/demo"),
     );
-    expect(page.orderHero.sales).toBe(68_457);
-    expect(page.orderHero.priorSales).toBe(69_891);
+    expect(page.orderHero.sales).toBeCloseTo(page.sales.totalSales, 2);
+    expect(page.orderHero.priorSales).toBeGreaterThan(0);
     expect(page.orderHero.typicalOrder).toBe(page.depth.medianAov);
     expect(page.orderHero.returningSales).toBe(page.book.returningSales);
     expect(page.mixForecast.mix?.returningSales).toBe(page.orderHero.returningSales);

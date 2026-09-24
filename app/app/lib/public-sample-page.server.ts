@@ -349,13 +349,18 @@ export async function loadPublicSamplePage(
     windowEnd: range.end,
   });
   const lock = PUBLIC_SAMPLE_OVERVIEW_LOCK;
-  const lockYoy = overviewYoyPct(lock.sales, lock.priorSales);
+  const priorSalesTotal = sampleSalesFromDays(
+    filterSampleDays(book.days, priorRange.start, priorRange.end),
+  ).totalSales;
+  const heroSales = sales.totalSales;
+  const heroPrior = priorSalesTotal > 0 ? priorSalesTotal : null;
+  const heroYoy = overviewYoyPct(heroSales, heroPrior);
   const orderHero: OverviewOrderBookHero = {
     ...orderHeroBase,
-    sales: lock.sales,
-    priorSales: lock.priorSales,
-    yoyPct: lockYoy,
-    zone: overviewYoyZoneFromPct(lockYoy),
+    sales: heroSales,
+    priorSales: heroPrior,
+    yoyPct: heroYoy,
+    zone: overviewYoyZoneFromPct(heroYoy),
     empty: false,
     typicalOrder: depth.medianAov ?? orderHeroBase.typicalOrder,
     returningSales:

@@ -37,6 +37,7 @@ import { formatSpendOnFile } from "../lib/spend-on-file";
 import {
   formatTotalRoasEquation,
   formatOnlineRoasLine,
+  spendCoverageQuote,
   hasNonOnlineSpendOnFile,
   spendPairCopyText,
 } from "../lib/number-honesty";
@@ -325,9 +326,18 @@ export default function PublicDemoSpend() {
           ) : null}
           <MarketingSpendRoom board={board} />
           {hasSpend ? (
-            <p className="mcfly-spend-plane__hint">{pairCoverage.caption}</p>
+            <p className="mcfly-spend-plane__hint">
+              {spendCoverageQuote({
+                caption: pairCoverage.caption,
+                windowLabel:
+                  data.rangeLabel === "Month to date"
+                    ? "This month"
+                    : data.rangeLabel,
+                equation: pairEquation,
+              })}
+            </p>
           ) : null}
-          {hasSpend && onlineLine ? (
+          {hasSpend && pairEquation == null && onlineLine ? (
             <p className="mcfly-spend-plane__hint">{onlineLine}</p>
           ) : null}
           <SpendMixSection

@@ -348,7 +348,8 @@ export function MarketingSpendRoom({
                                 <ul className="mcfly-control__chan-list">
                                   {row.channels.map((ch) => (
                                     <li key={ch.channel}>
-                                      {channelName(ch.channel, channelLabels)}{" "}
+                                      {channelName(ch.channel, channelLabels)} ·{" "}
+                                      {row.label}{" "}
                                       {formatCurrency(ch.amount, currency)}
                                     </li>
                                   ))}

@@ -257,9 +257,14 @@ function ActionCard({
 export function CustomerMixChart({
   analytics,
   salesPending = false,
+  quotedShare = null,
+  quotedWindow = null,
 }: {
   analytics: CustomerAnalytics;
   salesPending?: boolean;
+  /** Period-book returning share. When set, the headline quotes this window only. */
+  quotedShare?: number | null;
+  quotedWindow?: string | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -321,6 +326,15 @@ export function CustomerMixChart({
   const maxDollars = Math.max(...buckets.map((b) => paintedMixStack(b)), 1);
   const leftAxis = overviewChartAxis(maxDollars, 4);
   const avg = summary.returningShareAvg;
+  const quotedOn =
+    quotedWindow != null &&
+    quotedWindow.length > 0 &&
+    quotedShare != null &&
+    Number.isFinite(quotedShare);
+  const headlineShare = quotedOn ? quotedShare : avg;
+  const headlineWindow = quotedOn
+    ? quotedWindow
+    : `last ~${analytics.historyDays} days`;
 
   const { band, barW, rx, barX, centerX } = chartBarLayout({
     plotLeft: PLOT_LEFT,
@@ -390,9 +404,9 @@ export function CustomerMixChart({
       sub: `${buckets.length} ${noun}${buckets.length === 1 ? "" : "s"}`,
     },
     {
-      k: "Returning share",
-      v: sharePct(avg),
-      sub: `last ~${analytics.historyDays} days`,
+      k: `Returning share · ${headlineWindow}`,
+      v: sharePct(headlineShare),
+      sub: headlineWindow,
     },
     {
       k: "First-time $",
@@ -420,7 +434,7 @@ export function CustomerMixChart({
             <DeskIcon name="chart" /> {CUSTOMERS_MIX_SECTION_LABEL}
           </h3>
           <p className="mcfly-chart__muted">
-            Returning share · last ~{analytics.historyDays} days · {sharePct(avg)}
+            Returning share · {headlineWindow} · {sharePct(headlineShare)}
           </p>
         </div>
         <div className="mcfly-chart__readout" role="status">
@@ -517,13 +531,13 @@ export function CustomerMixChart({
             />
           ))}
 
-          {avg != null ? (
+          {headlineShare != null ? (
             <line
               className="mcfly-cust-mix__rail"
               x1={PLOT_LEFT}
-              y1={yForS(avg).toFixed(1)}
+              y1={yForS(headlineShare).toFixed(1)}
               x2={PLOT_RIGHT}
-              y2={yForS(avg).toFixed(1)}
+              y2={yForS(headlineShare).toFixed(1)}
               vectorEffect="non-scaling-stroke"
             />
           ) : null}
@@ -630,13 +644,15 @@ export function CustomerMixChart({
           ))}
         </div>
 
-        {avg != null ? (
+        {headlineShare != null ? (
           <span
             className="mcfly-chart__rail-k"
-            style={{ top: `${yPct(yForS(avg))}%`, left: `${xPct(PLOT_LEFT + 6)}%` }}
+            style={{ top: `${yPct(yForS(headlineShare))}%`, left: `${xPct(PLOT_LEFT + 6)}%` }}
             aria-hidden="true"
           >
-            avg returning {Math.round(avg * 100)}%
+            {quotedOn
+              ? `Returning share · ${quotedWindow} ${sharePct(headlineShare)}`
+              : `avg returning ${Math.round((avg ?? 0) * 100)}%`}
           </span>
         ) : null}
 
@@ -689,10 +705,12 @@ export function CustomerMixChart({
             </li>
             <li className="mcfly-chart__tip-row">
               <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--share" />
-              <span className="mcfly-chart__tip-k">Returning share</span>
+              <span className="mcfly-chart__tip-k">
+                Returning share · {active.label}
+              </span>
               <span className="mcfly-chart__tip-v">
                 {sharePct(active.returningShare)}
-                {activeVsAvg != null && Math.round(activeVsAvg * 100) !== 0 ? (
+                {!quotedOn && activeVsAvg != null && Math.round(activeVsAvg * 100) !== 0 ? (
                   <span className="mcfly-chart__tip-pct">
                     {" "}
                     · {activeVsAvg > 0 ? "+" : "−"}

@@ -21,6 +21,36 @@ export function growthWholePct(share: number): string {
   return `${Math.round(share * 100)}%`;
 }
 
+/** Customers-analytics come-back window. Growth quotes this, not the full book. */
+export type QuotedComebackWindow = {
+  historyDays: number;
+  within30Share: number | null;
+  within30Count: number;
+  eligible30: number;
+  winBackDay: number | null;
+  saveNowOneOrder: number;
+};
+
+export function quotedWithin30Line(q: QuotedComebackWindow): string {
+  const window = `last ~${Math.round(q.historyDays)} days`;
+  if (
+    q.eligible30 > 0 &&
+    q.within30Share != null &&
+    Number.isFinite(q.within30Share)
+  ) {
+    return `${growthWholePct(q.within30Share)} came back ≤30d · ${window} · ${q.within30Count.toLocaleString()} of ${q.eligible30.toLocaleString()} eligible`;
+  }
+  return `Came back ≤30d · ${window} needs 30 days of follow-up — not zero.`;
+}
+
+export function quotedReachSub(q: QuotedComebackWindow): string {
+  const day =
+    q.winBackDay != null && Number.isFinite(q.winBackDay)
+      ? `past day ${Math.round(q.winBackDay)}`
+      : "past win-back";
+  return `one-order buyers ${day} · last ~${Math.round(q.historyDays)} days`;
+}
+
 function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }

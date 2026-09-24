@@ -228,7 +228,8 @@ export default function PublicDemoOverview() {
                     days={data.explorerDays}
                     ordersHref={ordersHref}
                     salesPending={false}
-                    typicalDay={data.depth.medianDailySales}
+                    typicalDay={mixView.forecast?.typicalDay ?? null}
+                    typicalDayWindow={mixView.typicalDayWindow}
                   />
                 </div>
               )}

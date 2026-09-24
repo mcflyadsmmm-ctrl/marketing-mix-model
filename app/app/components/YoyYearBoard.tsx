@@ -138,12 +138,14 @@ export function YoyChannelBoard({
               {rows.map((row) => (
                 <tr key={row.channel} className="mcfly-yoy-board__row">
                   <th scope="row">
-                    {row.channel === "Unmapped"
-                      ? "Unmapped spend"
-                      : spendChannelShortLabel({
-                          channel: row.channel,
-                          customLabel: channelLabels?.[row.channel],
-                        })}
+                    {`${
+                      row.channel === "Unmapped"
+                        ? "Unmapped spend"
+                        : spendChannelShortLabel({
+                            channel: row.channel,
+                            customLabel: channelLabels?.[row.channel],
+                          })
+                    } · ${year}`}
                   </th>
                   <td>{money(row.spend)}</td>
                   <td>{money(row.priorSpend)}</td>

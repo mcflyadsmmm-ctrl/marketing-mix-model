@@ -15,6 +15,11 @@ import {
   type GrowthTt2EmptyKind,
   type GrowthTt2View,
 } from "../lib/growth-tt2";
+import {
+  quotedReachSub,
+  quotedWithin30Line,
+  type QuotedComebackWindow,
+} from "../lib/growth-comeback";
 
 function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
@@ -142,10 +147,13 @@ function GrowthWindowDaysBoard({
 export function GrowthTt2Board({
   tt2,
   windowDays,
+  quotedComeback = null,
 }: {
   tt2: GrowthTt2View;
   /** Period on screen. When set, this board does not print another wait. */
   windowDays?: CustomersWindowDays;
+  /** Customers-analytics come-back. Quoted instead of the full-book tt2 counts. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
   const drill = useDeskDrill();
   if (windowDays) {
@@ -226,10 +234,17 @@ export function GrowthTt2Board({
     detail: `Buyers whose second order landed ${b.label.replace("d", " days")} after their first. Order-history habit — not an email list.`,
   }));
   const fallMax = Math.max(...tt2.fallOff.map((b) => b.buyers), 1);
-  const within30Line =
-    tt2.eligible30 > 0
+  const within30Line = quotedComeback
+    ? quotedWithin30Line(quotedComeback)
+    : tt2.eligible30 > 0
       ? `${pct(tt2.within30Share)} came back ≤30d · ${tt2.within30Count.toLocaleString()} of ${tt2.eligible30.toLocaleString()} eligible`
       : "Came back ≤30d needs 30 days of follow-up — not zero.";
+  const reachNow = quotedComeback
+    ? quotedComeback.saveNowOneOrder
+    : tt2.reachNow;
+  const reachSub = quotedComeback
+    ? quotedReachSub(quotedComeback)
+    : "one-order buyers past win-back";
 
   return (
     <section
@@ -299,8 +314,8 @@ export function GrowthTt2Board({
         />
         <ActionCard
           label="Reach now"
-          value={tt2.reachNow.toLocaleString()}
-          sub="one-order buyers past win-back"
+          value={reachNow.toLocaleString()}
+          sub={reachSub}
           tone="warn"
           verb="Reach now"
           detail="These one-order buyers are already past the win-back day. Prioritize them first — order history timing, not an email guess."

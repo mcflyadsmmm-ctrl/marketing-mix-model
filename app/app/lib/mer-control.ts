@@ -799,8 +799,9 @@ function namedSpendWindow(base: string, slice: CertifiedDay[]): string {
 
 /**
  * One dollar figure per named window.
+ * Last month is the full prior month — the same dollars as that month on the year board.
+ * Last year stays the same dates as this month so far.
  * The only percent is this month versus that same window last year.
- * A partial last month is labeled with its dates, so it is not read as the full month.
  */
 export function buildCompareScores(days: CertifiedDay[]): CompareScoreRow[] {
   const thisMonth = mixWindowDays(days, "mtd");
@@ -841,11 +842,7 @@ export function buildCompareScores(days: CertifiedDay[]): CompareScoreRow[] {
       salesChangePct: null,
     });
   };
-  push(
-    "lastMonth",
-    "Last month",
-    alignedSiblingWindowDays(days, "lastMonth"),
-  );
+  push("lastMonth", "Last month", siblingWindowDays(days, "lastMonth"));
   push("lastYear", "This month last year", lastYearSlice);
   return rows;
 }

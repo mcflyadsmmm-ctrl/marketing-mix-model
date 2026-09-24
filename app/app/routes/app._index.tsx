@@ -1180,7 +1180,8 @@ export default function Dashboard() {
                         }
                         ordersHref={ordersHref}
                         salesPending={greetingPending}
-                        typicalDay={metrics.shopifyDepth.medianDailySales}
+                        typicalDay={mixView.forecast?.typicalDay ?? null}
+                        typicalDayWindow={mixView.typicalDayWindow}
                         shopifyTotalsLive={deskAnalyticsDayTotalsLive(useSampleDesk)}
                         shopifyDayTotals={
                           deskAnalyticsDayTotalsLive(useSampleDesk)

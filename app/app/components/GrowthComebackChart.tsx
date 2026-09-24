@@ -28,7 +28,9 @@ import {
   growthGrainReady,
   growthResolveGrain,
   growthWholePct,
+  quotedWithin30Line,
   type GrowthBar,
+  type QuotedComebackWindow,
   type GrowthExplorerGrain,
   type GrowthMonthBar,
 } from "../lib/growth-comeback";
@@ -167,6 +169,7 @@ export function GrowthComebackChart({
   drillHref = "#mcfly-ltv",
   drillLabel,
   windowDays,
+  quotedComeback = null,
 }: {
   depthBars: GrowthBar[];
   months: GrowthMonthBar[];
@@ -179,6 +182,8 @@ export function GrowthComebackChart({
   drillLabel?: string;
   /** Period on screen. When set, days-to-2nd is that wait only. */
   windowDays?: CustomersWindowDays;
+  /** Customers-analytics ≤30d figure. Quoted instead of a second depth rate. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -361,7 +366,9 @@ export function GrowthComebackChart({
 
   const windowCopy =
     windowDays && !salesPending ? customersDaysToSecondCopy(windowDays) : null;
-  const comebackLine = growthComebackSentence(depth, repeatRate);
+  const comebackLine = quotedComeback
+    ? quotedWithin30Line(quotedComeback)
+    : growthComebackSentence(depth, repeatRate);
   const otherWaitDays =
     depth.medianDaysToSecond != null && Number.isFinite(depth.medianDaysToSecond)
       ? `${Math.round(depth.medianDaysToSecond)} days`
@@ -383,10 +390,17 @@ export function GrowthComebackChart({
       sub: "this window",
     },
     {
-      k: "Came back ≤30d · buyers with 30 days on file",
-      v: ratePct(depth.secondOrderWithin30Share),
-      sub:
-        depth.eligibleFirstTimers > 0
+      k: quotedComeback
+        ? `Came back ≤30d · last ~${Math.round(quotedComeback.historyDays)} days`
+        : "Came back ≤30d · buyers with 30 days on file",
+      v: quotedComeback
+        ? quotedComeback.within30Share != null
+          ? growthWholePct(quotedComeback.within30Share)
+          : "—"
+        : ratePct(depth.secondOrderWithin30Share),
+      sub: quotedComeback
+        ? `${quotedComeback.within30Count.toLocaleString()} of ${quotedComeback.eligible30.toLocaleString()} eligible`
+        : depth.eligibleFirstTimers > 0
           ? `${depth.eligibleFirstTimers.toLocaleString()} had 30 days`
           : "needs 30 days of follow-up",
     },

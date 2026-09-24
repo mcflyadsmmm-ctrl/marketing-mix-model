@@ -322,7 +322,7 @@ describe("mer-control mix + ledger", () => {
     expect(thinModel?.paceDays).toBe(3);
   });
 
-  it("compare scores cut last month and last year to this month's day", () => {
+  it("compare scores use the full last month and day-align last year", () => {
     const rows = septDeterioration();
     for (let d = 1; d <= 20; d++) {
       const dd = String(d).padStart(2, "0");
@@ -363,9 +363,9 @@ describe("mer-control mix + ledger", () => {
       ((150_000 - 135_000) / 135_000) * 100,
       8,
     );
-    expect(lastMonth?.label).toBe("Last month · Aug 1–15");
-    expect(lastMonth?.days).toBe(15);
-    expect(lastMonth?.sales).toBeCloseTo(150_000, 4);
+    expect(lastMonth?.label).toBe("Last month · Aug 1–20");
+    expect(lastMonth?.days).toBe(20);
+    expect(lastMonth?.sales).toBeCloseTo(200_000, 4);
     expect(lastMonth?.mer).toBeCloseTo(5, 8);
     expect(lastMonth?.salesChangePct).toBeNull();
     expect(lastYear?.label).toBe("This month last year · Sep 1–15");

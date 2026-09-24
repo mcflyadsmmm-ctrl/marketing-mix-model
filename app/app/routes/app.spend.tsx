@@ -77,7 +77,7 @@ import {
   stopRecurringSpend,
 } from "../lib/spend-recurring.server";
 import { roundMoney, shopCurrencyCode, toMoneyNumber } from "../lib/spend-money";
-import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation, formatOnlineRoasLine, hasNonOnlineSpendOnFile, spendPairCopyText } from "../lib/number-honesty";
+import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation, formatOnlineRoasLine, hasNonOnlineSpendOnFile, spendPairCopyText, spendCoverageQuote } from "../lib/number-honesty";
 import { spendEntrySourceLabel } from "../lib/spend-source-label";
 import {
   recurringFillConfirmRequiredError,
@@ -1235,9 +1235,18 @@ export default function SpendEntryPage() {
           ) : null}
 
           {hasSpend ? (
-            <p className="mcfly-spend-plane__hint">{pairCoverage.caption}</p>
+            <p className="mcfly-spend-plane__hint">
+              {spendCoverageQuote({
+                caption: pairCoverage.caption,
+                windowLabel:
+                  metrics.period.label === "Month to date"
+                    ? "This month"
+                    : metrics.period.label,
+                equation: pairEquation,
+              })}
+            </p>
           ) : null}
-          {hasSpend && onlineLine ? (
+          {hasSpend && pairEquation == null && onlineLine ? (
             <p className="mcfly-spend-plane__hint">{onlineLine}</p>
           ) : null}
           {explorer.weekMonthCopy ? (

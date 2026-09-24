@@ -268,6 +268,7 @@ export default function CustomersPage() {
                 ? "This month"
                 : metrics.period.label
             }
+            windowSales={metrics.sales}
           />
           <CustomersCompareGlance
             book={book}
@@ -275,7 +276,16 @@ export default function CustomersPage() {
             salesPending={Boolean(metrics.salesPending)}
           />
         </div>
-        <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
+        <CustomerMixChart
+          analytics={analytics}
+          salesPending={metrics.salesPending}
+          quotedShare={book.returningSalesShare}
+          quotedWindow={
+            metrics.period.label === "Month to date"
+              ? "This month"
+              : metrics.period.label
+          }
+        />
       </DeskLane>
       <DeskLane
         rank="more"
@@ -335,6 +345,14 @@ export default function CustomersPage() {
           comebackWait={analytics.comebackWait}
           lifetimeSpan={analytics.lifetimeSpan}
           windowDays={windowDays}
+          quotedComeback={{
+            historyDays: analytics.historyDays,
+            within30Share: analytics.within30Share,
+            within30Count: analytics.within30Count,
+            eligible30: analytics.eligible30,
+            winBackDay: analytics.winBackDay,
+            saveNowOneOrder: analytics.saveNowOneOrder,
+          }}
         />
       </DeskLane>
       ) : (

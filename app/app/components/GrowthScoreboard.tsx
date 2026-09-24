@@ -8,6 +8,7 @@ import {
   growthSecondVsFirst,
   growthStandupCopyText,
   growthWholePct,
+  type QuotedComebackWindow,
 } from "../lib/growth-comeback";
 import { morningSentence } from "../lib/morning-habit";
 import { CopyMorningSentence } from "./MorningHabitStrip";
@@ -141,6 +142,7 @@ export function GrowthScoreboard({
   reachNow,
   clockAvailable,
   windowDays,
+  quotedComeback = null,
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;
@@ -156,6 +158,8 @@ export function GrowthScoreboard({
   clockAvailable: boolean;
   /** Period on screen. When set, the days chip is that wait — not another window. */
   windowDays?: CustomersWindowDays;
+  /** Customers-analytics ≤30d figure. Quoted instead of a second depth rate. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
   void _useSampleDesk;
   const currency = useDeskCurrency();
@@ -165,7 +169,14 @@ export function GrowthScoreboard({
       : "—";
   const firstShare =
     !salesPending && isNum(book.newSalesShare) ? book.newSalesShare : null;
-  const within30 = salesPending ? null : depth.secondOrderWithin30Share;
+  const within30 = salesPending
+    ? null
+    : quotedComeback
+      ? quotedComeback.within30Share
+      : depth.secondOrderWithin30Share;
+  const within30Caption = quotedComeback
+    ? `came back ≤30d · last ~${Math.round(quotedComeback.historyDays)} days · ${quotedComeback.within30Count.toLocaleString()} of ${quotedComeback.eligible30.toLocaleString()} eligible`
+    : "came back within 30 days · buyers with 30 days on file";
   const within30Value =
     !salesPending && isNum(within30) ? growthWholePct(within30) : "—";
   const windowCopy =
@@ -251,8 +262,10 @@ export function GrowthScoreboard({
           value={within30Value}
           caption={
             isNum(within30)
-              ? "came back within 30 days · buyers with 30 days on file"
-              : "30-day come-back · buyers with 30 days on file"
+              ? within30Caption
+              : quotedComeback
+                ? `30-day come-back · last ~${Math.round(quotedComeback.historyDays)} days`
+                : "30-day come-back · buyers with 30 days on file"
           }
         />
 

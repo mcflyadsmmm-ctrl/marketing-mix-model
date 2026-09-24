@@ -76,6 +76,24 @@ export function formatTotalRoasEquation(opts: {
 }
 
 /**
+ * Coverage hint under the day table. When the header equation is on file,
+ * quote that equation for the named window — do not add a second ratio.
+ */
+export function spendCoverageQuote(opts: {
+  caption: string;
+  windowLabel: string;
+  equation: string | null;
+}): string {
+  const window = opts.windowLabel.trim();
+  if (opts.equation) {
+    return window
+      ? `${opts.caption}. ${window}: ${opts.equation}.`
+      : `${opts.caption}. ${opts.equation}.`;
+  }
+  return opts.caption;
+}
+
+/**
  * Clipboard line for the Spend first fold. Empty spend copies nothing.
  * Pending copies the loading line, not $0. Never copies 0×.
  */

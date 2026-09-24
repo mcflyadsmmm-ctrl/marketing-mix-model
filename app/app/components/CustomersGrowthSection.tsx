@@ -15,6 +15,7 @@ import {
   growthOrderDepthBars,
   growthStandupCopyText,
   type GrowthMonthBar,
+  type QuotedComebackWindow,
 } from "../lib/growth-comeback";
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
@@ -55,6 +56,7 @@ export function CustomersGrowthSection({
   comebackWait,
   lifetimeSpan,
   windowDays,
+  quotedComeback = null,
 }: {
   book: ShopifyNativePeriodStats;
   tt2: GrowthTt2View;
@@ -78,6 +80,8 @@ export function CustomersGrowthSection({
   lifetimeSpan: BuyerLifetimeSpan;
   /** Period already on screen. Days to a second order uses this wait only. */
   windowDays: CustomersWindowDays;
+  /** Customers-analytics come-back. Growth quotes this window, not the full book. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
   const currency = useDeskCurrency();
   const orderDepthBars = growthOrderDepthBars(depth);
@@ -131,6 +135,7 @@ export function CustomersGrowthSection({
         drillHref="#mcfly-ltv"
         drillLabel={PRODUCT_NOUN.openLtv}
         windowDays={windowDays}
+        quotedComeback={quotedComeback}
       />
       <GrowthScoreboard
         book={book}
@@ -143,12 +148,17 @@ export function CustomersGrowthSection({
         quietBack={quietBack}
         comebackWait={comebackWait}
         lifetimeSpan={lifetimeSpan}
-        reachNow={tt2.reachNow}
+        reachNow={quotedComeback?.saveNowOneOrder ?? tt2.reachNow}
         clockAvailable={false}
         windowDays={windowDays}
+        quotedComeback={quotedComeback}
       />
       {firstTimeSlack ? <SlackInsightCard insight={firstTimeSlack} shotMode={shotMode} /> : null}
-      <GrowthTt2Board tt2={tt2} windowDays={windowDays} />
+      <GrowthTt2Board
+        tt2={tt2}
+        windowDays={windowDays}
+        quotedComeback={quotedComeback}
+      />
       <GrowthOrderStepsBoard steps={orderSteps} />
     </>
   );

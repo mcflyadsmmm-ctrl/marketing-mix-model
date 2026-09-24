@@ -363,6 +363,10 @@ export function SpendMixSection({
   );
 }
 
+function namedMixWindow(periodLabel: string): string {
+  return periodLabel === "Month to date" ? "This month" : periodLabel;
+}
+
 function PeriodMixSection({
   rows,
   totalSpend,
@@ -382,13 +386,14 @@ function PeriodMixSection({
 }) {
   const currency = useDeskCurrency();
   const selected = rows.find((row) => row.name === selectedChannel) ?? null;
+  const windowName = namedMixWindow(periodLabel);
   return (
     <section
       className="mcfly-alloc-v2__mix mcfly-alloc-v2__mix--soft"
-      aria-label={`Where the money went · ${periodLabel}`}
+      aria-label={`Where the money went · ${windowName}`}
     >
       <div className="mcfly-alloc-v2__head">
-        <h2>Where the money went · {periodLabel}</h2>
+        <h2>Where the money went · {windowName}</h2>
         <p className="mcfly-alloc-v2__muted">
           Click a channel · spend share, not channel ROAS ·{" "}
           {PRODUCT_NOUN.totalRoas}{" "}
@@ -426,7 +431,7 @@ function PeriodMixSection({
                         aria-hidden="true"
                       />
                       <span className="mcfly-alloc-v2__chan-name">
-                        {row.name}
+                        {row.name} · {windowName}
                       </span>
                       <span className="mcfly-alloc-v2__chan-amt">
                         {formatCurrency(row.spend, currency)}
