@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import { ORDER_FACT_MAX_DAYS_PER_RUN } from "./order-facts.server";
 import { PRODUCT_NOUN } from "./product-labels";
 
@@ -13,11 +12,11 @@ function read(rel: string): string {
 }
 
 describe("Goals year clock / year-board honesty", () => {
-  it("does not lengthen the unpaid crawl past 90 closed days", () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+  it("does not keep a 90-day unpaid order crawl", () => {
     expect(ORDER_FACT_MAX_DAYS_PER_RUN).toBe(7);
     const unpark = read("./live-unpark.ts");
-    expect(unpark).toMatch(/LIVE_UNPAID_INGEST_DAYS = 90/);
+    expect(unpark).not.toMatch(/LIVE_UNPAID_INGEST_DAYS\s*=\s*90/);
+    expect(unpark).not.toMatch(/unpaid_slice/);
   });
 
   it("clears a blank month instead of upserting a certified $0 plan", () => {

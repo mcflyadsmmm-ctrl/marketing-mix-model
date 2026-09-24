@@ -11,7 +11,6 @@ import {
   deskHistoryCaption,
   deskPeriodTillLabel,
 } from "./desk-history";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_IN_TOTAL_SALES,
@@ -39,7 +38,6 @@ const liveTill = {
 
 describe("book coverage honesty — trial and paid share 24 months", () => {
   it("unpaid tills name up to 24 months, not a 90-day trial", () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     expect(
       orderHistoryProgressMessage({
         completeDays: 90,

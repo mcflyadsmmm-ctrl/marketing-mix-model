@@ -183,19 +183,7 @@ export async function scheduleFirstSessionShopifyWindow(
   if (!decision.schedule) return;
   const enqueued = await enqueueShopifyWindowBackfill(shopId);
   if (!enqueued) return;
-  const unpaidWindow =
-    decision.closedDays != null
-      ? { windowDays: decision.closedDays }
-      : undefined;
-  if (unpaidWindow) {
-    void runSalesFactsBackfill(admin, shopId, unpaidWindow).catch(() => {
-      // Job tick resumes — never fail OAuth / first paint.
-    });
-    void runOrderFactsBackfill(admin, shopId, unpaidWindow).catch(() => {
-      // Job tick resumes.
-    });
-    return;
-  }
+  // Trial and paid share the commercial window. Do not pass a shorter crawl.
   void runSalesFactsBackfill(admin, shopId).catch(() => {
     // Job tick resumes — never fail OAuth / first paint.
   });

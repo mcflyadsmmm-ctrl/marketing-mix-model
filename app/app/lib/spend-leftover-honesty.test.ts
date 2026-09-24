@@ -16,7 +16,6 @@ import {
   spendCoverageDateKeys,
   spendEntryCoverageDateKey,
 } from "./spend-coverage";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import { confirmedBreakEvenMer } from "./mer-dashboard.server";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -77,9 +76,8 @@ describe("spend leftover honesty — shop-local import todayKey", () => {
 });
 
 describe("spend leftover honesty — coverage keys on shop IANA", () => {
-  it("keeps the 90-day strip; does not change unpaid ingest days", () => {
+  it("keeps the 90-day spend coverage strip", () => {
     expect(SPEND_COVERAGE_DAYS).toBe(90);
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
   });
 
   it("Live coverage last cell is shop-local today; incomplete today is open", () => {

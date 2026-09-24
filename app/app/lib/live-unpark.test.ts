@@ -6,7 +6,6 @@ import { DESK_HISTORY_YEARS_BACK } from "./desk-history";
 import {
   LIVE_DEFAULT_STAGE,
   LIVE_SYNC_LAW_PR_REF,
-  LIVE_UNPAID_INGEST_DAYS,
   liveDeskTabAllowed,
   liveIngestPolicy,
   liveShopifyWindowSchedule,
@@ -180,8 +179,10 @@ describe("live unpark policy", () => {
         paid: true,
       }),
     ).toEqual({ kind: "paid_full" });
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     expect(DESK_HISTORY_YEARS_BACK).toBe(5);
+    const gate = readFileSync(join(here, "live-unpark.ts"), "utf8");
+    expect(gate).not.toMatch(/LIVE_UNPAID_INGEST_DAYS/);
+    expect(gate).not.toMatch(/unpaid_slice/);
   });
 
   it("only schedules Shopify window jobs when ingest is allowed", () => {
@@ -191,22 +192,19 @@ describe("live unpark policy", () => {
         reason: "sample_freeze",
       }),
     ).toBe(false);
-    expect(
-      liveShopifyWindowShouldSchedule({
-        kind: "unpaid_slice",
-        closedDays: LIVE_UNPAID_INGEST_DAYS,
-      }),
-    ).toBe(true);
     expect(liveShopifyWindowShouldSchedule({ kind: "paid_full" })).toBe(true);
   });
 
-  it("passes the unpaid closed-day window and leaves paid unclamped", () => {
+  it("schedules trial and paid on the same unclamped window", () => {
     expect(
-      liveShopifyWindowSchedule({
-        kind: "unpaid_slice",
-        closedDays: LIVE_UNPAID_INGEST_DAYS,
-      }),
-    ).toEqual({ schedule: true, closedDays: LIVE_UNPAID_INGEST_DAYS });
+      liveShopifyWindowSchedule(
+        liveIngestPolicy({
+          sampleOnlyFreeze: false,
+          stage: "ltv",
+          paid: false,
+        }),
+      ),
+    ).toEqual({ schedule: true, closedDays: null });
     expect(liveShopifyWindowSchedule({ kind: "paid_full" })).toEqual({
       schedule: true,
       closedDays: null,

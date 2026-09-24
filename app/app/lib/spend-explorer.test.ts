@@ -31,7 +31,6 @@ import {
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   listRecentClosedShopLocalDays,
   shopLocalDayKey,
@@ -820,7 +819,6 @@ describe("unpaid explorer does not sell a finished year", () => {
   });
 
   it("trial_slice keeps This year / 1 year / All and does not call 90 days a trial", () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const paid = explorerRangeOptionsFor("paid_full").map((opt) => opt.value);
     expect(paid).toEqual(["14d", "30d", "90d", "YTD", "1y", "All"]);
     const unpaid = explorerRangeOptionsFor("trial_slice").map((opt) => opt.value);

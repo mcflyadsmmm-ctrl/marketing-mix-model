@@ -1107,10 +1107,8 @@ describe("first→last span and inter-order gap", () => {
     expect(buyerLifetimeSpanLine(built)).toMatch(/not a fake short life/);
   });
 
-  it("locks the 8-buyer floor and the 90-day unpaid book", async () => {
+  it("locks the 8-buyer floor", () => {
     expect(ORDER_STEP_MIN_BUYERS).toBe(8);
-    const { LIVE_UNPAID_INGEST_DAYS } = await import("./live-unpark");
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
   });
 
   it("stays — under 8, keeps guests out, and does not invent a short life", () => {
