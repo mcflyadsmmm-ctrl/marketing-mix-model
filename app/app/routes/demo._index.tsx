@@ -118,10 +118,10 @@ export default function PublicDemoOverview() {
     {
       salesPending: false,
       orderCount: data.sales.orderCount,
-      returningSales: data.book.returningSales,
+      returningSales: data.orderHero.returningSales,
       returningShare: data.book.returningSalesShare,
       newSales: data.book.newSales,
-      typicalOrder: data.depth.medianAov,
+      typicalOrder: data.orderHero.typicalOrder,
       daysToSecond: data.depth.medianDaysToSecond,
       ltvPeek: ltvPeek?.amount ?? null,
       ltvPeekDays: ltvPeek?.days ?? null,

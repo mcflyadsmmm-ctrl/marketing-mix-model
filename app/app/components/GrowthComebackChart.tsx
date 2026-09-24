@@ -383,7 +383,7 @@ export function GrowthComebackChart({
       sub: "this window",
     },
     {
-      k: "Came back ≤30d",
+      k: "Came back ≤30d · buyers with 30 days on file",
       v: ratePct(depth.secondOrderWithin30Share),
       sub:
         depth.eligibleFirstTimers > 0

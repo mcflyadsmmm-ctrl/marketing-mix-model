@@ -132,7 +132,6 @@ export function GrowthScoreboard({
   book,
   depth,
   repeatRate,
-  avgOrdersD90,
   salesPending,
   useSampleDesk,
   ltvHref = "#mcfly-ltv",
@@ -197,10 +196,6 @@ export function GrowthScoreboard({
       : "—";
   const repeat =
     !salesPending && isNum(repeatRate) ? growthWholePct(repeatRate) : "—";
-  const orders90 =
-    !salesPending && isNum(avgOrdersD90) && avgOrdersD90 > 0
-      ? avgOrdersD90.toFixed(1)
-      : "—";
   const quietValue =
     !salesPending &&
     quietBack.sealed &&
@@ -233,7 +228,7 @@ export function GrowthScoreboard({
     money: (n) => formatCurrency(n, currency),
     secondShare: depth.secondOrderBuyerShare,
     thirdShare: depth.thirdPlusBuyerShare,
-    reachNow,
+    reachNow: windowDays ? null : reachNow,
     clockAvailable,
   });
 
@@ -256,8 +251,8 @@ export function GrowthScoreboard({
           value={within30Value}
           caption={
             isNum(within30)
-              ? "came back within 30 days"
-              : "30-day come-back"
+              ? "came back within 30 days · buyers with 30 days on file"
+              : "30-day come-back · buyers with 30 days on file"
           }
         />
 
@@ -323,13 +318,9 @@ export function GrowthScoreboard({
               next="Comeback grain on the explorer is the same mix as bars."
             />
             <Tile
-              label="Repeat rate"
+              label="Repeat rate · first 90 days"
               value={repeat}
-              note={
-                orders90 !== "—"
-                  ? `${orders90} orders in the first 90 days · order history, not email`
-                  : "Extra orders beyond the first in the first 90 days. Order history, not email."
-              }
+              note="Extra orders beyond the first in the first 90 days. Order history, not email."
               icon="customers"
               formula="Extra orders beyond the first in the first 90 days. Order history, not an email list."
               next="Open LTV for first-90-day dollars per new buyer."

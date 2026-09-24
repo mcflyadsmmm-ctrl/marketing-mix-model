@@ -79,8 +79,9 @@ describe("public Remix SAMPLE desk", () => {
     );
     expect(page.orderHero.sales).toBe(68_457);
     expect(page.orderHero.priorSales).toBe(69_891);
-    expect(page.orderHero.typicalOrder).toBeCloseTo(631, 0);
-    expect(page.orderHero.returningSales).toBe(45_409);
+    expect(page.orderHero.typicalOrder).toBe(page.depth.medianAov);
+    expect(page.orderHero.returningSales).toBe(page.book.returningSales);
+    expect(page.mixForecast.mix?.returningSales).toBe(page.orderHero.returningSales);
     expect(page.orderHero.weekendShare).toBeCloseTo(0.23, 2);
   });
 

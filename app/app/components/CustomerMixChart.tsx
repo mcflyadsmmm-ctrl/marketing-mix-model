@@ -293,8 +293,15 @@ export function CustomerMixChart({
         grain: effectiveGrain,
         winBackDay: analytics.winBackDay,
         saveNowOneOrder: analytics.saveNowOneOrder,
+        historyDays: analytics.historyDays,
       }),
-    [buckets, effectiveGrain, analytics.winBackDay, analytics.saveNowOneOrder],
+    [
+      buckets,
+      effectiveGrain,
+      analytics.winBackDay,
+      analytics.saveNowOneOrder,
+      analytics.historyDays,
+    ],
   );
   const {
     hoverIndex,
@@ -385,12 +392,12 @@ export function CustomerMixChart({
     {
       k: "Returning share",
       v: sharePct(avg),
-      sub: "of dollars",
+      sub: `last ~${analytics.historyDays} days`,
     },
     {
       k: "First-time $",
       v: mixMoney(mixFirstTimePaint(summary), currency),
-      sub: firstTimeBuyerLabel(summary.firstTimeBuyers),
+      sub: `${firstTimeBuyerLabel(summary.firstTimeBuyers)} · ${buckets.length} ${noun}${buckets.length === 1 ? "" : "s"}`,
     },
     {
       k: `Best ${noun} $`,
@@ -413,7 +420,7 @@ export function CustomerMixChart({
             <DeskIcon name="chart" /> {CUSTOMERS_MIX_SECTION_LABEL}
           </h3>
           <p className="mcfly-chart__muted">
-            {sharePct(avg)} returning · last ~{analytics.historyDays} days
+            Returning share · last ~{analytics.historyDays} days · {sharePct(avg)}
           </p>
         </div>
         <div className="mcfly-chart__readout" role="status">

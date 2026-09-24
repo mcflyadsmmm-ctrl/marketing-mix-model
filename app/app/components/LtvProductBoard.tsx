@@ -216,11 +216,11 @@ export function LtvProductBoard({
                       : "The next titled product waits until enough of these starters came back.",
                 },
                 {
-                  k: "The math vs observed",
+                  k: read.worthLabel,
                   v:
-                    read.estimate != null && read.observed != null
-                      ? `The written-out formula says ${formatCurrency(read.estimate, currency)}. Those same starters spent ${formatCurrency(read.observed, currency)}.`
-                      : "The 90-day estimate waits until enough starters have lived 90 days.",
+                    read.observed != null
+                      ? `Those buyers spent ${formatCurrency(read.observed, currency)} in ${read.worthLabel}.`
+                      : "Observed spend in this window is not on file yet — not $0.",
                 },
                 {
                   k: "First year",
@@ -251,11 +251,11 @@ export function LtvProductBoard({
             </span>
           ) : null}
           <span className="mcfly-depth-flag__read-line">
-            {read.estimate != null && read.observed != null
-              ? `The math says ${formatCurrency(read.estimate, currency)} — those starters spent ${formatCurrency(read.observed, currency)}.`
+            {read.observed != null
+              ? `Those buyers spent ${formatCurrency(read.observed, currency)} in ${read.worthLabel}.`
               : read.yearPending
                 ? "First year is not on file yet — not $0."
-                : "Averages from the starters who have lived this window."}
+                : "Averages from the buyers who have lived this window."}
           </span>
         </button>
       ) : null}

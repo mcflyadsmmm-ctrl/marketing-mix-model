@@ -270,12 +270,18 @@ export type LastYearMix = {
   onFile: boolean;
   returningSales: number | null;
   newSales: number | null;
+  /** Same window last year · returning $ ÷ returning buyers. */
+  returningPerBuyer: number | null;
+  /** Same window last year · new $ ÷ new buyers. */
+  newPerBuyer: number | null;
 };
 
 export const CUSTOMERS_LAST_YEAR_EMPTY: LastYearMix = {
   onFile: false,
   returningSales: null,
   newSales: null,
+  returningPerBuyer: null,
+  newPerBuyer: null,
 };
 
 function finite(n: number): number {
@@ -770,6 +776,8 @@ function lastYearPeriodMix(
   const startMs = lastStart.getTime();
   const endMs = lastEnd.getTime();
   const acc = freshMixAcc(startMs);
+  const returningKeys = new Set<string>();
+  const newKeys = new Set<string>();
   let identified = 0;
   for (const row of storedBook) {
     const t = ms(row.orderedAt);
@@ -777,20 +785,32 @@ function lastYearPeriodMix(
     const kind = orderMixKind(row, files.get(row.customerKey));
     addMixAmount(acc, kind, finite(row.amount));
     if (kind !== "guest") identified += 1;
+    if (kind === "returning" && row.customerKey) returningKeys.add(row.customerKey);
+    if (kind === "new" && row.customerKey) newKeys.add(row.customerKey);
   }
   if (identified <= 0) return CUSTOMERS_LAST_YEAR_EMPTY;
+  const returningSales = mixReturningPaint({
+    returningDollars: Math.round(acc.retD),
+    unknownDollars: acc.unknownD,
+    truncatedDollars: acc.truncatedD,
+  });
+  const newSales = mixFirstTimePaint({
+    newDollars: Math.round(acc.newD),
+    unknownDollars: acc.unknownD,
+    truncatedDollars: acc.truncatedD,
+  });
   return {
     onFile: true,
-    returningSales: mixReturningPaint({
-      returningDollars: Math.round(acc.retD),
-      unknownDollars: acc.unknownD,
-      truncatedDollars: acc.truncatedD,
-    }),
-    newSales: mixFirstTimePaint({
-      newDollars: Math.round(acc.newD),
-      unknownDollars: acc.unknownD,
-      truncatedDollars: acc.truncatedD,
-    }),
+    returningSales,
+    newSales,
+    returningPerBuyer:
+      returningSales != null && returningSales > 0 && returningKeys.size > 0
+        ? Math.round(returningSales / returningKeys.size)
+        : null,
+    newPerBuyer:
+      newSales != null && newSales > 0 && newKeys.size > 0
+        ? Math.round(newSales / newKeys.size)
+        : null,
   };
 }
 
@@ -1603,6 +1623,7 @@ export function buildReturningMixPlays(input: {
   grain: MixExplorerGrain;
   winBackDay: number | null;
   saveNowOneOrder: number;
+  historyDays?: number;
 }): ReturningMixPlay[] {
   const buckets = input.buckets;
   const latest = buckets.length > 0 ? buckets[buckets.length - 1]! : null;
@@ -1676,7 +1697,9 @@ export function buildReturningMixPlays(input: {
       amount: winBackKnown ? input.saveNowOneOrder : null,
       amountKind: "count",
       sub: winBackKnown
-        ? `one-order buyers past day ${Math.round(input.winBackDay!)}`
+        ? input.historyDays != null && input.historyDays > 0
+          ? `one-order buyers past day ${Math.round(input.winBackDay!)} · last ~${Math.round(input.historyDays)} days`
+          : `one-order buyers past day ${Math.round(input.winBackDay!)}`
         : "Win-back day needs more repeat orders — not $0.",
       tone: winBackKnown && input.saveNowOneOrder > 0 ? "warn" : "plain",
       delta: null,

@@ -240,11 +240,11 @@ export function LtvPromoBoard({
                       : "Come-back share waits until enough starters have lived the window.",
                 },
                 {
-                  k: "The math vs observed",
+                  k: read.worthLabel,
                   v:
-                    read.estimate != null && read.observed != null
-                      ? `The written-out formula says ${formatCurrency(read.estimate, currency)}. Those same starters spent ${formatCurrency(read.observed, currency)}.`
-                      : "The 90-day estimate waits until enough starters have lived 90 days.",
+                    read.observed != null
+                      ? `Those starters spent ${formatCurrency(read.observed, currency)} in ${read.worthLabel}.`
+                      : "Observed spend in this window is not on file yet — not $0.",
                 },
                 {
                   k: "Codes on file",
@@ -284,8 +284,8 @@ export function LtvPromoBoard({
             </span>
           ) : null}
           <span className="mcfly-depth-flag__read-line">
-            {read.estimate != null && read.observed != null
-              ? `The math says ${formatCurrency(read.estimate, currency)} — those starters spent ${formatCurrency(read.observed, currency)}.`
+            {read.observed != null
+              ? `Those starters spent ${formatCurrency(read.observed, currency)} in ${read.worthLabel}.`
               : read.yearPending
                 ? yearNotOnFile(historyLimited)
                 : "Averages from the starters who have lived this window."}

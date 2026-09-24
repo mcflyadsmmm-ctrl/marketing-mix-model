@@ -173,17 +173,20 @@ export function CustomerRetentionBoard({
     a.identifiedBuyers > 0
       ? `${pct(a.everRepeatShare)} ever a 2nd order · ${a.everRepeatCount.toLocaleString()} of ${a.identifiedBuyers.toLocaleString()}`
       : undefined;
+  const within30Window = `last ~${a.historyDays} days`;
   const within30Line =
     a.eligible30 > 0
-      ? `${pct(a.within30Share)} came back ≤30d · ${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible`
-      : "Came back ≤30d needs 30 days of follow-up — not zero.";
+      ? `${pct(a.within30Share)} came back ≤30d · ${within30Window} · ${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible`
+      : `Came back ≤30d · ${within30Window} needs 30 days of follow-up — not zero.`;
 
   return (
     <section className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-desk-anchor" aria-label="What to do">
       <div className="mcfly-panel__head">
         <h2>What to do</h2>
         <p className="mcfly-panel__muted">
-          When they come back · repurchase clock · fall-off &amp; win-back · last ~{a.historyDays} days
+          {windowDays
+            ? windowDays.label
+            : `When they come back · last ~${a.historyDays} days`}
         </p>
       </div>
 
@@ -224,7 +227,13 @@ export function CustomerRetentionBoard({
         <ActionCard
           label="Save now"
           value={a.saveNowOneOrder.toLocaleString()}
-          sub="one-order buyers past win-back"
+          sub={
+            windowDays
+              ? `last ~${a.historyDays} days`
+              : isNum(a.winBackDay)
+                ? `past day ${Math.round(a.winBackDay)} · last ~${a.historyDays} days`
+                : "one-order buyers past win-back"
+          }
           tone="warn"
           verb="Save now"
           detail="These one-order buyers are already past the win-back day. Prioritize them first — order history timing, not an email guess."
@@ -238,7 +247,7 @@ export function CustomerRetentionBoard({
         ariaUnit=" buyers"
         emptyCopy="No second orders on file yet — not zero."
       />
-      {a.daysToSecondTruncatedAt != null ? (
+      {a.daysToSecondTruncatedAt != null && !windowDays ? (
         <p className="mcfly-cust-note">
           Days-to-2nd past ~{a.daysToSecondTruncatedAt} days needs more order history than
           Shopify shares on this install — withheld, not zero.

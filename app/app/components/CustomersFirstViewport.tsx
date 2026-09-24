@@ -14,6 +14,7 @@ import {
   CUSTOMERS_TODAY_TRUNCATED_LINE,
   buildCustomersHero,
   customersOperatorGreeting,
+  customersYoyLine,
 } from "../lib/customers-first-viewport";
 
 /**
@@ -122,6 +123,7 @@ export function CustomersFirstViewport({
           <span className="mcfly-overview-plane__prior">
             <DeskIcon name="customers" />
             {hero.k}
+            {hero.yoyPct != null ? ` · ${customersYoyLine(hero.yoyPct)}` : ""}
           </span>
         </p>
         <span className="mcfly-overview-plane__sr">
@@ -136,6 +138,12 @@ export function CustomersFirstViewport({
         <p className="mcfly-overview-plane__pending">{pendingLine}</p>
       ) : truncatedLine ? (
         <p className="mcfly-overview-plane__pending">{truncatedLine}</p>
+      ) : null}
+
+      {hasSplit ? (
+        <p className="mcfly-overview-plane__note">
+          {periodLabel} · identified buyers. Guest orders are a separate share.
+        </p>
       ) : null}
 
       {stripParts.length > 0 ? (

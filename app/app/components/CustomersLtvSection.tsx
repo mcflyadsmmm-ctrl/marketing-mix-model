@@ -310,12 +310,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
           <p className="mcfly-book__hero-v">
             {formatCurrency(ltv.avgRevenueD90, currency)}
           </p>
-          <p className="mcfly-book__hero-def">
-            {PRODUCT_NOUN.ltv90Def}
-            {metrics.tillLtv.newBuyers > 0
-              ? ` ${metrics.tillLtv.newBuyers.toLocaleString()} new customers.`
-              : ""}
-          </p>
+          <p className="mcfly-book__hero-def">{PRODUCT_NOUN.ltv90Def}</p>
         </div>
       ) : (
         <p className="mcfly-book__lede">{emptyLine}</p>

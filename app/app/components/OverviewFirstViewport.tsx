@@ -363,7 +363,9 @@ export function OverviewFirstViewport({
           </span>
         </p>
         <span className="mcfly-overview-plane__sr">
-          {overviewCoverageLine(orderBookDepth)}
+          {useSampleDesk
+            ? `${periodLabel}. Sample shop.`
+            : overviewCoverageLine(orderBookDepth)}
         </span>
       </div>
 

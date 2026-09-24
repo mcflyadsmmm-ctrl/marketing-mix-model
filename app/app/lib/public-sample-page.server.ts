@@ -339,8 +339,11 @@ export async function loadPublicSamplePage(
     yoyPct: lockYoy,
     zone: overviewYoyZoneFromPct(lockYoy),
     empty: false,
-    typicalOrder: lock.typicalOrder,
-    returningSales: lock.returningSales,
+    typicalOrder: depth.medianAov ?? orderHeroBase.typicalOrder,
+    returningSales:
+      sales.returningCustomerNetSales > 0
+        ? sales.returningCustomerNetSales
+        : orderHeroBase.returningSales,
     weekendShare: lock.weekendShare,
     orderCount: orderHeroBase.orderCount,
   };
@@ -384,6 +387,7 @@ export async function loadPublicSamplePage(
     daysInMonth: clock.daysInMonth,
     remainingDays: clock.remainingDays,
     historyLimited: false,
+    monthDailySales: periodDays.map((day) => day.sales),
     historyDays: overviewHistoryDays(
       explorerDays[0]?.dateKey ?? null,
       explorerDays[explorerDays.length - 1]?.dateKey ?? null,

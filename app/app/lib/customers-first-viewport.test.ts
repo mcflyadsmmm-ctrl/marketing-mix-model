@@ -135,19 +135,43 @@ describe("buildCustomersHero + lead peeks", () => {
 });
 
 describe("buildCustomersCompareKpis", () => {
-  it("compares returning and new dollars to last year when on file", () => {
+  it("shows last year's dollars for that window, and no percent", () => {
     const book = dollarBook();
     const kpis = buildCustomersCompareKpis(
       book,
-      { onFile: true, returningSales: 500, newSales: 300 },
+      {
+        onFile: true,
+        returningSales: 500,
+        newSales: 300,
+        returningPerBuyer: 40,
+        newPerBuyer: 25,
+      },
       (n) => `$${n}`,
     );
     expect(kpis.map((k) => k.key)).toEqual(["returning", "new", "perBuyer"]);
-    expect(kpis[0]?.delta?.dir).toBe("up");
+    expect(kpis.map((k) => k.value)).toEqual(["$500", "$300", "$40"]);
+    expect(kpis.every((k) => k.delta == null)).toBe(true);
+    expect(kpis.some((k) => k.value === "$600" || k.value === "$60")).toBe(
+      false,
+    );
     expect(
-      buildCustomersCompareKpis(book, CUSTOMERS_LAST_YEAR_EMPTY, (n) => `$${n}`)[0]
-        ?.delta,
-    ).toBeNull();
+      buildCustomersCompareKpis(book, CUSTOMERS_LAST_YEAR_EMPTY, (n) => `$${n}`),
+    ).toEqual([]);
+  });
+
+  it("omits dollars per buyer when last year has no per-buyer figure", () => {
+    const kpis = buildCustomersCompareKpis(
+      dollarBook(),
+      {
+        onFile: true,
+        returningSales: 500,
+        newSales: 300,
+        returningPerBuyer: null,
+        newPerBuyer: null,
+      },
+      (n) => `$${n}`,
+    );
+    expect(kpis.map((k) => k.key)).toEqual(["returning", "new"]);
   });
 });
 

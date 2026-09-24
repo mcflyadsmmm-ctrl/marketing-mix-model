@@ -351,7 +351,7 @@ export function OverviewSalesChart({
   type Stat = { k: string; v: string; delta?: OverviewDelta | null; sub: string };
   const statCards: Stat[] = hasOrders
     ? [
-        { k: "Sales", v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
+        { k: `Sales · ${rangeLabel}`, v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
         { k: "Orders", v: numberFmt.format(totalOrders), delta: ordersDelta, sub: "in range" },
         {
           k: "AOV",
@@ -360,15 +360,15 @@ export function OverviewSalesChart({
           sub: "per order",
         },
         {
-          k: `Typical ${noun}`,
+          k: `Typical ${noun} · ${rangeLabel}`,
           v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
           sub: "median",
         },
       ]
     : [
-        { k: "Sales", v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
+        { k: `Sales · ${rangeLabel}`, v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
         {
-          k: `Typical ${noun}`,
+          k: `Typical ${noun} · ${rangeLabel}`,
           v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
           sub: "median",
         },
@@ -705,7 +705,7 @@ export function OverviewSalesChart({
             style={{ top: `${yPct(railY)}%`, left: `${xPct(PLOT_LEFT + 6)}%` }}
             aria-hidden="true"
           >
-            typical {noun} {formatCurrency(typicalRef!, currency)}
+            typical {noun} · {rangeLabel} {formatCurrency(typicalRef!, currency)}
           </span>
         ) : null}
 
@@ -768,7 +768,7 @@ export function OverviewSalesChart({
               {typicalRef != null ? (
                 <li className="mcfly-chart__tip-row">
                   <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--typical" />
-                  <span className="mcfly-chart__tip-k">Typical {noun}</span>
+                  <span className="mcfly-chart__tip-k">Typical {noun} · {rangeLabel}</span>
                   <span className="mcfly-chart__tip-v">
                     {formatCurrency(typicalRef, currency)}
                   </span>

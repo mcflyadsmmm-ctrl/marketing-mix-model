@@ -66,6 +66,8 @@ export type OverviewMixForecastView = {
   historyDays: number;
   orderCount: number;
   factDays: number;
+  /** Set when the close uses this month's median day, not the longer book. */
+  typicalDayWindow: string | null;
 };
 
 export type OverviewMixForecastRead = {
@@ -86,6 +88,8 @@ export type OverviewMixForecastInput = {
   remainingDays: number;
   historyLimited: boolean;
   historyDays: number;
+  /** This month's selling days. When long enough, the close uses their median. */
+  monthDailySales?: number[] | null;
 };
 
 const DAY_MS = 86_400_000;
@@ -319,6 +323,10 @@ export function buildOverviewMixForecast(
 ): OverviewMixForecastView {
   const orderCount = Math.max(0, Math.trunc(finite(input.orderCount)));
   const dailySales = input.dailySales.filter((n) => Number.isFinite(n) && n > 0);
+  const monthDaily = (input.monthDailySales ?? []).filter(
+    (n) => Number.isFinite(n) && n > 0,
+  );
+  const typicalFromMonth = monthDaily.length >= FORECAST_MIN_DAYS;
   const factDays = dailySales.length;
   const historyDays = Math.max(0, Math.trunc(finite(input.historyDays)));
   const mix = overviewMixSplit(input.windowNewSales, input.windowReturningSales);
@@ -328,7 +336,6 @@ export function buildOverviewMixForecast(
     mix != null,
     input.salesPending,
   );
-  const typicalDay = overviewTypicalDayFromBook(dailySales);
   const remainingDays = Math.max(0, Math.trunc(finite(input.remainingDays)));
   const daysElapsed = Math.max(0, Math.trunc(finite(input.daysElapsed)));
   const daysInMonth = Math.max(0, Math.trunc(finite(input.daysInMonth)));
@@ -345,8 +352,13 @@ export function buildOverviewMixForecast(
       historyDays,
       orderCount,
       factDays,
+      typicalDayWindow: null,
     };
   }
+
+  const typicalSource = typicalFromMonth ? monthDaily : dailySales;
+  const typicalDay = overviewTypicalDayFromBook(typicalSource);
+  const typicalDayWindow = typicalFromMonth ? "This month" : null;
 
   const forecast =
     typicalDay != null
@@ -369,6 +381,7 @@ export function buildOverviewMixForecast(
     historyDays,
     orderCount,
     factDays,
+    typicalDayWindow,
   };
 }
 

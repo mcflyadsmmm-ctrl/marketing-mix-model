@@ -199,6 +199,14 @@ export function customersOperatorGreeting(
   return "";
 }
 
+/** One YoY percent for the hero's window. Prints only when last year is on file. */
+export function customersYoyLine(pct: number): string {
+  const rounded = Math.round(pct * 10) / 10;
+  if (Math.abs(rounded) < 0.05) return "Even vs last year";
+  const sign = rounded > 0 ? "+" : "−";
+  return `${sign}${Math.abs(rounded)}% vs last year`;
+}
+
 export function customersLastYearLine(
   hero: { lastYearOnFile: boolean; lastYearAmount: number | null },
   money?: (n: number) => string,
@@ -216,21 +224,24 @@ export function customersLastYearLine(
   return "Last year —";
 }
 
-function heroLastYear(lastYear: LastYearMix): {
+function heroLastYear(
+  current: number,
+  prior: number | null,
+  onFile: boolean,
+): {
   lastYearOnFile: boolean;
   lastYearAmount: number | null;
-  yoyPct: null;
+  yoyPct: number | null;
 } {
-  const lastYearAmount =
-    lastYear.onFile &&
-    lastYear.returningSales != null &&
-    lastYear.returningSales > 0
-      ? lastYear.returningSales
+  const lastYearAmount = onFile && prior != null && prior > 0 ? prior : null;
+  const yoyPct =
+    lastYearAmount != null && current > 0
+      ? ((current - lastYearAmount) / lastYearAmount) * 100
       : null;
   return {
-    lastYearOnFile: lastYear.onFile,
+    lastYearOnFile: onFile,
     lastYearAmount,
-    yoyPct: null,
+    yoyPct,
   };
 }
 
@@ -248,8 +259,12 @@ export function buildCustomersHero(
     lastYear: CUSTOMERS_LAST_YEAR_EMPTY,
   },
 ): CustomersHero | null {
-  const year = heroLastYear(honesty.lastYear);
   if (isNum(book.returningSales) && book.returningSales > 0) {
+    const year = heroLastYear(
+      book.returningSales,
+      honesty.lastYear.returningSales,
+      honesty.lastYear.onFile,
+    );
     const newSales =
       isNum(book.newSales) && book.newSales > 0 ? book.newSales : null;
     return {
@@ -264,6 +279,11 @@ export function buildCustomersHero(
     };
   }
   if (isNum(book.newSales) && book.newSales > 0) {
+    const year = heroLastYear(
+      book.newSales,
+      honesty.lastYear.newSales,
+      honesty.lastYear.onFile,
+    );
     return {
       kind: "newDollars",
       k: "New dollars",
@@ -347,22 +367,23 @@ export type CustomersCompareKpi = {
   delta: { dir: "up" | "down" | "flat"; pct: number } | null;
 };
 
-function customersCompareDelta(
-  current: number | null | undefined,
-  prior: number | null | undefined,
-): { dir: "up" | "down" | "flat"; pct: number } | null {
-  if (!isNum(current) || current <= 0 || !isNum(prior) || prior <= 0) {
-    return null;
+function lastYearPerBuyer(lastYear: LastYearMix): number | null {
+  if (isNum(lastYear.returningPerBuyer) && lastYear.returningPerBuyer > 0) {
+    return lastYear.returningPerBuyer;
   }
-  const raw = ((current - prior) / prior) * 100;
-  const pct = Math.abs(Math.round(raw * 10) / 10);
-  if (pct < 0.05) return { dir: "flat", pct: 0 };
-  return { dir: raw > 0 ? "up" : "down", pct };
+  if (isNum(lastYear.newPerBuyer) && lastYear.newPerBuyer > 0) {
+    return lastYear.newPerBuyer;
+  }
+  return null;
 }
 
-/** Compact last-year compare — returning $, new $, dollars per buyer. */
+/**
+ * Same window last year — one dollar per card, that window only.
+ * This month's dollars stay on the hero. A percent is not printed here:
+ * it belongs on the this-window card, and only when last year is on file.
+ */
 export function buildCustomersCompareKpis(
-  book: Pick<
+  _book: Pick<
     ShopifyNativePeriodStats,
     | "returningSales"
     | "newSales"
@@ -372,33 +393,25 @@ export function buildCustomersCompareKpis(
   lastYear: LastYearMix,
   money: (n: number) => string,
 ): CustomersCompareKpi[] {
+  if (!lastYear.onFile) return [];
   const rows: CustomersCompareKpi[] = [];
-  if (isNum(book.returningSales) && book.returningSales > 0) {
+  if (isNum(lastYear.returningSales) && lastYear.returningSales > 0) {
     rows.push({
       key: "returning",
       label: "Returning dollars",
-      value: money(book.returningSales),
-      delta: lastYear.onFile
-        ? customersCompareDelta(book.returningSales, lastYear.returningSales)
-        : null,
+      value: money(lastYear.returningSales),
+      delta: null,
     });
   }
-  if (isNum(book.newSales) && book.newSales > 0) {
+  if (isNum(lastYear.newSales) && lastYear.newSales > 0) {
     rows.push({
       key: "new",
       label: "New dollars",
-      value: money(book.newSales),
-      delta: lastYear.onFile
-        ? customersCompareDelta(book.newSales, lastYear.newSales)
-        : null,
+      value: money(lastYear.newSales),
+      delta: null,
     });
   }
-  const perBuyer =
-    isNum(book.returningBuyerArpu) && book.returningBuyerArpu > 0
-      ? book.returningBuyerArpu
-      : isNum(book.newBuyerArpu) && book.newBuyerArpu > 0
-        ? book.newBuyerArpu
-        : null;
+  const perBuyer = lastYearPerBuyer(lastYear);
   if (perBuyer != null) {
     rows.push({
       key: "perBuyer",

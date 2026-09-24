@@ -333,9 +333,11 @@ describe("Slack insight paste — one sealed number", () => {
       sample: true,
       periodLabel: view.periodLabel,
     });
-    expect(slack.slack.startsWith("*Returning $* · Sample shop · SAMPLE · This month")).toBe(
-      true,
-    );
+    expect(
+      slack.slack.startsWith(
+        "*Returning $ · This month* · Sample shop · SAMPLE · This month",
+      ),
+    ).toBe(true);
     expect(slack.slack).toContain(card!.line);
     expect(slack.slack).toContain(card!.formula);
     expect(slack.slack).not.toContain("$0");

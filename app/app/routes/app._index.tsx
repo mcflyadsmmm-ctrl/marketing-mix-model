@@ -453,6 +453,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     historyLimited: Boolean(
       !useSampleDesk && orderBackfillProgress?.historyLimited,
     ),
+    monthDailySales: explorerDays
+      .filter((day) => day.dateKey.startsWith(monthPrefix))
+      .map((day) => day.sales),
     historyDays: overviewHistoryDays(
       explorerDays[0]?.dateKey ?? null,
       explorerDays[explorerDays.length - 1]?.dateKey ?? null,
@@ -834,6 +837,19 @@ export default function Dashboard() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
+  if (shopBook.returningSales != null && shopBook.returningSales > 0) {
+    orderHero = { ...orderHero, returningSales: shopBook.returningSales };
+  }
+  if (
+    metrics.shopifyDepth.medianAov != null &&
+    Number.isFinite(metrics.shopifyDepth.medianAov) &&
+    metrics.shopifyDepth.medianAov > 0
+  ) {
+    orderHero = {
+      ...orderHero,
+      typicalOrder: metrics.shopifyDepth.medianAov,
+    };
+  }
   const mixView = greetingPending
     ? emptyOverviewMixForecast()
     : (mixForecast ?? emptyOverviewMixForecast());
@@ -864,10 +880,10 @@ export default function Dashboard() {
         {
           salesPending: greetingPending,
           orderCount: metrics.orderCount,
-          returningSales: shopBook.returningSales,
+          returningSales: orderHero.returningSales ?? shopBook.returningSales,
           returningShare: shopBook.returningSalesShare,
           newSales: shopBook.newSales,
-          typicalOrder: metrics.shopifyDepth.medianAov,
+          typicalOrder: orderHero.typicalOrder ?? metrics.shopifyDepth.medianAov,
           daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
           ltvPeek: ltvPeek?.amount ?? null,
           ltvPeekDays: ltvPeek?.days ?? null,

@@ -142,16 +142,8 @@ export function CustomersScoreboard({
     : isNum(book.returningBuyerArpu)
       ? money(book.returningBuyerArpu)
       : money(book.newBuyerArpu);
-  const perBuyerNote =
-    !salesPending && isNum(book.newBuyerArpu) && isNum(book.returningBuyerArpu)
-      ? `New ${money(book.newBuyerArpu)} · returning ${money(book.returningBuyerArpu)}`
-      : undefined;
   const guests =
     !salesPending && book.guestOrders > 0 && hasShare(book.guestShare) ? pct(book.guestShare) : "—";
-  const guestNote =
-    !salesPending && isNum(depth.guestAov) && isNum(depth.identifiedAov)
-      ? `Typical ${money(depth.guestAov)} vs ${money(depth.identifiedAov)} with an account`
-      : undefined;
   const biggest =
     !salesPending && hasShare(depth.topDecileSalesShare)
       ? pct(depth.topDecileSalesShare)
@@ -176,19 +168,18 @@ export function CustomersScoreboard({
 
         <div className="mcfly-cust-facts">
           <Fact
-            label="Guests"
+            label={`Guests · ${periodLabel}`}
             value={guests}
-            note={guestNote}
             icon="customers"
-            formula="Share of orders placed without a customer account — guests can never count as returning."
+            formula="Share of orders placed without a customer account in this window. Guests stay out of returning dollars."
             next="Growth covers who came back after a first order."
             nextHref={growthHref}
             nextLabel="Open Growth"
           />
           <Fact
-            label="Sales per buyer"
+            label={`Sales per buyer · ${periodLabel}`}
             value={perBuyer}
-            note={perBuyerNote}
+            note={periodLabel}
             icon="customers"
             formula="Window sales dollars per unique buyer — new and returning spend differently."
             next="LTV tracks what a new buyer is worth over 30 / 90 / 365 days."
