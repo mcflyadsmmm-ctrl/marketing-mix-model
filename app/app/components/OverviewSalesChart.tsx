@@ -88,13 +88,13 @@ const PRESETS: readonly { key: OverviewRangePreset; label: string; long: string 
   { key: "1y", label: "1y", long: "Last 12 months" },
 ];
 
-function ChartEmptyFrame({ copy }: { copy: string }) {
+function ChartEmptyFrame({ copy, title }: { copy: string; title: string }) {
   return (
-    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label="Orders by day">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label={title}>
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
-          {OVERVIEW_CHART_CAPTION}
+          {title}
         </p>
       </div>
       <p className="mcfly-chart__empty">{copy}</p>
@@ -122,6 +122,7 @@ export function OverviewSalesChart({
   shopifyTotalsLive = false,
   shopifyDayTotals = null,
   shopifyTotalsPending = false,
+  caption = OVERVIEW_CHART_CAPTION,
 }: {
   days: SalesDayPoint[];
   ordersHref?: string;
@@ -144,6 +145,8 @@ export function OverviewSalesChart({
   /** Certified ShopifyQL SalesDayFact days. Not OrderFact page sums. */
   shopifyDayTotals?: SalesDayPoint[] | null;
   shopifyTotalsPending?: boolean;
+  /** Drawn-chart title. Ledger uses its own name. */
+  caption?: string;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -219,7 +222,7 @@ export function OverviewSalesChart({
   }
 
   if (sorted.length < 2) {
-    return <ChartEmptyFrame copy={OVERVIEW_CHART_EMPTY} />;
+    return <ChartEmptyFrame copy={OVERVIEW_CHART_EMPTY} title={caption} />;
   }
 
   const noun = GRAIN_NOUN[effectiveGrain];
@@ -408,9 +411,9 @@ export function OverviewSalesChart({
   return (
     <section
       className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales"
-      aria-label={OVERVIEW_CHART_CAPTION}
+      aria-label={caption}
     >
-      <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
+      <h3 className="mcfly-chart__serif">{caption}</h3>
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
           <p className="mcfly-chart__muted">{rangeLabel}</p>

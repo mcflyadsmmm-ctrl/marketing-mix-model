@@ -14,6 +14,7 @@ import {
 } from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { comebackPendingLine } from "../lib/desk-request-screen";
 import {
   overviewChartAxis,
   overviewChartLabelIndices,
@@ -91,7 +92,13 @@ function grainNoun(grain: GrowthExplorerGrain): string {
   }
 }
 
-function ComebackEmptyFrame({ pending }: { pending: boolean }) {
+function ComebackEmptyFrame({
+  pending,
+  windowLabel,
+}: {
+  pending: boolean;
+  windowLabel: string;
+}) {
   const ghost = [0.42, 0.58, 0.5, 0.72, 0.64, 0.8, 0.7];
   return (
     <section
@@ -145,7 +152,7 @@ function ComebackEmptyFrame({ pending }: { pending: boolean }) {
       </div>
       <p className="mcfly-cust-mix__empty-copy">
         {pending
-          ? "Come-back months are still loading — not $0."
+          ? comebackPendingLine(windowLabel)
           : "Days to a second order and 30-day come-backs are not on file yet — not $0. Needs two first-order months or a two-step come-back. Sample shop fills this in; a fresh live shop fills in as second orders land."}
       </p>
     </section>
@@ -224,7 +231,12 @@ export function GrowthComebackChart({
   );
 
   if (!plotReady) {
-    return <ComebackEmptyFrame pending={salesPending} />;
+    return (
+      <ComebackEmptyFrame
+        pending={salesPending}
+        windowLabel={windowDays?.label?.trim() || "these months"}
+      />
+    );
   }
 
   const effective = growthResolveGrain(grain, ready);

@@ -180,32 +180,30 @@ describe("live desk stage gate", () => {
     ).toBe("locked");
   });
 
-  it("/app/growth loader: gate closed → locked customers redirect, no stack read", () => {
+  it("/app/growth loader: gate closed stays on Growth, no stack read", () => {
     const growth = read("../routes/app.growth.tsx");
     const growthLoader = growth.slice(growth.indexOf("export const loader"));
     expect(growthLoader.indexOf("customersLivePageDecision")).toBeLessThan(
-      growthLoader.indexOf("customersStageLockedPath"),
-    );
-    expect(growthLoader.indexOf("customersStageLockedPath")).toBeLessThan(
-      growthLoader.indexOf("customersPanelRedirectPath"),
+      growthLoader.indexOf("customersLoader"),
     );
     expect(growthLoader).toContain("!decision.growthOpen");
+    expect(growthLoader).toContain('kind: "locked"');
+    expect(growthLoader).not.toContain("throw redirect");
     expect(growth).not.toContain("loadCustomersStackPage");
     expect(growth).not.toContain("loadCustomerAnalytics");
     expect(growth).not.toContain("loadGrowthComeback");
     expect(growth).not.toContain("loadLtvDepth");
   });
 
-  it("/app/ltv loader: gate closed → locked customers redirect, no stack read", () => {
+  it("/app/ltv loader: gate closed stays on LTV, no stack read", () => {
     const ltv = read("../routes/app.ltv.tsx");
     const ltvLoader = ltv.slice(ltv.indexOf("export const loader"));
     expect(ltvLoader.indexOf("customersLivePageDecision")).toBeLessThan(
-      ltvLoader.indexOf("customersStageLockedPath"),
-    );
-    expect(ltvLoader.indexOf("customersStageLockedPath")).toBeLessThan(
-      ltvLoader.indexOf("customersPanelRedirectPath"),
+      ltvLoader.indexOf("customersLoader"),
     );
     expect(ltvLoader).toContain("!decision.ltvOpen");
+    expect(ltvLoader).toContain('kind: "locked"');
+    expect(ltvLoader).not.toContain("throw redirect");
     expect(ltv).not.toContain("loadCustomersStackPage");
     expect(ltv).not.toContain("loadCustomerAnalytics");
     expect(ltv).not.toContain("loadGrowthComeback");
@@ -262,20 +260,17 @@ describe("live desk stage gate", () => {
     const growth = read("../routes/app.growth.tsx");
     const growthLoader = growth.slice(growth.indexOf("export const loader"));
     expect(growthLoader.indexOf("customersLivePageDecision")).toBeLessThan(
-      growthLoader.indexOf("customersPanelRedirectPath"),
+      growthLoader.indexOf("customersLoader"),
     );
-    expect(growthLoader.indexOf("customersStageLockedPath")).toBeLessThan(
-      growthLoader.indexOf("customersPanelRedirectPath"),
-    );
+    expect(growthLoader).toContain("!decision.growthOpen");
+    expect(growthLoader).not.toContain("throw redirect");
     const ltv = read("../routes/app.ltv.tsx");
     const ltvLoader = ltv.slice(ltv.indexOf("export const loader"));
     expect(ltvLoader.indexOf("customersLivePageDecision")).toBeLessThan(
-      ltvLoader.indexOf("customersPanelRedirectPath"),
+      ltvLoader.indexOf("customersLoader"),
     );
     expect(ltvLoader).toContain("!decision.ltvOpen");
-    expect(ltvLoader.indexOf("customersStageLockedPath")).toBeLessThan(
-      ltvLoader.indexOf("customersPanelRedirectPath"),
-    );
+    expect(ltvLoader).not.toContain("throw redirect");
 
     const orders = read("../routes/app.orders.tsx");
     const overview = read("../routes/app._index.tsx");

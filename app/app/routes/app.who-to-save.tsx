@@ -1,15 +1,14 @@
 import type { HeadersFunction } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
-import Dashboard, { action, loader } from "./app._index";
+import CustomersPage, { loader } from "./app.customers";
 
-/** Month close stays on this address. The old Monday Close lock UI is gone. */
-export { action, loader };
+export { loader };
 
-export default Dashboard;
+export default CustomersPage;
 
 export function ErrorBoundary() {
-  return <DeskRouteErrorBoundary retryHref="/app/close" />;
+  return <DeskRouteErrorBoundary retryHref="/app/who-to-save" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

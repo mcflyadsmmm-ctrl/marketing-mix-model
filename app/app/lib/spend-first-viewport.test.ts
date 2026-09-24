@@ -60,7 +60,7 @@ describe("Spend craft wiring", () => {
     expect(spend).toContain('rank="more"');
     expect(spend).toContain("SPEND_DEPTH_LANE_LABEL");
     expect(spend).toMatch(
-      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+      /defaultOpen=\{\s*shotMode \|\|[\s\S]*spendPanel === "mix" \|\|[\s\S]*spendPanel === "cpa"\s*\}/,
     );
     expect(spend).toContain("<SpendMixSection");
     expect(spend).toContain('id="mcfly-cpa"');

@@ -433,7 +433,8 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(mix).toContain("MixEmptyFrame");
     expect(mix).toContain("mcfly-cust-mix__ghost");
     expect(mix).toContain("mcfly-cust-mix__empty-copy");
-    expect(mix).toContain("not $0");
+    expect(mix).toContain("returningMixPendingLine");
+    expect(read("./desk-request-screen.ts")).toContain("not $0");
     expect(mix).toContain("salesPending");
     expect(mix).toContain("pending");
   });

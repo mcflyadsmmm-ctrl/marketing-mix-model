@@ -12,10 +12,11 @@ const mix = read("../components/SpendMixSection.tsx");
 const spend = read("../routes/app.spend.tsx");
 
 describe("Allocation desk sales honesty", () => {
-  it("redirects Channel Allocation onto Spend mix", () => {
-    expect(redirect).toContain("throw redirect");
-    expect(redirect).toContain('"mix"');
-    expect(redirect).toContain("/app/spend");
+  it("keeps Allocation on /app/allocation", () => {
+    expect(redirect).toContain("spendLoader");
+    expect(redirect).toContain('retryHref="/app/allocation"');
+    expect(redirect).not.toContain("throw redirect");
+    expect(spend).toContain('requestScreen === "allocation"');
     expect(spend).toContain("<SpendMixSection");
     expect(mix).toContain('id="mcfly-mix"');
   });

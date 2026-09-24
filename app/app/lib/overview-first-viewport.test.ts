@@ -168,9 +168,9 @@ describe("overview first viewport", () => {
     expect(overview).toContain("OVERVIEW_MIX_CLOSE_ID");
     expect(overview).toContain("id={DESK_SECTION.chart}");
     expect(overview).toContain('hint=""');
-    expect(overview).not.toContain('"/app/yoy"');
-    expect(overview).not.toContain('"/app/growth"');
-    expect(overview).not.toContain('"/app/ltv"');
+    expect(overview).toContain('"/app/yoy"');
+    expect(overview).toContain('"/app/growth"');
+    expect(overview).toContain('"/app/ltv"');
     expect(overview).not.toContain("<PeriodControl");
     expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");

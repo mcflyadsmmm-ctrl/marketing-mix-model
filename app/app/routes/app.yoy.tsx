@@ -1,26 +1,14 @@
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { redirect } from "react-router";
+import type { HeadersFunction } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
-import { requireAdmin } from "../lib/public-app-gate.server";
-import { OVERVIEW_YOY_YEAR_PANEL } from "../lib/overview-first-viewport";
+import Dashboard, { action, loader } from "./app._index";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await requireAdmin(request);
-  const url = new URL(request.url);
-  const next = new URLSearchParams(url.searchParams);
-  next.set("panel", OVERVIEW_YOY_YEAR_PANEL);
-  throw redirect(`/app?${next.toString()}`);
-};
+export { action, loader };
 
-export default function YoyRedirect() {
-  return null;
-}
+export default Dashboard;
 
 export function ErrorBoundary() {
-  return (
-    <DeskRouteErrorBoundary retryHref={`/app?panel=${OVERVIEW_YOY_YEAR_PANEL}`} />
-  );
+  return <DeskRouteErrorBoundary retryHref="/app/yoy" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) =>

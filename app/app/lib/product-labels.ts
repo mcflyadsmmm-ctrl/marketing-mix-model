@@ -203,7 +203,7 @@ export const PRODUCT_NOUN = {
   spendJob:
     "Download the daily template → fill spend by channel → upload it. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
-  factsIncompleteSuffix: " · sales still loading",
+  factsIncompleteSuffix: " · closed-day sales for this window still loading",
   ltvNotInShopify:
     "What a new customer spends in their first 30, 90, and 365 days — Shopify Analytics does not put this on one screen. Order history only, never email lists. Spend is optional.",
   controlAsOf: "Through",

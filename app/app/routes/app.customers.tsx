@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useLocation, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
@@ -38,6 +38,11 @@ import { requireAdmin } from "../lib/public-app-gate.server";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+} from "../lib/desk-request-screen";
+import { useDeskHref } from "../lib/desk-base-path";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { formatCurrency } from "../lib/mer-format";
@@ -83,10 +88,34 @@ export default function CustomersPage() {
   const data = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const navigation = useNavigation();
+  const location = useLocation();
+  const deskHref = useDeskHref();
+  const pathScreen = namedDeskScreenFromPath(location.pathname);
   if (data.kind === "locked") {
+    const lockedHeading = pathScreen
+      ? namedDeskTitle(pathScreen)
+      : PRODUCT_NOUN.buyersTitle;
+    if (pathScreen === "ltv") {
+      return (
+        <LiveDeskLockedPage
+          heading={lockedHeading}
+          surface="ltv"
+          copy={data.copy}
+        />
+      );
+    }
+    if (pathScreen === "growth" || pathScreen === "who-to-save") {
+      return (
+        <LiveDeskLockedPage
+          heading={lockedHeading}
+          surface="growth"
+          copy={data.copy}
+        />
+      );
+    }
     return (
       <LiveDeskLockedPage
-        heading={PRODUCT_NOUN.buyersTitle}
+        heading={lockedHeading}
         surface="customers"
         copy={data.copy}
       />
@@ -117,6 +146,17 @@ export default function CustomersPage() {
     growthOpen,
     liveStage,
   } = data;
+  const screen =
+    pathScreen ??
+    (panel === "ltv" ? "ltv" : panel === "growth" ? "growth" : null);
+  const showCustomers = screen == null;
+  const showLtv = screen === "ltv";
+  const showGrowth = screen === "growth";
+  const showSave = screen === "who-to-save";
+  const pageHeading =
+    screen === "ltv" || screen === "growth" || screen === "who-to-save"
+      ? namedDeskTitle(screen)
+      : PRODUCT_NOUN.buyersTitle;
   const isLoading = navigation.state === "loading";
   const tillLabel = deskPeriodTillLabel({
     periodLabel: metrics.period.label,
@@ -225,7 +265,7 @@ export default function CustomersPage() {
 
   return (
     <DeskBookPage
-      heading={PRODUCT_NOUN.buyersTitle}
+      heading={pageHeading}
       tillLabel={tillLabel}
       preset={preset}
       shotMode={shotMode}
@@ -254,8 +294,9 @@ export default function CustomersPage() {
       retryHref={`/app/customers?period=${preset}`}
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
+      {showCustomers ? (
       <div id="mcfly-returning">
-      <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL} hint="">
+      <DeskLane rank="first" label={showCustomers ? PRODUCT_NOUN.buyersTitle : CUSTOMERS_FIRST_LANE_LABEL} hint="">
         <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
           <CustomersFirstViewport
             analytics={analytics}
@@ -302,13 +343,15 @@ export default function CustomersPage() {
           periodLabel={metrics.period.label}
           salesPending={metrics.salesPending}
           useSampleDesk={useSampleDesk}
-          growthHref="#mcfly-growth"
-          ltvHref="#mcfly-ltv"
+          growthHref={deskHref("/app/growth")}
+          ltvHref={deskHref("/app/ltv")}
           ltvNextLabel={ltvOpen ? "Open LTV" : "LTV locked"}
         />
       </DeskLane>
       </div>
+      ) : null}
 
+      {showLtv ? (
       <div id="mcfly-ltv">
       {ltvBlock ? (
         <>
@@ -325,7 +368,9 @@ export default function CustomersPage() {
         />
       )}
       </div>
+      ) : null}
 
+      {showGrowth ? (
       <div id="mcfly-growth">
       {growthOpen ? (
       <DeskLane rank="next" label={GROWTH_FIRST_LANE_LABEL}>
@@ -362,7 +407,9 @@ export default function CustomersPage() {
         />
       )}
       </div>
+      ) : null}
 
+      {showCustomers ? (
       <div id="mcfly-depth">
       <DeskLane
         rank="more"
@@ -386,8 +433,18 @@ export default function CustomersPage() {
         ) : null}
       </DeskLane>
       </div>
+      ) : null}
 
-      {!metrics.customerMetricsAvailable ? (
+      {showSave ? (
+        <section aria-label="Who to save">
+          <CustomerRetentionBoard
+            analytics={analytics}
+            windowDays={windowDays}
+          />
+        </section>
+      ) : null}
+
+      {showCustomers && !metrics.customerMetricsAvailable ? (
         <p className="mcfly-state__copy">
           Returning dollars need identified buyers in this window — not $0.
         </p>

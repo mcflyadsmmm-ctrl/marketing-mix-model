@@ -1,34 +1,38 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { authenticate } from "../shopify.server";
-import { customersPanelRedirectPath } from "../lib/desk-customers-stack.server";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import {
   customersLivePageDecision,
-  customersStageLockedPath,
+  liveDeskLockedCopy,
 } from "../lib/live-desk-surface";
 import { resolveLiveUnparkStage } from "../lib/live-unpark";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
-import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { authenticate } from "../shopify.server";
+import CustomersPage, { loader as customersLoader } from "./app.customers";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+export const loader = async (args: LoaderFunctionArgs) => {
+  const { session } = await authenticate.admin(args.request);
   const decision = customersLivePageDecision({
     sampleDesk: await getSampleDeskEnabled(session.shop),
     stage: resolveLiveUnparkStage(),
   });
   if (decision.serve !== "open" || !decision.ltvOpen) {
-    throw redirect(customersStageLockedPath(request));
+    return {
+      kind: "locked" as const,
+      stage: decision.stage,
+      copy: liveDeskLockedCopy(
+        decision.serve === "locked" ? "customers" : "ltv",
+        decision.stage,
+      ),
+    };
   }
-  throw redirect(customersPanelRedirectPath(request, "/app/customers", "ltv"));
+  return customersLoader(args);
 };
 
-export default function LtvRedirect() {
-  return null;
-}
+export default CustomersPage;
 
 export function ErrorBoundary() {
-  return <DeskRouteErrorBoundary retryHref="/app/customers" />;
+  return <DeskRouteErrorBoundary retryHref="/app/ltv" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

@@ -6,6 +6,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 import { wholePercent } from "../lib/customers-scoreboard";
+import { returningMixPendingLine } from "../lib/desk-request-screen";
 
 function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
@@ -201,7 +202,11 @@ export function CustomersScoreboard({
       {empty ? (
         <p className="mcfly-cust-empty__copy">
           {salesPending
-            ? "Returning dollars are still loading — not $0."
+            ? returningMixPendingLine(
+                periodLabel.trim()
+                  ? `the weeks in ${periodLabel}`
+                  : "this week",
+              )
             : "Returning dollars need identified buyers in this window — not $0."}
         </p>
       ) : null}

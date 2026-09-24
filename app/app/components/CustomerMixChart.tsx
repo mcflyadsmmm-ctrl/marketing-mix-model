@@ -10,6 +10,7 @@ import {
 } from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { returningMixPendingLine } from "../lib/desk-request-screen";
 import {
   overviewChartAxis,
   overviewChartLabelIndices,
@@ -81,7 +82,13 @@ function paintedMixStack(bucket: MixBucket): number {
   return (mixFirstTimePaint(bucket) ?? 0) + (mixReturningPaint(bucket) ?? 0);
 }
 
-function MixEmptyFrame({ pending }: { pending: boolean }) {
+function MixEmptyFrame({
+  pending,
+  windowLabel,
+}: {
+  pending: boolean;
+  windowLabel: string;
+}) {
   // A designed guest empty — a ghosted marquee, not a bare em dash. Placeholder
   // columns + a dotted share rail read as "a chart lands here", then honest copy.
   const ghost = [0.34, 0.52, 0.44, 0.66, 0.58, 0.78, 0.7];
@@ -137,7 +144,7 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
       </div>
       <p className="mcfly-cust-mix__empty-copy">
         {pending
-          ? "Returning dollars are still loading — not $0."
+          ? returningMixPendingLine(windowLabel)
           : "Needs at least two days of orders on file — not zero. Sample shop fills this in; a fresh live shop fills in as orders land."}
       </p>
     </section>
@@ -319,7 +326,16 @@ export function CustomerMixChart({
   );
 
   if (!dayReady && !weekReady) {
-    return <MixEmptyFrame pending={salesPending} />;
+    return (
+      <MixEmptyFrame
+        pending={salesPending}
+        windowLabel={
+          quotedWindow
+            ? `the weeks in ${quotedWindow}`
+            : "this week"
+        }
+      />
+    );
   }
   const noun = mixNoun(effectiveGrain);
 

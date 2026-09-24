@@ -79,12 +79,13 @@ describe("LTV sales spine (HARD-STOP)", () => {
 });
 
 describe("LTV tab vs Shopify Analytics", () => {
-  it("redirects /app/ltv onto Customers panel=ltv", () => {
+  it("stays on /app/ltv when LTV is the request", () => {
     expect(ltvSource).toContain("authenticate.admin");
-    expect(ltvSource).toContain('customersPanelRedirectPath');
-    expect(ltvSource).toContain('"ltv"');
-    expect(ltvSource).toContain("/app/customers");
-    expect(ltvSource).toContain("throw redirect");
+    expect(ltvSource).toContain("!decision.ltvOpen");
+    expect(ltvSource).toContain("customersLoader");
+    expect(ltvSource).toContain('retryHref="/app/ltv"');
+    expect(ltvSource).not.toContain("throw redirect");
+    expect(ltvSource).not.toContain("customersPanelRedirectPath");
     expect(customers).toContain('id="mcfly-ltv"');
   });
 

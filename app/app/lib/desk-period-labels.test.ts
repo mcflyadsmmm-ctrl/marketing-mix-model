@@ -55,7 +55,8 @@ describe("Desk period labels and Overview clocks", () => {
     const spend = read("../routes/app.spend.tsx");
     const roas = read("../routes/app.roas.tsx");
     expect(spend).toContain("<SpendExplorer");
-    expect(roas).toContain("throw redirect");
+    expect(roas).toContain("spendLoader");
+    expect(roas).not.toContain("throw redirect");
     expect(spend).not.toContain("Same dates as Overview");
     expect(spend).not.toContain("Overview stays 14d");
   });

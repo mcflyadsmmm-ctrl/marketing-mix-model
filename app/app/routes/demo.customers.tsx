@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useLocation, useNavigation } from "react-router";
 
 import { CustomerMixChart } from "../components/CustomerMixChart";
 import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
@@ -26,6 +26,11 @@ import {
   parseCustomersPanel,
 } from "../lib/customers-first-viewport";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+} from "../lib/desk-request-screen";
+import { useDeskHref } from "../lib/desk-base-path";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import {
@@ -96,6 +101,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function PublicDemoCustomers() {
   const data = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const location = useLocation();
+  const deskHref = useDeskHref();
+  const pathScreen = namedDeskScreenFromPath(location.pathname);
+  const screen =
+    pathScreen ??
+    (data.panel === "ltv" ? "ltv" : data.panel === "growth" ? "growth" : null);
+  const showCustomers = screen == null;
+  const showLtv = screen === "ltv";
+  const showGrowth = screen === "growth";
+  const showSave = screen === "who-to-save";
+  const pageHeading =
+    screen === "ltv" || screen === "growth" || screen === "who-to-save"
+      ? namedDeskTitle(screen)
+      : PRODUCT_NOUN.buyersTitle;
   const currency = useDeskCurrency();
   const ltvMetrics = demoLtvMetrics(data);
   const ltvProps = {
@@ -155,7 +174,7 @@ export default function PublicDemoCustomers() {
 
   return (
     <DeskBookPage
-      heading={PRODUCT_NOUN.buyersTitle}
+      heading={pageHeading}
       tillLabel={data.tillLabel}
       preset={data.preset}
       shotMode={data.shotMode}
@@ -166,8 +185,15 @@ export default function PublicDemoCustomers() {
       retryHref="/demo/customers"
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
+        {showCustomers ? (
         <div id="mcfly-returning">
-          <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL} hint="">
+          <DeskLane
+            rank="first"
+            label={
+              showCustomers ? PRODUCT_NOUN.buyersTitle : CUSTOMERS_FIRST_LANE_LABEL
+            }
+            hint=""
+          >
             <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
               <CustomersFirstViewport
                 analytics={data.customers}
@@ -217,17 +243,21 @@ export default function PublicDemoCustomers() {
               periodLabel={data.rangeLabel}
               salesPending={false}
               useSampleDesk
-              growthHref="#mcfly-growth"
-              ltvHref="#mcfly-ltv"
+              growthHref={deskHref("/app/growth")}
+              ltvHref={deskHref("/app/ltv")}
             />
           </DeskLane>
         </div>
+        ) : null}
+        {showLtv ? (
         <div id="mcfly-ltv">
           <DeskLane rank="next" label="What a new buyer is worth">
             <CustomersLtvWindows {...ltvProps} />
             <CustomersLtvEconomics {...ltvProps} />
           </DeskLane>
         </div>
+        ) : null}
+        {showGrowth ? (
         <div id="mcfly-growth">
           <DeskLane rank="next" label={GROWTH_FIRST_LANE_LABEL}>
             <CustomersGrowthSection
@@ -257,6 +287,8 @@ export default function PublicDemoCustomers() {
             />
           </DeskLane>
         </div>
+        ) : null}
+        {showCustomers ? (
         <div id="mcfly-depth">
           <DeskLane
             rank="more"
@@ -284,6 +316,15 @@ export default function PublicDemoCustomers() {
             ) : null}
           </DeskLane>
         </div>
+        ) : null}
+        {showSave ? (
+          <section aria-label="Who to save">
+            <CustomerRetentionBoard
+              analytics={data.customers}
+              windowDays={windowDays}
+            />
+          </section>
+        ) : null}
       </div>
     </DeskBookPage>
   );

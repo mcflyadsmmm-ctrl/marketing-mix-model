@@ -70,7 +70,8 @@ describe("spend upload findings", () => {
     expect(firstLane).toContain('id="mcfly-spend-add"');
     expect(spend).toContain("spendUploadEmptyFinding");
 
-    expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
+    expect(roas).toContain("spendLoader");
+    expect(roas).not.toContain("throw redirect");
     expect(roas).not.toContain("<SpendFindingStrip");
 
     expect(scoreboard).toContain("CERTIFIED_WINDOWS_KICKER");

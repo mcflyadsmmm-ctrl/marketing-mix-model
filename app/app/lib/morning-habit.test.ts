@@ -153,8 +153,8 @@ describe("Morning habit strip and copy mounts", () => {
       (match) => match[1],
     );
     expect(hrefs).toEqual([
-      "/app",
-      "/app/customers?panel=growth",
+      "/app/close",
+      "/app/who-to-save",
       "/app/goals",
     ]);
     expect(strip).toContain("Month close");

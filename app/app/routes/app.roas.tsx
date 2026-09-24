@@ -1,18 +1,20 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { requireAdmin } from "../lib/public-app-gate.server";
-import { spendPanelRedirectPath } from "../lib/desk-spend-stack.server";
+import SpendEntryPage, {
+  action,
+  loader as spendLoader,
+} from "./app.spend";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await requireAdmin(request);
-  throw redirect(spendPanelRedirectPath(request.url, "roas", "/app/spend"));
+export const loader = async (args: LoaderFunctionArgs) => {
+  await requireAdmin(args.request);
+  return spendLoader(args);
 };
 
-export default function RoasRedirect() {
-  return null;
-}
+export { action };
+
+export default SpendEntryPage;
 
 export function ErrorBoundary() {
   return <DeskRouteErrorBoundary retryHref="/app/roas" />;

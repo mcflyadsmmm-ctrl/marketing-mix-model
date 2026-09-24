@@ -161,20 +161,25 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(overview).not.toContain("Same dates as Overview");
   });
 
-  it("retired tool hashes land on the Orders tab", () => {
+  it("retired tool hashes open that tool, and Orders stays Orders", () => {
     expect(deskStageFromHash("")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-ledger")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-compare")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-mix")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-plan")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#mcfly-ledger")).toBe(DESK_SECTION.ledger);
+    expect(deskStageFromHash("#mcfly-compare")).toBe(DESK_SECTION.compare);
+    expect(deskStageFromHash("#mcfly-mix")).toBe(DESK_SECTION.mix);
+    expect(deskStageFromHash("#mcfly-plan")).toBe(DESK_SECTION.plan);
     expect(deskStageFromHash("mcfly-orders")).toBe(DESK_SECTION.overview);
     expect(deskStageFromHash("#nope")).toBe(DESK_SECTION.overview);
     expect(isOverviewHomeStage(DESK_SECTION.overview)).toBe(true);
     expect(isOverviewHomeStage(DESK_SECTION.chart)).toBe(true);
     expect(isOverviewHomeStage(DESK_SECTION.ledger)).toBe(false);
-    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.compare)).toBe("Compare");
+    expect(deskStageHeading(DESK_SECTION.ledger)).toBe("Ledger");
+    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Mix");
+    expect(deskStageHeading(DESK_SECTION.plan)).toBe("Plan");
     expect(deskStageHeading(DESK_SECTION.overview)).toBe("Orders");
     expect(deskStageHeading(DESK_SECTION.orders)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.ltv)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.goals)).toBe("Orders");
   });
 
   it("keeps a helper for Overview section hashes", () => {

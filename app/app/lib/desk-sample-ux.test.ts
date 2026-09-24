@@ -224,7 +224,8 @@ describe("Sample data | Live data UX", () => {
     expect(orders).toContain("OrdersRedirect");
     expect(orders).toContain("throw redirect");
     expect(customers).toContain("orderFactsTruncated");
-    expect(growthRedirect).toContain("throw redirect");
+    expect(growthRedirect).toContain("customersLoader");
+    expect(growthRedirect).not.toContain("throw redirect");
     const deskPage = read("../lib/desk-sales-page.server.ts");
     expect(deskPage).toContain("getOrderBackfillProgress");
     const bookPage = read("../components/DeskBookPage.tsx");
@@ -416,7 +417,8 @@ describe("Sample data | Live data UX", () => {
     }
     // Spend heading is the tab name. Chart range lives on the Spend explorer.
     const spend = read("../routes/app.spend.tsx");
-    expect(spend).toContain('heading="Spend"');
+    expect(spend).toContain("heading={pageHeading}");
+    expect(spend).toContain(': "Spend"');
     expect(spend).not.toContain("Same dates as Overview");
     // Import is the same paper — no second Total ROAS brand in the rail.
     expect(chrome("../routes/app.spend.import.tsx")).not.toContain(

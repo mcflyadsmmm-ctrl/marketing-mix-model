@@ -10,6 +10,11 @@ import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { PUBLIC_APP_STUB, isGoneResponse, requireAdmin } from "../lib/public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
 import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+  refreshingSalesLine,
+} from "../lib/desk-request-screen";
+import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
 } from "../../scripts/shopify-app-path.mjs";
@@ -52,6 +57,8 @@ import {
   deskStageFromHash,
   deskStageHeading,
   isOverviewHomeStage,
+  isOverviewToolStage,
+  overviewToolFromPanel,
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { deskPeriodTillLabel } from "../lib/desk-history";
@@ -177,7 +184,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!shotMode && requested === "y3") {
     const next = new URLSearchParams(url.searchParams);
     next.set("period", "ytd");
-    throw redirect(`/app?${next.toString()}`);
+    throw redirect(`${url.pathname}?${next.toString()}`);
   }
   const preset = requested;
   const shop = await ensureShop(session.shop);
@@ -752,10 +759,25 @@ export default function Dashboard() {
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
-  const stage = shotMode
+  const requestScreen = shotMode
+    ? null
+    : namedDeskScreenFromPath(location.pathname);
+  const hashStage = shotMode
     ? DESK_SECTION.overview
     : deskStageFromHash(location.hash);
-  const onHome = isOverviewHomeStage(stage);
+  const panelTool = shotMode
+    ? null
+    : overviewToolFromPanel(searchParams.get("panel"));
+  const toolStage =
+    requestScreen == null && panelTool == null && isOverviewToolStage(hashStage)
+      ? hashStage
+      : panelTool;
+  const onHome =
+    requestScreen == null && toolStage == null && isOverviewHomeStage(hashStage);
+  const pageHeading =
+    requestScreen === "year-over-year" || requestScreen === "month-close"
+      ? namedDeskTitle(requestScreen)
+      : deskStageHeading(toolStage ?? hashStage);
   const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
   const greetingPending = overviewGreetingPending({
     salesPending: metrics.salesPending,
@@ -989,23 +1011,19 @@ export default function Dashboard() {
 
   const shopBrand = shopLabel.replace(/\.myshopify\.com$/i, "");
   const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
-  const yoyHref = deskNavHref("/app", {
+  const yoyHref = deskNavHref("/app/yoy", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: OVERVIEW_YOY_YEAR_PANEL },
-    hash: OVERVIEW_YOY_YEAR_ID,
   });
   const customersHref = deskNavHrefFromSearch("/app/customers", searchParams);
   const goalsHref = deskNavHrefFromSearch("/app/goals", searchParams);
-  const customersGrowthHref = deskNavHref("/app/customers", {
+  const customersGrowthHref = deskNavHref("/app/growth", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: "growth" },
   });
-  const customersLtvHref = deskNavHref("/app/customers", {
+  const customersLtvHref = deskNavHref("/app/ltv", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: "ltv" },
   });
   const onYoyYearChange = (next: string) => {
     const params = new URLSearchParams(searchParams);
@@ -1017,7 +1035,7 @@ export default function Dashboard() {
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
 
   return (
-    <s-page heading={deskStageHeading(stage)} inlineSize="large">
+    <s-page heading={pageHeading} inlineSize="large">
       <div
         className={[
           "mcfly-desk",
@@ -1048,7 +1066,9 @@ export default function Dashboard() {
 
         {isLoading && !shotMode ? (
           <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing sales…</p>
+            <p className="mcfly-state__copy">
+              {refreshingSalesLine(metrics.period.label)}
+            </p>
           </section>
         ) : null}
 
@@ -1278,6 +1298,86 @@ export default function Dashboard() {
                   </footer>
                 ) : null}
               </div>
+            ) : null}
+
+            {scoreboardReady && requestScreen === "year-over-year" ? (
+              <section id={OVERVIEW_YOY_YEAR_ID} data-panel={OVERVIEW_YOY_YEAR_PANEL} aria-label="Year over year">
+                <OverviewYoyYearSection
+                  {...yoyYearWorkspace}
+                  salesPending={greetingPending}
+                  onYearChange={onYoyYearChange}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && requestScreen === "month-close" ? (
+              <section id={OVERVIEW_MIX_CLOSE_ID} aria-label="Month close">
+                <OverviewMixForecast
+                  view={mixView}
+                  customersHref={customersHref}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.compare ? (
+              <section id={DESK_SECTION.compare} aria-label="Compare">
+                <OverviewYoyCards
+                  cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                  salesPending={deeperStillLoading}
+                  yoyHref={yoyHref}
+                />
+                <OverviewYoyYearSection
+                  {...yoyYearWorkspace}
+                  salesPending={deeperStillLoading}
+                  onYearChange={onYoyYearChange}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.ledger ? (
+              <section id={DESK_SECTION.ledger} aria-label="Ledger">
+                <OverviewSalesChart
+                  caption="Ledger"
+                  days={
+                    salesExplorerDays.length >= 2
+                      ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
+                          dateKey,
+                          sales,
+                          orders,
+                        }))
+                      : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
+                  }
+                  ordersHref={ordersHref}
+                  salesPending={greetingPending}
+                  typicalDay={mixView.forecast?.typicalDay ?? null}
+                  typicalDayWindow={mixView.typicalDayWindow}
+                  shopifyTotalsLive={deskAnalyticsDayTotalsLive(useSampleDesk)}
+                  shopifyDayTotals={
+                    deskAnalyticsDayTotalsLive(useSampleDesk)
+                      ? analyticsExplorerDays
+                      : null
+                  }
+                  shopifyTotalsPending={overviewShopifyFactsPending({
+                    useSampleDesk,
+                    salesError: salesError != null,
+                    coverage: salesFactsCoverage,
+                  })}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.mix ? (
+              <section id={DESK_SECTION.mix} aria-label="Mix">
+                <OverviewMixForecast
+                  view={mixView}
+                  customersHref={customersHref}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.plan ? (
+              <section id={DESK_SECTION.plan} aria-label="Plan">
+                <OrderHistoryForecast
+                  view={forecastView}
+                  variant="overview"
+                  goalsHref={goalsHref}
+                />
+              </section>
             ) : null}
 
             {!syncNeedsTop && !coldEmpty && onHome ? trustBanners : null}

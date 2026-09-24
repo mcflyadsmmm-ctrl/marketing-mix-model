@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation, useSearchParams } from "react-router";
+import { useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
 
 import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { CpaExplorer } from "../components/CpaExplorer";
@@ -19,6 +19,10 @@ import {
   useSpendPanelScroll,
 } from "../components/SpendMixSection";
 import { useDeskCurrency } from "../lib/desk-currency";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+} from "../lib/desk-request-screen";
 import {
   buildCpaPaybackView,
   CPA_EMPTY_SPEND,
@@ -129,6 +133,18 @@ export default function PublicDemoSpend() {
   const currency = useDeskCurrency();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const requestScreen = namedDeskScreenFromPath(location.pathname);
+  const pageHeading =
+    requestScreen === "allocation" ||
+    requestScreen === "cpa" ||
+    requestScreen === "roas"
+      ? namedDeskTitle(requestScreen)
+      : "Spend";
+  const showSpend = requestScreen == null;
+  const showRoas = showSpend || requestScreen === "roas";
+  const showAllocation = showSpend || requestScreen === "allocation";
+  const showCpa = showSpend || requestScreen === "cpa";
   const addSpendFirst = searchParams.get("panel") === "spend-add";
   const [savedTarget, setSavedTarget] = useState(0);
   useEffect(() => {
@@ -238,7 +254,7 @@ export default function PublicDemoSpend() {
   }, []);
 
   return (
-    <s-page heading="Spend" inlineSize="large">
+    <s-page heading={pageHeading} inlineSize="large">
       <div
         className={[
           "mcfly-desk",
@@ -250,7 +266,7 @@ export default function PublicDemoSpend() {
           .filter(Boolean)
           .join(" ")}
       >
-        {addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
+        {showSpend && addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
 
         {!data.shotMode ? (
           <PeriodControl
@@ -264,9 +280,11 @@ export default function PublicDemoSpend() {
           <s-paragraph>{SAMPLE_LEDGER_HANDOFF}</s-paragraph>
         </s-banner>
 
-        {!addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
+        {showSpend && !addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
 
+        {(showRoas || showSpend) ? (
         <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
+          {showRoas ? (
           <div className="mcfly-overview-first-beat mcfly-spend-first-beat">
             <SpendFirstViewport
               roasValue={roasValue}
@@ -286,12 +304,14 @@ export default function PublicDemoSpend() {
               targetMer={board.targetMer}
             />
           </div>
-          {monthCopy ? (
+          ) : null}
+          {showSpend && monthCopy ? (
             <div className="mcfly-spend-pair-copy-row">
               <p className="mcfly-spend-plane__hint">{monthCopy}</p>
               <CopyWeekMonthSales text={monthCopy} />
             </div>
           ) : null}
+          {showSpend ? (
           <section id="mcfly-explorer" aria-label="Spend explorer">
             <SpendExplorer
               series={explorer}
@@ -303,29 +323,32 @@ export default function PublicDemoSpend() {
               orderBookDepth="paid_full"
             />
           </section>
+          ) : null}
         </DeskLane>
+        ) : null}
 
+        {(showSpend || showAllocation || showCpa) ? (
         <DeskLane
           rank="more"
           label={SPEND_DEPTH_LANE_LABEL}
           fold
-          defaultOpen={data.shotMode}
+          defaultOpen={data.shotMode || showAllocation || showCpa}
         >
-          {board.chips.length > 0 && !hasSpend ? (
+          {showSpend && board.chips.length > 0 && !hasSpend ? (
             <CertifiedScoreboard
               chips={board.chips}
               targetMer={board.targetMer}
               plan={board.plan}
             />
           ) : null}
-          {board.dualClose ? (
+          {showSpend && board.dualClose ? (
             <DualCloseLine
               close={board.dualClose}
               targetMer={board.targetMer}
             />
           ) : null}
-          <MarketingSpendRoom board={board} />
-          {hasSpend ? (
+          {showSpend ? <MarketingSpendRoom board={board} /> : null}
+          {showSpend && hasSpend ? (
             <p className="mcfly-spend-plane__hint">
               {spendCoverageQuote({
                 caption: pairCoverage.caption,
@@ -337,9 +360,10 @@ export default function PublicDemoSpend() {
               })}
             </p>
           ) : null}
-          {hasSpend && pairEquation == null && onlineLine ? (
+          {showSpend && hasSpend && pairEquation == null && onlineLine ? (
             <p className="mcfly-spend-plane__hint">{onlineLine}</p>
           ) : null}
+          {showAllocation ? (
           <SpendMixSection
             metrics={{
               period: { label: data.rangeLabel },
@@ -371,7 +395,9 @@ export default function PublicDemoSpend() {
             salesFactsIncomplete={null}
             shopifyOrderWindowLimited={false}
           />
+          ) : null}
 
+          {showCpa ? (
           <section
             id="mcfly-cpa"
             className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-cpa"
@@ -403,7 +429,9 @@ export default function PublicDemoSpend() {
               todaySalesTruncated={false}
             />
           </section>
+          ) : null}
 
+          {showSpend ? (
           <div className="mcfly-well mcfly-well--scoreboard mcfly-well--soft">
             <table className="mcfly-public-ledger">
               <thead>
@@ -431,7 +459,9 @@ export default function PublicDemoSpend() {
               </tbody>
             </table>
           </div>
+          ) : null}
         </DeskLane>
+        ) : null}
       </div>
     </s-page>
   );

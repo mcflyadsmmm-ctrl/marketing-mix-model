@@ -118,6 +118,21 @@ describe("Live Overview Shopify period clock", () => {
     expect(hero).not.toContain("Shopify Total Sales");
   });
 
+  it("shows this month’s stored sales before the 24-month pull finishes", () => {
+    const model = clock({
+      coverageComplete: false,
+      factsPending: true,
+      shopifyPeriodTotal: 18_200,
+    });
+    expect(model!.periodSales).toBe(18_200);
+    expect(model!.periodNote).toBe(
+      "Closed-day sales for this window still loading",
+    );
+    const html = paint(model!);
+    expect(html).toContain("$18,200");
+    expect(html).not.toContain(">$0<");
+  });
+
   it("paints — while facts are pending and never a fake $0 period", () => {
     const model = clock({
       coverageComplete: false,
@@ -132,7 +147,9 @@ describe("Live Overview Shopify period clock", () => {
     const html = paint(model!);
     expect(html).toContain("Shopify Total Sales");
     expect(html).toContain("—");
-    expect(html).toContain("Still loading — not $0.");
+    expect(html).toContain(
+      "Shopify Total Sales for this window still loading — not $0.",
+    );
     expect(html).not.toContain(">$0<");
   });
 

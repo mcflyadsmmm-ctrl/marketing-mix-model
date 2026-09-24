@@ -12,10 +12,11 @@ const payback = readFileSync(join(here, "../components/CpaPaybackDesk.tsx"), "ut
 const explorer = readFileSync(join(here, "../components/CpaExplorer.tsx"), "utf8");
 
 describe("CPA page", () => {
-  it("redirects /app/cpa onto Spend panel=cpa", () => {
+  it("keeps /app/cpa on the CPA screen", () => {
     expect(cpa).toContain("requireAdmin");
-    expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
-    expect(cpa).toContain('"/app/spend"');
+    expect(cpa).toContain("spendLoader");
+    expect(cpa).toContain('retryHref="/app/cpa"');
+    expect(cpa).not.toContain("throw redirect");
     expect(cpa).not.toContain("<CpaWindowCards");
     expect(cpa).not.toContain("authenticate.admin");
   });

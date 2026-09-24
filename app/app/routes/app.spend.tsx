@@ -4,7 +4,7 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { Form, Link, redirect, useActionData, useLoaderData, useNavigation, useSearchParams } from "react-router";
+import { Form, Link, redirect, useActionData, useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
 import { DeskIcon, type DeskIconName } from "../components/DeskIcon";
 import { DeskLane } from "../components/DeskLane";
 import { useDeskDrill } from "../components/DeskDrill";
@@ -31,6 +31,11 @@ import { SpendCompareGlance } from "../components/SpendCompareGlance";
 import { SpendFirstViewport } from "../components/SpendFirstViewport";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+  salesWindowPendingHeading,
+} from "../lib/desk-request-screen";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import {
@@ -406,7 +411,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!shotMode && preset === "y3") {
     const next = new URLSearchParams(url.searchParams);
     next.set("period", "ytd");
-    throw redirect(`/app/spend?${next.toString()}`);
+    throw redirect(`${url.pathname}?${next.toString()}`);
   }
   const sampleDesk = await getSampleDeskStats(shop.id);
   const now = new Date();
@@ -734,6 +739,18 @@ export default function SpendEntryPage() {
   } = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const requestScreen = namedDeskScreenFromPath(location.pathname);
+  const pageHeading =
+    requestScreen === "allocation" ||
+    requestScreen === "cpa" ||
+    requestScreen === "roas"
+      ? namedDeskTitle(requestScreen)
+      : "Spend";
+  const showSpend = requestScreen == null;
+  const showRoas = showSpend || requestScreen === "roas";
+  const showAllocation = showSpend || requestScreen === "allocation";
+  const showCpa = showSpend || requestScreen === "cpa";
   const spendPanel = searchParams.get("panel");
   useSpendPanelScroll();
   const actionData = useActionData<typeof action>();
@@ -917,7 +934,7 @@ export default function SpendEntryPage() {
   });
 
   return (
-    <s-page heading="Spend" inlineSize="large">
+    <s-page heading={pageHeading} inlineSize="large">
       {isEmpty && !shotMode ? (
         <s-button
           slot="primary-action"
@@ -965,7 +982,10 @@ export default function SpendEntryPage() {
         ) : null}
 
         {metrics.salesPending && !shotMode ? (
-          <s-banner tone="info" heading="Sales still loading">
+          <s-banner
+            tone="info"
+            heading={salesWindowPendingHeading(metrics.period.label)}
+          >
             <s-paragraph>{NUMBER_HONESTY.salesPending}</s-paragraph>
           </s-banner>
         ) : null}
@@ -1016,7 +1036,9 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
+        {showRoas || showSpend ? (
         <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
+        {showRoas ? (
         <div className="mcfly-overview-first-beat mcfly-spend-first-beat">
           <SpendFirstViewport
             roasValue={roasValue}
@@ -1049,6 +1071,9 @@ export default function SpendEntryPage() {
             mer={paintedMer}
           />
         </div>
+        ) : null}
+        {showSpend ? (
+        <>
         <section id="mcfly-explorer" aria-label="Spend explorer">
           <SpendExplorer
             series={explorer}
@@ -1189,16 +1214,25 @@ export default function SpendEntryPage() {
             </section>
           </>
         ) : null}
+        </>
+        ) : null}
         </DeskLane>
+        ) : null}
 
+        {(showSpend || showAllocation || showCpa) ? (
         <DeskLane
           rank="more"
           label={SPEND_DEPTH_LANE_LABEL}
           fold
           defaultOpen={
-            shotMode || spendPanel === "mix" || spendPanel === "cpa"
+            shotMode ||
+            showAllocation ||
+            showCpa ||
+            spendPanel === "mix" ||
+            spendPanel === "cpa"
           }
         >
+        {showSpend ? (
         <section id="mcfly-explorer-depth" aria-label="Certified windows and spend analysis">
           {cashControl && cashControl.chips.length > 0 && !hasSpend ? (
             <CertifiedScoreboard
@@ -1258,7 +1292,9 @@ export default function SpendEntryPage() {
             </div>
           ) : null}
         </section>
+        ) : null}
 
+        {showAllocation ? (
         <SpendMixSection
           metrics={metrics}
           cashControl={cashControl}
@@ -1274,7 +1310,9 @@ export default function SpendEntryPage() {
           shopifyOrderWindowLimited={shopifyOrderWindowLimited}
           addSpendHref="#mcfly-spend-add"
         />
+        ) : null}
 
+        {showCpa ? (
         <section
           id="mcfly-cpa"
           className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-cpa"
@@ -1311,9 +1349,11 @@ export default function SpendEntryPage() {
             />
           ) : null}
         </section>
+        ) : null}
         </DeskLane>
+        ) : null}
 
-        {!emptyLiveSpend ? (
+        {showSpend && !emptyLiveSpend ? (
         <DeskLane
           rank="more"
           label={SPEND_ADD_LANE_LABEL}

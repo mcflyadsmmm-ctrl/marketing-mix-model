@@ -39,8 +39,8 @@ describe("Profit-margin / COGS setup is parked", () => {
     expect(allocation).not.toMatch(/Set profit margin/);
     expect(allocation).not.toMatch(/set margin for break-even/i);
     expect(allocation).not.toMatch(/Set margin in Settings/);
-    expect(allocation).toContain("throw redirect");
-    expect(allocation).toContain('"mix"');
+    expect(allocation).toContain("spendLoader");
+    expect(allocation).not.toContain("throw redirect");
   });
 
   it("does not ask LTV merchants to confirm a default margin", () => {

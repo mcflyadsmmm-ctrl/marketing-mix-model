@@ -187,8 +187,8 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     }
     expect(customers).toContain("GROWTH_FIRST_LANE_LABEL");
     expect(customers).toContain("<CustomersGrowthSection");
-    expect(growth).toContain("throw redirect");
-    expect(growth).toContain("/app/customers");
+    expect(growth).toContain('retryHref="/app/growth"');
+    expect(growth).not.toContain("throw redirect");
   });
 
   it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {
@@ -229,8 +229,8 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(customers).toContain("<ShareableInsightCards");
     expect(customers).not.toContain("<details");
     expect(customers).toContain("<UnlockFullHistoryBanner");
-    expect(ltv).toContain("throw redirect");
-    expect(ltv).toContain("/app/customers");
+    expect(ltv).toContain('retryHref="/app/ltv"');
+    expect(ltv).not.toContain("throw redirect");
   });
 
   it("ranks Spend pair first, explorer in first lane, depth at more — empty live promotes add", () => {
@@ -251,7 +251,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
     expect(spend).toContain("emptyLiveSpend");
     expect(spend).toMatch(
-      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+      /defaultOpen=\{\s*shotMode \|\|[\s\S]*spendPanel === "mix" \|\|[\s\S]*spendPanel === "cpa"\s*\}/,
     );
     expect(spend).toContain("<CertifiedScoreboard");
     expect(spend).toContain("<SpendExplorer");

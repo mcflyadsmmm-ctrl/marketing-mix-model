@@ -9,7 +9,7 @@ import {
  * Shopify App Bridge already owns `shop` / `host`.
  *
  * Admin nav: Orders, then Spend, then Goals. Settings stays last.
- * Time windows live on cards, not as nav items. Retired hashes land on Orders.
+ * Time windows live on cards, not as nav items. Retired hashes open those tools.
  */
 
 export type DeskNavOpts = {
@@ -57,12 +57,34 @@ const RETIRED_OVERVIEW_TOOL_HASHES = new Set<string>([
   DESK_SECTION.plan,
 ]);
 
-/** Unknown hashes and retired tool tabs land on the Orders tab. */
+/** Unknown hashes land on Orders. Retired tool hashes open that tool. */
 export function deskStageFromHash(hash: string): DeskSectionId {
   const id = hash.replace(/^#/, "");
   if (OVERVIEW_HOME_HASHES.has(id)) return id as DeskSectionId;
-  if (RETIRED_OVERVIEW_TOOL_HASHES.has(id)) return DESK_SECTION.overview;
+  if (RETIRED_OVERVIEW_TOOL_HASHES.has(id)) return id as DeskSectionId;
   return DESK_SECTION.overview;
+}
+
+/** `?panel=` ids that are their own tools, not a scroll on Orders. */
+export function overviewToolFromPanel(
+  panel: string | null | undefined,
+): DeskSectionId | null {
+  switch (panel) {
+    case "compare":
+    case DESK_SECTION.compare:
+      return DESK_SECTION.compare;
+    case "ledger":
+    case DESK_SECTION.ledger:
+      return DESK_SECTION.ledger;
+    case "mix":
+    case DESK_SECTION.mix:
+      return DESK_SECTION.mix;
+    case "plan":
+    case DESK_SECTION.plan:
+      return DESK_SECTION.plan;
+    default:
+      return null;
+  }
 }
 
 /** MER Overview: sales chips, ratio chips, close line, remaining $, chart, pacing. */
@@ -83,7 +105,7 @@ export function isOverviewToolStage(stage: DeskSectionId): boolean {
   );
 }
 
-/** First tab is Orders. Retired hashes on this route keep that title. */
+/** First tab is Orders. Retired tool hashes use that tool’s title. */
 export function deskStageHeading(stage: DeskSectionId): string {
   switch (stage) {
     case DESK_SECTION.overview:
@@ -95,11 +117,15 @@ export function deskStageHeading(stage: DeskSectionId): string {
     case DESK_SECTION.timing:
     case DESK_SECTION.ltv:
     case DESK_SECTION.marketing:
-    case DESK_SECTION.compare:
-    case DESK_SECTION.ledger:
-    case DESK_SECTION.mix:
-    case DESK_SECTION.plan:
       return "Orders";
+    case DESK_SECTION.compare:
+      return "Compare";
+    case DESK_SECTION.ledger:
+      return "Ledger";
+    case DESK_SECTION.mix:
+      return "Mix";
+    case DESK_SECTION.plan:
+      return "Plan";
     default: {
       const _exhaustive: never = stage;
       return _exhaustive;

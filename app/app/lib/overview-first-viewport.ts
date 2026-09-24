@@ -100,8 +100,26 @@ export const OVERVIEW_YOY_YEAR_PANEL = "yoy-year";
 export function overviewPanelElementId(
   panel: string | null | undefined,
 ): string | null {
-  if (panel === OVERVIEW_YOY_YEAR_PANEL) return OVERVIEW_YOY_YEAR_ID;
-  return null;
+  switch (panel) {
+    case OVERVIEW_YOY_YEAR_PANEL:
+      return OVERVIEW_YOY_YEAR_ID;
+    case "chart":
+      return "mcfly-chart";
+    case "mix-close":
+      return OVERVIEW_MIX_CLOSE_ID;
+    case "overview":
+      return "mcfly-overview";
+    case "compare":
+      return "mcfly-compare";
+    case "ledger":
+      return "mcfly-ledger";
+    case "mix":
+      return "mcfly-mix";
+    case "plan":
+      return "mcfly-plan";
+    default:
+      return null;
+  }
 }
 
 export const OVERVIEW_FIRST_FOLD_HEROES = [
