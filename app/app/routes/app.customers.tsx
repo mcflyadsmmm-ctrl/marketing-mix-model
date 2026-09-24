@@ -27,6 +27,10 @@ import {
 } from "../components/LiveDeskLockedPage";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { deskPeriodTillLabel } from "../lib/desk-history";
+import {
+  LIVE_SALES_ERROR,
+  loadedBookRangeLine,
+} from "../lib/merchant-book-progress";
 import { loadCustomersStackPage } from "../lib/desk-customers-stack.server";
 import {
   customersLivePageDecision,
@@ -197,6 +201,17 @@ export default function CustomersPage() {
           shotMode,
         }
       : null;
+  const bookRange =
+    !useSampleDesk && !shotMode && orderBackfillProgress
+      ? loadedBookRangeLine({
+          completeDays: orderBackfillProgress.completeDays,
+          windowDays: orderBackfillProgress.windowDays,
+          remainingDays: orderBackfillProgress.remainingDays,
+          monthsFinished: orderBackfillProgress.monthsFinished,
+          bookSealed: orderBackfillProgress.bookSealed,
+          historyLimited: orderBackfillProgress.historyLimited,
+        })
+      : null;
   const windowDays: CustomersWindowDays = {
     label: customersOnScreenWindow(metrics.period.label),
     days: metrics.shopifyDepth.medianDaysToSecond,
@@ -234,10 +249,11 @@ export default function CustomersPage() {
       periodLabel={metrics.period.label}
       showPeriod={false}
       salesError={Boolean(salesError) && !shotMode}
-      salesErrorBody="Sales didn’t load. Retry to see returning dollars."
+      salesErrorBody={LIVE_SALES_ERROR}
       retryHref={`/app/customers?period=${preset}`}
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
+      {bookRange ? <p className="mcfly-book__lede">{bookRange}</p> : null}
       {showCustomers ? (
       <div id="mcfly-returning">
       <DeskLane rank="first" label={showCustomers ? PRODUCT_NOUN.buyersTitle : CUSTOMERS_FIRST_LANE_LABEL} hint="">

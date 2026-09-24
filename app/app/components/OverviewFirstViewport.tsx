@@ -18,6 +18,7 @@ import {
 } from "../lib/overview-first-viewport";
 import {
   OVERVIEW_FROM_ORDERS_LABEL,
+  OVERVIEW_OLDER_MONTHS_LINE,
   OVERVIEW_ORDERS_EMPTY_LINE,
   OVERVIEW_PRIOR_MISSING_LINE,
   overviewOrderDeltaLabel,
@@ -62,7 +63,7 @@ export type OverviewPeekProps = {
   periodLabel?: string;
   /** Trial and paid both keep up to 24 months. Required on live Overview. */
   orderBookDepth: LiveIngestDepth;
-  /** Order-fact crawl resume — N days on file, window still filling. */
+  /** Order-fact crawl resume — this month stays ready, months finished. */
   orderBackfillLine?: string | null;
   /** When Home already shows one pending banner, skip duplicate inline lines. */
   hideInlinePending?: boolean;
@@ -384,7 +385,11 @@ export function OverviewFirstViewport({
       </p>
 
       {empty && !useSampleDesk ? (
-        <p className="mcfly-overview-plane__note">{OVERVIEW_THIN_EMPTY_LINE}</p>
+        <p className="mcfly-overview-plane__note">
+          {sectionStillLoading
+            ? OVERVIEW_OLDER_MONTHS_LINE
+            : OVERVIEW_THIN_EMPTY_LINE}
+        </p>
       ) : null}
     </section>
   );

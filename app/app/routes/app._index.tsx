@@ -62,6 +62,11 @@ import {
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { deskPeriodTillLabel } from "../lib/desk-history";
+import {
+  LIVE_SALES_ERROR,
+  dayOneOrdersCopy,
+  ordersResumeLine,
+} from "../lib/merchant-book-progress";
 import { shopLiveIngestDepth } from "../lib/live-ingest-depth.server";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
@@ -72,7 +77,6 @@ import {
   OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
 } from "../lib/overview-first-viewport";
-import { bookLoadHonestyLine } from "../lib/book-window";
 import {
   buildOrderHistoryForecast,
   emptyForecastTargets,
@@ -737,7 +741,10 @@ export default function Dashboard() {
   });
   const orderBackfillResumeLine =
     !useSampleDesk && orderBackfillProgress
-      ? bookLoadHonestyLine({
+      ? ordersResumeLine({
+          completeDays: orderBackfillProgress.completeDays,
+          windowDays: orderBackfillProgress.windowDays,
+          remainingDays: orderBackfillProgress.remainingDays,
           monthsFinished: orderBackfillProgress.monthsFinished,
           bookSealed: orderBackfillProgress.bookSealed,
           historyLimited: orderBackfillProgress.historyLimited,
@@ -944,6 +951,20 @@ export default function Dashboard() {
   };
   const showLiveHandoff =
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
+  const dayOne =
+    !useSampleDesk && !shotMode
+      ? dayOneOrdersCopy({
+          orderCount: orderHero?.orderCount ?? metrics.orderCount,
+          completeDays: orderBackfillProgress?.completeDays ?? 0,
+          windowDays: orderBackfillProgress?.windowDays ?? 0,
+          remainingDays: orderBackfillProgress?.remainingDays ?? 0,
+          monthsFinished: orderBackfillProgress?.monthsFinished,
+          bookSealed: orderBackfillProgress?.bookSealed,
+          historyLimited: orderBackfillProgress?.historyLimited,
+          salesPending: greetingPending,
+          sample: false,
+        })
+      : null;
 
   return (
     <s-page heading={pageHeading} inlineSize="large">
@@ -963,6 +984,12 @@ export default function Dashboard() {
       >
         {/* SAMPLE chrome only when ON — never competes with live KPI story. */}
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
+
+        {dayOne ? (
+          <s-banner tone="info" heading={dayOne.heading}>
+            <s-paragraph>{dayOne.body}</s-paragraph>
+          </s-banner>
+        ) : null}
 
         {showLiveHandoff ? (
           <s-banner tone="info" heading={LIVE_HANDOFF_HEADING}>
@@ -988,9 +1015,7 @@ export default function Dashboard() {
             className="mcfly-state mcfly-state--critical mcfly-state--soft"
             aria-label="Sales load error"
           >
-            <p className="mcfly-state__copy">
-              Sales didn’t load. Retry to see this shop’s orders.
-            </p>
+            <p className="mcfly-state__copy">{LIVE_SALES_ERROR}</p>
             <div className="mcfly-state__cta">
               <s-button href={`/app?period=${preset}`} variant="primary">
                 Retry

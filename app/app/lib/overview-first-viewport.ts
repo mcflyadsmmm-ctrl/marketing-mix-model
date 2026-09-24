@@ -1,4 +1,8 @@
 import type { LiveIngestDepth } from "./live-ingest-depth";
+import {
+  EMPTY_SHOP_ORDERS_LINE,
+  historyLoadCopy,
+} from "./merchant-book-progress";
 import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
@@ -32,10 +36,24 @@ export const OVERVIEW_SHOP_NOT_COMPANY =
 export const OVERVIEW_PENDING_LINE =
   "Orders still loading — not $0.";
 
-/** Order-fact crawl resume — N complete closed days on file, window still filling. */
-export function overviewOrderBackfillLine(completeDays: number): string {
-  const n = Math.max(0, Math.floor(completeDays));
-  return `Orders still loading — ${n} days on file — not $0.`;
+/**
+ * Order-fact crawl resume. This month stays readable. Months finished,
+ * never a percent of the window.
+ */
+export function overviewOrderBackfillLine(
+  completeDays: number,
+  now?: Date,
+): string {
+  const copy = historyLoadCopy({
+    completeDays,
+    windowDays: Math.max(1, Math.floor(completeDays)),
+    remainingDays: 1,
+    now,
+  });
+  if (!copy) {
+    return "This month is still loading. Older months start after it, newest first. 0 months finished. Nothing on the desk is $0.";
+  }
+  return `${copy.heading}. ${copy.body}`;
 }
 
 /** Chart / YoY card label — deeper sections; first-fold hero uses From orders. */
@@ -57,8 +75,11 @@ export const OVERVIEW_FIRST_LANE_LABEL =
 export const OVERVIEW_ANALYTICS_CONTRAST =
   "Order-book dollars — not Shopify Analytics day totals.";
 
-export const OVERVIEW_THIN_EMPTY_LINE =
-  "Typical order, returning $, and weekends fill after paid orders land — not $0.";
+export const OVERVIEW_THIN_EMPTY_LINE = EMPTY_SHOP_ORDERS_LINE;
+
+/** Live shop, history still arriving — this month stays on the tab. */
+export const OVERVIEW_OLDER_MONTHS_LINE =
+  "This month stays on this tab while older months load, newest first.";
 /**
  * Deterministic empty-state rhythm (steal map craft) — never an AI analyst.
  * Signal = what we see · Evidence = why the board is — · Next move = what fills.

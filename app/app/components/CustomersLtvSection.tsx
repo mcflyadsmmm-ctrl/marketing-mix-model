@@ -17,6 +17,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import type { LtvFlagshipView } from "../lib/ltv-flagship";
 import { truncatedLifetimeLine } from "../lib/till-ltv";
 import { paintedYearDollars } from "../lib/ltv-year-honesty";
+import { loadedBookRangeLine } from "../lib/merchant-book-progress";
 import {
   ltvPeekSlackInsight,
   pickShareableLtvPeek,
@@ -89,7 +90,14 @@ type LtvPackProps = {
   };
   marginConfirmed: boolean;
   useSampleDesk: boolean;
-  orderBackfillProgress?: { historyLimited?: boolean } | null;
+  orderBackfillProgress?: {
+    historyLimited?: boolean;
+    completeDays?: number;
+    windowDays?: number;
+    remainingDays?: number;
+    monthsFinished?: number;
+    bookSealed?: boolean;
+  } | null;
   shopLabel?: string;
   shotMode?: boolean;
 };
@@ -220,6 +228,24 @@ function useCustomersLtvPack({
     };
   }).filter((row) => row.v !== "—");
 
+  const progress = orderBackfillProgress;
+  const rangeLine =
+    !useSampleDesk &&
+    progress != null &&
+    progress.completeDays != null &&
+    progress.windowDays != null &&
+    progress.remainingDays != null
+      ? loadedBookRangeLine({
+          completeDays: progress.completeDays,
+          windowDays: progress.windowDays,
+          remainingDays: progress.remainingDays,
+          monthsFinished: progress.monthsFinished,
+          bookSealed: progress.bookSealed,
+          historyLimited: progress.historyLimited,
+          sample: false,
+        })
+      : null;
+
   const emptyLine =
     truncatedLine
       ? truncatedLine
@@ -227,8 +253,8 @@ function useCustomersLtvPack({
         ? "Shop timezone needed before first orders can bucket by local day."
         : ltv.emptyReason === "history_limited"
           ? "First-year value is not on file yet — not enough buyers have lived a year. Not $0 LTV."
-          : orderBackfillProgress
-            ? "Orders still syncing — not $0. Refresh this page."
+          : rangeLine
+            ? rangeLine
             : "Orders still syncing — not $0.";
 
   const depthHasAny = Boolean(
