@@ -282,9 +282,12 @@ describe("Sample data | Live data UX", () => {
     const salesErrorStart = overview.indexOf('aria-label="Sales load error"');
     const salesErrorEnd = overview.indexOf("</section>", salesErrorStart);
     const salesError = overview.slice(salesErrorStart, salesErrorEnd);
-    expect(salesError).toContain(
+    expect(salesError).toContain("LIVE_SALES_ERROR");
+    const salesErrorCopy = read("./merchant-book-progress.ts");
+    expect(salesErrorCopy).toContain(
       "Sales didn’t load. Retry to see this shop’s orders.",
     );
+    expect(salesErrorCopy).toContain("Sample numbers stay on Sample shop.");
     expect(salesError).not.toContain("Total ROAS");
     expect(salesError).not.toContain("PRODUCT_NOUN.totalRoas");
     expect(salesError).not.toContain("sales ÷ spend");

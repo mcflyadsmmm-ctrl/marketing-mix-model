@@ -55,36 +55,45 @@ describe("salesFactsIncompleteMessage", () => {
 });
 
 describe("orderHistoryProgressMessage", () => {
-  it("is quiet once the window is sealed", () => {
+  const now = new Date(Date.UTC(2026, 8, 24, 15, 0, 0));
+
+  it("is quiet once the window has no days left", () => {
     expect(
       orderHistoryProgressMessage({
         completeDays: 90,
         windowDays: 90,
         remainingDays: 0,
+        now,
       }),
     ).toBeNull();
   });
 
-  it("names 0-of-N pending days so a whale does not rage-quit", () => {
+  it("says this month is still loading and counts months, not a percent", () => {
     const copy = orderHistoryProgressMessage({
       completeDays: 0,
       windowDays: 90,
       remainingDays: 90,
+      now,
     });
-    expect(copy?.heading.toLowerCase()).toContain("order history still loading");
-    expect(copy?.body).toContain("0 of 90");
-    expect(copy?.body.toLowerCase()).toContain("not $0");
+    expect(copy?.heading).toBe("This month is still loading");
+    expect(copy?.body).toContain("0 months finished");
+    expect(copy?.body).toMatch(/newest first/);
+    expect(copy?.body).toMatch(/\$0/);
+    expect(`${copy?.heading} ${copy?.body}`).not.toMatch(/%|\d+ of \d+/);
   });
 
-  it("paints partial sealed days as progress, not a blank book", () => {
+  it("keeps this month ready while older months load", () => {
     const copy = orderHistoryProgressMessage({
       completeDays: 12,
       windowDays: 90,
       remainingDays: 78,
+      now,
     });
-    expect(copy?.heading).toContain("12 of 90");
-    expect(copy?.body).toContain("78 closed days left");
-    expect(copy?.body.toLowerCase()).toContain("not $0");
+    expect(copy?.heading).toBe("This month is ready");
+    expect(copy?.body).toMatch(/newest first/);
+    expect(copy?.body).toContain("0 months finished");
+    expect(copy?.body).toMatch(/\$0/);
+    expect(`${copy?.heading} ${copy?.body}`).not.toMatch(/%|\d+ of \d+/);
   });
 });
 
@@ -123,7 +132,9 @@ describe("homePendingBannerMessage", () => {
         remainingDays: 87,
       },
     });
-    expect(copy?.heading).toContain("3 of 90");
+    expect(copy?.heading).toBe("This month is ready");
+    expect(copy?.body).toMatch(/months finished/);
+    expect(copy?.body).not.toMatch(/%/);
   });
 });
 
