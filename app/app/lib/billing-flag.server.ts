@@ -20,7 +20,7 @@ export function freeSpendImportDailyCap(): number {
 
 export type BillingTier = "free" | "pro";
 
-/** Founder lock 2026-08-26: $39/store/mo after 7-day trial. Unpaid order rows are 90 closed days; paid is 24 months. */
+/** Founder lock 2026-08-26: 7 days, then $39. Trial and paid both keep up to 24 months of orders. */
 export const PRO_PLAN = {
   name: "Mcfly Analytics",
   amount: 39,

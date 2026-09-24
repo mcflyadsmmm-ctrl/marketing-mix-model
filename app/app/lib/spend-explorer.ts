@@ -5,7 +5,6 @@
 
 import type { PeriodPreset } from "./periods";
 import type { LiveIngestDepth } from "./live-ingest-depth";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
@@ -131,20 +130,19 @@ export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
     { value: "All", label: "All" },
   ];
 
-/** Year-length chips that sell a finished year on a 90-day unpaid book. */
+/** Year-length chips. Trial and paid both keep them. */
 export function explorerSellsFinishedYear(range: ExplorerRange): boolean {
   return range === "YTD" || range === "1y" || range === "All";
 }
 
 export function explorerRangeAllowedOnBook(
-  range: ExplorerRange,
+  _range: ExplorerRange,
   orderBookDepth: LiveIngestDepth,
 ): boolean {
   switch (orderBookDepth) {
     case "paid_full":
-      return true;
     case "trial_slice":
-      return !explorerSellsFinishedYear(range);
+      return true;
     default: {
       const _never: never = orderBookDepth;
       return _never;
@@ -173,9 +171,8 @@ export function explorerYearChipNote(
 ): string | null {
   switch (orderBookDepth) {
     case "paid_full":
-      return null;
     case "trial_slice":
-      return `${LIVE_UNPAID_INGEST_DAYS} closed days of order rows on this unpaid till. This year / 1 year / All wait until you pay — day totals vs order rows.`;
+      return null;
     default: {
       const _never: never = orderBookDepth;
       return _never;

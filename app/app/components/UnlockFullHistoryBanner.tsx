@@ -15,7 +15,7 @@ export function UnlockFullHistoryBanner() {
           Trial and paid keep the same desk: Customers, LTV, and up to 24
           months of orders.
         </strong>{" "}
-        $39 per store / month after 7 days. Spend stays optional. The price
+        7 days, then $39. Spend stays optional. The price
         does not rise with sales. One plan.
       </p>
       <div className="mcfly-state__cta">

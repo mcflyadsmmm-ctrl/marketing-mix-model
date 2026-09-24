@@ -40,7 +40,7 @@ export function DeskBookPage({
   isLoading: boolean;
   /** False when clocks are baked into the cards (YoY this / last / last year). */
   showPeriod?: boolean;
-  /** Unpaid = 90 closed days. Paid / SAMPLE = up to 24 months. Required even when compact. */
+  /** Trial and paid both say up to 24 months. Required even when compact. */
   orderBookDepth: LiveIngestDepth;
   /** Closed-day OrderFact crawl still running — typical order / LTV are not $0. */
   orderFactsTruncated?: boolean;
