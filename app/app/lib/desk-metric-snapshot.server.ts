@@ -2,33 +2,43 @@
  * Off-request desk metrics. Overview paint reads the latest row.
  * Written after OrderFact backfill and by the nightly job on this app.
  * Not a second Fly machine.
+ *
+ * The five period chips are stored here. A click reads one window.
+ * Sales come from day rows. Customer and LTV figures are aggregates.
  */
 
 import type { Prisma } from "@prisma/client";
 import prisma from "../db.server";
 import {
-  buildOverviewOrderBookHero,
-  filterOrdersInRange,
-  orderBookFirstOrderMs,
-  orderBookReturningSales,
-  OVERVIEW_ORDER_GUEST_KEY,
+  DESK_PERIOD_CHIPS,
+  isDeskPeriodChip,
+  type DeskPeriodChip,
+} from "./book-window";
+import {
+  composeStoredBoards,
+  loadNewestCappedOrderRows,
+  type StoredBoards,
+  type StoredOrderRow,
+} from "./desk-stored-boards.server";
+import {
+  overviewYoyPct,
+  overviewYoyZoneFromPct,
   shiftRangeOneYear,
   type OverviewOrderBookHero,
-  type OverviewOrderBookRow,
 } from "./overview-order-book";
+import { countNewBuyersInRange, getCohortFacts } from "./order-facts.server";
 import {
-  computeCohortRollups,
-  countNewBuyersFromOrders,
-  getCohortFacts,
-  loadOrderDepthRows,
-  ORDER_FACT_SOURCE,
-} from "./order-facts.server";
-import { orderBookSpanDays } from "./ltv-year-honesty";
-import { resolvePeriod } from "./periods";
+  queryBookLifetimeMeta,
+  queryOrderWindowStats,
+} from "./order-fact-sql.server";
+import { resolvePeriod, type DateRange, type PeriodPreset } from "./periods";
+import { getSalesFactsByDay, getSalesFactsTotals } from "./sales-facts.server";
 import { shopifyDepthStats, type ShopifyDepthStats } from "./shopify-depth-stats";
 
 export const DESK_METRICS_PHASE = "desk_metrics";
 export const RECOMPUTE_DESK_METRICS_JOB = "recompute_desk_metrics";
+
+const DAY_MS = 86_400_000;
 
 export type StoredDeskHero = OverviewOrderBookHero & {
   newSales: number | null;
@@ -45,6 +55,12 @@ export type DeskMetricSnapshot = {
   asOf: Date;
   depth: ShopifyDepthStats | null;
   hero: StoredDeskHero | null;
+  boards: StoredBoards | null;
+};
+
+type StoredChip = {
+  hero: StoredDeskHero | null;
+  depth: ShopifyDepthStats | null;
 };
 
 function finiteOrNull(value: unknown): number | null {
@@ -63,21 +79,6 @@ function weightedCohortRevenue(
   }
   if (customers <= 0) return null;
   return revenue / customers;
-}
-
-function identifiedNewSales(
-  windowOrders: OverviewOrderBookRow[],
-  firstByCustomer: Map<string, number>,
-): number {
-  let total = 0;
-  for (const row of windowOrders) {
-    const key = row.customerKey.trim().toLowerCase();
-    if (!key || key === OVERVIEW_ORDER_GUEST_KEY) continue;
-    const first = firstByCustomer.get(row.customerKey);
-    if (first == null || row.orderedAt.getTime() !== first) continue;
-    total += Number.isFinite(row.amount) ? row.amount : 0;
-  }
-  return total;
 }
 
 function asHero(value: unknown): StoredDeskHero | null {
@@ -127,8 +128,77 @@ function asDepth(value: unknown): ShopifyDepthStats | null {
   return value as ShopifyDepthStats;
 }
 
+function asChip(value: unknown): StoredChip | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as { hero?: unknown; depth?: unknown };
+  const hero = asHero(row.hero);
+  const depth = asDepth(row.depth);
+  if (!hero && !depth) return null;
+  return { hero, depth };
+}
+
+function asWindows(
+  value: unknown,
+): Partial<Record<DeskPeriodChip, StoredChip>> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const row = value as Record<string, unknown>;
+  const out: Partial<Record<DeskPeriodChip, StoredChip>> = {};
+  for (const chip of DESK_PERIOD_CHIPS) {
+    const parsed = asChip(row[chip]);
+    if (parsed) out[chip] = parsed;
+  }
+  return out;
+}
+
+function asBoards(value: unknown): StoredBoards | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as {
+    analytics?: unknown;
+    comeback?: unknown;
+    depth?: unknown;
+  };
+  if (!row.analytics || typeof row.analytics !== "object") return null;
+  if (!row.comeback || typeof row.comeback !== "object") return null;
+  if (!row.depth || typeof row.depth !== "object") return null;
+  const analytics = row.analytics as { available?: unknown; rfm?: unknown };
+  if (typeof analytics.available !== "boolean" || !analytics.rfm) return null;
+  return value as StoredBoards;
+}
+
+function weekendShareFromDaySales(days: Map<string, number>): number | null {
+  let total = 0;
+  let weekend = 0;
+  let daysWith = 0;
+  for (const [key, sales] of days) {
+    if (!(sales > 0)) continue;
+    daysWith += 1;
+    total += sales;
+    const [year, month, day] = key.split("-").map(Number);
+    if (!year || !month || !day) continue;
+    const dow = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+    if (dow === 0 || dow === 6) weekend += sales;
+  }
+  if (daysWith < 5 || !(total > 0)) return null;
+  return weekend / total;
+}
+
+function rowsInRange(rows: StoredOrderRow[], range: DateRange): StoredOrderRow[] {
+  const start = range.start.getTime();
+  const end = range.end.getTime();
+  return rows.filter((row) => {
+    const t = row.orderedAt.getTime();
+    return t >= start && t <= end;
+  });
+}
+
+/**
+ * Latest stored window. Pass a chip to read that period.
+ * A missing chip does not fall back to another month.
+ * `mtd` with no chip map still reads the legacy hero written before windows.
+ */
 export async function readDeskMetricSnapshot(
   shopId: string,
+  preset?: PeriodPreset | null,
 ): Promise<DeskMetricSnapshot | null> {
   const row = await prisma.syncRun.findFirst({
     where: { shopId, phase: DESK_METRICS_PHASE, status: "ready" },
@@ -138,20 +208,48 @@ export async function readDeskMetricSnapshot(
   if (!row?.metrics || typeof row.metrics !== "object" || Array.isArray(row.metrics)) {
     return null;
   }
-  const metrics = row.metrics as { depth?: unknown; hero?: unknown };
-  const hero = asHero(metrics.hero);
-  const depth = asDepth(metrics.depth);
-  if (!hero && !depth) return null;
+  const metrics = row.metrics as {
+    depth?: unknown;
+    hero?: unknown;
+    windows?: unknown;
+    boards?: unknown;
+  };
+  const boards = asBoards(metrics.boards);
+  const windows = asWindows(metrics.windows);
+  const chipPreset = preset && isDeskPeriodChip(preset) ? preset : null;
+  let hero: StoredDeskHero | null;
+  let depth: ShopifyDepthStats | null;
+  if (chipPreset) {
+    const chip = windows[chipPreset];
+    if (chip) {
+      hero = chip.hero;
+      depth = chip.depth;
+    } else if (chipPreset === "mtd") {
+      hero = asHero(metrics.hero);
+      depth = asDepth(metrics.depth);
+    } else {
+      hero = null;
+      depth = null;
+    }
+  } else {
+    hero = asHero(metrics.hero);
+    depth = asDepth(metrics.depth);
+  }
+  if (!hero && !depth && !boards) return null;
   return {
     asOf: row.finishedAt ?? new Date(0),
     depth,
     hero,
+    boards,
   };
 }
 
 /**
- * Month vs last year, median, returning vs new, LTV 30/90/365, days to second.
- * Reads stored OrderFact and CohortFact. Does not call Shopify.
+ * Five chips: this month, last month, this quarter, this year, last 12 months.
+ * Sales from day rows. New buyers, returning dollars, and typical order are
+ * Postgres aggregates. Cohort LTV is the stored CohortFact rows.
+ * Does not call Shopify. Does not load the order book into an array.
+ * Customer boards, when built, use the newest 20,000 orders only.
  */
 export async function recomputeDeskMetricSnapshot(
   shopId: string,
@@ -162,47 +260,6 @@ export async function recomputeDeskMetricSnapshot(
     select: { ianaTimezone: true },
   });
   const timeZone = shop?.ianaTimezone?.trim() || "UTC";
-  const range = resolvePeriod("mtd", now, timeZone);
-  const prior = shiftRangeOneYear(range.start, range.end);
-  const rows = await loadOrderDepthRows(
-    shopId,
-    { end: now },
-    ORDER_FACT_SOURCE,
-  );
-  const book: OverviewOrderBookRow[] = rows.map((row) => ({
-    amount: row.amount,
-    orderedAt: row.orderedAt,
-    customerKey: row.customerKey,
-    shopLocalDate: row.shopLocalDate,
-  }));
-  const windowOrders = filterOrdersInRange(book, range.start, range.end);
-  const priorOrders = filterOrdersInRange(book, prior.start, prior.end);
-  const firstByCustomer = orderBookFirstOrderMs(book);
-  const orderSum = windowOrders.reduce(
-    (sum, row) => sum + (Number.isFinite(row.amount) ? row.amount : 0),
-    0,
-  );
-  const depth = shopifyDepthStats({
-    orders: rows.filter((row) => {
-      const t = row.orderedAt.getTime();
-      return t >= range.start.getTime() && t <= range.end.getTime();
-    }),
-    totalSales: orderSum,
-    netSales: orderSum,
-    netSalesKnown: false,
-    grossSales: 0,
-    grossSalesKnown: false,
-    timeZone,
-    windowEnd: range.end,
-  });
-  const base = buildOverviewOrderBookHero({
-    windowOrders,
-    priorOrders,
-    firstByCustomer,
-    typicalOrder: depth.medianAov,
-  });
-  const returning = orderBookReturningSales(windowOrders, firstByCustomer);
-  const fresh = identifiedNewSales(windowOrders, firstByCustomer);
   const cohorts = await getCohortFacts(shopId, { limit: 24 });
   const ltvD30 = weightedCohortRevenue(
     cohorts.map((row) => ({ customers: row.customers, revenue: row.revenueD30 })),
@@ -213,23 +270,109 @@ export async function recomputeDeskMetricSnapshot(
   const ltvD365 = weightedCohortRevenue(
     cohorts.map((row) => ({ customers: row.customers, revenue: row.revenueD365 })),
   );
-  const rollup = computeCohortRollups(rows);
-  const hero: StoredDeskHero = {
-    ...base,
-    returningSales: returning > 0 ? returning : base.returningSales,
-    newSales: fresh > 0 ? fresh : null,
-    daysToSecond: depth.medianDaysToSecond,
-    ltvD30,
-    ltvD90,
-    ltvD365,
-    newBuyers: countNewBuyersFromOrders(rows, range),
-    truncatedLifetimeBuyers: rollup.truncatedBuyers,
-    bookSpanDays: orderBookSpanDays(
-      rows.map((row) => row.orderedAt),
-      now,
-    ),
-  };
+  const meta = await queryBookLifetimeMeta(shopId);
+  const bookSpanDays =
+    meta.oldest == null
+      ? null
+      : Math.floor((now.getTime() - meta.oldest.getTime()) / DAY_MS);
 
+  let cappedRows: StoredOrderRow[] = [];
+  try {
+    cappedRows = await loadNewestCappedOrderRows(shopId, now);
+  } catch (error) {
+    console.error(
+      `[desk-metrics] capped board read failed shopId=${shopId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  const windows: Partial<Record<DeskPeriodChip, StoredChip>> = {};
+  for (const preset of DESK_PERIOD_CHIPS) {
+    const range = resolvePeriod(preset, now, timeZone);
+    const prior = shiftRangeOneYear(range.start, range.end);
+    const priorRange: DateRange = {
+      start: prior.start,
+      end: prior.end,
+      label: "Prior",
+    };
+    const [totals, priorTotals, newBuyers, stats, byDay] = await Promise.all([
+      getSalesFactsTotals(shopId, range, now),
+      getSalesFactsTotals(shopId, priorRange, now),
+      countNewBuyersInRange(shopId, range),
+      queryOrderWindowStats(shopId, range.start, range.end),
+      getSalesFactsByDay(shopId, range, { now }),
+    ]);
+    const slice = rowsInRange(cappedRows, range);
+    const sliceSum = slice.reduce(
+      (sum, row) => sum + (Number.isFinite(row.amount) ? row.amount : 0),
+      0,
+    );
+    const depth = shopifyDepthStats({
+      orders: slice,
+      totalSales: totals.dayCount > 0 ? totals.totalSales : sliceSum,
+      netSales: totals.dayCount > 0 ? totals.netSalesSum : sliceSum,
+      netSalesKnown: totals.netSalesComplete,
+      grossSales: totals.grossSalesSum,
+      grossSalesKnown: totals.grossSalesComplete,
+      timeZone,
+      windowEnd: range.end,
+    });
+    if (stats.medianAmount != null && stats.medianAmount > 0) {
+      depth.medianAov = stats.medianAmount;
+    }
+    if (stats.orderCount > depth.orderCount) {
+      depth.orderCount = stats.orderCount;
+    }
+    const sales = totals.dayCount > 0 ? totals.totalSales : null;
+    const priorSales = priorTotals.dayCount > 0 ? priorTotals.totalSales : null;
+    const yoyPct = sales == null ? null : overviewYoyPct(sales, priorSales);
+    const hero: StoredDeskHero = {
+      sales,
+      priorSales,
+      yoyPct,
+      zone: sales == null ? "empty" : overviewYoyZoneFromPct(yoyPct),
+      returningSales: stats.returningSales > 0 ? stats.returningSales : null,
+      newSales: totals.customerMetricsAvailable
+        ? totals.newCustomerNetSalesSum
+        : null,
+      typicalOrder:
+        stats.medianAmount != null && stats.medianAmount > 0
+          ? stats.medianAmount
+          : null,
+      weekendShare: weekendShareFromDaySales(byDay),
+      orderCount: totals.orderCount,
+      empty: totals.dayCount === 0,
+      daysToSecond: depth.medianDaysToSecond,
+      ltvD30,
+      ltvD90,
+      ltvD365,
+      newBuyers,
+      truncatedLifetimeBuyers: meta.truncatedBuyers,
+      bookSpanDays,
+    };
+    windows[preset] = { hero, depth };
+  }
+
+  const mtdRange = resolvePeriod("mtd", now, timeZone);
+  let boards: StoredBoards | null = null;
+  try {
+    boards = await composeStoredBoards(
+      shopId,
+      now,
+      timeZone,
+      mtdRange.start,
+      mtdRange.end,
+      cappedRows,
+    );
+  } catch (error) {
+    console.error(
+      `[desk-metrics] customer boards failed shopId=${shopId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  const mtd = windows.mtd;
+  const boardsJson = boards
+    ? (JSON.parse(JSON.stringify(boards)) as Prisma.InputJsonValue)
+    : null;
   await prisma.syncRun.create({
     data: {
       runId: `desk-metrics-${shopId}-${now.toISOString()}`,
@@ -237,7 +380,12 @@ export async function recomputeDeskMetricSnapshot(
       phase: DESK_METRICS_PHASE,
       status: "ready",
       finishedAt: now,
-      metrics: { depth, hero } as Prisma.InputJsonValue,
+      metrics: {
+        depth: mtd?.depth ?? null,
+        hero: mtd?.hero ?? null,
+        windows,
+        boards: boardsJson,
+      } as Prisma.InputJsonValue,
     },
   });
 }

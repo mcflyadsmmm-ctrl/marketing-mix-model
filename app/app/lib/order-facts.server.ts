@@ -24,6 +24,11 @@ import {
 import { orderGrossAmount, orderNetAmount } from "./shopify-sales.server";
 import { sumCohortWindows } from "./ltv-depth";
 import { enqueueJob } from "./job-queue.server";
+import { countFinishedBookMonths } from "./book-window";
+import {
+  queryCohortRollups,
+  queryNewBuyerCounts,
+} from "./order-fact-sql.server";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
 export const ORDER_FACT_SOURCE = "shopify_order_v1";
@@ -584,22 +589,8 @@ export async function recomputeCohortFacts(
   months?: string[],
   asOf: Date = new Date(),
 ): Promise<string[]> {
-  const orders = await prisma.orderFact.findMany({
-    where: {
-      shopId,
-      customerKey: { not: ORDER_FACT_GUEST_KEY },
-      // Exclude sample rows from live cohort recompute when both exist.
-      source: ORDER_FACT_SOURCE,
-    },
-    select: {
-      customerKey: true,
-      orderedAt: true,
-      amount: true,
-      lifetimeOrders: true,
-    },
-  });
-
-  const { rollups } = computeCohortRollups(orders);
+  // Postgres group-by. The book never becomes a JavaScript array.
+  const rollups = await queryCohortRollups(shopId);
   const filter =
     months && months.length > 0 ? new Set(months) : null;
   const touched: string[] = [];
@@ -998,6 +989,19 @@ export async function runOrderFactsBackfill(
     await enqueueTruncatedOrderFactsRetry(shopId, truncatedDay);
   }
 
+  // Period chips are written off the request, at the end of each kick.
+  // Deferred import: the snapshot reads aggregates this module owns.
+  try {
+    const { recomputeDeskMetricSnapshot } = await import(
+      "./desk-metric-snapshot.server"
+    );
+    await recomputeDeskMetricSnapshot(shopId, now);
+  } catch (error) {
+    console.error(
+      `[order-facts] period window snapshot failed shopId=${shopId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
   return {
     shopId,
     ranAt,
@@ -1070,7 +1074,12 @@ export type OrderBackfillProgress = {
   /** Closed-day OrderFact crawl hit the page cap — not sealed, not $0. */
   truncated: boolean;
   truncatedDay: string | null;
-};
+  /** Closed months whose every window day is sealed. Not a percent. */
+  monthsFinished: number;
+  monthsInWindow: number;
+  /** Every closed day in the crawl window has a seal. */
+  bookSealed: boolean;
+}
 
 /**
  * Closed-day ingest progress for LTV empty states (not a spinner).
@@ -1114,6 +1123,12 @@ export async function getOrderBackfillProgress(
   });
   const completeDays = completeMarkers.length;
   const windowDays = windowDayKeys.length;
+  const completeKeys = new Set(
+    completeMarkers.map((row) =>
+      row.shopifyOrderId.replace(ORDER_FACT_DAY_COMPLETE_PREFIX, ""),
+    ),
+  );
+  const months = countFinishedBookMonths(windowDayKeys, completeKeys);
   const resume = parseOrderFactPageCursor(state?.cursor);
   return {
     completeDays,
@@ -1123,6 +1138,9 @@ export async function getOrderBackfillProgress(
     status: state?.status ?? "idle",
     truncated: resume != null,
     truncatedDay: resume?.dayKey ?? null,
+    monthsFinished: months.monthsFinished,
+    monthsInWindow: months.monthsInWindow,
+    bookSealed: months.bookSealed,
   };
 }
 
@@ -1236,16 +1254,10 @@ export async function countNewBuyersInRange(
   shopId: string,
   range: { start: Date; end: Date },
 ): Promise<number | null> {
-  const orders = await prisma.orderFact.findMany({
-    where: {
-      shopId,
-      source: ORDER_FACT_SOURCE,
-      customerKey: { not: ORDER_FACT_GUEST_KEY },
-      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
-    },
-    select: { customerKey: true, orderedAt: true, lifetimeOrders: true },
-  });
-  return countNewBuyersFromOrders(orders, range);
+  const counts = await queryNewBuyerCounts(shopId, range.start, range.end);
+  if (counts.identified <= 0) return null;
+  if (counts.unknownInRange > 0) return null;
+  return counts.newBuyers;
 }
 
 /**

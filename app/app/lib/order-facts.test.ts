@@ -27,6 +27,7 @@ const {
   ensureShopMetadata,
   adminGraphqlJson,
   shopIsProForIngest,
+  queryRaw,
 } = vi.hoisted(() => ({
   deleteManyOrderFact: vi.fn(),
   countOrderFact: vi.fn(),
@@ -41,6 +42,7 @@ const {
   ensureShopMetadata: vi.fn(),
   adminGraphqlJson: vi.fn(),
   shopIsProForIngest: vi.fn(),
+  queryRaw: vi.fn(),
 }));
 
 vi.mock("../db.server", () => ({
@@ -60,6 +62,7 @@ vi.mock("../db.server", () => ({
     cohortFact: {
       upsert: (...args: unknown[]) => upsertCohort(...args),
     },
+    $queryRaw: (...args: unknown[]) => queryRaw(...args),
   },
 }));
 
@@ -369,6 +372,8 @@ describe("truncated busy-day crawl", () => {
     adminGraphqlJson.mockReset();
     shopIsProForIngest.mockReset();
     shopIsProForIngest.mockResolvedValue(false);
+    queryRaw.mockReset();
+    queryRaw.mockResolvedValue([]);
 
     countOrderFact.mockResolvedValue(0);
     findManyOrderFact.mockResolvedValue([]);

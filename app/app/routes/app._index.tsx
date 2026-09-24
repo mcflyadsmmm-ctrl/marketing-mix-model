@@ -71,8 +71,8 @@ import {
   OVERVIEW_YOY_YEAR_ID,
   OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
-  overviewOrderBackfillLine,
 } from "../lib/overview-first-viewport";
+import { bookLoadHonestyLine } from "../lib/book-window";
 import {
   buildOrderHistoryForecast,
   emptyForecastTargets,
@@ -366,6 +366,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesPulledAt,
     salesBasis,
     salesCoverage: salesFactsCoverageForBanner,
+    periodPreset: preset,
   });
 
   const ymd = shopLocalYmd(now, deskTz);
@@ -564,17 +565,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
     }
   } else {
+    // LIVE_PERIOD_WINDOW — stored chip. Sales stay on day rows.
+    // This click does not scan order rows and does not call Shopify for them.
     const monthFactsLanded =
       (salesFactsCoverageForBanner?.factDays ?? 0) > 0 ||
       sales.orderCount > 0 ||
       sales.totalSales > 0;
     try {
-      const snap = monthFactsLanded
-        ? await readDeskMetricSnapshot(shop.id)
-        : null;
-      if (monthFactsLanded) {
+      const snap = await readDeskMetricSnapshot(shop.id, preset);
+      if (monthFactsLanded || (snap?.hero && !snap.hero.empty)) {
         orderHero = {
-          sales: sales.totalSales,
+          sales: monthFactsLanded ? sales.totalSales : (snap?.hero?.sales ?? null),
           priorSales: snap?.hero?.priorSales ?? null,
           yoyPct: snap?.hero?.yoyPct ?? null,
           zone:
@@ -584,8 +585,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           returningSales: snap?.hero?.returningSales ?? null,
           typicalOrder: snap?.hero?.typicalOrder ?? null,
           weekendShare: snap?.hero?.weekendShare ?? null,
-          orderCount: sales.orderCount,
-          empty: false,
+          orderCount: monthFactsLanded
+            ? sales.orderCount
+            : (snap?.hero?.orderCount ?? 0),
+          empty: !monthFactsLanded && (snap?.hero?.empty ?? true),
         };
       }
     } catch {
@@ -602,61 +605,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           empty: false,
         };
       }
-    }
-    try {
-      const monthRows = await loadOrderDepthRows(
-        shop.id,
-        range,
-        ORDER_FACT_SOURCE,
-      );
-      if (monthRows.length > 0) {
-        const book: OverviewOrderBookRow[] = monthRows.map((row) => ({
-          amount: row.amount,
-          orderedAt: row.orderedAt,
-          customerKey: row.customerKey,
-          shopLocalDate: row.shopLocalDate,
-        }));
-        const returning = orderBookReturningSales(
-          book,
-          orderBookFirstOrderMs(book),
-        );
-        const amounts = monthRows
-          .map((row) => row.amount)
-          .filter((amount) => Number.isFinite(amount))
-          .sort((a, b) => a - b);
-        const mid = Math.floor(amounts.length / 2);
-        const typical =
-          amounts.length === 0
-            ? null
-            : amounts.length % 2 === 1
-              ? amounts[mid]!
-              : (amounts[mid - 1]! + amounts[mid]!) / 2;
-        if (!monthFactsLanded) {
-          orderHero = {
-            sales: monthRows.reduce(
-              (sum, row) => sum + (Number.isFinite(row.amount) ? row.amount : 0),
-              0,
-            ),
-            priorSales: null,
-            yoyPct: null,
-            zone: "empty",
-            returningSales: returning > 0 ? returning : null,
-            typicalOrder: typical,
-            weekendShare: null,
-            orderCount: monthRows.length,
-            empty: false,
-          };
-        } else {
-          orderHero = {
-            ...orderHero,
-            returningSales:
-              returning > 0 ? returning : orderHero.returningSales,
-            typicalOrder: typical ?? orderHero.typicalOrder,
-          };
-        }
-      }
-    } catch {
-      // Month rows are stored. A miss keeps the sales-fact hero.
     }
   }
 
@@ -788,15 +736,14 @@ export default function Dashboard() {
     factDays: salesFactsCoverage?.factDays,
   });
   const orderBackfillResumeLine =
-    !useSampleDesk &&
-    orderBackfillProgress != null &&
-    orderBackfillProgress.remainingDays > 0 &&
-    (orderBackfillProgress.truncated ||
-      orderBackfillProgress.completeDays < orderBackfillProgress.windowDays)
-      ? overviewOrderBackfillLine(orderBackfillProgress.completeDays)
+    !useSampleDesk && orderBackfillProgress
+      ? bookLoadHonestyLine({
+          monthsFinished: orderBackfillProgress.monthsFinished,
+          bookSealed: orderBackfillProgress.bookSealed,
+          historyLimited: orderBackfillProgress.historyLimited,
+        })
       : null;
-  const deeperStillLoading =
-    greetingPending || Boolean(orderBackfillResumeLine);
+  const deeperStillLoading = greetingPending;
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel =
@@ -922,18 +869,9 @@ export default function Dashboard() {
           expectedClosedDays: salesFactsCoverage.expectedClosedDays,
         }
       : null;
-  const orderProgressInput =
-    !useSampleDesk && orderBackfillProgress
-      ? {
-          completeDays: orderBackfillProgress.completeDays,
-          windowDays: orderBackfillProgress.windowDays,
-          remainingDays: orderBackfillProgress.remainingDays,
-        }
-      : null;
   const syncNeedsTop =
     greetingPending ||
     salesFactsIncomplete != null ||
-    Boolean(orderProgressInput && orderProgressInput.remainingDays > 0) ||
     Boolean(orderBackfillProgress?.truncated);
   const closedDaysOnFile = useSampleDesk
     ? 1
@@ -957,7 +895,7 @@ export default function Dashboard() {
       }
       salesFactsIncomplete={salesFactsIncomplete}
       hasSpend={Boolean(metrics.onboarding.hasSpend)}
-      orderBackfillProgress={orderProgressInput}
+      orderBackfillProgress={null}
       todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
       orderFactsTruncated={
@@ -1136,7 +1074,7 @@ export default function Dashboard() {
                     }
                     orderBookDepth={orderBookDepth}
                     orderBackfillLine={orderBackfillResumeLine}
-                    hideInlinePending={syncNeedsTop}
+                    hideInlinePending={syncNeedsTop && !orderBackfillResumeLine}
                   />
                   {shopifyPeriodClock ? (
                     <OverviewLivePeriodClock

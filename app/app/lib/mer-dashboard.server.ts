@@ -14,7 +14,7 @@ import {
   suggestAllocation,
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
-import { deskPeriodTimeZone, type DateRange } from "./periods";
+import { deskPeriodTimeZone, type DateRange, type PeriodPreset } from "./periods";
 import { localDayKey, utcDayKey } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
@@ -1100,6 +1100,8 @@ export async function buildDashboardMetrics(
      * suppression and blocks break-even advice while backfill runs.
      */
     salesCoverage?: SalesCoverageSlice | null;
+    /** Live chip. Reads that stored window. Sample ignores it. */
+    periodPreset?: PeriodPreset;
   },
 ): Promise<DashboardMetrics> {
   const shop = await ensureShop(shopDomain);
@@ -1272,7 +1274,7 @@ export async function buildDashboardMetrics(
   // Live paint reads the stored snapshot. Sample still folds the local book.
   const liveSnapshot = useSampleDesk
     ? null
-    : await readDeskMetricSnapshot(shop.id);
+    : await readDeskMetricSnapshot(shop.id, options?.periodPreset ?? null);
   const tillNewBuyers = useSampleDesk
     ? (honestSales.newCustomers ?? 0)
     : (liveSnapshot?.hero?.newBuyers ?? 0);

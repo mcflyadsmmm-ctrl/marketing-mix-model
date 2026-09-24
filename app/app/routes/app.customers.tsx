@@ -221,6 +221,10 @@ export default function CustomersPage() {
               completeDays: orderBackfillProgress.completeDays,
               windowDays: orderBackfillProgress.windowDays,
               remainingDays: orderBackfillProgress.remainingDays,
+              monthsFinished: orderBackfillProgress.monthsFinished,
+              bookSealed: orderBackfillProgress.bookSealed,
+              historyLimited: orderBackfillProgress.historyLimited,
+              customersRange: true,
             }
           : null
       }
