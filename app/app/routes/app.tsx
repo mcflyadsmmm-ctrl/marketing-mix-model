@@ -31,6 +31,8 @@ import { BillingExitProvider } from "../lib/billing-exit-context";
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { buildManagedPricingPlansUrl } from "../lib/billing.server";
 import { deskNavHrefFromSearch, DESK_PRIMARY_NAV } from "../lib/desk-nav";
+import { deskNavLabel, liveDeskNavState } from "../lib/live-desk-surface";
+import { resolveLiveUnparkStage } from "../lib/live-unpark";
 import { OriginShell } from "./_index/OriginShell";
 import originStyles from "./_index/styles.module.css";
 import deskStyles from "../styles/mcfly-desk.css?url";
@@ -81,6 +83,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shotMode = url.searchParams.get("shot") === "1";
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const sampleOnlyFreeze = isSampleOnlyFreeze();
+  const liveDeskNav = liveDeskNavState({
+    sampleDesk: useSampleDesk,
+    stage: resolveLiveUnparkStage(),
+  });
 
   let plansUrl: string | null = null;
   if (isBillingEnabled()) {
@@ -97,6 +103,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     apiKey: process.env.SHOPIFY_API_KEY || "",
     useSampleDesk,
     sampleOnlyFreeze,
+    liveDeskNav,
     shotMode,
     plansUrl,
     currencyCode: deskPaintCurrency(shop.currencyCode, {
@@ -127,6 +134,7 @@ export default function App() {
     apiKey,
     useSampleDesk,
     sampleOnlyFreeze,
+    liveDeskNav,
     shotMode,
     plansUrl,
     currencyCode,
@@ -143,7 +151,7 @@ export default function App() {
               key={`${item.path}#${item.hash ?? ""}`}
               href={deskNavHrefFromSearch(item.path, searchParams, item.hash)}
             >
-              {item.label}
+              {deskNavLabel(item, liveDeskNav)}
             </s-link>
           ))}
         </s-app-nav>
@@ -152,7 +160,7 @@ export default function App() {
           shotMode={shotMode}
           sampleOnlyFreeze={sampleOnlyFreeze}
         />
-        <DeskTopTabs shotMode={shotMode} />
+        <DeskTopTabs shotMode={shotMode} liveDeskNav={liveDeskNav} />
         <DeskDrillProvider>
           <Outlet />
         </DeskDrillProvider>

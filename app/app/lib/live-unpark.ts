@@ -76,6 +76,10 @@ export function resolveLiveUnparkStage(
   return parseLiveUnparkStage(raw);
 }
 
+/**
+ * Admin nav and Customers / Growth / LTV loaders honor this
+ * (`live-desk-surface.ts`). SAMPLE freeze does not close the Snowdevil book.
+ */
 export function liveDeskTabAllowed(
   tab: LiveUnparkTab,
   stage: LiveUnparkStage,

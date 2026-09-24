@@ -2,16 +2,21 @@ import { Link, useLocation, useSearchParams } from "react-router";
 
 import { useDeskHref } from "../lib/desk-base-path";
 import { deskNavHref, isDeskNavActive } from "../lib/desk-nav";
+import { DESK_PANEL_RAIL_ADMIN_PATHS } from "../lib/desk-panel-rail";
 import {
-  DESK_PANEL_RAIL_ADMIN_PATHS,
-  deskPanelChipsForPath,
-} from "../lib/desk-panel-rail";
+  liveDeskPanelChips,
+  type LiveDeskNavState,
+} from "../lib/live-desk-surface";
 
 /**
  * In-page chips for the current analysis tab. `/demo` maps through useDeskHref
  * + isDeskNavActive. Goals omits the rail. shotMode is handled by DeskTopTabs.
  */
-export function DeskPanelRail() {
+export function DeskPanelRail({
+  liveDeskNav = null,
+}: {
+  liveDeskNav?: LiveDeskNavState | null;
+}) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const deskHref = useDeskHref();
@@ -20,7 +25,7 @@ export function DeskPanelRail() {
     DESK_PANEL_RAIL_ADMIN_PATHS.find((path) =>
       isDeskNavActive(path, location.pathname),
     ) ?? null;
-  const chips = deskPanelChipsForPath(location.pathname);
+  const chips = liveDeskPanelChips(location.pathname, liveDeskNav);
   if (!adminPath || chips.length === 0) return null;
 
   const hrefPath = deskHref(adminPath);
@@ -33,6 +38,7 @@ export function DeskPanelRail() {
         return (
           <Link
             key={item.id}
+            data-live-desk-lock={item.locked ? item.panel : undefined}
             className={
               active
                 ? "mcfly-desk-panel-rail__chip mcfly-desk-panel-rail__chip--on"

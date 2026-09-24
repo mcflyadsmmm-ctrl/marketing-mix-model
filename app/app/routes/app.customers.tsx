@@ -22,9 +22,20 @@ import {
   CustomersLtvWindows,
 } from "../components/CustomersLtvSection";
 import { UnlockFullHistoryBanner } from "../components/UnlockFullHistoryBanner";
+import {
+  LiveDeskLockedNotice,
+  LiveDeskLockedPage,
+} from "../components/LiveDeskLockedPage";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { deskPeriodTillLabel } from "../lib/desk-history";
 import { loadCustomersStackPage } from "../lib/desk-customers-stack.server";
+import {
+  customersLivePageDecision,
+  liveDeskLockedCopy,
+} from "../lib/live-desk-surface";
+import { resolveLiveUnparkStage } from "../lib/live-unpark";
+import { requireAdmin } from "../lib/public-app-gate.server";
+import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
@@ -39,10 +50,43 @@ import {
 } from "../lib/shareable-insights";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return loadCustomersStackPage(request);
+  const { session } = await requireAdmin(request);
+  const decision = customersLivePageDecision({
+    sampleDesk: await getSampleDeskEnabled(session.shop),
+    stage: resolveLiveUnparkStage(),
+  });
+  if (decision.serve === "locked") {
+    return {
+      kind: "locked" as const,
+      stage: decision.stage,
+      copy: decision.copy,
+    };
+  }
+  const page = await loadCustomersStackPage(request, {
+    includeLtv: decision.ltvOpen,
+  });
+  return {
+    ...page,
+    kind: "open" as const,
+    ltvOpen: decision.ltvOpen,
+    growthOpen: decision.growthOpen,
+    liveStage: decision.stage,
+  };
 };
 
 export default function CustomersPage() {
+  const data = useLoaderData<typeof loader>();
+  const currency = useDeskCurrency();
+  const navigation = useNavigation();
+  if (data.kind === "locked") {
+    return (
+      <LiveDeskLockedPage
+        heading={PRODUCT_NOUN.buyersTitle}
+        surface="customers"
+        copy={data.copy}
+      />
+    );
+  }
   const {
     metrics,
     preset,
@@ -64,9 +108,10 @@ export default function CustomersPage() {
     shopLabel,
     panel,
     orderBookDepth,
-  } = useLoaderData<typeof loader>();
-  const currency = useDeskCurrency();
-  const navigation = useNavigation();
+    ltvOpen,
+    growthOpen,
+    liveStage,
+  } = data;
   const isLoading = navigation.state === "loading";
   const tillLabel = deskPeriodTillLabel({
     periodLabel: metrics.period.label,
@@ -98,15 +143,40 @@ export default function CustomersPage() {
     !useSampleDesk &&
       (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
   );
-  const daily = flagshipDailyRead(depth.windows, depth.predictive);
-  const ltvPeek = daily
-    ? { amount: daily.worth, days: daily.worthDays }
-    : pickShareableLtvPeek({
-        revenue30: metrics.tillLtv.avgRevenueD30,
-        revenue90: metrics.tillLtv.avgRevenueD90,
-        revenue365: metrics.tillLtv.avgRevenueD365,
-        historyLimited,
-      });
+  const ltvBlock =
+    ltvOpen && depth
+      ? {
+          metrics: {
+            tillLtv: metrics.tillLtv,
+            totalSpend: metrics.totalSpend,
+            marginPct: metrics.marginPct,
+            salesPending: Boolean(metrics.salesPending),
+            newCustomers: metrics.newCustomers,
+            returningCustomers: metrics.returningCustomers,
+            customerMetricsAvailable: metrics.customerMetricsAvailable,
+            period: { label: metrics.period.label },
+          },
+          depth,
+          marginConfirmed,
+          useSampleDesk,
+          orderBackfillProgress,
+          shopLabel,
+          shotMode,
+        }
+      : null;
+  const daily = ltvBlock
+    ? flagshipDailyRead(ltvBlock.depth.windows, ltvBlock.depth.predictive)
+    : null;
+  const ltvPeek = !ltvOpen
+    ? null
+    : daily
+      ? { amount: daily.worth, days: daily.worthDays }
+      : pickShareableLtvPeek({
+          revenue30: metrics.tillLtv.avgRevenueD30,
+          revenue90: metrics.tillLtv.avgRevenueD90,
+          revenue365: metrics.tillLtv.avgRevenueD365,
+          historyLimited,
+        });
   const insightView = metrics.salesPending
     ? emptyShareableInsights()
     : buildShareableInsights(
@@ -135,25 +205,10 @@ export default function CustomersPage() {
   };
   const depthInsight = {
     ...insightView,
-    cards: insightView.cards.filter((card) => card.kind !== "returning"),
-  };
-  const ltvProps = {
-    metrics: {
-      tillLtv: metrics.tillLtv,
-      totalSpend: metrics.totalSpend,
-      marginPct: metrics.marginPct,
-      salesPending: Boolean(metrics.salesPending),
-      newCustomers: metrics.newCustomers,
-      returningCustomers: metrics.returningCustomers,
-      customerMetricsAvailable: metrics.customerMetricsAvailable,
-      period: { label: metrics.period.label },
-    },
-    depth,
-    marginConfirmed,
-    useSampleDesk,
-    orderBackfillProgress,
-    shopLabel,
-    shotMode,
+    cards: insightView.cards.filter(
+      (card) =>
+        card.kind !== "returning" && (ltvOpen || card.kind !== "ltvPeek"),
+    ),
   };
 
   return (
@@ -227,19 +282,30 @@ export default function CustomersPage() {
           useSampleDesk={useSampleDesk}
           growthHref="#mcfly-growth"
           ltvHref="#mcfly-ltv"
+          ltvNextLabel={ltvOpen ? "Open LTV" : "LTV locked"}
         />
       </DeskLane>
       </div>
 
       <div id="mcfly-ltv">
-      {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
-      <DeskLane rank="next" label="What a new buyer is worth">
-        <CustomersLtvWindows {...ltvProps} />
-        <CustomersLtvEconomics {...ltvProps} />
-      </DeskLane>
+      {ltvBlock ? (
+        <>
+          {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
+          <DeskLane rank="next" label="What a new buyer is worth">
+            <CustomersLtvWindows {...ltvBlock} />
+            <CustomersLtvEconomics {...ltvBlock} />
+          </DeskLane>
+        </>
+      ) : (
+        <LiveDeskLockedNotice
+          surface="ltv"
+          copy={liveDeskLockedCopy("ltv", liveStage)}
+        />
+      )}
       </div>
 
       <div id="mcfly-growth">
+      {growthOpen ? (
       <DeskLane rank="next" label={GROWTH_FIRST_LANE_LABEL}>
         <CustomersGrowthSection
           book={book}
@@ -258,6 +324,12 @@ export default function CustomersPage() {
           lifetimeSpan={analytics.lifetimeSpan}
         />
       </DeskLane>
+      ) : (
+        <LiveDeskLockedNotice
+          surface="growth"
+          copy={liveDeskLockedCopy("growth", liveStage)}
+        />
+      )}
       </div>
 
       <div id="mcfly-depth">
@@ -277,7 +349,7 @@ export default function CustomersPage() {
         {!metrics.salesPending ? (
           <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
         ) : null}
-        <CustomersLtvDepth {...ltvProps} />
+        {ltvBlock ? <CustomersLtvDepth {...ltvBlock} /> : null}
         {depthInsight.cards.length > 0 || depthInsight.empty ? (
           <ShareableInsightCards view={depthInsight} shotMode={shotMode} />
         ) : null}

@@ -115,6 +115,7 @@ export function CustomersScoreboard({
   useSampleDesk,
   growthHref = "#mcfly-growth",
   ltvHref = "#mcfly-ltv",
+  ltvNextLabel = "Open LTV",
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;
@@ -123,6 +124,7 @@ export function CustomersScoreboard({
   useSampleDesk: boolean;
   growthHref?: string;
   ltvHref?: string;
+  ltvNextLabel?: string;
 }) {
   const currency = useDeskCurrency();
   const returning = isNum(book.returningSales) && book.returningSales > 0 ? book.returningSales : null;
@@ -191,7 +193,7 @@ export function CustomersScoreboard({
             formula="Window sales dollars per unique buyer — new and returning spend differently."
             next="LTV tracks what a new buyer is worth over 30 / 90 / 365 days."
             nextHref={ltvHref}
-            nextLabel="Open LTV"
+            nextLabel={ltvNextLabel}
           />
           <Fact
             label="Biggest orders"
