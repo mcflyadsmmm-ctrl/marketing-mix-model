@@ -234,11 +234,8 @@ export function resolveCpaDeskWindows(
   timeZone: string | null | undefined,
   orderBookDepth: LiveIngestDepth,
 ): CpaDeskWindows {
-  const thisMonth = clampCpaRangeToClosedDays(
-    resolvePeriod("mtd", now, timeZone),
-    now,
-    timeZone,
-  );
+  // Same "this month" as the Spend header. Closed-yesterday would be a second figure.
+  const thisMonth = resolvePeriod("mtd", now, timeZone);
   const ytd = clampCpaRangeToClosedDays(
     resolvePeriod("ytd", now, timeZone),
     now,

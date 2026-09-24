@@ -95,7 +95,8 @@ describe("Goals year clock / year-board honesty", () => {
     expect(arith).toContain("thisMonthPlanCopyText");
     expect(gauges).not.toContain("period.progressPct ?? 0");
     expect(route).toContain('name="targetMer"');
-    expect(demo).toMatch(/throw redirect/);
+    expect(demo).toContain('name="targetMer"');
+    expect(demo).not.toMatch(/throw redirect/);
     expect(demo).not.toMatch(/Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/);
   });
 });

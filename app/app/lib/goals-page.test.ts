@@ -30,8 +30,12 @@ describe("Goals page", () => {
     expect(goals).not.toContain("UnlockFullHistoryBanner");
   });
 
-  it("public /demo/goals does not invent a twelve-month $0 plan", () => {
-    expect(demoGoals).toMatch(/throw redirect/);
+  it("public /demo/goals is one saved target, not a twelve-month $0 plan", () => {
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).toContain("Save target");
+    expect(demoGoals).toContain("No target saved.");
+    expect(demoGoals).not.toMatch(/throw redirect/);
+    expect(demoGoals).not.toMatch(/\/app\/settings/);
     expect(demoGoals).not.toMatch(
       /Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/,
     );

@@ -122,8 +122,10 @@ export function TotalRoasGauge({
           Honest MER = sales ÷ entered spend. Not platform ROAS.
         </p>
         <p className="mcfly-roas-gauge__aside-meta">
-          Empty spend paints —, never 0×. Target {formatMer(targetMer)} on the
-          arc — At goal vs Settings.
+          Empty spend paints —, never 0×.
+          {targetMer > 0
+            ? ` Saved target ${formatMer(targetMer)}×.`
+            : " No target saved."}
         </p>
       </aside>
     </div>

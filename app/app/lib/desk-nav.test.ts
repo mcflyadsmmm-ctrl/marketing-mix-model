@@ -199,7 +199,8 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(goals).toContain('name="targetMer"');
     expect(goals).not.toMatch(/throw redirect\(`\/app\/settings/);
     expect(demoOrders).toMatch(/throw redirect\(`\$\{home\}/);
-    expect(demoGoals).toMatch(/throw redirect\(`\$\{settings\}/);
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).not.toMatch(/throw redirect/);
   });
 
   it("compactDeskRedirect keeps search params, sets panel, and maps /demo", () => {

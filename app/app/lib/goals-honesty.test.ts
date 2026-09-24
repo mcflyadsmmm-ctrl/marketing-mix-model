@@ -22,7 +22,8 @@ describe("Goals honesty — SAMPLE does not invent profit or an $800k stretch", 
     const adminGoals = read("../routes/app.goals.tsx");
     expect(adminGoals).toContain('name="targetMer"');
     expect(adminGoals).not.toContain("<OrderHistoryGoalsBoard");
-    expect(demoGoals).toMatch(/throw redirect/);
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).not.toMatch(/throw redirect/);
     expect(demoGoals).not.toMatch(/profit margin/i);
     expect(demoGoals).not.toContain("calculateBreakEvenMer");
     expect(demoGoals).not.toContain("breakEvenTotalRoas");

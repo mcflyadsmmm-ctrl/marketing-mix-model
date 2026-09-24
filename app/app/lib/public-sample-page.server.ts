@@ -3,6 +3,11 @@
  * Never Shopify authenticate, never Prisma shop rows, never live orders.
  */
 
+import {
+  buildWindowSets,
+  type HistoryDay,
+  type WindowSets,
+} from "./allocation-history";
 import { buildCashControlBoard, type CashControlBoard } from "./mer-control";
 import { buildCustomerAnalytics, type RetentionOrderRow } from "./customers-analytics";
 import { buildCustomerRfm, type CustomerRfmView } from "./customers-rfm";
@@ -46,14 +51,14 @@ import {
   resolvePeriod,
   type PeriodPreset,
 } from "./periods";
-import { SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
+import { SAMPLE_DESK_MARGIN_PCT } from "./sample-desk.server";
 import { shopifyNativePeriodStats, type ShopifyNativePeriodStats } from "./shopify-native-stats";
 import {
   shopifyDepthStats,
   type OrderDepthRow,
   type ShopifyDepthStats,
 } from "./shopify-depth-stats";
-import { shopLocalYmd } from "./shop-local-day";
+import { shopLocalDayKey, shopLocalYmd } from "./shop-local-day";
 import {
   buildCpaWindowSnapshot,
   resolveCpaDeskWindows,
@@ -103,6 +108,9 @@ export type PublicSamplePage = {
   currencyCode: string;
   tillLabel: string;
   targetMer: number;
+  periodFromKey: string;
+  periodToKey: string;
+  spendWindows: { period: WindowSets; lookback: WindowSets };
   marginPct: number;
   rangeLabel: string;
   sales: SalesResult;
@@ -268,6 +276,17 @@ export function sampleGrowthCohorts(
     .map(([cohortMonth, bucket]) => ({ cohortMonth, ...bucket }));
 }
 
+function historyFromDays(days: PublicSampleDay[]): HistoryDay[] {
+  return days.map((day) => ({
+    dateKey: day.dateKey,
+    sales: day.sales,
+    spend: day.spend,
+    channels: Object.entries(day.spendByChannel)
+      .filter(([, amount]) => amount > 0)
+      .map(([channel, amount]) => ({ channel, amount })),
+  }));
+}
+
 function channelTotals(days: PublicSampleDay[]): Array<{ channel: string; amount: number }> {
   const totals = new Map<string, number>();
   for (const day of days) {
@@ -362,7 +381,7 @@ export async function loadPublicSamplePage(
 
   const cashControl = buildCashControlBoard(
     explorerRowsFromDays(book.days),
-    SAMPLE_DESK_TARGET_MER,
+    0,
   );
   const yoyCards = buildOverviewYoyCards(cashControl.chips);
 
@@ -506,7 +525,13 @@ export async function loadPublicSamplePage(
     shopLabel: PUBLIC_SAMPLE_SHOP_LABEL,
     currencyCode: PUBLIC_SAMPLE_CURRENCY,
     tillLabel: `${range.label}${PRODUCT_NOUN.samplePeriodSuffix}`,
-    targetMer: SAMPLE_DESK_TARGET_MER,
+    targetMer: 0,
+    periodFromKey: shopLocalDayKey(range.start, PUBLIC_SAMPLE_TZ),
+    periodToKey: shopLocalDayKey(range.end, PUBLIC_SAMPLE_TZ),
+    spendWindows: {
+      period: buildWindowSets(historyFromDays(periodDays)),
+      lookback: buildWindowSets(historyFromDays(book.days)),
+    },
     marginPct: SAMPLE_DESK_MARGIN_PCT,
     rangeLabel: range.label,
     sales,

@@ -38,10 +38,10 @@ describe("spend upload findings", () => {
     expect(JSON.stringify(finding)).not.toContain("0.00×");
   });
 
-  it("keeps certified-window kicker At goal vs Settings", () => {
+  it("names certified windows without grading a target the merchant never saved", () => {
     expect(CERTIFIED_WINDOWS_KICKER).toMatch(/Certified windows/i);
     expect(CERTIFIED_WINDOWS_KICKER).toMatch(/honest MER/i);
-    expect(CERTIFIED_WINDOWS_KICKER).toMatch(/At goal vs Settings/i);
+    expect(CERTIFIED_WINDOWS_KICKER).not.toMatch(/At goal vs Settings/i);
   });
 
   it("mounts the finding strip on Spend empty (pair + add-a-day)", () => {

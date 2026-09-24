@@ -927,7 +927,8 @@ describe("explorerWeekMonthCopyText", () => {
     expect(copy?.week).toMatch(/not on file/i);
     expect(copy?.week).not.toMatch(/is \$0/);
     expect(copy?.month).toMatch(/this month is \$15,310/);
-    expect(copy?.month).toMatch(/last week/i);
+    expect(copy?.month).toMatch(/Same dates last year are not on file/);
+    expect(copy?.month).not.toMatch(/last week/i);
     expect(copy?.combined).not.toMatch(/is \$0/);
   });
 

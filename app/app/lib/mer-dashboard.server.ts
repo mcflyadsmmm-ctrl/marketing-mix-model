@@ -15,7 +15,7 @@ import {
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
 import { deskPeriodTimeZone, type DateRange } from "./periods";
-import { localDayKey, utcDayKey, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
+import { localDayKey, utcDayKey } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
   nextShopLocalDayKey,
@@ -1109,14 +1109,10 @@ export async function buildDashboardMetrics(
     options?.salesBasis ?? settings.salesBasis,
     "total",
   );
-  // SAMPLE must not invent a confirmed profit margin. Target ROAS overlay stays.
+  // SAMPLE must not invent a confirmed profit margin or a saved target.
   const effectiveMarginPct = settings.marginPct;
   const goalSaved = settings.targetMerSavedAt != null;
-  const effectiveTargetMer = useSampleDesk
-    ? SAMPLE_DESK_TARGET_MER
-    : goalSaved
-      ? settings.targetMer
-      : 0;
+  const effectiveTargetMer = goalSaved ? settings.targetMer : 0;
   const entitlements = getShopEntitlements(shopDomain, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,

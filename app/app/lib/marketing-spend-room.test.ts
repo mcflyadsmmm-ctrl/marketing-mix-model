@@ -42,7 +42,7 @@ describe("Marketing spend room", () => {
     expect(room).toContain("vs prior window");
     expect(room).toContain("mcfly-spend-room__compare");
     expect(room).toContain("Same calendar days so far");
-    expect(room).toContain("Sales vs this month");
+    expect(room).toContain("Vs last year");
     expect(mixPlan).toContain("vs last month");
     expect(mixPlan).toContain("Spend left at goal");
     expect(mixPlan).toContain("Daily spend cap");

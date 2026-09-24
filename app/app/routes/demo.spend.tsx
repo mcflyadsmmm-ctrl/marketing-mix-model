@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useNavigation, useSearchParams } from "react-router";
 
 import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { CpaExplorer } from "../components/CpaExplorer";
@@ -11,6 +11,7 @@ import { DualCloseLine } from "../components/DualCloseLine";
 import { DeskLane } from "../components/DeskLane";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
 import { PeriodControl } from "../components/PeriodControl";
+import { SpendEntryForm } from "../components/SpendEntryForm";
 import { SpendExplorer } from "../components/SpendExplorer";
 import { SpendFirstViewport } from "../components/SpendFirstViewport";
 import {
@@ -30,6 +31,9 @@ import {
 } from "../lib/cpa-desk";
 import { cashPaybackDays } from "../lib/cash-payback";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { withSavedTarget } from "../lib/mer-control";
+import { readSavedTarget } from "../lib/saved-desk-target";
+import { formatSpendOnFile } from "../lib/spend-on-file";
 import {
   formatTotalRoasEquation,
   formatOnlineRoasLine,
@@ -44,7 +48,6 @@ import { spendChannelLabel } from "../lib/spend-channel-label";
 import {
   applyExplorerMode,
   bucketExplorerRows,
-  explorerWeekMonthCopyText,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "../lib/spend-explorer";
@@ -61,19 +64,32 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadPublicSamplePage(request);
 };
 
+function thisMonthLastYearLine(
+  chip: { sales: number; priorSales: number | null } | undefined,
+  money: (n: number) => string,
+): string | null {
+  if (!chip || !(chip.sales > 0)) return null;
+  const current = `This month sales is ${money(chip.sales)}`;
+  if (chip.priorSales == null || !(chip.priorSales > 0)) {
+    return `${current}. Same dates last year are not on file.`;
+  }
+  return `${current} versus ${money(chip.priorSales)} the same dates last year.`;
+}
+
 function publicExplorerSeries(
   explorerDays: Array<{ dateKey: string; sales: number }>,
   cpaDays: CpaDayPoint[],
   targetMer: number,
   rangeLabel: string,
   money: (n: number) => string,
+  window: { fromKey: string; toKey: string },
+  monthCopy: string | null,
 ): SpendExplorerSeriesView {
   const salesByDay = new Map(
     explorerDays.map((day) => [day.dateKey, day.sales]),
   );
-  const keys = explorerDays.map((day) => day.dateKey).sort();
-  const fromKey = keys[0] ?? "";
-  const toKey = keys[keys.length - 1] ?? "";
+  const fromKey = window.fromKey;
+  const toKey = window.toKey;
   const rows: ExplorerDailyRow[] = cpaDays
     .filter((day) => day.dateKey >= fromKey && day.dateKey <= toKey)
     .map((day) => {
@@ -90,13 +106,6 @@ function publicExplorerSeries(
   const buckets = bucketExplorerRows(rows, "Day");
   const plot = applyExplorerMode(buckets, "total");
   const summary = summarizeExplorer(rows, { bucketCount: plot.length });
-  const weekMonthCopy = toKey
-    ? explorerWeekMonthCopyText({
-        salesByDay,
-        asOfKey: toKey,
-        money,
-      })?.combined ?? null
-    : null;
   return {
     buckets: plot,
     summary,
@@ -110,31 +119,35 @@ function publicExplorerSeries(
     fromKey,
     toKey,
     asOfKey: toKey,
-    weekMonthCopy,
+    weekMonthCopy: monthCopy,
   };
 }
-
-const EMPTY_WINDOWS = {
-  week: [],
-  month: [],
-  quarter: [],
-  year: [],
-};
 
 export default function PublicDemoSpend() {
   const data = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const navigation = useNavigation();
+  const [searchParams] = useSearchParams();
+  const addSpendFirst = searchParams.get("panel") === "spend-add";
+  const [savedTarget, setSavedTarget] = useState(0);
+  useEffect(() => {
+    setSavedTarget(readSavedTarget() ?? 0);
+  }, []);
+  const board = useMemo(
+    () => withSavedTarget(data.cashControl, savedTarget),
+    [data.cashControl, savedTarget],
+  );
   useSpendPanelScroll();
   const isLoading = navigation.state === "loading";
   const hasSpend = data.spend > 0;
-  const periodKeys = new Set(data.explorerDays.map((day) => day.dateKey));
+  const inPeriod = (dateKey: string) =>
+    dateKey >= data.periodFromKey && dateKey <= data.periodToKey;
   const pairCoverage = spendPairCoverage({
     salesDays: data.explorerDays
-      .filter((day) => day.sales > 0)
+      .filter((day) => day.sales > 0 && inPeriod(day.dateKey))
       .map((day) => day.dateKey),
     spendDays: data.cpaDays
-      .filter((day) => day.spend > 0 && periodKeys.has(day.dateKey))
+      .filter((day) => day.spend > 0 && inPeriod(day.dateKey))
       .map((day) => day.dateKey),
   });
   const pairWithheld = hasSpend && pairCoverage.withholdRatio;
@@ -181,16 +194,30 @@ export default function PublicDemoSpend() {
       data.ltv.revenue365,
     ),
   });
+  const monthCopy = thisMonthLastYearLine(
+    board.chips.find((chip) => chip.id === "mtd"),
+    (n) => formatCurrency(n, currency),
+  );
   const explorer = useMemo(
     () =>
       publicExplorerSeries(
         data.explorerDays,
         data.cpaDays,
-        data.targetMer,
+        board.targetMer,
         data.rangeLabel,
         (n) => formatCurrency(n, currency),
+        { fromKey: data.periodFromKey, toKey: data.periodToKey },
+        null,
       ),
-    [currency, data.cpaDays, data.explorerDays, data.rangeLabel, data.targetMer],
+    [
+      board.targetMer,
+      currency,
+      data.cpaDays,
+      data.explorerDays,
+      data.periodFromKey,
+      data.periodToKey,
+      data.rangeLabel,
+    ],
   );
   const mixTotal = data.channelSpend.reduce((sum, row) => sum + row.amount, 0);
   const explorerRanges = useMemo(() => {
@@ -222,6 +249,8 @@ export default function PublicDemoSpend() {
           .filter(Boolean)
           .join(" ")}
       >
+        {addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
+
         {!data.shotMode ? (
           <PeriodControl
             preset={data.preset}
@@ -233,6 +262,8 @@ export default function PublicDemoSpend() {
         <s-banner tone="info" heading="Example spend is on">
           <s-paragraph>{SAMPLE_LEDGER_HANDOFF}</s-paragraph>
         </s-banner>
+
+        {!addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
 
         <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
           <div className="mcfly-overview-first-beat mcfly-spend-first-beat">
@@ -249,13 +280,17 @@ export default function PublicDemoSpend() {
               pairCopyText={hasSpend && pairCopyText ? pairCopyText : null}
               shotMode={data.shotMode}
               cashChips={
-                hasSpend && data.cashControl.chips.length > 0
-                  ? data.cashControl.chips
-                  : undefined
+                hasSpend && board.chips.length > 0 ? board.chips : undefined
               }
-              targetMer={data.targetMer}
+              targetMer={board.targetMer}
             />
           </div>
+          {monthCopy ? (
+            <div className="mcfly-spend-pair-copy-row">
+              <p className="mcfly-spend-plane__hint">{monthCopy}</p>
+              <CopyWeekMonthSales text={monthCopy} />
+            </div>
+          ) : null}
           <section id="mcfly-explorer" aria-label="Spend explorer">
             <SpendExplorer
               series={explorer}
@@ -275,35 +310,26 @@ export default function PublicDemoSpend() {
           fold
           defaultOpen={data.shotMode}
         >
-          {data.cashControl.chips.length > 0 && !hasSpend ? (
+          {board.chips.length > 0 && !hasSpend ? (
             <CertifiedScoreboard
-              chips={data.cashControl.chips}
-              targetMer={data.targetMer}
-              plan={data.cashControl.plan}
+              chips={board.chips}
+              targetMer={board.targetMer}
+              plan={board.plan}
             />
           ) : null}
-          {data.cashControl.dualClose ? (
+          {board.dualClose ? (
             <DualCloseLine
-              close={data.cashControl.dualClose}
-              targetMer={data.targetMer}
+              close={board.dualClose}
+              targetMer={board.targetMer}
             />
           ) : null}
-          <MarketingSpendRoom board={data.cashControl} />
+          <MarketingSpendRoom board={board} />
           {hasSpend ? (
             <p className="mcfly-spend-plane__hint">{pairCoverage.caption}</p>
           ) : null}
           {hasSpend && onlineLine ? (
             <p className="mcfly-spend-plane__hint">{onlineLine}</p>
           ) : null}
-          {explorer.weekMonthCopy ? (
-            <div className="mcfly-spend-pair-copy-row">
-              <p className="mcfly-spend-plane__hint" style={{ whiteSpace: "pre-wrap" }}>
-                {explorer.weekMonthCopy}
-              </p>
-              <CopyWeekMonthSales text={explorer.weekMonthCopy} />
-            </div>
-          ) : null}
-
           <SpendMixSection
             metrics={{
               period: { label: data.rangeLabel },
@@ -323,9 +349,9 @@ export default function PublicDemoSpend() {
               spendRecon: null,
               blockedMockAsLive: false,
             }}
-            cashControl={data.cashControl}
+            cashControl={board}
             history={null}
-            windowSets={{ period: EMPTY_WINDOWS, lookback: EMPTY_WINDOWS }}
+            windowSets={data.spendWindows}
             preset={data.preset}
             shotMode={data.shotMode}
             useSampleDesk
@@ -383,7 +409,7 @@ export default function PublicDemoSpend() {
                   <tr key={day.dateKey}>
                     <td>{day.dateKey}</td>
                     <td>{formatCurrency(day.sales, currency)}</td>
-                    <td>{formatCurrency(day.spend, currency)}</td>
+                    <td>{formatSpendOnFile(day.spend, currency)}</td>
                     <td>
                       {Object.entries(day.spendByChannel)
                         .filter(([, amount]) => amount > 0)

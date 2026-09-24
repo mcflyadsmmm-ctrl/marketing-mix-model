@@ -22,6 +22,8 @@ function zoneCopy(zone: ReturnType<typeof chipZone>): string {
       return "Below goal";
     case "empty":
       return "No spend";
+    case "unset":
+      return "No target";
     default: {
       const _never: never = zone;
       return _never;
@@ -59,8 +61,8 @@ export function CertifiedScoreboard({
 
   const goal =
     targetMer > 0
-      ? `At goal vs Settings (${formatMer(targetMer)}×)`
-      : "No goal saved";
+      ? `Saved target ${formatMer(targetMer)}×`
+      : "No target saved";
 
   const firstFold = placement === "firstFold";
 

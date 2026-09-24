@@ -8,6 +8,7 @@
  * Client-safe: no Prisma, no Shopify.
  */
 
+import { overviewWindowRange } from "./overview-yoy";
 import {
   isUnpairedSpendDay,
   type ExplorerDailyRow,
@@ -59,13 +60,14 @@ export type CashChip = {
 };
 
 /** Zone on a certified chip vs the merchant target. Empty spend is never 0×. */
-export type ChipZone = "ok" | "below" | "empty";
+export type ChipZone = "ok" | "below" | "empty" | "unset";
 
 export function chipZone(
   chip: Pick<CashChip, "mer" | "spend" | "vsTarget">,
 ): ChipZone {
   if (!(chip.spend > 0) || chip.mer == null) return "empty";
-  if (chip.vsTarget != null && chip.vsTarget >= -1e-6) return "ok";
+  if (chip.vsTarget == null) return "unset";
+  if (chip.vsTarget >= -1e-6) return "ok";
   return "below";
 }
 
@@ -589,6 +591,7 @@ export function dualCloseLineModel(
   close: DualClose | null,
   targetMer: number,
 ): DualCloseLineModel | null {
+  if (!(targetMer > 0)) return null;
   if (!close || close.remainingDays <= 0) return null;
   if (!(close.mtd.spend > 0)) return null;
   const monthRateMer =
@@ -785,19 +788,40 @@ export function alignedSiblingWindowDays(
   return raw.filter((d) => d.day <= bounds.day);
 }
 
+function namedSpendWindow(base: string, slice: CertifiedDay[]): string {
+  const ordered = [...slice].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+  const range = overviewWindowRange(
+    ordered[0]?.dateKey ?? null,
+    ordered[ordered.length - 1]?.dateKey ?? null,
+  );
+  return range ? `${base} · ${range}` : base;
+}
+
+/**
+ * One dollar figure per named window.
+ * The only percent is this month versus that same window last year.
+ * A partial last month is labeled with its dates, so it is not read as the full month.
+ */
 export function buildCompareScores(days: CertifiedDay[]): CompareScoreRow[] {
   const thisMonth = mixWindowDays(days, "mtd");
   if (!thisMonth.length) return [];
   const thisTot = computeTotals(thisMonth);
+  const lastYearSlice = alignedSiblingWindowDays(days, "sameMonthLastYear");
+  const lastYearTotals = lastYearSlice.length
+    ? computeTotals(lastYearSlice)
+    : null;
   const rows: CompareScoreRow[] = [
     {
       id: "thisMonth",
-      label: "This month",
+      label: namedSpendWindow("This month", thisMonth),
       sales: thisTot.sales,
       spend: thisTot.spend,
       mer: thisTot.mer,
       days: thisTot.days,
-      salesChangePct: null,
+      salesChangePct:
+        lastYearTotals != null && lastYearTotals.sales > 0
+          ? pctChange(thisTot.sales, lastYearTotals.sales)
+          : null,
     },
   ];
   const push = (
@@ -809,12 +833,12 @@ export function buildCompareScores(days: CertifiedDay[]): CompareScoreRow[] {
     const tot = computeTotals(slice);
     rows.push({
       id,
-      label,
+      label: namedSpendWindow(label, slice),
       sales: tot.sales,
       spend: tot.spend,
       mer: tot.mer,
       days: tot.days,
-      salesChangePct: pctChange(tot.sales, thisTot.sales),
+      salesChangePct: null,
     });
   };
   push(
@@ -822,11 +846,7 @@ export function buildCompareScores(days: CertifiedDay[]): CompareScoreRow[] {
     "Last month",
     alignedSiblingWindowDays(days, "lastMonth"),
   );
-  push(
-    "lastYear",
-    "This month last year",
-    alignedSiblingWindowDays(days, "sameMonthLastYear"),
-  );
+  push("lastYear", "This month last year", lastYearSlice);
   return rows;
 }
 
@@ -1111,6 +1131,7 @@ function buildSpendAlerts(input: {
   }
   const last3 = merDays(last28).filter((r) => r.spend > 0).slice(-3);
   if (
+    targetMer > 0 &&
     last3.length === 3 &&
     last3.every((r) => r.mer != null && r.mer < targetMer)
   ) {
@@ -1289,5 +1310,39 @@ export function buildCashControlBoard(
     drillDays: paired,
     intel,
     compareScores,
+  };
+}
+
+/**
+ * Grade chips and the day table only after a target is saved.
+ * A missing target leaves vsTarget unset — never "at goal" against 3.50×.
+ */
+export function withSavedTarget(
+  board: CashControlBoard,
+  targetMer: number,
+): CashControlBoard {
+  const saved = targetMer > 0 ? targetMer : 0;
+  const chips = board.chips.map((chip) => ({
+    ...chip,
+    vsTarget: saved > 0 && chip.mer != null ? chip.mer - saved : null,
+  }));
+  const ledger = board.ledger.map((row) => ({
+    ...row,
+    hit:
+      saved > 0 && row.mer != null && row.spend > 0
+        ? row.mer >= saved
+        : null,
+  }));
+  const intel = buildOperatingIntelligence(
+    board.drillDays,
+    saved,
+    board.unpairedDays,
+  );
+  return {
+    ...board,
+    targetMer: saved,
+    chips,
+    ledger,
+    intel: intel ?? board.intel,
   };
 }

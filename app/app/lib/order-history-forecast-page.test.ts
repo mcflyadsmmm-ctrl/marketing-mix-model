@@ -41,7 +41,8 @@ describe("P2-A order-history forecast — on the existing tabs", () => {
     expect(goals).toContain('name="targetMer"');
     expect(goals).toContain("No target saved.");
     expect(goals).not.toContain("<OrderHistoryGoalsBoard");
-    expect(demoGoals).toMatch(/throw redirect/);
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).not.toMatch(/throw redirect/);
     expect(demoGoals).not.toMatch(/profit margin/i);
     expect(nav).toContain('{ path: "/app", label: "Orders" }');
     expect(nav).toContain('{ path: "/app/customers", label: "Customers" }');

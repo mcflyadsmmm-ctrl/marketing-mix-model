@@ -15,7 +15,7 @@ export const HONEST_MER_LINE =
   "Honest MER = Shopify sales ÷ entered spend — not attributed campaign ROAS.";
 
 export const CERTIFIED_WINDOWS_KICKER =
-  "Certified windows · honest MER = sales ÷ entered spend · At goal vs Settings";
+  "Certified windows · honest MER = sales ÷ entered spend";
 
 /** Live Spend Upload with no rows yet — doors stay input-only. */
 export function spendUploadEmptyFinding(): SpendFinding {

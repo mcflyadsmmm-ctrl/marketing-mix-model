@@ -752,7 +752,8 @@ describe("Goals leftover honesty locks", () => {
   it("does not mount a fake twelve-month $0 Admin plan on public demo Goals", () => {
     const demo = read("../routes/demo.goals.tsx");
     expect(demo).not.toMatch(/Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/);
-    expect(demo).toMatch(/throw redirect/);
+    expect(demo).toContain('name="targetMer"');
+    expect(demo).not.toMatch(/throw redirect/);
     expect(demo).not.toMatch(/Same year plan as Admin/);
     expect(demo).not.toMatch(/\$800k/);
     expect(demo).not.toMatch(/800_000/);
