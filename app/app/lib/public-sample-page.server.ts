@@ -479,7 +479,7 @@ export async function loadPublicSamplePage(
     todayYear: ymd.y,
     todayMonth: ymd.m,
     historyLimited: false,
-    bookLabel: "Snowdevil book",
+    bookLabel: "Sample shop book",
     targets: {
       salesActual: mtdSales > 0 ? mtdSales : null,
       salesGoal: null,

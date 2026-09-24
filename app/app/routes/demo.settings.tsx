@@ -7,7 +7,6 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
-import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 
 const LISTING = "https://apps.shopify.com/mcfly-analytics-public";
 
@@ -37,7 +36,7 @@ export default function PublicDemoSettings() {
       </p>
       <div className="mcfly-well mcfly-well--scoreboard mcfly-well--soft">
         <p>
-          <strong>Data</strong> · SAMPLE Snowdevil only. No Sample | Live toggle
+          <strong>Data</strong> · Sample shop only. No Sample | Live toggle
           here.
         </p>
         <p>
@@ -45,9 +44,9 @@ export default function PublicDemoSettings() {
           Empty spend is —.
         </p>
         <p>
-          <strong>Plan</strong> · SAMPLE is the paid-shaped book — up to 24
-          months of orders. Live trial is {LIVE_UNPAID_INGEST_DAYS} closed days
-          of order rows. Then $39/store/month, one plan.{" "}
+          <strong>Plan</strong> · SAMPLE is the same book shape as Live —
+          up to 24 months of orders. Trial and paid keep that book. Then
+          $39/store/month, one plan.{" "}
           <a href={LISTING} rel="noopener noreferrer">
             Install
           </a>

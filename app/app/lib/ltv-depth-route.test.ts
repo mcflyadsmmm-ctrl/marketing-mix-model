@@ -92,7 +92,7 @@ describe("LTV route mounts the depth pack", () => {
     expect(triangle).toContain("First year");
     expect(triangle).toContain("not 0%");
     expect(triangle).toContain("not $0");
-    expect(triangle).toContain("SAMPLE Snowdevil");
+    expect(triangle).toContain("Sample shop");
     expect(triangle).toContain("firstOrderWindowTriangle");
     expect(triangle).toContain("rgba(4, 120, 87");
     expect(triangle).toContain("DEFAULT_COHORT_REVENUE_BASIS");
@@ -139,7 +139,7 @@ describe("LTV route mounts the depth pack", () => {
   });
 
   it("labels the SAMPLE Snowdevil source", () => {
-    expect(route).toContain("SAMPLE Snowdevil");
+    expect(route).toContain("Sample shop");
   });
 });
 

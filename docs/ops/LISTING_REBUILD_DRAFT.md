@@ -56,11 +56,11 @@ Guardrails: no `$` / `/mo` / "Free" / "Pro" / "one plan" in any of the blocks ab
 
 ---
 
-## Snowdevil SAMPLE story (for screenshots + demo, labeled SAMPLE)
+## Sample shop story (for screenshots + demo, labeled SAMPLE)
 
-The installed desk is frozen to a **Snowdevil** SAMPLE book — Shopify's snowboard generated-data shop — so the scoreboard shows dense, honest numbers before Live is turned on. Use it, labeled **SAMPLE**, for stills and the public demo. Never present Snowdevil dollars as `devmcflyads` live orders. See [`../plans/2026-09-16-snowdevil-sample-only.md`](../plans/2026-09-16-snowdevil-sample-only.md).
+The installed desk is frozen to a **Sample shop** SAMPLE book — Shopify's snowboard generated-data shop — so the scoreboard shows dense, honest numbers before Live is turned on. Use it, labeled **SAMPLE**, for stills and the public demo. Never present Sample shop dollars as `devmcflyads` live orders. See [`../plans/2026-09-16-snowdevil-sample-only.md`](../plans/2026-09-16-snowdevil-sample-only.md).
 
-- **Store:** Snowdevil (board AOV ~$520–$700; Complete Snowboard / Collection / ski wax — not Harbor $88 candles, never Northline `$98,500` / `4.19×`).
+- **Store:** Sample shop (board AOV ~$520–$700; Complete Snowboard / Collection / ski wax — not Harbor $88 candles, never Northline `$98,500` / `4.19×`).
 - **Season shape:** Nov–Feb peak, May–Aug off-season, Sep–Oct pre-season — so YoY and weekend cards have real swing.
 - **Spend mix:** Meta + Google heavy, plus email and other; target Total ROAS ~**3.5×** (impressive, not 4.4× theater). Empty spend is **—**, not `0.00×`.
 - **Scoreboard reads:** Overview = YoY cards + typical board-sized order + returning dollars + weekend + day-vs-typical chart, all with the **SAMPLE** chip on.
@@ -85,4 +85,4 @@ Recapture order for stills (HUMAN, when approved): Overview → Customers → Or
 
 ## Human leftover (PARKED until founder final approval — never Submit)
 
-Founder final approval → paste the pack from [`LISTING_LIVE_PASTE.md`](./LISTING_LIVE_PASTE.md) → Partner Pricing one plan $39 + 7-day, no Free → recapture Snowdevil SAMPLE stills → publish `site/` trust pages → unpark Live for the review pass → Partner Submit. Reviews **0**; do not invent counts. Fly production is not `cursor/clean-revamp-v8`.
+Founder final approval → paste the pack from [`LISTING_LIVE_PASTE.md`](./LISTING_LIVE_PASTE.md) → Partner Pricing one plan $39 + 7-day, no Free → recapture Sample shop stills → publish `site/` trust pages → unpark Live for the review pass → Partner Submit. Reviews **0**; do not invent counts. Fly production is not `cursor/clean-revamp-v8`.

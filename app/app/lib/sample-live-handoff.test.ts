@@ -94,16 +94,14 @@ describe("SAMPLE → Live handoff", () => {
     const goals = read("../routes/app.goals.tsx");
     const settings = read("../routes/app.settings.tsx");
     expect(spend).toContain("SAMPLE_LEDGER_HANDOFF");
-    expect(goals).toContain("TRIAL_VS_VIEW");
+    expect(goals).toContain("One target");
     expect(settings).toContain("TRIAL_VS_VIEW");
     expect(settings).not.toContain("Switch to Sample data now");
   });
 
-  it("TRIAL_VS_VIEW names unpaid 90 vs paid 24 — not full-access, not already on", () => {
+  it("TRIAL_VS_VIEW names one 24-month desk — not full-access, not already on", () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
-    expect(TRIAL_VS_VIEW).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(TRIAL_VS_VIEW).toMatch(/Trial and paid keep/);
     expect(TRIAL_VS_VIEW).toMatch(/up to 24 months/i);
     expect(TRIAL_VS_VIEW).toMatch(/\$39/);
     expect(TRIAL_VS_VIEW).toMatch(/view, not a plan/i);

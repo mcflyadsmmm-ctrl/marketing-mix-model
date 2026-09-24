@@ -432,10 +432,8 @@ describe("orders month board wiring", () => {
     expect(desk).toContain("assembleOrdersIntelligence");
     expect(desk).not.toContain("ORDERS_INTEL_WINDOW_DAYS");
     expect(desk).not.toContain("trailing 90");
-    expect(demo).toContain("<OrdersIntelligence");
-    expect(demo).toContain("<OrdersFrequencyChart");
-    expect(demo).toContain("assembleOrdersIntelligence");
-    expect(demo).toContain("resolvePeriod");
+    expect(demo).toMatch(/throw redirect/);
+    expect(demo).not.toContain("<OrdersIntelligence");
     expect(board).toContain("{intel.badge}");
     expect(board).toContain("ordersMonthBoardSentence");
     expect(board).not.toContain(">90d<");

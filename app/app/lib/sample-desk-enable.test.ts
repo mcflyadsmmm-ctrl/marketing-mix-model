@@ -111,10 +111,10 @@ describe("applySampleDeskIntent use-sample", () => {
   });
 
   it("brands SAMPLE as Snowdevil and stamps sample:snowdevil-2", () => {
-    expect(SAMPLE_DESK_SHOP_NAME).toBe("Snowdevil");
+    expect(SAMPLE_DESK_SHOP_NAME).toBe("Sample shop");
     expect(SAMPLE_BOOK_NOTE).toBe("sample:snowdevil-2");
     expect(sampleDeskSource).toContain("note: SAMPLE_BOOK_NOTE");
-    expect(sampleDeskSource).toContain('SAMPLE_DESK_SHOP_NAME = "Snowdevil"');
+    expect(sampleDeskSource).toContain('SAMPLE_DESK_SHOP_NAME = "Sample shop"');
   });
 
   it("reseeds leftover snowdevil-1 books onto the growth-story stamp", async () => {

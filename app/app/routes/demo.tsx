@@ -19,11 +19,11 @@ export const links: LinksFunction = () => [
 ];
 
 export const meta: MetaFunction = () => [
-  { title: "Full Snowdevil SAMPLE demo | Mcfly Analytics" },
+  { title: "Full Sample shop demo | Mcfly Analytics" },
   {
     name: "description",
     content:
-      "Same Mcfly Analytics desk as the Shopify app, on SAMPLE Snowdevil. No install. Typical order, returning dollars, YoY, Total ROAS. Not a live client.",
+      "Same Mcfly Analytics desk as the Shopify app, on Sample shop. No install. Typical order, returning dollars, YoY, Total ROAS. Not a live client.",
   },
 ];
 
@@ -55,7 +55,7 @@ export default function PublicDemoLayout() {
         {!shotMode && !embed ? (
           <div className="mcfly-public-install">
             <p className="mcfly-public-install__note">
-              SAMPLE Snowdevil · same desk as the Shopify app · not a live client
+              Sample shop · same desk as the Shopify app · not a live client
             </p>
             <a className="mcfly-public-install__cta" href={LISTING} rel="noopener noreferrer">
               Install

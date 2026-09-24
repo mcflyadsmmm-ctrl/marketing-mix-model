@@ -14,7 +14,7 @@ export function overviewCoverageLine(depth: LiveIngestDepth): string {
     case "trial_slice":
       return "Trial: 90 closed days of orders";
     case "paid_full":
-      return "Paid: up to 24 months of orders";
+      return "Up to 24 months of orders";
     default: {
       const _never: never = depth;
       return _never;

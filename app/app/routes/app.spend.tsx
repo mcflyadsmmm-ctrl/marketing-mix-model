@@ -547,7 +547,7 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
     if (isSampleOnlyFreeze()) {
       return {
         error:
-          "Sample mode is locked. Spend stays the Snowdevil example book.",
+          "Sample mode is locked. Spend stays the Sample shop example book.",
         success: false,
       };
     }
@@ -1509,7 +1509,7 @@ export default function SpendEntryPage() {
                         . {SAMPLE_LEDGER_HANDOFF}
                       </p>
                       <p className="mcfly-spend-lean__status-foot">
-                        Sample mode is locked. These rows stay Snowdevil SAMPLE.
+                        Sample mode is locked. These rows stay Sample shop.
                       </p>
                     </>
                   ) : coverageThroughYesterday.upToDate ? (

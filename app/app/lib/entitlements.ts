@@ -5,7 +5,6 @@
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 
 /**
  * Every named platform plus typed extras (billboard, radio, …).
@@ -32,7 +31,7 @@ export const PRO_UPSELL = {
   priceLine: "$39 per store / month",
   /** One-line “what you get” for Settings. */
   includes:
-    `Spend, Overview, LTV, Goals. Sample data or Live data — billing is not a view. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.`,
+    "Spend, Overview, Customers, LTV, Goals. Trial and paid keep the same desk, including up to 24 months of orders. Spend stays optional.",
   channels:
     "Every named platform plus extras like billboard. Type a channel if we did not list it.",
   ltv: "Did this month’s new customers pay back the spend you logged? Mcfly follows them for 30 / 90 / 365 days. Shopify Analytics does not.",
@@ -48,7 +47,7 @@ export const PRO_UPSELL = {
 /** In-app only (never listing paste). Contrast GMV ladders and order overages. */
 export const BILLING_HONESTY = {
   flat:
-    `Mcfly Analytics is $39 per store / month after a 7-day trial — not a percent of sales, not a per-order fee. The price does not rise with sales. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months. One plan.`,
+    "Mcfly Analytics is $39 per store / month after a 7-day trial — not a percent of sales, not a per-order fee. The price does not rise with sales. Trial and paid keep Customers, LTV, and up to 24 months of orders. Spend stays optional. One plan.",
   cancel:
     "Shopify bills this app. Uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
 } as const;
@@ -61,5 +60,5 @@ export const DESK_FEATURE_BULLETS = [
   "Customer LTV and payback on your store",
   "Full-year Goals board",
   "Sample data to click around before Live data",
-  `7-day trial, then $39 per store / month. Unpaid order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months`,
+  "7-day trial, then $39 per store / month. Trial and paid keep up to 24 months of orders",
 ] as const;

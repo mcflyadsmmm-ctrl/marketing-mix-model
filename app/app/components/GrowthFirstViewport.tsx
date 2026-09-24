@@ -168,7 +168,7 @@ function GrowthHabitStrip({ depth }: { depth: GrowthHabitDepth }) {
  * First-fold Growth — typical wait to a second order vs Shopify’s
  * returning-customer rate, then win-back / reach-now / 30-day peeks
  * Analytics does not put next to that rate. Habit depth (days-to-second
- * shape + weekends) sits under those heroes. SAMPLE Snowdevil is the craft
+ * shape + weekends) sits under those heroes. Sample shop is the craft
  * canvas. Order history only.
  */
 export function GrowthFirstViewport({

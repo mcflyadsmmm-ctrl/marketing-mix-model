@@ -42,7 +42,7 @@ vi.mock("./webhook-delivery.server", () => ({
 }));
 
 import { action } from "../routes/webhooks.orders";
-import { BACKFILL_ORDER_FACTS_JOB } from "./order-facts.server";
+import { shopLocalDayKey } from "./shop-local-day";
 import { RECONCILE_SALES_DAY_JOB } from "./order-webhook";
 
 describe("orders webhook → OrderFact delta", () => {
@@ -73,30 +73,25 @@ describe("orders webhook → OrderFact delta", () => {
     enqueueJob.mockResolvedValue({ jobId: "job_1", dedupeKey: "shop_1" });
   });
 
-  it("enqueues shop-deduped backfill_order_facts after clearing the day seal", async () => {
+  it("reconciles shop-local today only and does not restart the 24-month backfill", async () => {
     const response = await action({
       request: new Request("https://app/webhooks/orders", { method: "POST" }),
     } as never);
+    const todayKey = shopLocalDayKey(new Date(), "America/Chicago");
 
     expect(response).toBeInstanceOf(Response);
-    expect(clearOrderFactDayCompleteSeal).toHaveBeenCalledWith(
-      "shop_1",
-      "2026-07-20",
-    );
-    expect(enqueueJob).toHaveBeenCalledWith(
-      expect.objectContaining({
-        shopId: "shop_1",
-        type: BACKFILL_ORDER_FACTS_JOB,
-        dedupeKey: "shop_1",
-        payload: { reason: "ORDERS_CANCELLED", day: "2026-07-20" },
-      }),
-    );
+    expect(clearOrderFactDayCompleteSeal).not.toHaveBeenCalled();
+    expect(enqueueJob).toHaveBeenCalledTimes(1);
     expect(enqueueJob).toHaveBeenCalledWith(
       expect.objectContaining({
         shopId: "shop_1",
         type: RECONCILE_SALES_DAY_JOB,
-        dedupeKey: "2026-07-20",
+        dedupeKey: todayKey,
+        payload: { day: todayKey, reason: "ORDERS_CANCELLED" },
       }),
+    );
+    expect(JSON.stringify(enqueueJob.mock.calls)).not.toContain(
+      "backfill_order_facts",
     );
   });
 });

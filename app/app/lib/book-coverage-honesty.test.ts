@@ -104,22 +104,19 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
     expect(overviewCoverageLine("paid_full")).toBe(OVERVIEW_COVERAGE_LINE);
   });
 
-  it("Unlock banner names the unpaid 90 / paid 24 split, not the same book", () => {
+  it("Unlock banner names one 24-month desk for trial and paid", () => {
     const unlock = read("../components/UnlockFullHistoryBanner.tsx");
-    expect(unlock).toContain("LIVE_UNPAID_INGEST_DAYS");
-    expect(unlock).toMatch(/closed days of order rows/);
-    expect(unlock).toMatch(/up to 24 months of orders/);
-    expect(unlock).toMatch(/\$39 per store/);
+    expect(unlock).toMatch(/Trial and paid keep the same desk/);
+    expect(unlock).toMatch(/up to 24 months/);
+    expect(unlock).toMatch(/\$39/);
     expect(unlock).not.toMatch(/already on this desk/);
-    expect(unlock).not.toMatch(/Trial\s+and paid use the same book/);
     expect(unlock).not.toContain("~90 days");
+    expect(unlock).not.toContain("LIVE_UNPAID_INGEST_DAYS");
   });
 
   it("Orders, Customers, Overview, and Spend tills pass the unpaid book", () => {
     const orders = read("../routes/app.orders.tsx");
-    expect(orders).toContain("includeShopifyOrderWindow: true");
-    expect(orders).toMatch(/includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/);
-    expect(orders).toContain("orderBookDepth={orderBookDepth}");
+    expect(orders).toMatch(/throw redirect/);
     expect(orders).not.toContain("deskBookLede");
 
     const customers = read("../routes/app.customers.tsx");

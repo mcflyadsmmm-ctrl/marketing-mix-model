@@ -522,7 +522,7 @@ describe("truncated busy-day crawl", () => {
     expect(progress!.completeDays).toBe(0);
   });
 
-  it("clamps unpaid order progress to 90 closed days when billing is on", async () => {
+  it("keeps trial order progress on the 24-month window when billing is on", async () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
@@ -538,7 +538,8 @@ describe("truncated busy-day crawl", () => {
         ianaTimezone: "UTC",
         now: NOW,
       });
-      expect(progress!.windowDays).toBe(LIVE_UNPAID_INGEST_DAYS);
+      expect(progress!.windowDays).toBeGreaterThan(700);
+      expect(progress!.windowDays).toBeLessThan(750);
       expect(shopIsProForIngest).toHaveBeenCalledWith("shop_1");
     } finally {
       if (prev === undefined) delete process.env.MCFLY_BILLING;

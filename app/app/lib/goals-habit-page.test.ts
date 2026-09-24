@@ -17,40 +17,36 @@ const css = read("../styles/mcfly-desk.css");
 const nav = read("./desk-nav.ts");
 
 describe("Order-history Goals — habit, not a dump", () => {
-  it("T1 retires Goals tab — /app/goals redirects to Settings; habit board stays in components", () => {
-    expect(goals).toContain('redirect(`/app/settings');
-    expect(goals).toContain("GoalsRedirect");
+  it("Goals is its own route with one saved target", () => {
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).toContain("Save target");
+    expect(goals).toContain("No target saved.");
+    expect(goals).not.toContain('redirect(`/app/settings');
+    expect(settings).toContain("The one target lives on Goals");
+    expect(settings).not.toContain('name="targetMer"');
+    expect(nav).toContain('{ path: "/app/goals", label: "Goals" }');
+    expect(nav).toContain('{ path: "/app", label: "Orders" }');
     expect(board).toContain("Today’s read");
     expect(lib).toContain("buildHabitGoals");
-    expect(lib).toContain("yearReturningSales");
-    expect(settings).toContain("save_habit_goals");
   });
 
-  it("lets Settings type returning-$ only — LTV Target Line is the average", () => {
-    expect(settings).toContain("save_habit_goals");
-    expect(settings).toContain("returningSalesTarget");
-    expect(settings).toContain("Order-history targets");
-    expect(settings).toContain("LTV Target Line is");
-    expect(settings).toContain("observed average");
-    expect(settings).not.toContain('href="/app/goals"');
+  it("does not put a goal field on Settings", () => {
+    expect(settings).not.toContain('name="returningSalesTarget"');
+    expect(settings).not.toContain("Order-history targets");
     expect(settings).not.toContain('name="ltvTarget"');
-    expect(nav).not.toContain('{ path: "/app/goals", label: "Goals" }');
+    expect(nav).toContain('{ path: "/app/goals", label: "Goals" }');
     expect(nav).toContain('{ path: "/app/customers", label: "Customers" }');
-    expect(nav).toContain('{ path: "/app", label: "Home" }');
+    expect(nav).not.toContain('{ path: "/app", label: "Home" }');
     expect(nav).not.toContain('{ path: "/app/ltv", label: "LTV" }');
-    expect(board).toContain('"/app/customers?panel=ltv"');
-    expect(goals).not.toContain('href="/app/habit"');
     expect(goals).not.toContain('name="ltvTarget"');
-    expect(board).not.toContain('name="ltvTarget"');
-    expect(board).toContain("Target Line from average");
-    expect(board).toContain("Save returning-$ target");
-    expect(board).not.toContain("First-window LTV target");
+    const page = goals.slice(goals.indexOf("export default"));
+    expect(page).not.toMatch(/at goal/i);
   });
 
-  it("keeps habit board + Settings as the Goals job after T1 redirect", () => {
+  it("keeps the habit board in components, not on the Goals route", () => {
     expect(board).toContain("Today’s read");
-    expect(settings).toContain("Order-history targets");
-    expect(goals).toContain("/app/settings");
+    expect(goals).not.toContain("OrderHistoryGoalsBoard");
+    expect(goals).toContain("targetMerSavedAt");
   });
 
   it("paints Today’s read, two ActionCards, and the written-out formulas", () => {

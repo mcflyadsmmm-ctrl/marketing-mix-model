@@ -116,7 +116,7 @@ describe("deskPeriodTillLabel", () => {
         includeShopifyOrderWindow: true,
         orderBookDepth: "paid_full",
       }),
-    ).toBe("This month · today’s sales unavailable");
+    ).toBe("This month · today’s sales still loading");
   });
 });
 
@@ -156,24 +156,37 @@ describe("deskBookLede / honesty notices", () => {
 
 describe("Customers / Growth / Orders honesty wiring", () => {
   it("passes truncated today and the Shopify order window into DeskBookPage", () => {
-    for (const file of ["app.customers.tsx", "app.orders.tsx"]) {
-      const src = readFileSync(join(here, `../routes/${file}`), "utf8");
-      expect(src).toContain(
-        "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
-      );
-      expect(src).toContain(
-        "todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}",
-      );
-      expect(src).toContain(
-        "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
-      );
-      expect(src).toContain("includeShopifyOrderWindow: true");
-      expect(src).not.toContain("deskBookLede");
-    }
+    const customers = readFileSync(
+      join(here, "../routes/app.customers.tsx"),
+      "utf8",
+    );
+    expect(customers).toContain(
+      "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
+    );
+    expect(customers).toContain(
+      "todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}",
+    );
+    expect(customers).toContain(
+      "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
+    );
+    expect(customers).toContain("includeShopifyOrderWindow: true");
+    expect(customers).not.toContain("deskBookLede");
+
+    const orders = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
+    expect(orders).toContain(
+      "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
+    );
+    expect(orders).toContain(
+      "todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}",
+    );
+    expect(orders).toContain("includeShopifyOrderWindow: true");
+    expect(readFileSync(join(here, "../routes/app.orders.tsx"), "utf8")).toMatch(
+      /throw redirect/,
+    );
   });
 
   it("wires OrderFact progress into DeskBookPage on the Shopify five", () => {
-    for (const file of ["app.customers.tsx", "app.orders.tsx"]) {
+    for (const file of ["app.customers.tsx", "app._index.tsx"]) {
       const src = readFileSync(join(here, `../routes/${file}`), "utf8");
       expect(src, file).toContain("orderBackfillProgress={");
       expect(src, file).toContain("completeDays:");

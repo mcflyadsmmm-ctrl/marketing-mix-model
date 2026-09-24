@@ -15,7 +15,7 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     const js = readSite("site/assets/demo-desk.js");
     const desk = html + "\n" + js;
 
-    expect(desk).toContain("Snowdevil");
+    expect(desk).toContain("Sample shop");
     expect(desk).toMatch(/\$68,?457/);
     expect(desk).toMatch(/\$19,?023/);
     expect(desk).toMatch(/3\.60/);

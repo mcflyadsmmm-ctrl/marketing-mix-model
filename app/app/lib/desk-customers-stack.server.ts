@@ -14,8 +14,6 @@ import {
   getOrCreateSettings,
   marginIsConfirmed,
 } from "./mer-dashboard.server";
-import { isBillingEnabled } from "./billing-flag.server";
-import { resolveShopEntitlements } from "./entitlements.server";
 import { requireAdmin } from "./public-app-gate.server";
 import { loadDeskSalesPage } from "./desk-sales-page.server";
 import { loadCustomerAnalytics } from "./desk-customers-page.server";
@@ -38,8 +36,7 @@ export async function loadCustomersStackPage(
   const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
-  const [analytics, comeback, depth, liveSpendCount, entitlements] =
-    await Promise.all([
+  const [analytics, comeback, depth, liveSpendCount] = await Promise.all([
       loadCustomerAnalytics(request, {
         useSampleDesk: base.useSampleDesk,
         windowEnd: base.metrics.period.end,
@@ -65,7 +62,6 @@ export async function loadCustomersStackPage(
       prisma.spendEntry.count({
         where: { shopId: shop.id, NOT: { source: "sample" } },
       }),
-      resolveShopEntitlements(session.shop),
     ]);
   const url = new URL(request.url);
   const panel = parseCustomersPanel(url.searchParams.get("panel"));
@@ -77,8 +73,7 @@ export async function loadCustomersStackPage(
     marginConfirmed: marginIsConfirmed(settings),
     hasLiveSpend: liveSpendCount > 0,
     installedAt: shop.createdAt.toISOString(),
-    liveHistoryLocked:
-      !base.useSampleDesk && isBillingEnabled() && !entitlements.isPro,
+    liveHistoryLocked: false,
     panel,
   };
 }

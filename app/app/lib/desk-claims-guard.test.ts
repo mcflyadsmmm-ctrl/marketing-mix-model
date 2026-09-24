@@ -145,7 +145,7 @@ describe("desk never claims what the routes do not do", () => {
     expect(labels).not.toMatch(/"Your store"/);
   });
 
-  it("prices one paid plan: 7-day trial then $39/store/mo, 90 closed days vs 24 months", () => {
+  it("prices one paid plan: 7-day trial then $39/store/mo, trial and paid share 24 months", () => {
     const ent = readFileSync(join(appSrc, "lib/entitlements.ts"), "utf8");
     expect(ent).toMatch(/7-day trial/);
     expect(ent).toMatch(/\$39/);
@@ -154,7 +154,7 @@ describe("desk never claims what the routes do not do", () => {
     expect(ent).toMatch(/Uninstall/);
     expect(ent).not.toMatch(/full-access/);
     expect(ent).not.toMatch(/Free plan/);
-    expect(ent).toMatch(/90 closed days|LIVE_UNPAID_INGEST_DAYS/);
+    expect(ent).toMatch(/Trial and paid keep/);
     expect(ent).toMatch(/24 months/);
     const handoff = readFileSync(
       join(appSrc, "lib/sample-live-handoff.ts"),

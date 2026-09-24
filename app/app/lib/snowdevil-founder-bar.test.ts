@@ -51,12 +51,12 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(sampleChrome).not.toContain("Harbor Home Co");
     expect(sampleChrome).not.toMatch(/Harbor \$8[0-9]|Harbor \$1[0-1][0-9]/);
     expect(sampleChrome).not.toMatch(/typical order around \$92/i);
-    expect(PRODUCT_NOUN.sampleHint).toMatch(/Snowdevil/);
+    expect(PRODUCT_NOUN.sampleHint).toMatch(/Sample shop/);
     expect(PRODUCT_NOUN.sampleHint).not.toMatch(/Harbor/);
-    expect(SAMPLE_OVERVIEW_DOOR).toMatch(/Snowdevil/);
-    expect(SAMPLE_GROWTH_DOOR).toMatch(/Snowdevil/);
-    expect(SAMPLE_SPEND_NOT_LIVE).toMatch(/Snowdevil/);
-    expect(SAMPLE_LEDGER_HANDOFF).toMatch(/Snowdevil/);
+    expect(SAMPLE_OVERVIEW_DOOR).toMatch(/Sample shop/);
+    expect(SAMPLE_GROWTH_DOOR).toMatch(/Sample shop/);
+    expect(SAMPLE_SPEND_NOT_LIVE).toMatch(/Sample shop/);
+    expect(SAMPLE_LEDGER_HANDOFF).toMatch(/Sample shop/);
     expect(
       SAMPLE_OVERVIEW_DOOR +
         SAMPLE_GROWTH_DOOR +
@@ -210,7 +210,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const overview = readApp("../routes/app._index.tsx");
     const firstView = readApp("../components/OverviewFirstViewport.tsx");
     expect(fixture).toContain("SAMPLE");
-    expect(fixture).toContain("Snowdevil example sales");
+    expect(fixture).toContain("Sample shop example sales");
     expect(fixture).not.toContain("Example spend");
     expect(fixture).toContain("mcfly-desk--sample");
     expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
@@ -225,7 +225,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
 
   it("8+9. Public demo and SAMPLE tests are not Harbor / Northline truth", () => {
     const demo = readSite("site/demo.html") + readSite("site/assets/demo-desk.js");
-    expect(demo).toContain("Snowdevil");
+    expect(demo).toContain("Sample shop");
     expect(demo).toContain("$68,457");
     expect(demo).toContain("$631");
     expect(demo).not.toContain("Northline Supply");

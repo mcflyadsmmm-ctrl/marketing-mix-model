@@ -156,7 +156,7 @@ export const SAMPLE_DESK_TARGET_MER = 3.5;
 /** SAMPLE break-even economics (~35% → BE ≈ 2.86). Applied at read time only. */
 export const SAMPLE_DESK_MARGIN_PCT = 0.35;
 /** SAMPLE chrome brand — Shopify snowboard generated-data shop. */
-export const SAMPLE_DESK_SHOP_NAME = "Snowdevil";
+export const SAMPLE_DESK_SHOP_NAME = "Sample shop";
 /** Spend note that marks the growth-story Snowdevil book (rewrites leftover Harbor / snowdevil-1). */
 export const SAMPLE_BOOK_NOTE = "sample:snowdevil-2";
 

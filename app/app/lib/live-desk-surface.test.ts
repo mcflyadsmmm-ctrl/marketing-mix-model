@@ -93,7 +93,12 @@ describe("live desk stage gate", () => {
     const nav = liveDeskNavState({ sampleDesk: true, stage: "parked" });
     expect(nav.customersLocked).toBe(false);
     expect(nav.ltvLocked).toBe(false);
-    expect(deskNavLabel(DESK_PRIMARY_NAV[1]!, nav)).toBe("Customers");
+    expect(
+      deskNavLabel(
+        DESK_PRIMARY_NAV.find((item) => item.path === "/app/customers")!,
+        nav,
+      ),
+    ).toBe("Customers");
     expect(liveDeskPanelChips("/app/customers", nav).map((chip) => chip.label)).toEqual(
       ["Returning", "LTV", "Growth", "Depth"],
     );

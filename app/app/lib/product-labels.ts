@@ -136,7 +136,7 @@ export const PRODUCT_NOUN = {
   bookTypicalDayEmpty: "Needs five days with sales — not $0.",
   bookSecondWithin30: "Second order in 30 days",
   bookSecondWithin30Def:
-    "First-time buyers who came back within 30 days. Unpaid order rows are 90 closed days; paid is up to 24 months.",
+    "First-time buyers who came back within 30 days. Trial and paid both keep up to 24 months of orders.",
   bookSecondWithin30Empty:
     "Needs more first-time buyers with 30 days to come back.",
   bookSecondVsThird: "2nd vs 3rd+ buyers",
@@ -180,7 +180,7 @@ export const PRODUCT_NOUN = {
   liveData: "Live data",
   samplePeriodSuffix: " · Sample data",
   sampleHint:
-    "Snowdevil example sales so you can click around. Not this shop’s Shopify sales.",
+    "Sample shop example sales so you can click around. Not this shop’s Shopify sales.",
   liveDataHint:
     "This shop’s Shopify sales and the ad spend you add.",
   sampleHiddenStatus: "Sample data is hidden in Settings",
@@ -191,7 +191,7 @@ export const PRODUCT_NOUN = {
   samplePreviewOffReviewKicker: "You are viewing Sample data",
   samplePreviewOffReviewTitle: "These are example numbers",
   samplePreviewOffReviewBody:
-    "These are Snowdevil example numbers, not this shop. Sample mode stays on until your orders replace it.",
+    "These are Sample shop example numbers, not this shop. Sample mode stays on until your orders replace it.",
   samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
     "This shop’s Shopify sales. Add daily spend on Spend Upload. Switch to Sample data in Settings to try example numbers.",

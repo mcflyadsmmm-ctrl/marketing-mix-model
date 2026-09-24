@@ -13,14 +13,12 @@
  * answers "Customers · locked" is the app breaking its own price promise.
  *
  * Commercial ingest is data depth, not a tab feature gate:
- *   unpaid / Shopify trial → {@link LIVE_UNPAID_INGEST_DAYS} closed days
- *   paid $39 → full Shopify-visible history, then the 24-month order-row
- *   cap in live-ingest-depth. Flat $39 is the whole paid LTV book.
+ *   trial and paid → the same 24-month order book (Customers and LTV included).
+ *   Billing does not withhold history until the first charge. Flat $39.
  *
- * The crawl enforces that slice: `resolveLiveIngestWindowDays` and
- * `scheduleFirstSessionShopifyWindow` stop unpaid/trial at
- * {@link LIVE_UNPAID_INGEST_DAYS}. Paid is not cut to that slice.
- * One-shot + webhook context: {@link LIVE_SYNC_LAW_PR_REF}.
+ * `resolveLiveIngestWindowDays` and `scheduleFirstSessionShopifyWindow`
+ * do not pass a shorter unpaid window. One-shot + webhook context:
+ * {@link LIVE_SYNC_LAW_PR_REF}.
  */
 
 export const LIVE_UNPAID_INGEST_DAYS = 90;
@@ -157,8 +155,9 @@ export function liveIngestPolicy(input: {
   if (input.stage === "parked") {
     return { kind: "none", reason: "stage_parked" };
   }
-  if (input.paid) return { kind: "paid_full" };
-  return { kind: "unpaid_slice", closedDays: LIVE_UNPAID_INGEST_DAYS };
+  // `paid` does not change the window. Trial and paid share 24 months.
+  void input.paid;
+  return { kind: "paid_full" };
 }
 
 export type LiveShopifyWindowSchedule =
@@ -166,9 +165,10 @@ export type LiveShopifyWindowSchedule =
   | { schedule: true; closedDays: number | null };
 
 /**
- * Kick vs skip, plus the unpaid closed-day window.
- * `closedDays` is null for paid — the crawl keeps the Shopify-visible
- * window (order rows still stop at 24 months).
+ * Kick vs skip. `closedDays` is null for the shared desk — the crawl keeps
+ * the Shopify-visible window, and order rows still stop at 24 months.
+ * `unpaid_slice` remains on the type so a caller can still name a shorter
+ * window; this app does not schedule one.
  */
 export function liveShopifyWindowSchedule(
   policy: LiveIngestPolicy,
@@ -195,8 +195,8 @@ export function liveShopifyWindowShouldSchedule(
 }
 
 /**
- * Unknown shops are not treated as paid-full. Callers that know billing
- * pass `paid`. Unpaid/trial crawls stop at {@link LIVE_UNPAID_INGEST_DAYS}.
+ * Freeze and parked still skip ingest. Trial and paid both schedule the
+ * full commercial window. `paid` does not shrink it.
  */
 export function liveUnparkIngestPolicyFromEnv(
   env: NodeJS.ProcessEnv = process.env,

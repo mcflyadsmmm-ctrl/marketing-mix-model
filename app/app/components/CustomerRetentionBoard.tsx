@@ -110,7 +110,7 @@ function RetentionEmptyFrame() {
       </div>
       <p className="mcfly-cust-empty__copy">
         Repurchase cadence needs identified buyers with a second order on file —
-        not $0. Snowdevil SAMPLE fills this in; a fresh live shop fills in as
+        not $0. Sample shop fills this in; a fresh live shop fills in as
         orders land.
       </p>
     </section>

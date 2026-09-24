@@ -41,7 +41,7 @@ Code: `app/app/lib/live-unpark.ts`. Env: `MCFLY_LIVE_STAGE`.
 | _(unset)_ | freeze **off** + no `MCFLY_LIVE_STAGE` | whole desk | Default since `cursor/forward-desk-gap`. Parking a rung is an explicit act; a deploy no longer falls back to a partial desk, and a stage string that names no rung serves the whole desk and warns instead of going dark. |
 | **overview_orders** | freeze **off** + `overview_orders` | Overview · Orders | **Current production** (Fly secrets, 2026-09-23). Sales / typical ticket / clock vs Admin. |
 | **customers** | `customers` | + Customers · Growth | Returning $, guests out, win-back |
-| **ltv** | `ltv` | + LTV | Paid $39 = full history LTV. Unpaid/trial Live = **90 closed days** (honest empties, not $0 year) |
+| **ltv** | `ltv` | + LTV | Trial and paid share up to 24 months of orders (honest empties, not $0) |
 
 Billing is **not** a tab gate. Once a stage is open, trial and paid both see that rung. The difference is **ingest depth**, not a hidden LTV paywall.
 
@@ -57,11 +57,11 @@ SoT on tip: [`docs/BILLING_TIERS.md`](../BILLING_TIERS.md) · `PRO_PLAN` = **$39
 | Who | Desk | Live ingest |
 | --- | --- | --- |
 | SAMPLE / demo | Full Snowdevil wow | **None** (freeze / parked) |
-| Trial or unpaid Live | Whole desk (no feature gate) | **90 closed days** — cheap slice, not a fake year |
-| Paid **$39** | Whole desk | **Full** Shopify-visible order history, still cut at **24 months** of order rows |
+| Trial or unpaid Live | Whole desk (no feature gate) | Trial and paid share up to 24 months of order rows |
+| Paid **$39** | Whole desk | Same book. Order rows still stop at **24 months** |
 | Host not charging | Whole desk | Same window as paid. Billing off is not a trial slice. |
 
-`liveIngestPolicy()` names the slice. The crawl enforces it on this tip: `resolveLiveIngestWindowDays` and `scheduleFirstSessionShopifyWindow` stop unpaid/trial at **90 closed days** (`LIVE_UNPAID_INGEST_DAYS`). Paid keeps the Shopify-visible window; order rows still stop at 24 months. Do not treat paid as a 90-closed-day book.
+`liveIngestPolicy()` schedules the shared desk. Trial and paid share up to 24 months. `resolveLiveIngestWindowDays` and `scheduleFirstSessionShopifyWindow` do not pass a shorter unpaid window. Order rows still stop at 24 months.
 
 Sibling note: `cursor/sync-law-oneshot-webhook-6eb3`. The unpaid hard-stop does not wait on that PR.
 
@@ -73,12 +73,12 @@ Sibling note: `cursor/sync-law-oneshot-webhook-6eb3`. The unpaid hard-stop does 
 
 1. **One-shot.** Finish the granted Shopify window once. Sealed shop → Live tabs do **not** enqueue/burst again.
 2. **OAuth / first paint never await the crawl.** Enqueue + fire-and-forget. Pending ≠ $0.
-3. **Refunds / cancels** re-arm OrderFact via webhook after the day seal clears — do not wait for a tab click.
+3. **orders/create and orders/updated** reconcile shop-local today only. They do not restart the 24-month crawl.
 4. **No IANA TZ → do not invent days.** Resume when TZ exists.
 5. **SAMPLE freeze skips Live ingest** (this PR). Kill switch is cheap.
 6. **Do not re-pull the book on every Admin load.** Worker / job tick resumes.
 
-One-shot seal is on this tip: a sealed shop does not re-enqueue from Live tabs. Unpaid/trial ingest is **90 closed days**. Paid order rows stay inside the Shopify-visible window and the 24-month cap. `cursor/sync-law-oneshot-webhook-6eb3` is the sibling note for one-shot + webhook. Do not flip `MCFLY_SAMPLE_ONLY`.
+One-shot seal is on this tip: a sealed shop does not re-enqueue from Live tabs. Trial and paid share up to 24 months of order rows. Nightly asks Shopify only for the last 7 closed days. `cursor/sync-law-oneshot-webhook-6eb3` is the sibling note for one-shot + webhook. Do not flip `MCFLY_SAMPLE_ONLY`.
 
 ---
 
@@ -113,10 +113,10 @@ Prior SAMPLE-only audits (v336 / v339) are **not** a Live pass.
 | Hook | File | Behavior now |
 | --- | --- | --- |
 | Freeze | `isSampleOnlyFreeze()` / `fly.toml` | Git default `MCFLY_SAMPLE_ONLY=true`. Production secrets are `false` and override `[env]`. Do not flip the git default in a PR. |
-| Stage + commercial policy | `app/app/lib/live-unpark.ts` | parked → no Live ingest; unpaid/trial = 90 closed days; paid = full Shopify-visible |
-| Ingest depth | `resolveLiveIngestWindowDays` | Unpaid/trial crawl stops at 90 closed days; paid keeps the granted window |
-| Order rows | `resolveCommercialOrderWindowDays` | After the unpaid slice, rows still stop at 24 months |
-| Schedule | `scheduleFirstSessionShopifyWindow` | No-ops when freeze or stage parked; unpaid_slice passes the 90 closed-day window |
+| Stage + commercial policy | `app/app/lib/live-unpark.ts` | parked → no Live ingest; trial and paid share up to 24 months |
+| Ingest depth | `resolveLiveIngestWindowDays` | Trial and paid keep the granted window |
+| Order rows | `resolveCommercialOrderWindowDays` | Rows stop at 24 months for trial and paid |
+| Schedule | `scheduleFirstSessionShopifyWindow` | No-ops when freeze or stage parked; does not pass a 90-day window |
 | Sync note | `cursor/sync-law-oneshot-webhook-6eb3` | One-shot + webhook context. Unpaid hard-stop is on this tip. |
 
 ---

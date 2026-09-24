@@ -6,7 +6,7 @@
 **Price:** 7-day trial, then **$39**/store/month. **Reviews: 0** (do not invent).  
 **SoT copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · shots [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md) · captions [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md)
 
-**Refresh (2026-09-22):** Sales-first pack below. Five analysis tabs plus Settings: Overview · Orders · Customers at $0 spend (YoY year board, typical order, returning dollars, LTV 30/90/365, days-to-second folded in). Spend last — optional typed/CSV → Total ROAS (honest MER: sales ÷ entered spend; empty = —), mix, CPA. Admin is **Live-only**; SAMPLE lives on https://mcflyads.com/demo only. Trial includes **90 closed days** of order history; paid includes up to **24 months** (not ~60d as the primary story). Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**. Spot-check the live mcflyads.com version before Save.
+**Refresh (2026-09-22):** Sales-first pack below. Five analysis tabs plus Settings: Overview · Orders · Customers at $0 spend (YoY year board, typical order, returning dollars, LTV 30/90/365, days-to-second folded in). Spend last — optional typed/CSV → Total ROAS (honest MER: sales ÷ entered spend; empty = —), mix, CPA. Admin is **Live-only**; SAMPLE lives on https://mcflyads.com/demo only. Trial and paid include up to **24 months** of order history (not ~60d as the primary story). Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**. Spot-check the live mcflyads.com version before Save.
 
 **Live listing gap (as of prior 2026-09-15 probe):** public page still led spend (“See every ad dollar next to Sales”) and still had **$39 in a feature bullet** (4.2.3). Tagline did **not** mention YoY. Public pricing card already said **Mcfly Analytics** $39 / 7-day (not Pro). Reviews **0**. Paste this pack so the listing matches the ready product. Spot-check the live mcflyads.com version before Save. Ops curl cannot see Partner Pricing itself — still confirm **no Free plan** in Partner before Save.
 
@@ -44,7 +44,7 @@ Work top → bottom. **Save each section.** Do **not** click Submit.
 13. **Feature / header media + screenshots** → §8–§9 + captions §11. **Live Admin only** — do not upload SAMPLE /demo stills as the live product.
 14. **Save.** Cursor does not Submit. Founder decides whether Shopify’s listing editor requires a re-review.
 
-**90/24 honesty check before Save:** long description, short description, and (if open) reviewer notes say trial includes **90 closed days** of order history; paid includes up to **24 months** — not “~60 days” as the primary install story. Empty YoY cells stay honest (never last year as zero); do not invent GMV or reviews.
+**History check before Save:** long description, short description, and (if open) reviewer notes say trial and paid include up to **24 months** of order history — not “~60 days” as the primary install story. Empty YoY cells stay honest (never last year as zero); do not invent GMV or reviews.
 
 Optional after save: Partner Support handle request (§10).
 
@@ -83,7 +83,7 @@ Set Partner **Website** and the long-description **Learn more** line to `https:/
 ```text
 Overview opens on this month versus the same days last year from your Shopify orders — plus typical order and returning dollars, with this quarter and this year on the same screen and a sales chart.
 
-Customers, Orders, and Overview work with no spend: days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days live on those pages. Trial includes 90 closed days of order history; paid includes up to 24 months. Admin opens on your live store orders. Never invent last year as zero while history is still loading. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
+Customers, Orders, and Overview work with no spend: days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days live on those pages. Trial and paid include up to 24 months of order history. Admin opens on your live store orders. Never invent last year as zero while history is still loading. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
 
 Spend is optional. Type or CSV daily spend when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Empty spend is an em dash, not 0×. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Mix, CPA, ledger, and dual-close sit on Spend. For channels, you can type or CSV daily spend for Meta, Google, TikTok, billboards, or another line when you add spend. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
 
@@ -191,7 +191,7 @@ Icon (keep / re-upload if missing): `docs/listing-assets/mcfly-app-icon-1200.png
 | `docs/listing-assets/shots/05-spend-csv.png` | July mock still says other platforms are on **Pro** (1.1.4) |
 | `docs/listing-assets/shots/05-HOLD-marketing-site-do-not-upload.png` | Marketing site — not embedded Admin |
 
-**Marty recapture all five screenshots from Live Admin** (current production Fly). Do not use Snowdevil `/demo` SAMPLE for App Store stills. Founder-pack and older Fly files do not match the ready desk. Overwrite the stable filenames; do not invent new files. Do **not** invent that these shots were already recaptured.
+**Marty recapture all five screenshots from Live Admin** (current production Fly). Do not use Sample shop `/demo` SAMPLE for App Store stills. Founder-pack and older Fly files do not match the ready desk. Overwrite the stable filenames; do not invent new files. Do **not** invent that these shots were already recaptured.
 
 | # | Capture | Save as | Caption (≤80) |
 | --- | --- | --- | --- |
@@ -255,7 +255,7 @@ Feature media has no caption field beyond the image itself. It must show Live Ad
 - **Marty recapture** all five shots from Live Admin in this order: Overview YoY → Customers → Orders → LTV → Total ROAS chips
 - Do not upload the three banned PNGs, `/demo` SAMPLE as live product, or any retired three-year Total ROAS capture
 - Website / Learn more → `https://mcflyads.com`. Spot-check the live mcflyads.com version before Save. App URL stays Fly.
-- **90/24 honesty check:** long copy says trial includes **90 closed days**; paid includes up to **24 months** — not ~60d as primary
+- **History check:** long copy says trial and paid include up to **24 months** — not ~60d as primary
 - Optional handle email to Partner Support
 - App testing information (if Shopify opens a listing re-review): [`PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md)
 

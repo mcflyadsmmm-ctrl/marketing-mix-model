@@ -3,6 +3,7 @@ import { unauthenticated } from "../shopify.server";
 import {
   claimNextJob,
   completeJob,
+  enqueueJob,
   failJob,
   getQueueDepth,
   reclaimStaleJobs,
@@ -17,16 +18,29 @@ import {
   type JobWorkerTickResult,
 } from "./job-worker";
 import { RECONCILE_SALES_DAY_JOB, RECOMPUTE_COHORT_FACTS_JOB } from "./order-webhook";
-import { reconcileSalesDayFact } from "./sales-facts.server";
-import { recomputeCohortFacts } from "./order-facts.server";
+import {
+  reconcileSalesDayFact,
+  refreshRecentSalesFromShopify,
+} from "./sales-facts.server";
+import {
+  ORDER_FACT_SOURCE,
+  orderFactDayCompleteMarkerId,
+  recomputeCohortFacts,
+  runOrderFactsBackfill,
+} from "./order-facts.server";
 import {
   BACKFILL_ORDER_FACTS_JOB,
   BACKFILL_SALES_DAY_FACTS_JOB,
   handleBackfillOrderFacts,
   handleBackfillSalesDayFacts,
 } from "./job-worker.server";
+import { listRecentClosedShopLocalDays } from "./shop-local-day";
 import { purgeExpiredWebhookDeliveries } from "./webhook-delivery.server";
 import { purgeExpiredComplianceDataExports } from "./compliance-export-retrieve.server";
+import {
+  RECOMPUTE_DESK_METRICS_JOB,
+  recomputeDeskMetricSnapshot,
+} from "./desk-metric-snapshot.server";
 
 /**
  * Production wiring for the job worker: real Prisma claim/finalize plus handlers.
@@ -48,6 +62,41 @@ let lastDeliverySweepAt = 0;
 
 /** Same cadence for Level-1 ComplianceDataExport TTL (privacy: 60 days). */
 let lastComplianceExportSweepAt = 0;
+
+/** One nightly enqueue per process day. Jobs run in this app via /api/jobs/tick. */
+let lastNightlyDeskMetricsAt = 0;
+const NIGHTLY_DESK_METRICS_MS = 24 * 60 * 60 * 1000;
+
+/** Shopify ask on the nightly job. The 24-month book is not re-pulled. */
+export const NIGHTLY_SHOPIFY_REFRESH_DAYS = 7;
+
+async function enqueueNightlyDeskMetrics(now: Date): Promise<void> {
+  if (now.getUTCHours() < 8) return;
+  if (now.getTime() - lastNightlyDeskMetricsAt < NIGHTLY_DESK_METRICS_MS) return;
+  lastNightlyDeskMetricsAt = now.getTime();
+  const dayKey = now.toISOString().slice(0, 10);
+  const shops = await prisma.shop.findMany({ select: { id: true } });
+  for (const shop of shops) {
+    const dedupeKey = `nightly:${dayKey}`;
+    const existing = await prisma.job.findUnique({
+      where: {
+        shopId_type_dedupeKey: {
+          shopId: shop.id,
+          type: RECOMPUTE_DESK_METRICS_JOB,
+          dedupeKey,
+        },
+      },
+      select: { id: true },
+    });
+    if (existing) continue;
+    await enqueueJob({
+      shopId: shop.id,
+      type: RECOMPUTE_DESK_METRICS_JOB,
+      dedupeKey,
+      payload: { reason: "nightly" },
+    });
+  }
+}
 
 async function handleReconcileSalesDay(job: ClaimedJob): Promise<void> {
   const day = job.payload.day;
@@ -77,6 +126,80 @@ async function handleReconcileSalesDay(job: ClaimedJob): Promise<void> {
   );
 }
 
+async function storedOrderBookMissing(shopId: string): Promise<boolean> {
+  const [orderRow, salesRow] = await Promise.all([
+    prisma.orderFact.findFirst({
+      where: { shopId, source: ORDER_FACT_SOURCE },
+      select: { id: true },
+    }),
+    prisma.salesDayFact.findFirst({
+      where: { shopId },
+      select: { id: true },
+    }),
+  ]);
+  return orderRow == null && salesRow == null;
+}
+
+async function handleRecomputeDeskMetrics(job: ClaimedJob): Promise<void> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: job.shopId },
+    select: { id: true, domain: true, ianaTimezone: true },
+  });
+  if (!shop) {
+    throw new NonRetryableJobError(`Shop ${job.shopId} no longer exists`);
+  }
+  if (await storedOrderBookMissing(shop.id)) {
+    await enqueueJob({
+      shopId: shop.id,
+      type: BACKFILL_SALES_DAY_FACTS_JOB,
+      dedupeKey: shop.id,
+      payload: { reason: "book_missing" },
+    });
+    await enqueueJob({
+      shopId: shop.id,
+      type: BACKFILL_ORDER_FACTS_JOB,
+      dedupeKey: shop.id,
+      payload: { reason: "book_missing" },
+    });
+    console.log(
+      `job ${RECOMPUTE_DESK_METRICS_JOB} shopId=${shop.id} full reload — stored book missing`,
+    );
+    return;
+  }
+
+  const { admin } = await unauthenticated.admin(shop.domain);
+  const timeZone = shop.ianaTimezone?.trim() || "UTC";
+  const recentDays = listRecentClosedShopLocalDays(
+    timeZone,
+    NIGHTLY_SHOPIFY_REFRESH_DAYS,
+    new Date(),
+  );
+  if (recentDays.length > 0) {
+    await prisma.orderFact.deleteMany({
+      where: {
+        shopId: shop.id,
+        shopifyOrderId: {
+          in: recentDays.map((day) => orderFactDayCompleteMarkerId(day)),
+        },
+      },
+    });
+  }
+  await refreshRecentSalesFromShopify(
+    admin,
+    shop.id,
+    NIGHTLY_SHOPIFY_REFRESH_DAYS,
+  );
+  await runOrderFactsBackfill(admin, shop.id, {
+    windowDays: NIGHTLY_SHOPIFY_REFRESH_DAYS,
+    maxDays: NIGHTLY_SHOPIFY_REFRESH_DAYS,
+  });
+  await recomputeCohortFacts(shop.id);
+  await recomputeDeskMetricSnapshot(shop.id);
+  console.log(
+    `job ${RECOMPUTE_DESK_METRICS_JOB} shopId=${shop.id} shopifyDays=${NIGHTLY_SHOPIFY_REFRESH_DAYS}`,
+  );
+}
+
 async function handleRecomputeCohortFacts(job: ClaimedJob): Promise<void> {
   const shop = await prisma.shop.findUnique({
     where: { id: job.shopId },
@@ -92,6 +215,7 @@ async function handleRecomputeCohortFacts(job: ClaimedJob): Promise<void> {
 export const JOB_HANDLERS: Record<string, JobHandler> = {
   [RECONCILE_SALES_DAY_JOB]: handleReconcileSalesDay,
   [RECOMPUTE_COHORT_FACTS_JOB]: handleRecomputeCohortFacts,
+  [RECOMPUTE_DESK_METRICS_JOB]: handleRecomputeDeskMetrics,
   [BACKFILL_ORDER_FACTS_JOB]: handleBackfillOrderFacts,
   [BACKFILL_SALES_DAY_FACTS_JOB]: handleBackfillSalesDayFacts,
 };
@@ -153,6 +277,13 @@ export async function runQueueTick(
   );
   const deliveriesPurged = await sweepDeliveryLedger(now);
   const complianceExportsPurged = await sweepComplianceExports(now);
+  try {
+    await enqueueNightlyDeskMetrics(now);
+  } catch (error) {
+    console.error(
+      `[queue] nightly desk metrics enqueue failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   const tick = await runJobWorkerTick(
     workerId,

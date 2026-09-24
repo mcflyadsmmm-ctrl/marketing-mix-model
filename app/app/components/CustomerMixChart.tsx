@@ -138,7 +138,7 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
       <p className="mcfly-cust-mix__empty-copy">
         {pending
           ? "Returning dollars are still loading — not $0."
-          : "Needs at least two days of orders on file — not zero. Snowdevil SAMPLE fills this in; a fresh live shop fills in as orders land."}
+          : "Needs at least two days of orders on file — not zero. Sample shop fills this in; a fresh live shop fills in as orders land."}
       </p>
     </section>
   );

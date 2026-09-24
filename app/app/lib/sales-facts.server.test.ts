@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const findMany = vi.fn();
 const upsert = vi.fn();
 const count = vi.fn();
+const findUnique = vi.fn();
 
 vi.mock("../db.server", () => ({
   default: {
@@ -10,6 +11,7 @@ vi.mock("../db.server", () => ({
       findMany: (...args: unknown[]) => findMany(...args),
       upsert: (...args: unknown[]) => upsert(...args),
       count: (...args: unknown[]) => count(...args),
+      findUnique: (...args: unknown[]) => findUnique(...args),
     },
   },
 }));
@@ -43,7 +45,6 @@ vi.mock("./shopify-sales.server", async (importOriginal) => {
   };
 });
 
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   runSalesFactsBackfill,
   getSalesFactsCoverage,
@@ -51,7 +52,10 @@ import {
   getSalesFactsByDay,
   getSalesFactsWindowRemainingDays,
   salesResultFromFactsTotals,
+  loadDeskSalesForPeriod,
+  reconcileSalesDayFact,
   SALES_DAY_FACT_SOURCE,
+  SALES_DAY_FACT_OPEN_SOURCE,
 } from "./sales-facts.server";
 import { ShopifyReportsScopeError } from "./shopify-sales-totals.server";
 
@@ -262,7 +266,8 @@ describe("runSalesFactsBackfill", () => {
     const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 10 });
 
     expect(result.attempted).toBe(10);
-    expect(result.remainingMissingDays).toBeGreaterThan(3000);
+    expect(result.remainingMissingDays).toBeGreaterThan(700);
+    expect(result.remainingMissingDays).toBeLessThan(750);
     expect(fetchShopifySales).not.toHaveBeenCalled();
   });
 
@@ -310,20 +315,22 @@ describe("runSalesFactsBackfill", () => {
       now: new Date("2026-07-15T12:00:00.000Z"),
       scopesAllowDeep: false,
     });
-    expect(remaining).toBeGreaterThan(3000);
+    expect(remaining).toBeGreaterThan(700);
+    expect(remaining).toBeLessThan(750);
   });
 
-  it("counts the ShopifyQL sales window, not a 24-month order crawl", async () => {
+  it("counts a 24-month sales window, not a five-year pull", async () => {
     findMany.mockResolvedValue([]);
     const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
       ianaTimezone: "UTC",
       now: new Date("2026-09-17T12:00:00.000Z"),
       scopesAllowDeep: true,
     });
-    expect(remaining).toBeGreaterThan(365 * 9);
+    expect(remaining).toBeGreaterThan(700);
+    expect(remaining).toBeLessThan(750);
   });
 
-  it("clamps unpaid sales remaining days to the closed-day slice when billing is on", async () => {
+  it("keeps trial sales ingest on the 24-month window when billing is on", async () => {
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
     shopIsProForIngest.mockResolvedValue(false);
@@ -339,7 +346,8 @@ describe("runSalesFactsBackfill", () => {
         now,
         scopesAllowDeep: true,
       });
-      expect(remaining).toBe(LIVE_UNPAID_INGEST_DAYS);
+      expect(remaining).toBeGreaterThan(700);
+      expect(remaining).toBeLessThan(750);
       expect(shopIsProForIngest).toHaveBeenCalledWith("shop_1");
 
       const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
@@ -347,7 +355,8 @@ describe("runSalesFactsBackfill", () => {
         maxDays: 10,
       });
       expect(result.attempted).toBe(10);
-      expect(result.remainingMissingDays).toBe(LIVE_UNPAID_INGEST_DAYS - 10);
+      expect(result.remainingMissingDays).toBeGreaterThan(690);
+      expect(result.remainingMissingDays).toBeLessThan(740);
 
       const widened = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
         now,
@@ -355,14 +364,14 @@ describe("runSalesFactsBackfill", () => {
         windowDays: 500,
       });
       expect(widened.attempted).toBe(10);
-      expect(widened.remainingMissingDays).toBe(LIVE_UNPAID_INGEST_DAYS - 10);
+      expect(widened.remainingMissingDays).toBe(490);
     } finally {
       if (prev === undefined) delete process.env.MCFLY_BILLING;
       else process.env.MCFLY_BILLING = prev;
     }
   });
 
-  it("keeps the ShopifyQL sales window for paid shops when billing is on", async () => {
+  it("keeps paid sales ingest at 24 months when billing is on", async () => {
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
     shopIsProForIngest.mockResolvedValue(true);
@@ -373,7 +382,8 @@ describe("runSalesFactsBackfill", () => {
         now: new Date("2026-09-17T12:00:00.000Z"),
         scopesAllowDeep: true,
       });
-      expect(remaining).toBeGreaterThan(365 * 9);
+      expect(remaining).toBeGreaterThan(700);
+      expect(remaining).toBeLessThan(750);
     } finally {
       if (prev === undefined) delete process.env.MCFLY_BILLING;
       else process.env.MCFLY_BILLING = prev;
@@ -703,5 +713,66 @@ describe("getSalesFactsByDay", () => {
     expect(map.has("2026-01-15")).toBe(false);
     expect(map.get("2026-09-01")).toBe(80);
     expect(map.size).toBe(1);
+  });
+});
+
+describe("desk paint reads stored sales", () => {
+  beforeEach(() => {
+    findMany.mockReset();
+    findUnique.mockReset();
+    upsert.mockReset();
+    ensureShopMetadata.mockReset();
+    fetchShopifySalesDayTotals.mockReset();
+    fetchShopifySalesDayTotals.mockResolvedValue(
+      new Map([
+        [
+          "2026-07-15",
+          {
+            dayKey: "2026-07-15",
+            totalSales: 12,
+            netSales: 10,
+            grossSales: 14,
+            orderCount: 1,
+            newCustomerNetSales: 12,
+            returningCustomerNetSales: 0,
+            customerMetricsAvailable: true,
+          },
+        ],
+      ]),
+    );
+  });
+
+  it("does not call ShopifyQL while loading a period", async () => {
+    findMany.mockResolvedValue([]);
+    findUnique.mockResolvedValue(null);
+    const result = await loadDeskSalesForPeriod({
+      admin: FAKE_ADMIN,
+      shopId: "shop_1",
+      range: {
+        start: new Date("2026-07-01T00:00:00.000Z"),
+        end: new Date("2026-07-15T23:59:59.999Z"),
+        label: "This month",
+      },
+      ianaTimezone: "UTC",
+      now: new Date("2026-07-15T18:00:00.000Z"),
+    });
+    expect(fetchShopifySalesDayTotals).not.toHaveBeenCalled();
+    expect(result.todaySalesUnavailable).toBe(true);
+    expect(result.salesError).toBeNull();
+  });
+
+  it("writes today from the webhook reconcile with an open source", async () => {
+    ensureShopMetadata.mockResolvedValue({
+      ianaTimezone: "UTC",
+      currencyCode: "USD",
+    });
+    upsert.mockResolvedValue({});
+    const result = await reconcileSalesDayFact(FAKE_ADMIN, "shop_1", "2026-07-15", {
+      now: new Date("2026-07-15T18:00:00.000Z"),
+    });
+    expect(result.written).toBe(true);
+    expect(result.skippedReason).toBeNull();
+    expect(upsert.mock.calls[0][0].create.source).toBe(SALES_DAY_FACT_OPEN_SOURCE);
+    expect(fetchShopifySalesDayTotals).toHaveBeenCalledTimes(1);
   });
 });

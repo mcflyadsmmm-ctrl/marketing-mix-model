@@ -94,7 +94,7 @@ describe("public Remix SAMPLE desk", () => {
     expect(view.estimate).not.toBeNull();
     expect(view.estimate!).toBeGreaterThan(0);
     expect(view.plug).toMatch(/×/);
-    expect(view.daysLine).toMatch(/Snowdevil book/);
+    expect(view.daysLine).toMatch(/Sample shop book/);
     const sales = view.targets.find((row) => row.kind === "sales");
     const returning = view.targets.find((row) => row.kind === "returning");
     const ltv = view.targets.find((row) => row.kind === "ltv");

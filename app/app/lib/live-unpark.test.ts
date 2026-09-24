@@ -172,10 +172,7 @@ describe("live unpark policy", () => {
         stage: "overview_orders",
         paid: false,
       }),
-    ).toEqual({
-      kind: "unpaid_slice",
-      closedDays: LIVE_UNPAID_INGEST_DAYS,
-    });
+    ).toEqual({ kind: "paid_full" });
     expect(
       liveIngestPolicy({
         sampleOnlyFreeze: false,
@@ -225,10 +222,7 @@ describe("live unpark policy", () => {
         MCFLY_SAMPLE_ONLY: "false",
         MCFLY_LIVE_STAGE: "overview_orders",
       }),
-    ).toEqual({
-      kind: "unpaid_slice",
-      closedDays: LIVE_UNPAID_INGEST_DAYS,
-    });
+    ).toEqual({ kind: "paid_full" });
     expect(
       liveUnparkIngestPolicyFromEnv(
         {
@@ -253,7 +247,7 @@ describe("live unpark policy", () => {
     expect(checklist).toContain("ACCURACY_ONE_SHOP_SCORECARD.md");
     expect(checklist).toContain("accuracy-one-shop.ts");
     expect(checklist).toContain(LIVE_SYNC_LAW_PR_REF);
-    expect(checklist).toContain("90 closed days");
+    expect(checklist).toContain("Trial and paid share up to 24 months");
     expect(checklist).toContain("Paid **$39**");
     expect(gate).toContain("never paints SAMPLE as this shop");
     expect(gate).toContain(LIVE_SYNC_LAW_PR_REF);

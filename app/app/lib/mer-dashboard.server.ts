@@ -49,7 +49,8 @@ import {
   buildTillLtvSummary,
   type TillLtvSummary,
 } from "./till-ltv.server";
-import { countNewBuyersInRange, loadOrderDepthRows, ORDER_FACT_SOURCE } from "./order-facts.server";
+import { loadOrderDepthRows } from "./order-facts.server";
+import { readDeskMetricSnapshot } from "./desk-metric-snapshot.server";
 import {
   shopifyDepthStats,
   type ShopifyDepthStats,
@@ -1110,9 +1111,12 @@ export async function buildDashboardMetrics(
   );
   // SAMPLE must not invent a confirmed profit margin. Target ROAS overlay stays.
   const effectiveMarginPct = settings.marginPct;
+  const goalSaved = settings.targetMerSavedAt != null;
   const effectiveTargetMer = useSampleDesk
     ? SAMPLE_DESK_TARGET_MER
-    : settings.targetMer;
+    : goalSaved
+      ? settings.targetMer
+      : 0;
   const entitlements = getShopEntitlements(shopDomain, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
@@ -1269,12 +1273,13 @@ export async function buildDashboardMetrics(
   }
 
   // LTV is part of the one desk — no plan branch. Trial and paid both compute it.
+  // Live paint reads the stored snapshot. Sample still folds the local book.
+  const liveSnapshot = useSampleDesk
+    ? null
+    : await readDeskMetricSnapshot(shop.id);
   const tillNewBuyers = useSampleDesk
     ? (honestSales.newCustomers ?? 0)
-    : ((await countNewBuyersInRange(shop.id, range)) ??
-      (honestSales.customerMetricsAvailable
-        ? (honestSales.newCustomers ?? 0)
-        : 0));
+    : (liveSnapshot?.hero?.newBuyers ?? 0);
 
   const tillLtv: TillLtvSummary = await buildTillLtvSummary(shop.id, {
     totalSpend,
@@ -1284,21 +1289,31 @@ export async function buildDashboardMetrics(
     ianaTimezone: deskTz,
   });
 
-  const depthRows = await loadOrderDepthRows(
-    shop.id,
-    range,
-    useSampleDesk ? "sample" : ORDER_FACT_SOURCE,
-  );
-  const shopifyDepth = shopifyDepthStats({
-    orders: depthRows,
-    totalSales: totalSalesAmount,
-    netSales: netSalesAmount,
-    netSalesKnown,
-    grossSales: honestSales.grossSales ?? 0,
-    grossSalesKnown: honestSales.grossSalesKnown !== false,
-    timeZone: deskTz,
-    windowEnd: range.end,
-  });
+  const depthRows = useSampleDesk
+    ? await loadOrderDepthRows(shop.id, range, "sample")
+    : [];
+  const shopifyDepth = useSampleDesk
+    ? shopifyDepthStats({
+        orders: depthRows,
+        totalSales: totalSalesAmount,
+        netSales: netSalesAmount,
+        netSalesKnown,
+        grossSales: honestSales.grossSales ?? 0,
+        grossSalesKnown: honestSales.grossSalesKnown !== false,
+        timeZone: deskTz,
+        windowEnd: range.end,
+      })
+    : (liveSnapshot?.depth ??
+      shopifyDepthStats({
+        orders: [],
+        totalSales: totalSalesAmount,
+        netSales: netSalesAmount,
+        netSalesKnown,
+        grossSales: honestSales.grossSales ?? 0,
+        grossSalesKnown: honestSales.grossSalesKnown !== false,
+        timeZone: deskTz,
+        windowEnd: range.end,
+      }));
 
   const spendRecon = spendReconMatchesPeriod(
     settings.declaredAdsSpendPeriodStart,

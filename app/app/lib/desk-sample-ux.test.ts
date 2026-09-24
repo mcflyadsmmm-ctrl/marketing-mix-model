@@ -69,7 +69,7 @@ describe("Sample data | Live data UX", () => {
     const labels = read("../lib/product-labels.ts");
     expect(labels).toContain('sampleData: "Sample data"');
     expect(labels).toContain('liveData: "Live data"');
-    expect(labels).toMatch(/sampleHint:\s*"Snowdevil/);
+    expect(labels).toMatch(/sampleHint:\s*"Sample shop/);
     expect(labels).not.toMatch(/sampleHint:[\s\S]{0,200}Harbor/);
   });
 
@@ -434,8 +434,8 @@ describe("Sample data | Live data UX", () => {
     const gauges = read("../components/SalesGoalGauges.tsx");
     const habitBoard = read("../components/OrderHistoryGoalsBoard.tsx");
 
-    // T1: Goals route redirects to Settings; soft book craft lives on gauges + habit board.
-    expect(goals).toContain("redirect(`/app/settings");
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).not.toContain("redirect(`/app/settings");
     expect(habitBoard).toContain("Today’s read");
     expect(gauges).toContain("mcfly-goal-row--soft");
     expect(gauges).toContain("mcfly-goals-gauges--soft");

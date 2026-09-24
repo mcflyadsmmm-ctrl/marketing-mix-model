@@ -97,10 +97,12 @@ import {
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
 import { getOrderBackfillProgress, loadOrderDepthRows, ORDER_FACT_SOURCE } from "../lib/order-facts.server";
+import { readDeskMetricSnapshot } from "../lib/desk-metric-snapshot.server";
 import {
   buildOverviewOrderBookHero,
   orderBookDaySeries,
   orderBookFirstOrderMs,
+  orderBookReturningSales,
   shiftRangeOneYear,
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
@@ -229,13 +231,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesPulledAt = new Date().toISOString();
   } else {
     /*
-     * HARD-STOP (enterprise): desk paint NEVER starts unbounded fetchShopifySales /
-     * fetchShopifySalesByDay for the selected period, prior, or explorer window —
-     * that dies at 100k–1M orders on L12M / 3yr / incomplete coverage.
-     *
-     * Always serve stored SalesDayFact (+ honesty banners when incomplete /
-     * periodExceedsFactWindow). Live GraphQL is only the capped "today" top-up
-     * (LIVE_TODAY_MAX_PAGES). Window resume is fire-and-forget + job ticks.
+     * Desk paint reads stored SalesDayFact only. It does not call ShopifyQL
+     * and it does not page orders. Today's row is written by the order
+     * webhook job. Window resume is fire-and-forget + job ticks.
      */
     let mainCoverage: SalesFactsCoverage = {
       expectedClosedDays: 0,
@@ -514,47 +512,144 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       priorDaySales = null;
     }
   }
-  try {
-    const [windowRows, priorRows, historyRows] = await Promise.all([
-      loadOrderDepthRows(shop.id, range, orderFactSource),
-      loadOrderDepthRows(shop.id, priorOrderRange, orderFactSource),
-      loadOrderDepthRows(
-        shop.id,
-        { start: lookbackStart, end: range.end },
-        orderFactSource,
-      ),
-    ]);
-    const toBook = (
-      rows: Awaited<ReturnType<typeof loadOrderDepthRows>>,
-    ): OverviewOrderBookRow[] =>
-      rows.map((row) => ({
-        amount: row.amount,
-        orderedAt: row.orderedAt,
-        customerKey: row.customerKey,
-        shopLocalDate: row.shopLocalDate,
-      }));
-    const windowOrders = toBook(windowRows);
-    const priorOrders = toBook(priorRows);
-    const historyOrders = toBook(historyRows);
-    orderHero = buildOverviewOrderBookHero({
-      windowOrders,
-      priorOrders,
-      firstByCustomer: orderBookFirstOrderMs(historyOrders),
-      typicalOrder: metrics.shopifyDepth.medianAov,
-    });
-    if (
-      orderHero.weekendShare == null &&
-      metrics.shopifyDepth.weekendSalesShare != null
-    ) {
-      orderHero = {
-        ...orderHero,
-        weekendShare: metrics.shopifyDepth.weekendSalesShare,
-      };
+  if (useSampleDesk) {
+    try {
+      const [windowRows, priorRows, historyRows] = await Promise.all([
+        loadOrderDepthRows(shop.id, range, orderFactSource),
+        loadOrderDepthRows(shop.id, priorOrderRange, orderFactSource),
+        loadOrderDepthRows(
+          shop.id,
+          { start: lookbackStart, end: range.end },
+          orderFactSource,
+        ),
+      ]);
+      const toBook = (
+        rows: Awaited<ReturnType<typeof loadOrderDepthRows>>,
+      ): OverviewOrderBookRow[] =>
+        rows.map((row) => ({
+          amount: row.amount,
+          orderedAt: row.orderedAt,
+          customerKey: row.customerKey,
+          shopLocalDate: row.shopLocalDate,
+        }));
+      const windowOrders = toBook(windowRows);
+      const priorOrders = toBook(priorRows);
+      const historyOrders = toBook(historyRows);
+      orderHero = buildOverviewOrderBookHero({
+        windowOrders,
+        priorOrders,
+        firstByCustomer: orderBookFirstOrderMs(historyOrders),
+        typicalOrder: metrics.shopifyDepth.medianAov,
+      });
+      if (
+        orderHero.weekendShare == null &&
+        metrics.shopifyDepth.weekendSalesShare != null
+      ) {
+        orderHero = {
+          ...orderHero,
+          weekendShare: metrics.shopifyDepth.weekendSalesShare,
+        };
+      }
+      const series = orderBookDaySeries(historyOrders);
+      if (series.length > 0) orderExplorerDays = series;
+    } catch {
+      // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
     }
-    const series = orderBookDaySeries(historyOrders);
-    if (series.length > 0) orderExplorerDays = series;
-  } catch {
-    // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
+  } else {
+    const monthFactsLanded =
+      (salesFactsCoverageForBanner?.factDays ?? 0) > 0 ||
+      sales.orderCount > 0 ||
+      sales.totalSales > 0;
+    try {
+      const snap = monthFactsLanded
+        ? await readDeskMetricSnapshot(shop.id)
+        : null;
+      if (monthFactsLanded) {
+        orderHero = {
+          sales: sales.totalSales,
+          priorSales: snap?.hero?.priorSales ?? null,
+          yoyPct: snap?.hero?.yoyPct ?? null,
+          zone:
+            snap?.hero?.zone && snap.hero.zone !== "empty"
+              ? snap.hero.zone
+              : "empty",
+          returningSales: snap?.hero?.returningSales ?? null,
+          typicalOrder: snap?.hero?.typicalOrder ?? null,
+          weekendShare: snap?.hero?.weekendShare ?? null,
+          orderCount: sales.orderCount,
+          empty: false,
+        };
+      }
+    } catch {
+      if (monthFactsLanded) {
+        orderHero = {
+          sales: sales.totalSales,
+          priorSales: null,
+          yoyPct: null,
+          zone: "empty",
+          returningSales: null,
+          typicalOrder: null,
+          weekendShare: null,
+          orderCount: sales.orderCount,
+          empty: false,
+        };
+      }
+    }
+    try {
+      const monthRows = await loadOrderDepthRows(
+        shop.id,
+        range,
+        ORDER_FACT_SOURCE,
+      );
+      if (monthRows.length > 0) {
+        const book: OverviewOrderBookRow[] = monthRows.map((row) => ({
+          amount: row.amount,
+          orderedAt: row.orderedAt,
+          customerKey: row.customerKey,
+          shopLocalDate: row.shopLocalDate,
+        }));
+        const returning = orderBookReturningSales(
+          book,
+          orderBookFirstOrderMs(book),
+        );
+        const amounts = monthRows
+          .map((row) => row.amount)
+          .filter((amount) => Number.isFinite(amount))
+          .sort((a, b) => a - b);
+        const mid = Math.floor(amounts.length / 2);
+        const typical =
+          amounts.length === 0
+            ? null
+            : amounts.length % 2 === 1
+              ? amounts[mid]!
+              : (amounts[mid - 1]! + amounts[mid]!) / 2;
+        if (!monthFactsLanded) {
+          orderHero = {
+            sales: monthRows.reduce(
+              (sum, row) => sum + (Number.isFinite(row.amount) ? row.amount : 0),
+              0,
+            ),
+            priorSales: null,
+            yoyPct: null,
+            zone: "empty",
+            returningSales: returning > 0 ? returning : null,
+            typicalOrder: typical,
+            weekendShare: null,
+            orderCount: monthRows.length,
+            empty: false,
+          };
+        } else {
+          orderHero = {
+            ...orderHero,
+            returningSales:
+              returning > 0 ? returning : orderHero.returningSales,
+            typicalOrder: typical ?? orderHero.typicalOrder,
+          };
+        }
+      }
+    } catch {
+      // Month rows are stored. A miss keeps the sales-fact hero.
+    }
   }
 
   const factsPending = overviewShopifyFactsPending({
@@ -677,6 +772,8 @@ export default function Dashboard() {
       orderBackfillProgress.completeDays < orderBackfillProgress.windowDays)
       ? overviewOrderBackfillLine(orderBackfillProgress.completeDays)
       : null;
+  const deeperStillLoading =
+    greetingPending || Boolean(orderBackfillResumeLine);
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel =
@@ -1044,7 +1141,7 @@ export default function Dashboard() {
                   {showOverviewChartBeat ? (
                     <OverviewYoyCards
                       cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                      salesPending={greetingPending}
+                      salesPending={deeperStillLoading}
                       yoyHref={yoyHref}
                     />
                   ) : null}
@@ -1142,7 +1239,7 @@ export default function Dashboard() {
                 <DeskLane rank="more" label="Year board vs last year">
                   <OverviewYoyYearSection
                     {...yoyYearWorkspace}
-                    salesPending={greetingPending}
+                    salesPending={deeperStillLoading}
                     onYearChange={onYoyYearChange}
                   />
                 </DeskLane>

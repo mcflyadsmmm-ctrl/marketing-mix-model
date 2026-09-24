@@ -62,6 +62,6 @@ describe("Desk period labels and Overview clocks", () => {
 
   it("keeps MTD chips off the Shopify five — tabs are the top bar", () => {
     expect(read("../routes/app.customers.tsx")).toContain("showPeriod={false}");
-    expect(read("../routes/app.orders.tsx")).toContain("showPeriod={false}");
+    expect(read("../routes/app.orders.tsx")).toMatch(/throw redirect/);
   });
 });

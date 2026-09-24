@@ -181,8 +181,8 @@ export function habitMorningGoalLine(input: {
         if (target && (input.returningMet || pct != null)) {
           parts.push(
             input.returningMet
-              ? `Returning buyers already carry ${actual} this year — at the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`
-              : `Returning buyers carry ${actual} this year — ${pct}% of the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`,
+              ? `Returning buyers already carry ${actual} this year — at the Sample shop stretch ${target} (SAMPLE example, not a target you typed).`
+              : `Returning buyers carry ${actual} this year — ${pct}% of the Sample shop stretch ${target} (SAMPLE example, not a target you typed).`,
           );
         }
         break;

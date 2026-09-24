@@ -58,15 +58,17 @@ describe("deskNavHref", () => {
 describe("DESK_PRIMARY_NAV", () => {
   it("locks three analysis tabs then Settings — Spend not Spend Upload", () => {
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
-      "Home",
-      "Customers",
+      "Orders",
       "Spend",
+      "Goals",
+      "Customers",
       "Settings",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.path)).toEqual([
       "/app",
-      "/app/customers",
       "/app/spend",
+      "/app/goals",
+      "/app/customers",
       "/app/settings",
     ]);
     expect(DESK_PRIMARY_NAV.every((item) => !item.hash)).toBe(true);
@@ -89,16 +91,17 @@ describe("DESK_PRIMARY_NAV", () => {
       "Total ROAS",
     );
     expect(DESK_TOP_NAV.map((item) => item.label)).not.toContain("Settings");
-    expect(DESK_TOP_NAV).toHaveLength(3);
+    expect(DESK_TOP_NAV).toHaveLength(4);
     expect(DESK_IFRAME_NAV.map((item) => item.path)).toEqual(
       DESK_TOP_NAV.map((item) => item.path),
     );
     expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
-      "Home",
-      "Customers",
+      "Orders",
       "Spend",
+      "Goals",
+      "Customers",
     ]);
-    expect(DESK_IFRAME_NAV[1]?.label).toBe("Customers");
+    expect(DESK_IFRAME_NAV[1]?.label).toBe("Spend");
     expect(isDeskNavActive("/app", "/app")).toBe(true);
     expect(isDeskNavActive("/app", "/app/customers")).toBe(false);
     expect(isDeskNavActive("/app/customers", "/app/customers")).toBe(true);
@@ -111,7 +114,7 @@ describe("DESK_PRIMARY_NAV", () => {
     );
     expect(shell).toContain("<s-app-nav>");
     expect(shell).toContain("<DeskTopTabs");
-    expect(shell).toContain("3 analysis tabs + Settings");
+    expect(shell).toContain("Orders, Spend, Goals, Customers, plus Settings");
     const tabs = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../components/DeskTopTabs.tsx"),
       "utf8",
@@ -193,7 +196,8 @@ describe("DESK_PRIMARY_NAV", () => {
       "utf8",
     );
     expect(orders).toMatch(/throw redirect\(`\$\{home\}/);
-    expect(goals).toMatch(/throw redirect\(`\/app\/settings/);
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).not.toMatch(/throw redirect\(`\/app\/settings/);
     expect(demoOrders).toMatch(/throw redirect\(`\$\{home\}/);
     expect(demoGoals).toMatch(/throw redirect\(`\$\{settings\}/);
   });

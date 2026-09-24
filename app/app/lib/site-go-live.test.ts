@@ -115,7 +115,7 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     const support = readFileSync(join(siteRoot, "support.html"), "utf8");
     const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
     const privacy = readFileSync(join(siteRoot, "privacy.html"), "utf8");
-    expect(support).toMatch(/Try the demo|full Snowdevil demo/i);
+    expect(support).toMatch(/Try the demo|full Sample shop demo/i);
     expect(support).toMatch(/every platform/i);
     expect(support).toMatch(/\$39/);
     expect(support).toMatch(/no.{0,40}shop-domain form/i);

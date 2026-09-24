@@ -1,4 +1,4 @@
-# Product shots — Snowdevil SAMPLE desk
+# Product shots — Sample shop desk
 
 Real UI captures from [`https://mcflyads.com/demo`](https://mcflyads.com/demo) (`#dd-desk`). Not marketing KPI wells. Not fabricated logos/reviews.
 
@@ -6,7 +6,7 @@ Real UI captures from [`https://mcflyads.com/demo`](https://mcflyads.com/demo) (
 
 | Metric | Value |
 | --- | --- |
-| Shop | Snowdevil |
+| Shop | Sample shop |
 | Entered spend | $19,023 |
 | Shopify sales | $68,457 |
 | Total ROAS | 3.60× |

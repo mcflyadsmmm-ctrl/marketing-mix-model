@@ -60,7 +60,7 @@ export function CertifiedScoreboard({
   const goal =
     targetMer > 0
       ? `At goal vs Settings (${formatMer(targetMer)}×)`
-      : "Set a goal in Settings";
+      : "No goal saved";
 
   const firstFold = placement === "firstFold";
 

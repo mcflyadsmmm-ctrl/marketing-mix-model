@@ -140,7 +140,7 @@ function ComebackEmptyFrame({ pending }: { pending: boolean }) {
       <p className="mcfly-cust-mix__empty-copy">
         {pending
           ? "Come-back months are still loading — not $0."
-          : "Days to a second order and 30-day come-backs are not on file yet — not $0. Needs two first-order months or a two-step come-back. Snowdevil SAMPLE fills this in; a fresh live shop fills in as second orders land."}
+          : "Days to a second order and 30-day come-backs are not on file yet — not $0. Needs two first-order months or a two-step come-back. Sample shop fills this in; a fresh live shop fills in as second orders land."}
       </p>
     </section>
   );

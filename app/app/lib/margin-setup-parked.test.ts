@@ -30,7 +30,7 @@ describe("Profit-margin / COGS setup is parked", () => {
     expect(settings).not.toMatch(/Break-even preview/);
     expect(settings).not.toMatch(/Reconfirm profit margin/);
     expect(settings).not.toMatch(/name="marginPct"/);
-    expect(settings).toContain("Order-history targets");
+    expect(settings).toContain("The one target lives on Goals");
     expect(settings).toContain("Sample");
   });
 

@@ -109,7 +109,7 @@ export function deskPeriodTillLabel(input: {
     return `${input.periodLabel}${PRODUCT_NOUN.factsIncompleteSuffix}`;
   }
   if (input.todaySalesUnavailable && !input.todaySalesTruncated) {
-    return `${input.periodLabel} · today’s sales unavailable`;
+    return `${input.periodLabel} · today’s sales still loading`;
   }
   if (input.todaySalesTruncated) {
     return `${input.periodLabel} · today’s sales incomplete`;
@@ -163,8 +163,8 @@ export function deskBookHonestyNotices(input: {
   if (input.todaySalesUnavailable && !input.todaySalesTruncated) {
     notices.push({
       tone: "warning",
-      heading: "Today’s live sales unavailable",
-      body: "Showing closed-day sales only — today’s Shopify pull did not complete.",
+      heading: "Today’s sales still loading",
+      body: "Today’s sales are still syncing — not $0. Closed days already on file stay on the desk.",
     });
   }
   return notices;

@@ -399,7 +399,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
 
       {useSampleDesk ? (
         <p className="mcfly-book__lede">
-          What a new buyer is worth is from SAMPLE Snowdevil orders. Explorers
+          What a new buyer is worth is from Sample shop orders. Explorers
           below stay on that same book. Order history only, no spend.
         </p>
       ) : null}
@@ -437,7 +437,7 @@ export function CustomersLtvDepth(props: LtvPackProps) {
         <section className="mcfly-book mcfly-depth-intro" aria-label="Order-history depth">
           <p className="mcfly-book__lede">
             {useSampleDesk
-              ? "What a new buyer is worth is from SAMPLE Snowdevil orders. Explorers below stay on that same book. Order history only, no spend."
+              ? "What a new buyer is worth is from Sample shop orders. Explorers below stay on that same book. Order history only, no spend."
               : "What a new buyer is worth, then the order-history explorers. Full history when it is on file. No spend required."}
             {truncatedLine ? ` ${truncatedLine}` : ""}
           </p>

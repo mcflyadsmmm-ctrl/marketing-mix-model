@@ -1,9 +1,8 @@
 /**
  * Daily sales totals from ShopifyQL. One row per day. No order pages.
  *
- * The desk still serves Jan 1 of (year − 5). Ingest asks for ten years so
- * older day totals are kept when Shopify returns them. Order rows stay at
- * 24 months in `live-ingest-depth`.
+ * The query helper can span calendar years. Desk ingest caps the pull at
+ * 24 months (`salesIngestDayCount`). Order rows stay at 24 months.
  *
  * New/Returning sales $ use a second lightweight ShopifyQL query
  * (`GROUP BY new_or_returning_customer`). That split is Shopify’s

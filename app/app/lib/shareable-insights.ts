@@ -89,7 +89,7 @@ function daysLabel(days: number): string {
 }
 
 export function shareableShopBrand(shopLabel: string, sample: boolean): string {
-  if (sample) return "Snowdevil";
+  if (sample) return "Sample shop";
   const raw = shopLabel.trim();
   if (!raw) return "This shop";
   return raw.replace(/\.myshopify\.com$/i, "");

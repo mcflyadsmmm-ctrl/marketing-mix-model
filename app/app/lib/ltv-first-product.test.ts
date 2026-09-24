@@ -278,15 +278,14 @@ describe("P1-A sits on the Customers LTV chip, below the fold", () => {
   });
 
   it("does not add a top-nav tab", () => {
-    expect(nav).toContain('label: "Home"');
+    expect(nav).toContain('label: "Orders"');
     expect(nav).toContain('label: "Customers"');
     expect(nav).toContain('label: "Spend"');
-    expect(nav).not.toContain('label: "Orders"');
-    expect(nav).not.toContain('label: "Goals"');
+    expect(nav).toContain('label: "Goals"');
     expect(customers).not.toContain('href="/app/product"');
     expect(customers).not.toContain('label: "Product"');
     const labels = [...nav.matchAll(/label: "([^"]+)"/g)].map((hit) => hit[1]);
-    expect(labels).toEqual(["Home", "Customers", "Spend", "Settings"]);
+    expect(labels).toEqual(["Orders", "Spend", "Goals", "Customers", "Settings"]);
   });
 });
 

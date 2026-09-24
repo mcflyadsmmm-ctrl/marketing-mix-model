@@ -333,23 +333,10 @@ describe("Orders page craft lock", () => {
   const visuals = read("../components/OrdersVisuals.tsx");
 
   it("is a Black Clover scoreboard — first-fold typical, clock, depth, timing, then the open chart", () => {
-    const firstAt = orders.indexOf("<OrdersFirstViewport");
-    const compareAt = orders.indexOf("<OrdersCompareGlance");
-    const chartAt = orders.indexOf("<OrdersTimingChart");
-    const firstLaneAt = orders.indexOf('<DeskLane rank="first"');
-    const moreAt = orders.indexOf('rank="more"', firstLaneAt + 1);
-    const heroAt = orders.indexOf("<OrdersScoreboard");
-    const intelAt = orders.indexOf("<OrdersIntelligence");
-    expect(firstAt).toBeGreaterThan(-1);
-    expect(compareAt).toBeGreaterThan(firstAt);
-    expect(chartAt).toBeGreaterThan(compareAt);
-    expect(moreAt).toBeGreaterThan(chartAt);
-    expect(heroAt).toBeGreaterThan(moreAt);
-    expect(intelAt).toBeGreaterThan(heroAt);
-    expect(orders).toContain("mcfly-scoreboard--orders");
-    expect(orders).toContain("ORDERS_FIRST_LANE_LABEL");
-    expect(orders).toContain("ORDERS_CLOCK_LANE_LABEL");
-    expect(orders).toContain("salesPending");
+    expect(orders).toMatch(/throw redirect/);
+    const overview = read("../routes/app._index.tsx");
+    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("SpendExplorer");
     expect(`${firstView}\n${chart}`).toContain("not $0");
     expect(orders).not.toContain("if (metrics.salesPending) return");
     expect(firstView).toContain("mcfly-overview-plane");
@@ -434,9 +421,8 @@ describe("Orders page craft lock", () => {
     const intel = read("../components/OrdersIntelligence.tsx");
     const freq = read("../components/OrdersFrequencyChart.tsx");
     const css = read("../styles/mcfly-desk.css");
-    expect(orders).toContain("<OrdersIntelligence");
-    expect(orders).toContain("<OrdersFrequencyChart");
-    expect(orders).toContain("includeOrdersIntelligence");
+    expect(orders).toMatch(/throw redirect/);
+    expect(orders).not.toContain("<OrdersIntelligence");
     expect(intel).toContain("mcfly-orders-intel__kpis");
     expect(intel).toContain("vs prior");
     expect(intel).toContain("mcfly-chart--dual");

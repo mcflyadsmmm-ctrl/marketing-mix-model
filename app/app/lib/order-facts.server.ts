@@ -12,6 +12,7 @@ import {
   shopifyOrderHistoryIsLimited,
 } from "./shopify-order-window";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
+import { orderMissingIngestDays } from "./ingest-priority";
 import { isBillingEnabled } from "./billing-flag.server";
 import { resolveCommercialOrderWindowDays } from "./live-ingest-depth";
 import { shopIsProForIngest } from "./live-ingest-depth.server";
@@ -779,9 +780,8 @@ function shopifyVisibleOrderDays(historyLimited: boolean, now: Date): number {
 }
 
 /**
- * Unpaid / trial stops at LIVE_UNPAID_INGEST_DAYS. Paid keeps the
- * Shopify-visible span, then the 24-month order-row cap. An explicit
- * `requestedWindowDays` can only shrink that result.
+ * Trial and paid keep the Shopify-visible span, then the 24-month
+ * order-row cap. An explicit `requestedWindowDays` can only shrink that.
  */
 async function clampedOrderWindowDays(input: {
   shopId: string;
@@ -806,8 +806,8 @@ async function clampedOrderWindowDays(input: {
 
 /**
  * Chunked OrderFact backfill — up to `maxDays` closed shop-local days (default 7)
- * within the commercial order window (unpaid/trial closed-day slice, else
- * Shopify-visible, always inside 24 months).
+ * within the commercial order window (Shopify-visible, always inside
+ * 24 months). Trial and paid share that window.
  * Never writes sample source. After upserts, recomputes touched cohort months.
  */
 export async function runOrderFactsBackfill(
@@ -861,8 +861,9 @@ export async function runOrderFactsBackfill(
   await unsealOrderFactsMissingV2(shopId);
   const windowDayKeys = listRecentClosedShopLocalDays(timeZone, windowDays, now);
 
-  // Prefer oldest missing days first. A day is covered only when the
-  // `__day_complete__` marker exists — partial page-capped crawls stay retryable.
+  // Newest closed days first, then the rest of the 24-month window.
+  // A day is covered only when the `__day_complete__` marker exists —
+  // partial page-capped crawls stay retryable.
   const completeMarkers = await prisma.orderFact.findMany({
     where: {
       shopId,
@@ -882,9 +883,10 @@ export async function runOrderFactsBackfill(
   const resume = parseOrderFactPageCursor(state.cursor);
   const resumeDay =
     resume && missing.includes(resume.dayKey) ? resume.dayKey : null;
+  const phase = orderMissingIngestDays(windowDayKeys, existingKeys);
   const orderedMissing = resumeDay
-    ? [resumeDay, ...missing.filter((k) => k !== resumeDay)]
-    : missing;
+    ? [resumeDay, ...phase.filter((k) => k !== resumeDay)]
+    : phase;
   const batch = orderedMissing.slice(0, maxDays);
 
   await prisma.orderBackfillState.update({

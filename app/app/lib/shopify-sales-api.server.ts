@@ -90,8 +90,8 @@ function coverageWarnings(
 
 /**
  * Fetch Shopify sales for API + overnight worker using stored offline session.
- * HARD-STOP: SalesDayFact + ShopifyQL today top-up via loadDeskSalesForPeriod —
- * never unbounded order-paging for multi-day MER / allocation.
+ * Stored SalesDayFact via loadDeskSalesForPeriod — no ShopifyQL on this call.
+ * HARD-STOP: never unbounded order-paging for multi-day MER / allocation.
  *
  * Fail-closed: salesError / session failure → `{ ok: false }` (never silent $0 success).
  */

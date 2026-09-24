@@ -431,12 +431,9 @@ describe("Total ROAS page", () => {
 describe("Goals, CPA, and Allocation honesty", () => {
   it("keeps Goals pace on a certified $0 month instead of a pending shell", () => {
     const goals = read("../routes/app.goals.tsx");
-    expect(goals).toContain("salesCoverage: periodSalesCoverage");
-    expect(goals).toContain("Still loading — not $0");
-    expect(goals).toContain("pace vs your typed plan");
-    expect(goals).toContain("Certified $0");
-    expect(goals).toContain("<SalesGoalGauges");
-    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).toContain("No target saved.");
+    expect(goals).not.toContain("<SalesGoalGauges");
   });
 
   it("keeps CPA/CAC as dashes without spend and cards once spend exists on Spend", () => {

@@ -1,5 +1,5 @@
 /**
- * Mcfly SAMPLE Overview — Snowdevil.
+ * Mcfly SAMPLE Overview — Sample shop.
  * YoY sales first. Overview · Orders · Customers peek. Spend optional ($19,023 / $68,457 / 3.60×).
  * Recomputed from buildThreeYearSampleDesk({ now: 2026-09-16T18:00:00Z }).
  * Demo data only. Loud SAMPLE labeling. No pixels / MTA / path credit.
@@ -10,7 +10,7 @@
   var DEFAULT_TARGET = 3.5;
   var DEFAULT_MARGIN = 0.4;
   var AS_OF_SHORT = "Sep 16";
-  var SHOP = "Snowdevil";
+  var SHOP = "Sample shop";
 
   var YOY = {
     mtd: { sales: 68457, prior: 69891 },
@@ -272,7 +272,7 @@
       customers: ["Customers", "Returning dollars · LTV 30/90/365 · days-to-second"],
       spend: ["Spend", "Optional · type a day or paste CSV · Total ROAS · mix · CPA"],
       goals: ["Goals", "Monthly sales plan · spend optional"],
-      settings: ["Settings", "Sample data · Snowdevil · $39/mo"],
+      settings: ["Settings", "Sample data · Sample shop · $39/mo"],
     };
     var copy = labels[key] || labels.overview;
     if (title) title.textContent = copy[0];
@@ -291,7 +291,7 @@
           period.label +
           ". Last year " +
           money(period.priorSales) +
-          ". SAMPLE Snowdevil.</p>",
+          ". Sample shop.</p>",
         trigger,
       );
       return;
