@@ -59,7 +59,8 @@ describe("Spend day card", () => {
     const cpaAt = spend.indexOf('id="mcfly-cpa"');
     const explorerAt = spend.indexOf('id="mcfly-explorer"');
     expect(firstAdd).toBeGreaterThan(-1);
-    expect(explorerAt).toBeLessThan(firstAdd);
+    expect(spend.indexOf("<SpendFirstViewport")).toBeLessThan(firstAdd);
+    expect(firstAdd).toBeLessThan(explorerAt);
     expect(firstAdd).toBeLessThan(mixAt);
     expect(firstAdd).toBeLessThan(cpaAt);
     const firstLaneStart = spend.indexOf('<DeskLane rank="first"');
@@ -413,7 +414,8 @@ describe("Total ROAS page", () => {
     expect(spend).toContain("formatTotalRoasEquation");
     expect(viewport).toContain("formatSpendOnFile");
     expect(spend).toContain("SpendFindingStrip");
-    expect(spend).toContain("quiet={false}");
+    expect(spend).toContain("quiet");
+    expect(spend).not.toContain("quiet={false}");
     expect(spend).toContain('href="#mcfly-spend-add"');
     expect(spend).toContain("mcfly-spend-add");
     expect(spend).not.toContain("0.00×");

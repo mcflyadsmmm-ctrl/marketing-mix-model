@@ -5,12 +5,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { HeadersFunction } from "react-router";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import {
   parseSavedTarget,
   readSavedTarget,
   writeSavedTarget,
 } from "../lib/saved-desk-target";
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
 

@@ -46,7 +46,6 @@ describe("Customers route — one RETAIN spine, order history only", () => {
       "<CustomersFirstViewport",
       "<CustomersCompareGlance",
       "<CustomerMixChart",
-      "<ShareableInsightCards",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
       "<UnlockFullHistoryBanner",
@@ -72,9 +71,7 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
       customers.indexOf("<CustomersScoreboard"),
     );
-    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
-      customers.indexOf("<CustomersScoreboard"),
-    );
+    expect(customers).not.toContain("<ShareableInsightCards");
     const firstStart = customers.indexOf('<DeskLane rank="first"');
     const firstEnd = customers.indexOf('label="Returning mix and facts"');
     const firstLane = customers.slice(firstStart, firstEnd);
@@ -84,8 +81,8 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).toMatch(
       /rank="more"[\s\S]*?label="Returning mix and facts"[\s\S]*?\bfold\b/,
     );
-    expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
-      customers.indexOf("<CustomersLtvDepth"),
+    expect(customers.indexOf("<CustomersLtvDepth")).toBeGreaterThan(
+      customers.indexOf("<CustomersFirstViewport"),
     );
     expect(customers).toContain("salesPending={metrics.salesPending}");
     expect(customers).not.toContain(
@@ -150,8 +147,8 @@ describe("Customers truncated-today leftover — first-fold omit-path", () => {
     expect(jsxOpen(demo, "CustomersFirstViewport")).toMatch(
       /todaySalesTruncated=\{false\}/,
     );
-    expect(customers).toContain("returningInsight");
-    expect(demo).toContain("returningInsight");
+    expect(customers).not.toContain("<ShareableInsightCards");
+    expect(demo).not.toContain("<ShareableInsightCards");
     const firstStart = customers.indexOf('<DeskLane rank="first"');
     const firstEnd = customers.indexOf("<DeskLane", firstStart + 1);
     const firstLane = customers.slice(firstStart, firstEnd);
@@ -169,7 +166,7 @@ describe("CustomersScoreboard — compact returning hero, not a six-tile wall", 
     expect(scoreboard).toContain("mcfly-cust-gauge");
     expect(scoreboard).toContain("mcfly-cust-facts");
     expect(scoreboard).toContain("Returning customers");
-    expect(scoreboard).toContain("Sample data");
+    expect(scoreboard).not.toContain("Sample data");
     expect(scoreboard).toContain("Guests");
     expect(scoreboard).toContain("Sales per buyer");
     expect(scoreboard).toContain("Biggest orders");

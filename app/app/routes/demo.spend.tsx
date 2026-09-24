@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
+import { useLoaderData, useLocation } from "react-router";
 
 import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { CpaExplorer } from "../components/CpaExplorer";
@@ -10,7 +10,6 @@ import { CpaWindowCards } from "../components/CpaWindowCards";
 import { DualCloseLine } from "../components/DualCloseLine";
 import { DeskLane } from "../components/DeskLane";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
-import { PeriodControl } from "../components/PeriodControl";
 import { SpendEntryForm } from "../components/SpendEntryForm";
 import { SpendExplorer } from "../components/SpendExplorer";
 import { SpendFirstViewport } from "../components/SpendFirstViewport";
@@ -23,6 +22,7 @@ import {
   namedDeskScreenFromPath,
   namedDeskTitle,
 } from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
 import {
   buildCpaPaybackView,
   CPA_EMPTY_SPEND,
@@ -64,6 +64,8 @@ import {
 import type { SpendExplorerSeriesView } from "../components/SpendExplorer";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadPublicSamplePage(request);
@@ -131,8 +133,6 @@ function publicExplorerSeries(
 export default function PublicDemoSpend() {
   const data = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
-  const navigation = useNavigation();
-  const [searchParams] = useSearchParams();
   const location = useLocation();
   const requestScreen = namedDeskScreenFromPath(location.pathname);
   const pageHeading =
@@ -145,7 +145,6 @@ export default function PublicDemoSpend() {
   const showRoas = showSpend || requestScreen === "roas";
   const showAllocation = showSpend || requestScreen === "allocation";
   const showCpa = showSpend || requestScreen === "cpa";
-  const addSpendFirst = searchParams.get("panel") === "spend-add";
   const [savedTarget, setSavedTarget] = useState(0);
   useEffect(() => {
     setSavedTarget(readSavedTarget() ?? 0);
@@ -155,7 +154,7 @@ export default function PublicDemoSpend() {
     [data.cashControl, savedTarget],
   );
   useSpendPanelScroll();
-  const isLoading = navigation.state === "loading";
+  const isLoading = useDeskTabRefresh();
   const hasSpend = data.spend > 0;
   const inPeriod = (dateKey: string) =>
     dateKey >= data.periodFromKey && dateKey <= data.periodToKey;
@@ -266,22 +265,6 @@ export default function PublicDemoSpend() {
           .filter(Boolean)
           .join(" ")}
       >
-        {showSpend && addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
-
-        {!data.shotMode ? (
-          <PeriodControl
-            preset={data.preset}
-            language="spend"
-            orderBookDepth="paid_full"
-          />
-        ) : null}
-
-        <s-banner tone="info" heading="Example spend is on">
-          <s-paragraph>{SAMPLE_LEDGER_HANDOFF}</s-paragraph>
-        </s-banner>
-
-        {showSpend && !addSpendFirst && !data.shotMode ? <SpendEntryForm /> : null}
-
         {(showRoas || showSpend) ? (
         <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
           {showRoas ? (
@@ -305,6 +288,10 @@ export default function PublicDemoSpend() {
             />
           </div>
           ) : null}
+          {showSpend && !data.shotMode ? <SpendEntryForm /> : null}
+          <s-banner tone="info" heading="Example spend is on">
+            <s-paragraph>{SAMPLE_LEDGER_HANDOFF}</s-paragraph>
+          </s-banner>
           {showSpend && monthCopy ? (
             <div className="mcfly-spend-pair-copy-row">
               <p className="mcfly-spend-plane__hint">{monthCopy}</p>
@@ -319,7 +306,7 @@ export default function PublicDemoSpend() {
               shotMode={data.shotMode}
               basePath="/demo/spend"
               compare
-              quiet={false}
+              quiet
               orderBookDepth="paid_full"
             />
           </section>

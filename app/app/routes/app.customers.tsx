@@ -11,7 +11,6 @@ import { CustomerRfmBoard } from "../components/CustomerRfmBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskLane } from "../components/DeskLane";
 import { CustomersCompareGlance } from "../components/CustomersCompareGlance";
 import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
@@ -42,22 +41,16 @@ import {
   namedDeskScreenFromPath,
   namedDeskTitle,
 } from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import { useDeskHref } from "../lib/desk-base-path";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
-import { formatCurrency } from "../lib/mer-format";
-import { useDeskCurrency } from "../lib/desk-currency";
-import { flagshipDailyRead } from "../lib/ltv-flagship";
-import {
-  buildShareableInsights,
-  emptyShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
 import {
   customersOnScreenWindow,
-  labelCustomersDaysToSecondCard,
   type CustomersWindowDays,
 } from "../lib/customers-days-to-second";
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await requireAdmin(request);
@@ -86,7 +79,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function CustomersPage() {
   const data = useLoaderData<typeof loader>();
-  const currency = useDeskCurrency();
   const navigation = useNavigation();
   const location = useLocation();
   const deskHref = useDeskHref();
@@ -184,10 +176,6 @@ export default function CustomersPage() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
-  const historyLimited = Boolean(
-    !useSampleDesk &&
-      (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
-  );
   const ltvBlock =
     ltvOpen && depth
       ? {
@@ -209,58 +197,10 @@ export default function CustomersPage() {
           shotMode,
         }
       : null;
-  const daily = ltvBlock
-    ? flagshipDailyRead(ltvBlock.depth.windows, ltvBlock.depth.predictive)
-    : null;
-  const ltvPeek = !ltvOpen
-    ? null
-    : daily
-      ? { amount: daily.worth, days: daily.worthDays }
-      : pickShareableLtvPeek({
-          revenue30: metrics.tillLtv.avgRevenueD30,
-          revenue90: metrics.tillLtv.avgRevenueD90,
-          revenue365: metrics.tillLtv.avgRevenueD365,
-          historyLimited,
-        });
-  const insightView = metrics.salesPending
-    ? emptyShareableInsights()
-    : buildShareableInsights(
-        {
-          salesPending: Boolean(metrics.salesPending),
-          orderCount: metrics.orderCount,
-          returningSales: book.returningSales,
-          returningShare: book.returningSalesShare,
-          newSales: book.newSales,
-          typicalOrder: metrics.shopifyDepth.medianAov,
-          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
-          ltvPeek: ltvPeek?.amount ?? null,
-          ltvPeekDays: ltvPeek?.days ?? null,
-          historyLimited,
-          shopLabel,
-          sample: useSampleDesk,
-          periodLabel: metrics.period.label,
-          todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
-        },
-        (n) => formatCurrency(n, currency),
-      );
-  const returningInsight = {
-    ...insightView,
-    cards: insightView.cards.filter((card) => card.kind === "returning"),
-    empty: null,
-  };
   const windowDays: CustomersWindowDays = {
     label: customersOnScreenWindow(metrics.period.label),
     days: metrics.shopifyDepth.medianDaysToSecond,
     cameBack: metrics.shopifyDepth.repeatBuyers,
-  };
-  const depthInsight = {
-    ...insightView,
-    cards: insightView.cards
-      .filter(
-        (card) =>
-          card.kind !== "returning" && (ltvOpen || card.kind !== "ltvPeek"),
-      )
-      .map((card) => labelCustomersDaysToSecondCard(card, windowDays)),
   };
 
   return (
@@ -334,9 +274,6 @@ export default function CustomersPage() {
         fold
         defaultOpen={shotMode}
       >
-        {returningInsight.cards.length > 0 ? (
-          <ShareableInsightCards view={returningInsight} shotMode={shotMode} />
-        ) : null}
         <CustomersScoreboard
           book={book}
           depth={metrics.shopifyDepth}
@@ -428,9 +365,6 @@ export default function CustomersPage() {
           <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
         ) : null}
         {ltvBlock ? <CustomersLtvDepth {...ltvBlock} /> : null}
-        {depthInsight.cards.length > 0 || depthInsight.empty ? (
-          <ShareableInsightCards view={depthInsight} shotMode={shotMode} />
-        ) : null}
       </DeskLane>
       </div>
       ) : null}

@@ -275,11 +275,12 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(section.indexOf("<LtvBuildCurves")).toBeGreaterThan(
       section.indexOf("<LtvPromoBoard"),
     );
-    expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
+    expect(customers).not.toContain("<ShareableInsightCards");
+    expect(customers.indexOf("<CustomersLtvWindows")).toBeLessThan(
       customers.indexOf("<CustomersLtvDepth"),
     );
-    expect(customers).toContain("flagshipDailyRead");
-    expect(customers).toContain("buildShareableInsights");
+    expect(read("./ltv-flagship.ts")).toContain("flagshipDailyRead");
+    expect(read("./shareable-insights.ts")).toContain("buildShareableInsights");
   });
 
   it("mounts starter value (promo + source) on the open LTV windows after first-product drivers", () => {

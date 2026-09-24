@@ -36,6 +36,7 @@ import {
   namedDeskTitle,
   salesWindowPendingHeading,
 } from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import {
@@ -402,6 +403,8 @@ function SpendAddDayPanel({
   );
 }
 
+export const shouldRevalidate = deskPageShouldRevalidate;
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
@@ -756,7 +759,7 @@ export default function SpendEntryPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const isLoading = navigation.state === "loading";
+  const isLoading = useDeskTabRefresh();
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
@@ -1074,17 +1077,6 @@ export default function SpendEntryPage() {
         ) : null}
         {showSpend ? (
         <>
-        <section id="mcfly-explorer" aria-label="Spend explorer">
-          <SpendExplorer
-            series={explorer}
-            period={preset}
-            shotMode={shotMode}
-            basePath="/app/spend"
-            compare
-            quiet={false}
-            orderBookDepth={orderBookDepth}
-          />
-        </section>
         {emptyLiveSpend ? (
           <>
             <section
@@ -1214,8 +1206,66 @@ export default function SpendEntryPage() {
             </section>
           </>
         ) : null}
+        <section id="mcfly-explorer" aria-label="Spend explorer">
+          <SpendExplorer
+            series={explorer}
+            period={preset}
+            shotMode={shotMode}
+            basePath="/app/spend"
+            compare
+            quiet
+            orderBookDepth={orderBookDepth}
+          />
+        </section>
         </>
         ) : null}
+        </DeskLane>
+        ) : null}
+
+        {showSpend && !emptyLiveSpend ? (
+        <DeskLane
+          rank="next"
+          label={SPEND_ADD_LANE_LABEL}
+          defaultOpen={Boolean(editing)}
+        >
+        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
+          <p className="mcfly-spend-helper mcfly-spend-helper--soft">
+            Shopify sales are already here. Empty spend is not a certified $0 —
+            add a day. A deleted day stays $0. Empty spend is never 0×
+            {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
+            {strangerEmpty
+              ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
+              : ". Sales ÷ spend is the pair above. This section records typed, uploaded, or daily-rate spend."}
+          </p>
+
+          {strangerEmpty ? (
+            <SpendFindingStrip finding={spendUploadEmptyFinding()} />
+          ) : null}
+
+          <section
+            id="mcfly-spend-add"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft mcfly-spend-add--hero"
+            aria-label={
+              editing
+                ? "Edit this day of spend"
+                : "Yesterday’s spend — one bill"
+            }
+          >
+              <SpendAddDayPanel
+                editing={editing}
+                fillDateKey={fillDateKey}
+                yesterdayKey={yesterdayKey}
+                spendHistoryFloorKey={spendHistoryFloorKey}
+                todayKey={todayKey}
+                addChannel={addChannel}
+                setAddChannel={setAddChannel}
+                addSpendChannels={addSpendChannels}
+                currencyCode={currencyCode}
+                isSubmitting={isSubmitting}
+                submittingIntent={submittingIntent}
+              />
+          </section>
+        </div>
         </DeskLane>
         ) : null}
 
@@ -1350,56 +1400,6 @@ export default function SpendEntryPage() {
           ) : null}
         </section>
         ) : null}
-        </DeskLane>
-        ) : null}
-
-        {showSpend && !emptyLiveSpend ? (
-        <DeskLane
-          rank="more"
-          label={SPEND_ADD_LANE_LABEL}
-          fold
-          defaultOpen={
-            shotMode || Boolean(editing) || spendPanel === "spend-add"
-          }
-        >
-        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
-          <p className="mcfly-spend-helper mcfly-spend-helper--soft">
-            Shopify sales are already here. Empty spend is not a certified $0 —
-            add a day. A deleted day stays $0. Empty spend is never 0×
-            {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
-            {strangerEmpty
-              ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
-              : ". Sales ÷ spend is the pair above. This section records typed, uploaded, or daily-rate spend."}
-          </p>
-
-          {strangerEmpty ? (
-            <SpendFindingStrip finding={spendUploadEmptyFinding()} />
-          ) : null}
-
-          <section
-            id="mcfly-spend-add"
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft mcfly-spend-add--hero"
-            aria-label={
-              editing
-                ? "Edit this day of spend"
-                : "Yesterday’s spend — one bill"
-            }
-          >
-              <SpendAddDayPanel
-                editing={editing}
-                fillDateKey={fillDateKey}
-                yesterdayKey={yesterdayKey}
-                spendHistoryFloorKey={spendHistoryFloorKey}
-                todayKey={todayKey}
-                addChannel={addChannel}
-                setAddChannel={setAddChannel}
-                addSpendChannels={addSpendChannels}
-                currencyCode={currencyCode}
-                isSubmitting={isSubmitting}
-                submittingIntent={submittingIntent}
-              />
-          </section>
-        </div>
         </DeskLane>
         ) : null}
 

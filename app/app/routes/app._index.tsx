@@ -3,7 +3,7 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useLoaderData, useLocation, useNavigation, useSearchParams, redirect } from "react-router";
+import { useLoaderData, useLocation, useSearchParams, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
@@ -14,6 +14,7 @@ import {
   namedDeskTitle,
   refreshingSalesLine,
 } from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
 import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
@@ -32,7 +33,6 @@ import {
   buildOverviewYoyYearModel,
   useOverviewPanelScroll,
 } from "../components/OverviewYoyYearSection";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewLivePeriodClock } from "../components/OverviewLivePeriodClock";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
@@ -85,11 +85,7 @@ import {
   overviewMonthClock,
   overviewMtdFromDays,
 } from "../lib/overview-mix-forecast";
-import {
-  buildShareableInsights,
-  emptyShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
+import { pickShareableLtvPeek } from "../lib/shareable-insights";
 import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
@@ -160,6 +156,8 @@ function formatPctDelta(pct: number | null, priorLabel?: string): string {
   if (vs === "last year") return `${sign}${pct.toFixed(0)}% vs last year`;
   return `${sign}${pct.toFixed(0)}% vs ${vs}`;
 }
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!hasShopifySessionContext(request)) {
@@ -757,8 +755,7 @@ export default function Dashboard() {
     orderHero,
     orderBookDepth,
   } = data;
-  const navigation = useNavigation();
-  const isLoading = navigation.state === "loading";
+  const isLoading = useDeskTabRefresh();
   const requestScreen = shotMode
     ? null
     : namedDeskScreenFromPath(location.pathname);
@@ -897,30 +894,6 @@ export default function Dashboard() {
         (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
     ),
   });
-  const insightView = greetingPending
-    ? emptyShareableInsights()
-    : buildShareableInsights(
-        {
-          salesPending: greetingPending,
-          orderCount: metrics.orderCount,
-          returningSales: orderHero.returningSales ?? shopBook.returningSales,
-          returningShare: shopBook.returningSalesShare,
-          newSales: shopBook.newSales,
-          typicalOrder: orderHero.typicalOrder ?? metrics.shopifyDepth.medianAov,
-          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
-          ltvPeek: ltvPeek?.amount ?? null,
-          ltvPeekDays: ltvPeek?.days ?? null,
-          historyLimited: Boolean(
-            !useSampleDesk &&
-              (orderBackfillProgress?.historyLimited ||
-                metrics.tillLtv.historyLimited),
-          ),
-          shopLabel,
-          sample: useSampleDesk,
-          periodLabel: metrics.period.label,
-        },
-        (n) => formatCurrency(n, currency),
-      );
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
     periodStartDay: sharePeriodStartDay,
@@ -1233,7 +1206,6 @@ export default function Dashboard() {
                     variant="overview"
                     goalsHref={goalsHref}
                   />
-                  <ShareableInsightCards view={insightView} shotMode={shotMode} />
                   </div>
                 </DeskLane>
                 <DeskLane

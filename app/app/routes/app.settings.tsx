@@ -45,6 +45,7 @@ import {
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { BILLING_HONESTY } from "../lib/entitlements";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -60,6 +61,8 @@ function showAdminToast(
   ).shopify;
   bridge?.toast?.show?.(message, options);
 }
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await requireAdmin(request);

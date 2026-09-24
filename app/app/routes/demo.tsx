@@ -8,6 +8,7 @@ import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
 import { DeskCurrencyContext } from "../lib/desk-currency";
 import { PUBLIC_SAMPLE_CURRENCY } from "../lib/public-sample-constants";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
+import { deskShellShouldRevalidate } from "../lib/desk-tab-flow";
 import deskStyles from "../styles/mcfly-desk.css?url";
 import publicDemoStyles from "../styles/public-demo.css?url";
 
@@ -28,6 +29,8 @@ export const meta: MetaFunction = () => [
 ];
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
+
+export const shouldRevalidate = deskShellShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);

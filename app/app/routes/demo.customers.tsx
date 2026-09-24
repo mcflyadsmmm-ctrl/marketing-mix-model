@@ -11,7 +11,6 @@ import { CustomerRfmBoard } from "../components/CustomerRfmBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskLane } from "../components/DeskLane";
 import { CustomersGrowthSection } from "../components/CustomersGrowthSection";
@@ -30,6 +29,7 @@ import {
   namedDeskScreenFromPath,
   namedDeskTitle,
 } from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import { useDeskHref } from "../lib/desk-base-path";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
@@ -38,16 +38,8 @@ import {
   type PublicSamplePage,
 } from "../lib/public-sample-page.server";
 import { loadLtvDepth } from "../lib/ltv-depth-page.server";
-import { formatCurrency } from "../lib/mer-format";
-import { useDeskCurrency } from "../lib/desk-currency";
-import { flagshipDailyRead } from "../lib/ltv-flagship";
-import {
-  buildShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
 import {
   customersOnScreenWindow,
-  labelCustomersDaysToSecondCard,
   type CustomersWindowDays,
 } from "../lib/customers-days-to-second";
 
@@ -86,6 +78,8 @@ function demoLtvMetrics(data: PublicSamplePage): CustomersLtvMetrics {
   };
 }
 
+export const shouldRevalidate = deskPageShouldRevalidate;
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const page = await loadPublicSamplePage(request);
   const ltvDepth = await loadLtvDepth({
@@ -115,7 +109,6 @@ export default function PublicDemoCustomers() {
     screen === "ltv" || screen === "growth" || screen === "who-to-save"
       ? namedDeskTitle(screen)
       : PRODUCT_NOUN.buyersTitle;
-  const currency = useDeskCurrency();
   const ltvMetrics = demoLtvMetrics(data);
   const ltvProps = {
     metrics: ltvMetrics,
@@ -126,50 +119,10 @@ export default function PublicDemoCustomers() {
     shopLabel: data.shopLabel,
     shotMode: data.shotMode,
   };
-  const historyLimited = false;
-  const daily = flagshipDailyRead(data.ltvDepth.windows, data.ltvDepth.predictive);
-  const ltvPeek = daily
-    ? { amount: daily.worth, days: daily.worthDays }
-    : pickShareableLtvPeek({
-        revenue30: data.ltv.revenue30,
-        revenue90: data.ltv.revenue90,
-        revenue365: data.ltv.revenue365,
-        historyLimited,
-      });
-  const insightView = buildShareableInsights(
-    {
-      salesPending: false,
-      orderCount: data.book.orderCount,
-      returningSales: data.book.returningSales,
-      returningShare: data.book.returningSalesShare,
-      newSales: data.book.newSales,
-      typicalOrder: data.depth.medianAov,
-      daysToSecond: data.depth.medianDaysToSecond,
-      ltvPeek: ltvPeek?.amount ?? null,
-      ltvPeekDays: ltvPeek?.days ?? null,
-      historyLimited,
-      shopLabel: data.shopLabel,
-      sample: true,
-      periodLabel: data.rangeLabel,
-      todaySalesTruncated: false,
-    },
-    (n) => formatCurrency(n, currency),
-  );
   const windowDays: CustomersWindowDays = {
     label: customersOnScreenWindow(data.rangeLabel),
     days: data.depth.medianDaysToSecond,
     cameBack: data.depth.repeatBuyers,
-  };
-  const returningInsight = {
-    ...insightView,
-    cards: insightView.cards.filter((card) => card.kind === "returning"),
-    empty: null,
-  };
-  const depthInsight = {
-    ...insightView,
-    cards: insightView.cards
-      .filter((card) => card.kind !== "returning")
-      .map((card) => labelCustomersDaysToSecondCard(card, windowDays)),
   };
 
   return (
@@ -231,12 +184,6 @@ export default function PublicDemoCustomers() {
             fold
             defaultOpen={data.shotMode}
           >
-            {returningInsight.cards.length > 0 ? (
-              <ShareableInsightCards
-                view={returningInsight}
-                shotMode={data.shotMode}
-              />
-            ) : null}
             <CustomersScoreboard
               book={data.book}
               depth={data.depth}
@@ -308,12 +255,6 @@ export default function PublicDemoCustomers() {
             <CustomerWhaleTable analytics={data.customers} />
             <CustomerConcentrationChart book={data.book} depth={data.depth} />
             <CustomersLtvDepth {...ltvProps} />
-            {depthInsight.cards.length > 0 || depthInsight.empty ? (
-              <ShareableInsightCards
-                view={depthInsight}
-                shotMode={data.shotMode}
-              />
-            ) : null}
           </DeskLane>
         </div>
         ) : null}

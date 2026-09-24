@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
+import { Link, useLoaderData, useLocation, useSearchParams } from "react-router";
 
 import { DeskLane } from "../components/DeskLane";
 import {
@@ -16,11 +16,9 @@ import {
   buildOverviewYoyYearModel,
   useOverviewPanelScroll,
 } from "../components/OverviewYoyYearSection";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
 import { useDeskHref } from "../lib/desk-base-path";
-import { useDeskCurrency } from "../lib/desk-currency";
 import {
   DESK_SECTION,
   deskNavHref,
@@ -31,7 +29,6 @@ import {
   isOverviewToolStage,
   overviewToolFromPanel,
 } from "../lib/desk-nav";
-import { formatCurrency } from "../lib/mer-format";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
@@ -49,15 +46,15 @@ import {
   namedDeskTitle,
   refreshingSalesLine,
 } from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
-import {
-  buildShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
+import { pickShareableLtvPeek } from "../lib/shareable-insights";
 import { parseYoyYear } from "../lib/yoy-workspace";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadPublicSamplePage(request);
@@ -65,14 +62,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function PublicDemoOverview() {
   const data = useLoaderData<typeof loader>();
-  const currency = useDeskCurrency();
   const deskHref = useDeskHref();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigation = useNavigation();
   useDeskHashScroll();
   useOverviewPanelScroll(searchParams.get("panel"));
-  const isLoading = navigation.state === "loading";
+  const isLoading = useDeskTabRefresh();
   const requestScreen = data.shotMode
     ? null
     : namedDeskScreenFromPath(location.pathname);
@@ -132,24 +127,6 @@ export default function PublicDemoOverview() {
     revenue365: data.ltv.revenue365,
     historyLimited: false,
   });
-  const insightView = buildShareableInsights(
-    {
-      salesPending: false,
-      orderCount: data.sales.orderCount,
-      returningSales: data.orderHero.returningSales,
-      returningShare: data.book.returningSalesShare,
-      newSales: data.book.newSales,
-      typicalOrder: data.orderHero.typicalOrder,
-      daysToSecond: data.depth.medianDaysToSecond,
-      ltvPeek: ltvPeek?.amount ?? null,
-      ltvPeekDays: ltvPeek?.days ?? null,
-      historyLimited: false,
-      shopLabel: data.shopLabel,
-      sample: true,
-      periodLabel: data.rangeLabel,
-    },
-    (n) => formatCurrency(n, currency),
-  );
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk: true,
     salesPulledAt: null,
@@ -272,7 +249,6 @@ export default function PublicDemoOverview() {
                     variant="overview"
                     goalsHref={goalsHref}
                   />
-                  <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
                 </div>
                 </DeskLane>
                 <DeskLane

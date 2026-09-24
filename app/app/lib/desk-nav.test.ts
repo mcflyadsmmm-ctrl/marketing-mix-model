@@ -120,7 +120,9 @@ describe("DESK_PRIMARY_NAV", () => {
       "utf8",
     );
     expect(tabs).toContain("DESK_IFRAME_NAV");
-    expect(tabs).toContain("<DeskPanelRail");
+    expect(tabs).not.toContain("<DeskPanelRail");
+    expect(tabs).toContain('data-desk-tab={item.path}');
+    expect(tabs).toContain('prefetch="intent"');
     expect(tabs).toContain("<Link");
     expect(tabs).toContain("mcfly-desk-tabs--pills");
     expect(tabs).not.toContain("scrollIntoView");

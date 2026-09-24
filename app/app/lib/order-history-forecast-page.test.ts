@@ -24,7 +24,6 @@ describe("P2-A order-history forecast — on the existing tabs", () => {
     const order = [
       "<OverviewMixForecast",
       "<OrderHistoryForecast",
-      "<ShareableInsightCards",
     ].map((tag) => overview.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {

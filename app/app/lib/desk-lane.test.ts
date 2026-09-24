@@ -102,7 +102,6 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
       "<OverviewSalesChart",
       'label="Mix and month close"',
       "<OverviewMixForecast",
-      "<ShareableInsightCards",
       'label="More order detail"',
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",
@@ -141,7 +140,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       "<CustomersCompareGlance",
       "<CustomerMixChart",
       'label="Returning mix and facts"',
-      "<ShareableInsightCards",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
       "<UnlockFullHistoryBanner",
@@ -226,7 +224,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(customers.indexOf("<CustomersLtvWindows")).toBeLessThan(
       customers.indexOf("<CustomersLtvEconomics"),
     );
-    expect(customers).toContain("<ShareableInsightCards");
+    expect(customers).not.toContain("<ShareableInsightCards");
     expect(customers).not.toContain("<details");
     expect(customers).toContain("<UnlockFullHistoryBanner");
     expect(ltv).toContain('retryHref="/app/ltv"');
@@ -257,7 +255,8 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<CpaExplorer");
     expect(spend).not.toContain("0.00×");
-    expect(spend).toContain('spendPanel === "spend-add"');
+    expect(spend).toContain("label={SPEND_ADD_LANE_LABEL}");
+    expect(spend).not.toMatch(/label=\{SPEND_ADD_LANE_LABEL\}[\s\S]{0,160}\bfold\b/);
     expect(spend).toContain('href="#mcfly-spend-add"');
   });
 });

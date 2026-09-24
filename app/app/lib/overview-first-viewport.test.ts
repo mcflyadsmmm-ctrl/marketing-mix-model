@@ -145,7 +145,6 @@ describe("overview first viewport", () => {
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
     const mixAt = overview.indexOf("<OverviewMixForecast");
-    const shareAt = overview.indexOf("<ShareableInsightCards");
     const chartAt = overview.indexOf("<OverviewSalesChart");
     const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
@@ -156,8 +155,8 @@ describe("overview first viewport", () => {
     expect(chartAt).toBeGreaterThan(viewportAt);
     expect(overview).toContain("mcfly-overview-first-beat");
     expect(mixAt).toBeGreaterThan(yoyAt);
-    expect(shareAt).toBeGreaterThan(mixAt);
-    expect(depthAt).toBeGreaterThan(shareAt);
+    expect(overview).not.toContain("<ShareableInsightCards");
+    expect(depthAt).toBeGreaterThan(mixAt);
     expect(weekdayAt).toBeGreaterThan(depthAt);
     expect(yearAt).toBeGreaterThan(weekdayAt);
     expect(overview).toContain("orderHero");

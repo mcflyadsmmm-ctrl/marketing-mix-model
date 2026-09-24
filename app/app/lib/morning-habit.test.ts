@@ -164,9 +164,10 @@ describe("Morning habit strip and copy mounts", () => {
     expect(strip).not.toMatch(/\/app\/settings/);
   });
 
-  it("mounts the strip from the book page and hides it in shot mode", () => {
+  it("does not mount This morning as a control on the book page", () => {
     const book = read("../components/DeskBookPage.tsx");
-    expect(book).toContain("{shotMode ? null : <MorningHabitStrip />}");
+    expect(book).not.toContain("<MorningHabitStrip");
+    expect(book).not.toContain("This morning");
   });
 
   it("copies morningSentence on the three Today’s reads", () => {

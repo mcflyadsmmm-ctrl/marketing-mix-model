@@ -22,7 +22,6 @@ describe("Overview mix + month close — habit, not a dump", () => {
       "<OverviewYoyCards",
       "<OverviewSalesChart",
       "<OverviewMixForecast",
-      "<ShareableInsightCards",
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",
     ].map((tag) => overview.indexOf(tag));

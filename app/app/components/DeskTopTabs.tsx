@@ -1,6 +1,5 @@
 import { Link, useLocation, useSearchParams } from "react-router";
 
-import { DeskPanelRail } from "./DeskPanelRail";
 import { useDeskHref } from "../lib/desk-base-path";
 import {
   DESK_IFRAME_NAV,
@@ -16,10 +15,9 @@ import {
 const SETTINGS_TAB: DeskNavItem = { path: "/app/settings", label: "Settings" };
 
 /**
- * Multi-row spaced pills. Three analysis tabs (Home · Customers · Spend);
- * Settings only when asked (public /demo). No SCOREBOARD / RETAIN chips,
- * no Meta-ROAS hero, no single-row scroll strip. Active = ink fill.
- * Panel rail sits below.
+ * One row: Orders, Spend, Goals, Customers, and Settings on the public desk.
+ * Each pill keeps the address it names. The link swaps the view in the
+ * document that is already loaded. No second chip row under the dollar.
  */
 export function DeskTopTabs({
   shotMode = false,
@@ -41,41 +39,40 @@ export function DeskTopTabs({
     : DESK_IFRAME_NAV;
 
   return (
-    <>
-      <nav
-        className="mcfly-desk-tabs mcfly-desk-tabs--pills"
-        aria-label="Desk pages"
-        role="tablist"
-      >
-        {items.map((item) => {
-          const href = deskHref(item.path);
-          const active = isDeskNavActive(item.path, location.pathname);
-          const locked =
-            item.path === "/app/customers" &&
-            liveDeskNav?.customersLocked === true;
-          const label = liveDeskNav ? deskNavLabel(item, liveDeskNav) : item.label;
-          return (
-            <Link
-              key={item.path}
-              role="tab"
-              aria-selected={active}
-              aria-current={active ? "page" : undefined}
-              data-live-desk-lock={locked ? "customers" : undefined}
-              className={[
-                "mcfly-desk-tabs__pill",
-                active ? "mcfly-desk-tabs__pill--on" : null,
-                locked ? "mcfly-desk-tabs__pill--locked" : null,
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              to={deskNavHrefFromSearch(href, searchParams, item.hash)}
-            >
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-      <DeskPanelRail liveDeskNav={liveDeskNav} />
-    </>
+    <nav
+      className="mcfly-desk-tabs mcfly-desk-tabs--pills"
+      aria-label="Desk pages"
+      role="tablist"
+    >
+      {items.map((item) => {
+        const href = deskHref(item.path);
+        const active = isDeskNavActive(item.path, location.pathname);
+        const locked =
+          item.path === "/app/customers" &&
+          liveDeskNav?.customersLocked === true;
+        const label = liveDeskNav ? deskNavLabel(item, liveDeskNav) : item.label;
+        return (
+          <Link
+            key={item.path}
+            role="tab"
+            prefetch="intent"
+            aria-selected={active}
+            aria-current={active ? "page" : undefined}
+            data-desk-tab={item.path}
+            data-live-desk-lock={locked ? "customers" : undefined}
+            className={[
+              "mcfly-desk-tabs__pill",
+              active ? "mcfly-desk-tabs__pill--on" : null,
+              locked ? "mcfly-desk-tabs__pill--locked" : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            to={deskNavHrefFromSearch(href, searchParams, item.hash)}
+          >
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

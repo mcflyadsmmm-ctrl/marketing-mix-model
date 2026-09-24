@@ -5,10 +5,13 @@ import { DeskBookPage } from "../components/DeskBookPage";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
 
 const LISTING = "https://apps.shopify.com/mcfly-analytics-public";
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
 

@@ -253,7 +253,7 @@ describe("live desk stage gate", () => {
     expect(tabs).toContain("deskNavLabel");
     expect(read("./live-desk-surface.ts")).toContain("Customers · locked");
     expect(tabs).toContain('data-live-desk-lock={locked ? "customers" : undefined}');
-    expect(tabs).toContain("<DeskPanelRail");
+    expect(tabs).not.toContain("<DeskPanelRail");
     const rail = read("../components/DeskPanelRail.tsx");
     expect(rail).toContain("liveDeskPanelChips");
 

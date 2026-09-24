@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
-import { MorningHabitStrip } from "./MorningHabitStrip";
+import { useDeskTabRefresh } from "../lib/desk-tab-flow";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
@@ -58,6 +58,7 @@ export function DeskBookPage({
   retryHref?: string;
   children: ReactNode;
 }) {
+  const refreshing = useDeskTabRefresh();
   let panel: string | null = null;
   try {
     const [searchParams] = useSearchParams();
@@ -95,12 +96,12 @@ export function DeskBookPage({
           "mcfly-desk",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
-          isLoading && !shotMode ? "mcfly-desk--loading" : null,
+          isLoading && refreshing && !shotMode ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {isLoading && !shotMode ? (
+        {isLoading && refreshing && !shotMode ? (
           <section
             className="mcfly-state mcfly-state--loading"
             aria-live="polite"
@@ -122,8 +123,6 @@ export function DeskBookPage({
             ) : null}
           </div>
         </div>
-
-        {shotMode ? null : <MorningHabitStrip />}
 
         {notices.map((notice) => (
           <s-banner

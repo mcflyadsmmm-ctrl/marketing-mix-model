@@ -10,6 +10,9 @@ import { requireAdmin } from "../lib/public-app-gate.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import prisma from "../db.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await requireAdmin(request);
