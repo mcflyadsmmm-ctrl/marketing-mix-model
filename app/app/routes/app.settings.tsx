@@ -326,9 +326,8 @@ export default function SettingsPage() {
               </p>
             ) : null}
             <p className="mcfly-control__k" style={{ marginTop: "0.75rem" }}>
-              $39 per store / month after a 7-day trial. Trial and paid keep
-              Customers, LTV, and up to 24 months of orders. Spend stays
-              optional. One plan.
+              7 days, then $39. Trial and paid both keep the full desk, up to
+              24 months of orders. Spend stays optional. One plan.
             </p>
             <ul className="mcfly-settings-guide">
               {billing.deskBullets.map((line) => (
@@ -364,7 +363,7 @@ export default function SettingsPage() {
               <div style={{ marginTop: "0.85rem" }}>
                 <p className="mcfly-panel__muted">
                   This shop has the whole desk. Uninstall in Admin stops the
-                  next 30-day cycle.
+                  next 30-day cycle. The current cycle may still charge.
                 </p>
                 {billing.enabled ? (
                   <div style={{ marginTop: "0.65rem" }}>

@@ -63,7 +63,7 @@ function cardIcon(kind: ShareableInsightKind): "customers" | "orders" | "clock" 
 function InsightPoster({
   card,
   shopBrand,
-  sample,
+  sample: _sample,
   periodLabel,
   onOpen,
 }: {
@@ -73,6 +73,7 @@ function InsightPoster({
   periodLabel: string;
   onOpen: () => void;
 }) {
+  void _sample;
   const tone: Tone = card.kind;
   return (
     <div className={`mcfly-share-card__poster mcfly-share-card__poster--${tone}`}>
@@ -80,7 +81,7 @@ function InsightPoster({
         <span className="mcfly-share-card__mark">
           <span className="mcfly-share-card__brand">Mcfly Analytics</span>
           <span className="mcfly-share-card__shop">
-            {sample ? `${shopBrand} · SAMPLE` : shopBrand}
+            {shopBrand}
             <span aria-hidden="true"> · </span>
             {periodLabel}
           </span>

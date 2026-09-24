@@ -16,8 +16,8 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     const desk = html + "\n" + js;
 
     expect(desk).toContain("Sample shop");
-    expect(desk).toMatch(/\$68,?457/);
-    expect(desk).toMatch(/\$19,?023/);
+    expect(desk).toMatch(/\$75,?943/);
+    expect(desk).toMatch(/\$21,?100/);
     expect(desk).toMatch(/3\.60/);
     expect(desk).not.toMatch(/>—</);
 
@@ -27,7 +27,9 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(desk).not.toMatch(/4\.19×/);
     expect(js).not.toContain("0.00×");
     expect(js).toContain('return "—"');
-    expect(html).toMatch(/SAMPLE|not a live merchant/i);
+    expect(html).toContain("Sample shop");
+    expect(html).toMatch(/not a live store/i);
+    expect(html).not.toMatch(/\bSAMPLE\b/);
     expect(html).toContain("hosted=1");
   });
 
@@ -40,7 +42,8 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(hero).toMatch(/vs last year/i);
     expect(hero).toMatch(/Typical order|returning/i);
     expect(hero).toContain("From orders");
-    expect(hero).toContain("$68,457");
+    expect(hero).toContain("$75,943");
+    expect(hero).toContain("$67,617");
     expect(hero).not.toMatch(/Total ROAS|Ad spend/i);
     expect(html).not.toContain('data-dd-period="l7d"');
   });
@@ -57,7 +60,8 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     const html = readSite("site/index.html");
     const redirects = readSite("site/_redirects");
     expect(html).toContain('href="/demo"');
-    expect(html).toContain("Open the SAMPLE desk");
+    expect(html).toContain("Open the demo");
+    expect(html).not.toMatch(/\bSAMPLE\b/);
     expect(html).not.toContain("/demo?tab=spend");
     expect(html).not.toContain("Spend demo");
     expect(html).not.toContain('href="/demo/spend"');

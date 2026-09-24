@@ -150,11 +150,12 @@ describe("entitlements plan copy names one 24-month desk", () => {
   it("trial and paid keep the same book — not a 90-day withhold", () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const bullets = DESK_FEATURE_BULLETS.join(" ");
-    expect(bullets).toMatch(/Trial and paid keep up to 24 months/);
-    expect(bullets).toMatch(/\$39/);
-    expect(bullets).toMatch(/7-day trial/);
+    expect(bullets).toMatch(/Trial and paid both keep the full desk, up to 24 months/);
+    expect(bullets).toMatch(/7 days, then \$39/);
+    expect(bullets).toMatch(/Meta, Google, Email, or Other/);
+    expect(bullets).not.toMatch(/Full-year Goals|billboard/i);
     expect(bullets).not.toMatch(/full-access/);
-    expect(BILLING_HONESTY.flat).toMatch(/Trial and paid keep/);
+    expect(BILLING_HONESTY.flat).toMatch(/Trial and paid both keep the full desk/);
     expect(BILLING_HONESTY.flat).toMatch(/24 months/);
     expect(BILLING_HONESTY.flat).not.toMatch(/full-access/);
     expect(PRO_UPSELL.includes).toMatch(/same desk/);

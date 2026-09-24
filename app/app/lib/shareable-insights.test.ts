@@ -300,7 +300,7 @@ describe("ShareableInsightCards render", () => {
     expect(html).toContain("Copy for Slack");
     expect(html).toContain("Save PNG");
     expect(html).toContain("Sample shop");
-    expect(html).toContain("SAMPLE");
+    expect(html).not.toContain("SAMPLE");
     expect(html).toContain("Returning $ ÷ (new $ + returning $)");
     expect(html).not.toContain(">$0<");
     expect(html).not.toContain("Total ROAS");
@@ -335,7 +335,7 @@ describe("Slack insight paste — one sealed number", () => {
     });
     expect(
       slack.slack.startsWith(
-        "*Returning $ · This month* · Sample shop · SAMPLE · This month",
+        "*Returning $ · This month* · Sample shop · This month",
       ),
     ).toBe(true);
     expect(slack.slack).toContain(card!.line);
@@ -354,7 +354,8 @@ describe("Slack insight paste — one sealed number", () => {
     });
     expect(sealed?.line).toContain("18 days");
     expect(sealed?.slack).toContain("*Days to second*");
-    expect(sealed?.slack).toContain("Sample shop · SAMPLE");
+    expect(sealed?.slack).toContain("Sample shop");
+    expect(sealed?.slack).not.toContain("Sample shop · SAMPLE");
     expect(
       daysToSecondSlackInsight({
         typicalDays: null,
@@ -587,7 +588,8 @@ describe("Slack insight paste — one sealed number", () => {
       where: "On file",
       money,
     });
-    expect(days?.slack).toContain("Sample shop · SAMPLE");
+    expect(days?.slack).toContain("Sample shop");
+    expect(days?.slack).not.toContain("Sample shop · SAMPLE");
     expect(days?.line).toMatch(/\d+ days/);
     expect(days?.slack).not.toContain("$0");
     expect(worth?.line).toMatch(/first (30|90) days|first year/);

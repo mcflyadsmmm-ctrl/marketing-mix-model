@@ -78,10 +78,8 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
     );
     expect(unpaidSpend).not.toMatch(/24 months/);
 
-    expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
-    expect(overviewCoverageLine("trial_slice")).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(overviewCoverageLine("trial_slice")).toBe("Up to 24 months of orders");
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/Trial/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
 
     const unpaidLede = deskBookLede(
@@ -291,9 +289,8 @@ describe("book coverage honesty — Spend today cap and no 60-day truncated clau
 
 describe("book coverage honesty — Settings / Spend leftover names the 90 vs 24 split", () => {
   it("does not recook Overview coverage; Settings, explorer, and CPA name the unpaid book", () => {
-    expect(overviewCoverageLine("trial_slice")).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(overviewCoverageLine("trial_slice")).toBe("Up to 24 months of orders");
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/90 days/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
 
     const settings = read("../routes/app.settings.tsx");

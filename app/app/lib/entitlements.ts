@@ -27,7 +27,7 @@ export const PRO_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
  * Single SoT for plan copy. Keep $39 in-app only — never in App Store listing paste.
  */
 export const PRO_UPSELL = {
-  short: "7-day trial · then $39/store/mo",
+  short: "7 days, then $39.",
   priceLine: "$39 per store / month",
   /** One-line “what you get” for Settings. */
   includes:
@@ -47,7 +47,7 @@ export const PRO_UPSELL = {
 /** In-app only (never listing paste). Contrast GMV ladders and order overages. */
 export const BILLING_HONESTY = {
   flat:
-    "Mcfly Analytics is $39 per store / month after a 7-day trial — not a percent of sales, not a per-order fee. The price does not rise with sales. Trial and paid keep Customers, LTV, and up to 24 months of orders. Spend stays optional. One plan.",
+    "7 days, then $39. Not a percent of sales, not a per-order fee. The price does not rise with sales. Trial and paid both keep the full desk, up to 24 months of orders. Spend stays optional. One plan.",
   cancel:
     "Shopify bills this app. Uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
 } as const;
@@ -55,10 +55,10 @@ export const BILLING_HONESTY = {
 /** One plan, one list. There is no second tier to compare against. */
 export const DESK_FEATURE_BULLETS = [
   "Whole desk: Spend, Overview, Channel Allocation, LTV, Goals",
-  "Every named platform plus extras like billboard",
+  "Spend for Meta, Google, Email, or Other — or a name you type",
   "Total ROAS = Shopify sales ÷ the spend you add",
   "Customer LTV and payback on your store",
-  "Full-year Goals board",
-  "Sample data to click around before Live data",
-  "7-day trial, then $39 per store / month. Trial and paid keep up to 24 months of orders",
+  "One saved target on Goals. Settings does not ask for it",
+  "Example numbers to click around before your own orders",
+  "7 days, then $39. Trial and paid both keep the full desk, up to 24 months of orders",
 ] as const;

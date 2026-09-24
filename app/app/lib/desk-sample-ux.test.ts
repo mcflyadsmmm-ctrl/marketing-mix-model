@@ -40,25 +40,21 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain('shotMode ? "mcfly-data-mode--shot"');
     expect(bar).toContain("mcfly-data-mode--shot");
     expect(bar).toContain("sampleHint");
-    expect(bar).toContain("if (!useSampleDesk) return null");
-    expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
+    expect(bar).toContain("if (!useSampleDesk || !shotMode) return null");
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("shotMode={shotMode}");
     expect(shell).not.toMatch(/\{!shotMode \? \(/);
     const css = read("../styles/mcfly-desk.css");
     expect(css).toMatch(/mcfly-desk--shot\.mcfly-desk--sample::after/);
-    expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
+    expect(css).toMatch(/content:\s*none/);
   });
 
   it("DataModeBar is SAMPLE honesty for freeze/shot only — no Settings switch", () => {
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("sampleData");
     expect(bar).toContain("sampleHint");
     expect(bar).not.toContain("Switch in Settings");
     expect(bar).toContain("sampleOnlyFreeze");
-    expect(bar).toContain("Sample mode is locked");
-    expect(bar).toContain("if (!useSampleDesk) return null");
-    expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
+    expect(bar).toContain("if (!useSampleDesk || !shotMode) return null");
     expect(bar).not.toContain("<Form");
     expect(bar).not.toContain('id="mcfly-data-mode-label"');
     expect(bar).not.toContain("liveDataHint");

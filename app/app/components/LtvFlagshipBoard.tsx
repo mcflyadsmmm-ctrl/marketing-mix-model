@@ -17,7 +17,7 @@ function pct(share: number): string {
 function basisCopy(basis: RefundHonestyBasis): string {
   switch (basis) {
     case "sample_gross_known":
-      return "SAMPLE dollars below are net of refunds. A known gross is on file so the haircut is visible.";
+      return "Dollars below are net of refunds. A known gross is on file so the haircut is visible.";
     case "shopify_current_total":
       return "Dollars below use Shopify Total Sales after returns. Refund $ is not broken out on this shop — we do not invent a refund total.";
     case "unknown":

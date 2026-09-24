@@ -370,7 +370,7 @@ export function formatSlackInsightMessage(input: {
   sample: boolean;
   where: string;
 }): string {
-  const shop = input.sample ? `${input.shopBrand} · SAMPLE` : input.shopBrand;
+  const shop = input.shopBrand;
   const where = [shop, input.where.trim()].filter((part) => part.length > 0).join(" · ");
   return [
     `*${input.label}* · ${where}`,

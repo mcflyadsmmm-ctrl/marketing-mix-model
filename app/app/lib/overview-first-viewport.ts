@@ -12,7 +12,6 @@ import { resolveSalesReadiness } from "./sales-pending";
 export function overviewCoverageLine(depth: LiveIngestDepth): string {
   switch (depth) {
     case "trial_slice":
-      return "Trial: 90 closed days of orders";
     case "paid_full":
       return "Up to 24 months of orders";
     default: {

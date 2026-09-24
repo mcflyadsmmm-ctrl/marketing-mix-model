@@ -67,7 +67,7 @@ Option 3 (Marty picks): Your Shopify orders as a morning number. Spend next to s
 ## 3. Short description (`APP_STORE_PASTE:short` — verbatim)
 
 ```text
-Shopify Analytics skips YoY, typical order, returning dollars, weekends, and 30/90/365 LTV. Add spend later — even billboards.
+Shopify Analytics skips YoY, typical order, returning dollars, weekends, and 30/90/365 LTV. Add spend later for Meta, Google, Email, or Other.
 ```
 
 No plan prices in this field (4.2.3).
@@ -83,17 +83,17 @@ Set Partner **Website** and the long-description **Learn more** line to `https:/
 ```text
 Overview opens on this month versus the same days last year from your Shopify orders — plus typical order and returning dollars, with this quarter and this year on the same screen and a sales chart.
 
-Customers, Orders, and Overview work with no spend: days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days live on those pages. Trial and paid include up to 24 months of order history. Admin opens on your live store orders. Never invent last year as zero while history is still loading. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
+Customers, Orders, and Overview work with no spend: days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days live on those pages. Trial and paid both keep the full desk, up to 24 months of orders. Admin opens on your live store orders. Never invent last year as zero while history is still loading. The public demo is Sample shop at https://mcflyads.com/demo — it is not inside Admin.
 
-Spend is optional. Type or CSV daily spend when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Empty spend is an em dash, not 0×. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Mix, CPA, ledger, and dual-close sit on Spend. For channels, you can type or CSV daily spend for Meta, Google, TikTok, billboards, or another line when you add spend. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
+Spend is optional. Type or CSV daily spend when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Empty spend is an em dash, not 0×. The demo that opens uses Meta, Google, Email, and Other. Type another name if you buy somewhere else. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite. Mcfly does not show which platforms claimed the same purchase.
 
 WHAT YOU GET
 • Overview — this month / quarter / year vs last year, typical order, a sales chart, and the 12-month YoY year board
 • Orders — order range, discounts, returns, sources, weekend share, busiest weekday
 • Customers — returning dollars vs new, LTV 30 / 90 / 365, days to a second order, RFM and whales below
-• Spend — optional typed or CSV daily spend, including billboards; Total ROAS (sales ÷ entered spend); mix; CPA; upload last. Empty spend is an em dash, not 0×
-• Goals — sales vs the calendar, with no spend required
-• Settings — target Total ROAS and plan
+• Spend — optional typed or CSV daily spend for Meta, Google, Email, or Other. Total ROAS is sales ÷ entered spend. Empty spend is an em dash, not 0×
+• Goals — one saved target. Settings does not ask for it
+• Settings — plan
 • Five analysis tabs plus Settings. Total ROAS = Shopify Total Sales ÷ spend you entered
 
 WHAT WE NEVER DO
@@ -119,8 +119,8 @@ No `$` / ` /mo` in this field (4.2.3). No “Free” / “Pro” / “one plan�
 This month vs the same days last year from orders — typical order and returning dollars
 Returning dollars, guest checkouts, and days to a second order with no spend
 Weekend share, busiest weekday, and the range where most Shopify orders land
-New-buyer value at 30 / 90 / 365 days and Goals vs the calendar
-Optional typed spend (incl. billboards) — Total ROAS is honest MER (sales ÷ spend you added), not platform ROAS
+New-buyer value at 30 / 90 / 365 days. One target is saved on Goals, not Settings
+Optional typed spend for Meta, Google, Email, or Other — Total ROAS is honest MER (sales ÷ spend you added), not platform ROAS
 ```
 
 No plan prices, “one plan,” or “free trial” in this field (4.2.3).
@@ -157,6 +157,8 @@ In-app Start 7-day trial / Manage plan must match this one plan. No External cha
 ---
 
 ## 8. Hero / feature media (replace the stale ROAS hero)
+
+**Parked this pass — Partner login.** Do not upload gallery images that show 4.45×, $10,592,770, Billboard, TikTok, or Affiliate. Those shots are not the demo that opens (3.60× on this month, Meta, Google, Email, Other). Words above stay honest without that upload. The public price line in Partner should read 7 days, then $39, not only “Free trial available.” The developer address and the privacy data checkboxes (geolocation, IP, owner name, email, phone, street) were not changed here — they need the same login.
 
 **Do not upload the current feature media unchanged.** It may still show **CUSTOM DATA SCIENCE / 4.42x** or a formula-only Total ROAS story. Both contradict sales-first Overview YoY and risk an unsupported performance claim.
 

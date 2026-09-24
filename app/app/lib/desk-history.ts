@@ -92,7 +92,8 @@ export function deskPeriodTillLabel(input: {
 }): string {
   const orderBookDepth = input.orderBookDepth;
   if (input.useSampleDesk) {
-    return `${input.periodLabel}${PRODUCT_NOUN.samplePeriodSuffix}`;
+    // The public layout names Sample shop once. Do not add a second Sample on the till.
+    return input.periodLabel;
   }
   if (input.shotMode) return input.periodLabel;
   if (

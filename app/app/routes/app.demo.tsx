@@ -102,7 +102,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (isSampleOnlyFreeze()) {
         return {
           ok: false as const,
-          message: "Sample mode is locked.",
+          message: "This book stays an example.",
         };
       }
       await setSampleDeskEnabled(shop.id, false);
@@ -119,7 +119,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (isSampleOnlyFreeze()) {
         return {
           ok: false as const,
-          message: "Sample mode is locked. The Sample shop book stays.",
+          message: "This book stays an example.",
         };
       }
       await clearSampleDesk(shop.id);

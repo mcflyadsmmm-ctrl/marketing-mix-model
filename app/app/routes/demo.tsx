@@ -82,7 +82,7 @@ export function ErrorBoundary() {
     <main style={{ padding: "2rem 1rem" }}>
       <MerchantErrorRecovery error={error} retryHref="/demo" />
       <p>
-        <Link to="/demo">Back to SAMPLE demo</Link>
+        <Link to="/demo">Back to the demo</Link>
       </p>
     </main>
   );

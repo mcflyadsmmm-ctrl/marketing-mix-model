@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "7-day trial, then $39 per store per month. Trial is 90 days of order history; paid is up to 24 months. One plan. Every platform including billboards. Shopify App Pricing.",
+      "7 days, then $39. Trial and paid both keep the full desk. Uninstall stops the next 30-day cycle. The current cycle may still charge.",
   },
 ];
 
@@ -18,9 +18,8 @@ export default function PricingPage() {
       <main id="main" className={styles.article}>
         <h1>Pricing</h1>
         <p className={styles.lede}>
-          One plan. A 7-day trial, then $39 per store per month for the whole
-          desk. Trial is 90 days of order history; paid is up to 24 months. Not
-          a percent of sales. Not a per-order fee.
+          7 days, then $39. Trial and paid both keep the full desk. Not a
+          percent of sales. Not a per-order fee.
         </p>
 
         <h2>What you get</h2>
@@ -30,18 +29,14 @@ export default function PricingPage() {
             from Shopify orders — no spend required
           </li>
           <li>
-            Optional spend from every platform including billboards, beside
-            Shopify Total Sales
+            Optional spend for Meta, Google, Email, or Other, beside Shopify
+            sales
           </li>
           <li>Total ROAS = Shopify Total Sales ÷ spend you added</li>
           <li>Allocation mix, period filters, Email Overview</li>
           <li>Customer LTV from orders; Cash CAC payback when you add spend</li>
-          <li>Full-year Goals board</li>
-          <li>
-            Live trial order rows are 90 days; paid is up to 24 months. SAMPLE
-            on /demo is the paid-shaped book
-          </li>
-          <li>Sample data to click around before you switch to Live data</li>
+          <li>Goals keeps one saved target. Settings does not ask for it.</li>
+          <li>Trial and paid both keep the full desk, up to 24 months of orders.</li>
         </ul>
 
         <h2>Billing</h2>

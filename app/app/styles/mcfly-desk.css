@@ -4032,7 +4032,7 @@
 }
 
 .mcfly-desk--shot.mcfly-desk--sample::after {
-  content: "SAMPLE DATA";
+  content: none;
   position: absolute;
   top: 0.55rem;
   right: 0.65rem;

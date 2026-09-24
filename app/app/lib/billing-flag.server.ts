@@ -59,8 +59,8 @@ export function billingStatusCopy(billingEnabled: boolean): {
   }
   return {
     tier: "pro",
-    headline: "7-day trial · then $39/store/mo",
+    headline: "7 days, then $39.",
     detail:
-      "7-day trial, then $39 per store / month. Trial and paid keep Customers, LTV, and up to 24 months of orders. Spend stays optional. One plan — not a percent of sales, not a per-order fee. Shopify bills this app; uninstall in Admin to stop the next 30-day cycle (the current cycle may still charge).",
+      "7 days, then $39. Trial and paid both keep the full desk, up to 24 months of orders. Spend stays optional. One plan — not a percent of sales, not a per-order fee. Shopify bills this app. Uninstall stops the next 30-day cycle. The current cycle may still charge.",
   };
 }

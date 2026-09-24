@@ -55,9 +55,7 @@ export function paintShareableInsightPng(
 
   ctx.fillStyle = "#5a6f85";
   ctx.font = "600 24px 'Source Sans 3', 'Segoe UI', sans-serif";
-  const kicker = meta.sample
-    ? `${meta.shopBrand} · SAMPLE · ${meta.periodLabel}`
-    : `${meta.shopBrand} · ${meta.periodLabel}`;
+  const kicker = `${meta.shopBrand} · ${meta.periodLabel}`;
   ctx.fillText(kicker, 108, 196);
 
   ctx.fillStyle = "#5a6f85";

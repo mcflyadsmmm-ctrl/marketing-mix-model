@@ -31,22 +31,19 @@ export default function PublicDemoSettings() {
       retryHref="/demo/settings"
     >
       <p className="mcfly-book__lede">
-        {PRODUCT_NOUN.sampleHint} Sample mode is locked. This public demo
-        cannot switch to a live shop.
+        This public demo cannot switch to a live shop.
       </p>
       <div className="mcfly-well mcfly-well--scoreboard mcfly-well--soft">
         <p>
-          <strong>Data</strong> · Sample shop only. No Sample | Live toggle
-          here.
+          <strong>Data</strong> · This book only. No live-shop toggle here.
         </p>
         <p>
           <strong>{PRODUCT_NOUN.totalRoas}</strong> · {NUMBER_HONESTY.formula}.
           Empty spend is —.
         </p>
         <p>
-          <strong>Plan</strong> · SAMPLE is the same book shape as Live —
-          up to 24 months of orders. Trial and paid keep that book. Then
-          $39/store/month, one plan.{" "}
+          <strong>Plan</strong> · 7 days, then $39. Trial and paid both keep
+          the full desk, up to 24 months of orders.{" "}
           <a href={LISTING} rel="noopener noreferrer">
             Install
           </a>

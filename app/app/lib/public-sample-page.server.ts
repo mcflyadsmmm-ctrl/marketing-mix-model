@@ -65,7 +65,6 @@ import {
   type CpaDayPoint,
   type CpaWindowSnapshot,
 } from "./cpa-desk";
-import { PRODUCT_NOUN } from "./product-labels";
 import {
   PUBLIC_SAMPLE_LOCK_NOW,
   PUBLIC_SAMPLE_OVERVIEW_LOCK,
@@ -524,7 +523,7 @@ export async function loadPublicSamplePage(
     embed,
     shopLabel: PUBLIC_SAMPLE_SHOP_LABEL,
     currencyCode: PUBLIC_SAMPLE_CURRENCY,
-    tillLabel: `${range.label}${PRODUCT_NOUN.samplePeriodSuffix}`,
+    tillLabel: range.label,
     targetMer: 0,
     periodFromKey: shopLocalDayKey(range.start, PUBLIC_SAMPLE_TZ),
     periodToKey: shopLocalDayKey(range.end, PUBLIC_SAMPLE_TZ),

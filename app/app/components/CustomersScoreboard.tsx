@@ -112,7 +112,7 @@ export function CustomersScoreboard({
   depth,
   periodLabel,
   salesPending,
-  useSampleDesk,
+  useSampleDesk: _useSampleDesk,
   growthHref = "#mcfly-growth",
   ltvHref = "#mcfly-ltv",
   ltvNextLabel = "Open LTV",
@@ -126,6 +126,7 @@ export function CustomersScoreboard({
   ltvHref?: string;
   ltvNextLabel?: string;
 }) {
+  void _useSampleDesk;
   const currency = useDeskCurrency();
   const returning = isNum(book.returningSales) && book.returningSales > 0 ? book.returningSales : null;
   const returningValue = salesPending || returning == null ? "—" : formatCurrency(returning, currency);
@@ -159,7 +160,7 @@ export function CustomersScoreboard({
       <div className="mcfly-panel__head">
         <h2>Returning customers</h2>
         <p className="mcfly-panel__muted">
-          {periodLabel} · dollars, not headcount{useSampleDesk ? " · Sample data" : ""}
+          {periodLabel} · dollars, not headcount
         </p>
       </div>
 

@@ -125,8 +125,8 @@ describe("overview first viewport", () => {
   it("coverage line names order book + 24mo orders, not a blanket 60d", () => {
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
     expect(overviewCoverageLine("paid_full")).toBe(OVERVIEW_COVERAGE_LINE);
-    expect(overviewCoverageLine("trial_slice")).toMatch(/90 closed days/);
-    expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
+    expect(overviewCoverageLine("trial_slice")).toBe("Up to 24 months of orders");
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/Trial|90 closed days/);
     expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/ShopifyQL|read_reports|day totals/i);
     expect(overviewCoverageLine("trial_slice")).not.toMatch(
       /ShopifyQL|read_reports|day totals/i,

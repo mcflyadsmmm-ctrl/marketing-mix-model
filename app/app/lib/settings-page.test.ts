@@ -76,8 +76,8 @@ describe("Settings page", () => {
     expect(settings).toContain("BILLING_HONESTY.flat");
     expect(settings).toContain("aria-label=\"Your plan\"");
     expect(settings).not.toMatch(/full-access/);
-    expect(settings).toMatch(/\$39 per store \/ month after a 7-day trial/);
-    expect(settings).toMatch(/Trial and paid keep/);
+    expect(settings).toMatch(/7 days, then \$39/);
+    expect(settings).toMatch(/Trial and paid both keep the full desk/);
     expect(settings).toMatch(/24 months/);
     expect(settings).not.toContain("UnlockFullHistoryBanner");
     expect(entitlements).not.toMatch(/full-access/);
@@ -90,7 +90,8 @@ describe("Settings page", () => {
   it("public /demo/settings says SAMPLE matches the live 24-month book", () => {
     expect(demoSettings).toContain('orderBookDepth="paid_full"');
     expect(demoSettings).toMatch(/up to 24 months/);
-    expect(demoSettings).toMatch(/Trial and paid keep/);
+    expect(demoSettings).toMatch(/Trial and paid both keep/);
+    expect(demoSettings).toMatch(/full desk/);
     expect(demoSettings).toMatch(/\$39/);
     expect(demoSettings).not.toMatch(/full-access/);
     expect(demoSettings).not.toContain("UnlockFullHistoryBanner");

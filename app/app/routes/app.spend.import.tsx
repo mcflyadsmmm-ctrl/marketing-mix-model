@@ -2000,7 +2000,7 @@ export default function SpendEntryPage() {
                   . {SAMPLE_LEDGER_HANDOFF}
                 </p>
                 <p className="mcfly-spend-lean__status-foot">
-                  Sample mode is locked. These rows stay Sample shop.
+                  These rows stay an example. They will not become your spend.
                 </p>
               </>
             ) : coverageThroughYesterday.upToDate ? (

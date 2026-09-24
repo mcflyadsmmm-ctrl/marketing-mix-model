@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Install Mcfly Analytics from the Shopify App Store. Email a human. No shop-domain form. 7-day trial, then $39 via Shopify App Pricing.",
+      "Install Mcfly Analytics from the Shopify App Store. Email a human. No shop-domain form. 7 days, then $39.",
   },
 ];
 
@@ -39,16 +39,13 @@ export default function SupportPage() {
         <h2>What it costs</h2>
         <ul>
           <li>
-            <strong>7-day trial</strong>, then{" "}
-            <strong>$39</strong> per store / month for the whole desk. Trial is
-            90 days of order history; paid is up to 24 months. One plan.
-            Includes every named platform plus extras like billboard, Total
-            ROAS, break-even, Allocation, Customer LTV, and the full-year Goals
-            board.
+            7 days, then $39. Trial and paid both keep the full desk,
+            including Customers, LTV, and up to 24 months of orders. Spend is
+            optional: Meta, Google, Email, or Other.
           </li>
           <li>
-            Shopify App Pricing bills this in Admin. Uninstall stops the next
-            30-day cycle.
+            Shopify bills this app. Uninstall stops the next 30-day cycle. The
+            current cycle may still charge.
           </li>
         </ul>
         <p>

@@ -154,7 +154,7 @@ export default function PublicDemoOverview() {
       >
         {isLoading ? (
           <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing SAMPLE sales…</p>
+            <p className="mcfly-state__copy">Refreshing sales…</p>
           </section>
         ) : null}
 
@@ -167,7 +167,6 @@ export default function PublicDemoOverview() {
             <span className="mcfly-ctx__asof">{data.tillLabel}</span>
           </div>
           <div className="mcfly-trust" aria-label="Trust and freshness">
-            <span className="mcfly-trust__chip mcfly-trust__chip--sample">SAMPLE</span>
             <span className="mcfly-trust__chip">{freshLabel}</span>
           </div>
         </div>

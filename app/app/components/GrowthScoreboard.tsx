@@ -133,7 +133,7 @@ export function GrowthScoreboard({
   depth,
   repeatRate,
   salesPending,
-  useSampleDesk,
+  useSampleDesk: _useSampleDesk,
   ltvHref = "#mcfly-ltv",
   quietBack,
   comebackWait,
@@ -157,6 +157,7 @@ export function GrowthScoreboard({
   /** Period on screen. When set, the days chip is that wait — not another window. */
   windowDays?: CustomersWindowDays;
 }) {
+  void _useSampleDesk;
   const currency = useDeskCurrency();
   const firstTime =
     !salesPending && isNum(book.newSales) && book.newSales > 0
@@ -241,7 +242,6 @@ export function GrowthScoreboard({
         <h2>New dollars</h2>
         <p className="mcfly-panel__muted">
           First-time buyers · who came back
-          {useSampleDesk ? " · Sample data" : ""}
         </p>
       </div>
 
