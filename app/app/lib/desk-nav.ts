@@ -57,7 +57,7 @@ const RETIRED_OVERVIEW_TOOL_HASHES = new Set<string>([
   DESK_SECTION.plan,
 ]);
 
-/** Unknown hashes and retired tool tabs land on Overview home. */
+/** Unknown hashes and retired tool tabs land on the Orders tab. */
 export function deskStageFromHash(hash: string): DeskSectionId {
   const id = hash.replace(/^#/, "");
   if (OVERVIEW_HOME_HASHES.has(id)) return id as DeskSectionId;
@@ -83,6 +83,7 @@ export function isOverviewToolStage(stage: DeskSectionId): boolean {
   );
 }
 
+/** First tab is Orders. Retired hashes on this route keep that title. */
 export function deskStageHeading(stage: DeskSectionId): string {
   switch (stage) {
     case DESK_SECTION.overview:
@@ -94,12 +95,11 @@ export function deskStageHeading(stage: DeskSectionId): string {
     case DESK_SECTION.timing:
     case DESK_SECTION.ltv:
     case DESK_SECTION.marketing:
-      return "Overview";
     case DESK_SECTION.compare:
     case DESK_SECTION.ledger:
     case DESK_SECTION.mix:
     case DESK_SECTION.plan:
-      return "Overview";
+      return "Orders";
     default: {
       const _exhaustive: never = stage;
       return _exhaustive;

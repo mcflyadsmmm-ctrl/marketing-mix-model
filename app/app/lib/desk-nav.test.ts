@@ -161,7 +161,7 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(overview).not.toContain("Same dates as Overview");
   });
 
-  it("retired tool hashes land on Overview home", () => {
+  it("retired tool hashes land on the Orders tab", () => {
     expect(deskStageFromHash("")).toBe(DESK_SECTION.overview);
     expect(deskStageFromHash("#mcfly-ledger")).toBe(DESK_SECTION.overview);
     expect(deskStageFromHash("#mcfly-compare")).toBe(DESK_SECTION.overview);
@@ -172,8 +172,9 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(isOverviewHomeStage(DESK_SECTION.overview)).toBe(true);
     expect(isOverviewHomeStage(DESK_SECTION.chart)).toBe(true);
     expect(isOverviewHomeStage(DESK_SECTION.ledger)).toBe(false);
-    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Overview");
-    expect(deskStageHeading(DESK_SECTION.overview)).toBe("Overview");
+    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.overview)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.orders)).toBe("Orders");
   });
 
   it("keeps a helper for Overview section hashes", () => {

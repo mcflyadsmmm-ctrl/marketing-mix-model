@@ -1,5 +1,5 @@
 /**
- * T1 SAMPLE L2 — Orders tab retired. Redirect to Home.
+ * Old /app/orders bookmarks land on the Orders tab (this month’s sales).
  */
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";

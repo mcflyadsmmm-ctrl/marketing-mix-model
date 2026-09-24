@@ -301,7 +301,7 @@ export function OverviewFirstViewport({
   const sectionStillLoading =
     !useSampleDesk && (salesPending || Boolean(orderBackfillLine));
   const loadingOr = (label: string) =>
-    label === "—" && sectionStillLoading ? "still loading" : label;
+    label === "—" && sectionStillLoading ? "orders still loading" : label;
   const missingPrior = hero == null || hero.priorSales == null;
   const delta = overviewOrderDeltaLabel({
     yoyPct: hero?.yoyPct ?? null,

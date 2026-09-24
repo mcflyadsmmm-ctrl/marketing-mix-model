@@ -117,8 +117,8 @@ export const OVERVIEW_FIRST_FOLD_HEROES = [
 
 export type OverviewFirstFoldHero = (typeof OVERVIEW_FIRST_FOLD_HEROES)[number];
 
-/** Overview as-of chip — never “still loading sales days” next to a sealed $0. */
-export const OVERVIEW_PENDING_ASOF = " · still loading — not $0";
+/** Overview as-of chip — name orders, never a sealed $0. */
+export const OVERVIEW_PENDING_ASOF = " · orders still loading — not $0";
 
 /** Live switch landed on Overview — sales only. Spend honesty lives later. */
 export const OVERVIEW_LIVE_HANDOFF_BODY =

@@ -690,7 +690,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
-    salesDays: [...new Set([...salesByDay.keys(), ...spendByDay.keys()])]
+    // Sales days only. A spend day with no sales fact must not paint as $0.
+    salesDays: [...salesByDay.keys()]
       .sort((a, b) => a.localeCompare(b))
       .map((dateKey) => ({
         dateKey,

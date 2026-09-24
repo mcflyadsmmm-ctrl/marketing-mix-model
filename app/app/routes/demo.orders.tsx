@@ -1,6 +1,6 @@
 /**
- * T1 SAMPLE L2 — Orders tab retired. Redirect to Home.
- * Keep route file so old bookmarks /app/orders and /demo/orders still resolve.
+ * Old /demo/orders bookmarks land on the Orders tab (this month’s sales).
+ * The address changes to /demo. The screen title stays Orders.
  */
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
