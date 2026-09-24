@@ -122,24 +122,40 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     expect(pricing).toMatch(/every platform/i);
     expect(pricing).toMatch(/\$39/);
     expect(pricing).toMatch(/7-day/);
-    expect(pricing).toMatch(
-      /Trial includes 90 days of order history; paid includes up to 24 months/,
-    );
+    const history =
+      /Trial and paid share the full desk and up to 24 months of orders/;
+    const cancel =
+      /Uninstall stops the next cycle\. A period already paid may run to its end/;
+    expect(pricing).toMatch(history);
+    expect(pricing).toMatch(cancel);
+    expect(pricing).toMatch(/Not a GMV tax/);
+    expect(pricing).toMatch(/https:\/\/mcfly-analytics\.fly\.dev/);
+    expect(pricing).toMatch(/Shopify does not host/);
+    expect(pricing).not.toMatch(/90 days of order history/);
+    expect(pricing).not.toMatch(/uninstall stops the charge/i);
     expect(pricing).not.toMatch(/full-access/i);
     expect(pricing).not.toMatch(/Trial includes 24 months/);
     expect(pricing).not.toMatch(/\$79/);
+    expect(support).toMatch(history);
+    expect(support).toMatch(cancel);
+    expect(support).toMatch(/No ads\. No pixels, path credit, or multi-touch attribution/);
+    expect(privacy).toMatch(history);
+    expect(privacy).toMatch(cancel);
+    expect(privacy).toMatch(/Shopify does not host the app/);
     expect(privacy).toMatch(/numberOfOrders/);
     expect(privacy).toMatch(/read_customers/);
   });
 
-  it("names 90 days on trial vs 24 months paid — never a 24-month trial", () => {
-    const index = readFileSync(join(siteRoot, "index.html"), "utf8");
+  it("trial and paid share 24 months of orders — never a 90-day trial book", () => {
     const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
+    const support = readFileSync(join(siteRoot, "support.html"), "utf8");
+    const privacy = readFileSync(join(siteRoot, "privacy.html"), "utf8");
     const history =
-      /Trial includes 90 days of order history; paid includes up to 24 months/;
-    expect(index).toMatch(history);
+      /Trial and paid share the full desk and up to 24 months of orders/;
     expect(pricing).toMatch(history);
-    expect(index).not.toMatch(/Trial includes 24 months/);
+    expect(support).toMatch(history);
+    expect(privacy).toMatch(history);
+    expect(pricing).not.toMatch(/Trial includes 90 days/);
     expect(pricing).not.toMatch(/Trial includes 24 months/);
   });
 });

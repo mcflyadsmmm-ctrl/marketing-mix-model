@@ -19,15 +19,19 @@ export default function PrivacyPage() {
         <h1>Privacy</h1>
         <p className={styles.lede}>
           Mcfly Analytics measures Shopify sales next to the ad spend you add
-          (Total ROAS = sales ÷ entered spend). We do not run pixels,
-          multi-touch attribution, or a name/email CRM.
+          (Total ROAS = sales ÷ entered spend). No ads. No pixels, path credit,
+          or multi-touch attribution. No name/email CRM. The app runs at
+          https://mcfly-analytics.fly.dev. The full policy is at{" "}
+          <a href="https://mcflyads.com/privacy">mcflyads.com/privacy</a>.
+          Shopify does not host the app.
         </p>
 
         <h2>What we read from Shopify</h2>
         <ul>
           <li>
             <code>read_orders</code> / <code>read_all_orders</code> — order
-            totals and dates for the desk and Total ROAS.
+            totals and dates for the desk and Total ROAS. Trial and paid share
+            the full desk and up to 24 months of orders.
           </li>
           <li>
             <code>read_customers</code> — opaque customer <code>id</code> and{" "}
@@ -65,10 +69,11 @@ export default function PrivacyPage() {
 
         <h2>Security</h2>
         <p>
-          Data in transit uses HTTPS. Production data is hosted on Fly.io with
-          encrypted volumes. Access is limited to the app operator. We keep an
-          incident response policy and do not copy Live merchant books into the
-          SAMPLE demo.
+          Data in transit uses HTTPS. The app runs on Fly.io
+          (https://mcfly-analytics.fly.dev) with encrypted volumes. Shopify
+          does not host the app. Access is limited to the app operator. We keep
+          an incident response policy and do not copy Live merchant books into
+          the SAMPLE demo.
         </p>
 
         <p>

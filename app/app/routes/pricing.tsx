@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "7-day trial, then $39 per store per month. Trial is 90 days of order history; paid is up to 24 months. One plan. Every platform including billboards. Shopify App Pricing.",
+      "7-day trial, then $39 per store per month, flat. Not a GMV tax. Trial and paid share the full desk and up to 24 months of orders. Every platform including billboards.",
   },
 ];
 
@@ -18,9 +18,13 @@ export default function PricingPage() {
       <main id="main" className={styles.article}>
         <h1>Pricing</h1>
         <p className={styles.lede}>
-          One plan. A 7-day trial, then $39 per store per month for the whole
-          desk. Trial is 90 days of order history; paid is up to 24 months. Not
-          a percent of sales. Not a per-order fee.
+          One plan. A 7-day trial, then $39 per store per month, flat, for the
+          whole desk. Not a GMV tax. Not a percent of sales. Not a per-order
+          fee. Trial and paid share the full desk and up to 24 months of
+          orders. The public pricing page is{" "}
+          <a href="https://mcflyads.com/pricing">mcflyads.com/pricing</a>. The
+          app runs at https://mcfly-analytics.fly.dev. Shopify does not host
+          it.
         </p>
 
         <h2>What you get</h2>
@@ -38,19 +42,20 @@ export default function PricingPage() {
           <li>Customer LTV from orders; Cash CAC payback when you add spend</li>
           <li>Full-year Goals board</li>
           <li>
-            Live trial order rows are 90 days; paid is up to 24 months. SAMPLE
-            on /demo is the paid-shaped book
+            Trial and paid share the full desk and up to 24 months of orders.
+            SAMPLE on /demo is a labeled sample book
           </li>
           <li>Sample data to click around before you switch to Live data</li>
         </ul>
 
         <h2>Billing</h2>
         <p>
-          Shopify bills this app. Uninstall in Admin to stop the next 30-day
-          cycle; the current cycle may still charge. Start 7-day trial and
-          Manage plan open Shopify’s hosted plan page in the top Admin frame.
-          See <a href="/support">Support</a> if that page loads inside the app
-          iframe instead.
+          Shopify bills this app. Shopify does not host it. Uninstall stops the
+          next cycle. A period already paid may run to its end. Start 7-day
+          trial and Manage plan open Shopify’s plan page in the top Admin
+          frame. See <a href="/support">Support</a> if that page loads inside
+          the app iframe instead. No ads. No pixels, path credit, or
+          multi-touch attribution.
         </p>
       </main>
     </OriginShell>

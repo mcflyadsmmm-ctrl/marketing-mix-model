@@ -108,7 +108,7 @@
       '<a href="/support">Support</a>' +
       '<a href="/terms">Terms</a>' +
       "</nav>" +
-      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — spend next to Shopify sales. 7-day trial, then $39/store/mo. Trial includes 90 days of order history; paid includes up to 24 months.</p>' +
+      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — spend next to Shopify sales. 7-day trial, then $39 per store per month, flat. Trial and paid share the full desk and up to 24 months of orders.</p>' +
       "</div>" +
       "</footer>";
     foot.querySelectorAll("[data-year]").forEach(function (el) {
