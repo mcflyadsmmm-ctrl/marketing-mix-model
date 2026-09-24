@@ -30,6 +30,7 @@ import {
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewLivePeriodClock } from "../components/OverviewLivePeriodClock";
+import { OverviewMoneyFold } from "../components/OverviewMoneyFold";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { DeskLane } from "../components/DeskLane";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -982,6 +983,17 @@ export default function Dashboard() {
               >
                 <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
                   <div className="mcfly-overview-first-beat">
+                  <OverviewMoneyFold
+                    sales={orderHero.sales}
+                    salesPending={greetingPending}
+                    spend={metrics.totalSpend}
+                    useSampleDesk={useSampleDesk}
+                    periodLabel={
+                      metrics.period.label === "Month to date"
+                        ? "This month"
+                        : metrics.period.label
+                    }
+                  />
                   <OverviewFirstViewport
                     orderCount={orderHero.orderCount}
                     typicalOrder={orderHero.typicalOrder}

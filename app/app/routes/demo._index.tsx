@@ -8,6 +8,7 @@ import {
 } from "../components/OverviewFirstViewport";
 import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
+import { OverviewMoneyFold } from "../components/OverviewMoneyFold";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
 import {
@@ -176,6 +177,15 @@ export default function PublicDemoOverview() {
           <div className="mcfly-desk-anchor mcfly-scoreboard--overview" id={DESK_SECTION.overview}>
             <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
               <div className="mcfly-overview-first-beat">
+              <OverviewMoneyFold
+                sales={data.orderHero.sales}
+                salesPending={false}
+                spend={data.spend}
+                useSampleDesk
+                periodLabel={
+                  data.rangeLabel === "Month to date" ? "This month" : data.rangeLabel
+                }
+              />
               {embed === "yoy" ? null : (
                 <OverviewFirstViewport
                   orderCount={data.orderHero.orderCount}
