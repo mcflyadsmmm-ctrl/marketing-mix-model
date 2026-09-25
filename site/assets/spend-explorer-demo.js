@@ -541,18 +541,55 @@
     return node;
   }
 
-  function init(root) {
-    var end = closedEnd(new Date());
-    var spine = buildDailySpine(end);
+  function bookSnapshot() {
+    var desk = document.getElementById("dd-desk");
+    if (!desk) {
+      return { stored: false, reason: "This window is not stored on the SAMPLE book." };
+    }
+    var salesRaw = desk.getAttribute("data-sales");
+    var spendRaw = desk.getAttribute("data-spend");
+    var label = desk.getAttribute("data-label") || "This window";
+    var channels = [];
+    try {
+      channels = JSON.parse(desk.getAttribute("data-channels") || "[]");
+    } catch (err) {
+      channels = [];
+    }
+    if (salesRaw == null || salesRaw === "" || spendRaw == null || spendRaw === "") {
+      return { stored: false, reason: "This window is not stored on the SAMPLE book." };
+    }
+    if (!channels.length) {
+      return { stored: false, reason: "Channel lines are not stored for this window." };
+    }
+    var sales = Number(salesRaw);
+    var spend = Number(spendRaw);
+    var chMap = { meta: 0, google: 0, microsoft: 0, email: 0 };
+    channels.forEach(function (ch) {
+      if (Object.prototype.hasOwnProperty.call(chMap, ch.id)) chMap[ch.id] = ch.spend;
+    });
+    return {
+      stored: true,
+      bucket: {
+        key: "book",
+        label: label,
+        sales: sales,
+        spend: spend,
+        mer: merOf(sales, spend),
+        channels: chMap,
+      },
+    };
+  }
 
+  function init(root) {
     var state = {
-      range: "90d",
-      gran: "Week",
+      range: "book",
+      gran: "book",
       mode: "stacked",
       showSales: false,
       from: "",
       to: "",
       focusKey: null,
+      dayFile: false,
     };
 
     var chartHost = root.querySelector("[data-sx-chart]");
@@ -579,57 +616,29 @@
     var paceCalFill = root.querySelector("[data-sx-pace-cal-fill]");
 
     function compute() {
-      var win = resolveWindow(state.range, end, null, null);
-      var filtered = filterRows(spine, win);
-      var buckets = aggregate(filtered, state.gran);
-      var plot = applyMode(buckets, state.mode);
-      var totalSales = round2(
-        filtered.reduce(function (s, r) {
-          return s + r.sales;
-        }, 0),
-      );
-      var totalSpend = round2(
-        filtered.reduce(function (s, r) {
-          return s + r.spend;
-        }, 0),
-      );
-
-      // Monthly pacing uses closed MTD (independent of explorer range).
-      var mtd = mtdPeriod(end);
-      var mtdRows = filterRows(spine, {
-        start: mtd.start,
-        end: mtd.closedCap,
-      });
-      var mtdSales = round2(
-        mtdRows.reduce(function (s, r) {
-          return s + r.sales;
-        }, 0),
-      );
-      var mtdSpend = round2(
-        mtdRows.reduce(function (s, r) {
-          return s + r.spend;
-        }, 0),
-      );
-      var mtdMer = merOf(mtdSales, mtdSpend);
-      var control = buildControlPace(
-        mtdSales,
-        mtdSpend,
-        TARGET_MER,
-        mtd,
-      );
-
+      if (state.dayFile) {
+        return {
+          buckets: [],
+          blank: "A day file is not stored on this SAMPLE book.",
+          control: null,
+        };
+      }
+      var snap = bookSnapshot();
+      if (!snap.stored) {
+        return {
+          buckets: [],
+          blank: snap.reason,
+          control: null,
+        };
+      }
       return {
-        win: win,
-        buckets: plot,
-        totalSales: totalSales,
-        totalSpend: totalSpend,
-        overallMer: merOf(totalSales, totalSpend),
-        asOf: dateKey(end),
-        mtd: mtd,
-        mtdSales: mtdSales,
-        mtdSpend: mtdSpend,
-        mtdMer: mtdMer,
-        control: control,
+        buckets: applyMode([snap.bucket], state.mode),
+        blank: "",
+        control: null,
+        mtdSales: snap.bucket.sales,
+        mtdSpend: snap.bucket.spend,
+        mtdMer: snap.bucket.mer,
+        mtd: { label: snap.bucket.label },
       };
     }
 
@@ -725,6 +734,7 @@
     }
 
     function renderPacing(data) {
+      if (!data.control) return;
       var mer = data.mtdMer;
       var control = data.control;
       var radius = 80;
@@ -837,7 +847,13 @@
       chartHost.replaceChildren();
       var buckets = data.buckets;
       if (!buckets.length) {
-        chartHost.appendChild(el("p", "sx-demo__empty", "No sample days in this window."));
+        chartHost.appendChild(
+          el(
+            "p",
+            "sx-demo__empty",
+            data.blank || "This window is not stored on the SAMPLE book.",
+          ),
+        );
         return;
       }
 
@@ -1121,6 +1137,12 @@
       renderChart(data);
       renderLegend(state.mode);
       updateReadout(selected);
+      if (!selected && data.blank) {
+        if (readout) readout.textContent = data.blank;
+        var inspect = root.querySelector("[data-sx-inspect]");
+        if (inspect) inspect.textContent = data.blank;
+        if (tip) tip.hidden = true;
+      }
       if (selected) {
         setTipContent(selected);
         if (chartHost && tip && (!tip.style.left || tip.style.left === "0px")) {
@@ -1137,7 +1159,8 @@
     // Wire primary controls: range, granularity, mode, show-sales
     root.querySelectorAll("[data-sx-range]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        state.range = btn.getAttribute("data-sx-range") || "90d";
+        state.range = btn.getAttribute("data-sx-range") || "14d";
+        state.dayFile = true;
         state.from = "";
         state.to = "";
         root.querySelectorAll("[data-sx-range]").forEach(function (b) {
@@ -1151,7 +1174,8 @@
 
     root.querySelectorAll("[data-sx-gran]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        state.gran = btn.getAttribute("data-sx-gran") || "Week";
+        state.gran = btn.getAttribute("data-sx-gran") || "Day";
+        state.dayFile = true;
         root.querySelectorAll("[data-sx-gran]").forEach(function (b) {
           b.classList.toggle("is-on", b === btn);
           if (b === btn) b.setAttribute("aria-current", "true");
@@ -1202,6 +1226,20 @@
       window.addEventListener("resize", onResize);
     }
 
+    function clearDayFile() {
+      state.dayFile = false;
+      root.querySelectorAll("[data-sx-range], [data-sx-gran]").forEach(function (b) {
+        b.classList.remove("is-on");
+        b.removeAttribute("aria-current");
+      });
+    }
+
+    document.addEventListener("dd-rendered", function () {
+      clearDayFile();
+      render();
+    });
+
+    clearDayFile();
     render();
   }
 

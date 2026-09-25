@@ -664,3 +664,39 @@ body.launch .till-be {
   border-radius: 8px;
   padding: 1rem;
 }
+
+body.launch .dd-hero-sales {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.85rem;
+  margin: 0 0 0.85rem;
+}
+
+body.launch .dd-hero-sales__label {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--launch-mute);
+}
+
+body.launch .dd-hero-sales__value {
+  font-family: Figtree, system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--launch-ink);
+}
+
+body.launch .dd-hero-sales__window {
+  font-size: 0.85rem;
+  color: var(--launch-mute);
+}
+
+body.launch .dd-ctx__asof {
+  flex: 0 0 auto;
+  min-width: 11rem;
+}

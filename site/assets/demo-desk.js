@@ -874,14 +874,7 @@
     el.className = "dd-kpi__delta dd-kpi__delta--" + cls;
   }
 
-  function flash(sel) {
-    var el = $(sel);
-    if (!el) return;
-    el.style.opacity = "0.55";
-    requestAnimationFrame(function () {
-      el.style.opacity = "1";
-    });
-  }
+  function flash() {}
 
   function renderPace(period, mer) {
     if (period.netSales == null || !(period.daysElapsed > 0)) {
@@ -1145,38 +1138,13 @@
     });
   }
 
-  function renderDayChart(period) {
+  function renderDayChart() {
     var chart = $("#dd-day-chart");
     var readout = $("#dd-day-readout");
     var caption = $("#dd-day-caption");
-    if (!chart) return;
-    var series = shapedSeries(period);
-    chart.replaceChildren();
-    if (!series.length) {
-      if (caption) caption.textContent = "No daily sales stored for this window.";
-      if (readout) readout.textContent = "No days in this window.";
-      return;
-    }
-    var max = 0;
-    series.forEach(function (day) {
-      if (day.amount > max) max = day.amount;
-    });
-    series.forEach(function (day) {
-      var button = document.createElement("button");
-      button.type = "button";
-      button.className = "dd-day" + (state.selectedDay === day.iso ? " is-on" : "");
-      button.setAttribute("data-dd-day", day.iso);
-      button.setAttribute("aria-label", day.iso + ", " + money(day.amount));
-      button.style.height = Math.max(8, Math.round((day.amount / max) * 96)) + "px";
-      if (series.length > 40) button.style.flex = "0 0 8px";
-      chart.appendChild(button);
-    });
-    if (caption) caption.textContent = "SAMPLE shape of the published total. Not a shop’s day file.";
-    if (readout) {
-      readout.textContent = state.selectedDay
-        ? dayReadout(series, state.selectedDay)
-        : "Select a day.";
-    }
+    if (chart) chart.replaceChildren();
+    if (caption) caption.textContent = "A day file is not stored on this SAMPLE book.";
+    if (readout) readout.textContent = "";
   }
 
   function dayReadout(series, iso) {
@@ -1188,26 +1156,11 @@
     return found.iso + " · " + money(found.amount) + " · SAMPLE shape";
   }
 
-  function renderWeekday(period) {
+  function renderWeekday() {
     var host = $("#dd-weekday");
     if (!host) return;
-    var series = shapedSeries(period);
     host.replaceChildren();
-    if (!series.length) {
-      host.textContent = "Weekday shape is not stored for this window.";
-      return;
-    }
-    var names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    var sums = [0, 0, 0, 0, 0, 0, 0];
-    series.forEach(function (day) {
-      sums[day.dow] += day.amount;
-    });
-    names.forEach(function (name, index) {
-      var cell = document.createElement("p");
-      cell.className = "dd-weekday__cell";
-      cell.textContent = name + " " + money(sums[index]);
-      host.appendChild(cell);
-    });
+    host.textContent = "A day file is not stored on this SAMPLE book.";
   }
 
   function renderLedger(period) {
@@ -1220,7 +1173,7 @@
       } else {
         var table = document.createElement("table");
         table.className = "dd-goals-tab__table";
-        table.innerHTML = "<thead><tr><th>Channel</th><th>Spend</th></tr></thead>";
+        table.innerHTML = "<thead><tr><th>Channel</th><th>Spend (USD)</th></tr></thead>";
         var body = document.createElement("tbody");
         period.channels.forEach(function (ch) {
           var row = document.createElement("tr");
@@ -1232,34 +1185,8 @@
       }
     }
     if (!days) return;
-    var series = shapedSeries(period).filter(function (day) {
-      if (state.ledgerFilter === "weekend") return day.weekend;
-      if (state.ledgerFilter === "weekday") return !day.weekend;
-      return true;
-    });
     days.replaceChildren();
-    if (!series.length) {
-      days.textContent = "No shaped days for this filter.";
-      return;
-    }
-    var table = document.createElement("table");
-    table.className = "dd-goals-tab__table";
-    table.innerHTML = "<thead><tr><th>Day</th><th>Sales shape</th><th>Type</th></tr></thead>";
-    var body = document.createElement("tbody");
-    series.forEach(function (day) {
-      var row = document.createElement("tr");
-      row.innerHTML =
-        "<th scope='row'>" +
-        day.iso +
-        "</th><td>" +
-        money(day.amount) +
-        "</td><td>" +
-        (day.weekend ? "Weekend" : "Weekday") +
-        "</td>";
-      body.appendChild(row);
-    });
-    table.appendChild(body);
-    days.appendChild(table);
+    days.textContent = "A day file is not stored on this SAMPLE book.";
   }
 
   function emailSpend(period) {
@@ -1398,6 +1325,9 @@
       var end = period.startIso && period.daysElapsed > 0 ? isoOf(addDays(period.startIso, period.daysElapsed - 1)) : "";
       desk.setAttribute("data-end", end);
       desk.setAttribute("data-sales", period.netSales == null ? "" : String(period.netSales));
+      desk.setAttribute("data-spend", period.spend == null ? "" : String(period.spend));
+      desk.setAttribute("data-label", period.label);
+      desk.setAttribute("data-channels", JSON.stringify(period.channels || []));
     }
     document.dispatchEvent(new CustomEvent("dd-rendered"));
     void be;
@@ -1420,6 +1350,11 @@
     }
 
     setText("#dd-asof", period.asOf);
+    setText("#dd-hero-sales", money(period.netSales));
+    setText(
+      "#dd-hero-window",
+      period.asOf ? period.label + " · " + period.asOf : period.label,
+    );
     setText(
       "#dd-trust-coverage",
       "Coverage " + Math.round(COVERAGE * 100) + "%",
@@ -1621,9 +1556,11 @@
       if (on) {
         sec.hidden = false;
         sec.removeAttribute("hidden");
+        sec.inert = false;
       } else {
         sec.hidden = true;
         sec.setAttribute("hidden", "");
+        sec.inert = true;
       }
     });
     $$("[data-dd-nav]").forEach(function (b) {
@@ -1918,9 +1855,8 @@
         render();
       });
     }
-    function setFilter(name) {
-      state.ledgerFilter = name;
-      render();
+    function setFilter() {
+      setText("#dd-ledger-toast", "A day file is not stored on this SAMPLE book.");
     }
     var all = $("#dd-ledger-all");
     var weekday = $("#dd-ledger-weekday");
@@ -1932,16 +1868,20 @@
     if (exp) {
       exp.addEventListener("click", function () {
         var period = PERIODS[state.period] || PERIODS.mtd;
-        var lines = ["day,sales_shape,type,note"];
-        shapedSeries(period).forEach(function (day) {
-          lines.push(day.iso + "," + day.amount + "," + (day.weekend ? "weekend" : "weekday") + ",SAMPLE shape");
+        if (!period.channels || !period.channels.length) {
+          setText("#dd-ledger-toast", "Channel lines are not stored for this window.");
+          return;
+        }
+        var lines = ["channel,spend_usd"];
+        period.channels.forEach(function (ch) {
+          lines.push(ch.label + "," + ch.spend);
         });
         var blob = new Blob([lines.join("\n")], { type: "text/csv" });
         var link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "northline-sample-ledger.csv";
+        link.download = "northline-sample-channels.csv";
         link.click();
-        setText("#dd-ledger-toast", "Exported the SAMPLE shape. Not a shop day file.");
+        setText("#dd-ledger-toast", "Exported stored channel spend. A day file is not on this book.");
       });
     }
     var cohort = $("#dd-cohort-csv");
@@ -1966,7 +1906,7 @@
           "sales," + (period.netSales == null ? "" : period.netSales),
           "spend," + (period.spend == null ? "" : period.spend),
           "margin_percent," + Math.round(state.margin * 100),
-          "estimated_contribution," + contribution,
+          "sales_x_margin_minus_spend," + contribution,
           "cohort_30d_aov," + (period.ltvAov30 == null ? "" : period.ltvAov30),
           "cohort_90d_aov," + (period.ltvAov90 == null ? "" : period.ltvAov90),
           "repeat_30d," + (period.repeatRate30 == null ? "" : period.repeatRate30),

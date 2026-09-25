@@ -147,8 +147,28 @@ body.demo-page .page-hero p {
   border-radius: calc(var(--dd-radius) + 2px);
   box-shadow: var(--dd-shadow);
   padding: 0.85rem clamp(0.85rem, 2.2vw, 1.35rem) 1.15rem;
-  animation: dd-fade var(--dd-motion) ease both;
   scroll-behavior: smooth;
+}
+
+.dd-well {
+  display: grid;
+  align-items: start;
+}
+
+.dd-well > .dd-sec {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.dd-well > .dd-sec[hidden] {
+  display: block !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dd-well > .dd-sec:not([hidden]) {
+  position: relative;
+  z-index: 1;
 }
 
 .dd-desk * {
@@ -396,7 +416,10 @@ body.demo-page .page-hero p {
   border: 1px solid var(--dd-line);
   border-radius: 8px;
   background: #fff;
-  overflow: hidden;
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .dd-period__btn {
@@ -412,7 +435,26 @@ body.demo-page .page-hero p {
   font-weight: 650;
   letter-spacing: 0.02em;
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
   transition: background var(--dd-motion) var(--dd-ease), color var(--dd-motion) var(--dd-ease);
+}
+
+@media (max-width: 720px) {
+  .dd-ctx__main {
+    width: 100%;
+  }
+
+  .dd-period {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .dd-period__btn {
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+  }
 }
 
 .dd-period__btn:last-child {
@@ -546,7 +588,7 @@ body.demo-page .page-hero p {
 .dd-claim__value {
   margin: 0.3rem 0 0;
   font-family: var(--dd-display);
-  font-size: clamp(1.55rem, 3.5vw, 2rem);
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -1808,6 +1850,12 @@ body.demo-page .page-hero p {
   border-bottom: 1px solid var(--dd-line-soft);
   text-align: left;
   color: var(--dd-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.dd-goals-tab__table thead th:nth-child(n + 2),
+.dd-goals-tab__table tbody td {
+  text-align: right;
 }
 
 .dd-goals-tab__table thead th {

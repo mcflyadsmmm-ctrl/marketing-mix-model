@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mcfly Analytics — orders first, then the spend you enter</title>
-  <meta name="description" content="SAMPLE desk for Northline Supply. Orders, spend, cohort averages, and estimated contribution from the sample margin. 7-day trial, then $39 per store per month. No ads." />
+  <meta name="description" content="SAMPLE desk for Northline Supply. Orders, spend, cohort averages, and sales times the margin you set, minus spend. 7-day trial, then $39 per store per month. No ads." />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
@@ -15,10 +15,10 @@
   <meta property="og:title" content="Mcfly Analytics — the sample desk" />
   <meta property="og:description" content="SAMPLE · Northline Supply. 7-day trial, then $39 per store per month. No ads." />
   <meta property="og:url" content="https://mcflyads.com/" />
-  <link rel="stylesheet" href="/assets/fonts-local.css?v=20260925restored" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260925restored" />
-  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260925restored" />
-  <link rel="stylesheet" href="/assets/launch.css?v=20260925restored" />
+  <link rel="stylesheet" href="/assets/fonts-local.css?v=20260925deskstd" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260925deskstd" />
+  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260925deskstd" />
+  <link rel="stylesheet" href="/assets/launch.css?v=20260925deskstd" />
 </head>
 <body class="launch">
   <a class="skip" href="#dd-desk">Skip to the sample desk</a>
@@ -28,7 +28,7 @@
       <header class="launch-intro">
         <p class="eyebrow">Mcfly Analytics</p>
         <h1>The same sample desk, on the front page.</h1>
-        <p class="lede">SAMPLE · Northline Supply · not a live shop. Sales, spend, cohort averages, and an estimated contribution from the sample margin. A figure the book does not store stays blank. 7-day trial, then $39 per store per month. No ads.</p>
+        <p class="lede">SAMPLE · Northline Supply · not a live shop. Sales, spend, cohort averages, and an sales times the margin you set, minus spend. A figure the book does not store stays blank. 7-day trial, then $39 per store per month. No ads.</p>
       </header>
 <div class="demo-stage">
       <div
@@ -49,6 +49,12 @@
             <span>Sample desk · Jul 2026</span>
           </p>
         </div>
+
+        <p class="dd-hero-sales">
+          <span class="dd-hero-sales__label">Net sales</span>
+          <span class="dd-hero-sales__value" id="dd-hero-sales">$412,400</span>
+          <span class="dd-hero-sales__window" id="dd-hero-window">This month · Jul 1–27, 2026</span>
+        </p>
 
         <nav class="dd-nav" aria-label="Desk sections">
           <button type="button" class="dd-nav__btn" data-dd-nav="overview" aria-current="true">Overview</button>
@@ -75,7 +81,6 @@
           <div class="dd-ctx__main">
             <span class="dd-ctx__brand">Northline</span>
             <span class="dd-ctx__sep" aria-hidden="true">·</span>
-            <span class="dd-ctx__asof" id="dd-asof">Jul 1–27, 2026</span>
             <div class="dd-period" role="group" aria-label="Period">
               <button type="button" class="dd-period__btn" data-dd-period="l7d" aria-pressed="false">Last 7 days</button>
               <button type="button" class="dd-period__btn" data-dd-period="mtd" aria-pressed="true">This month</button>
@@ -84,6 +89,7 @@
               <button type="button" class="dd-period__btn" data-dd-period="ytd" aria-pressed="false">This year</button>
               <button type="button" class="dd-period__btn" data-dd-period="l12m" aria-pressed="false">Last 12 months</button>
             </div>
+            <span class="dd-ctx__asof" id="dd-asof">Jul 1–27, 2026</span>
           </div>
           <div class="dd-trust" aria-label="Trust and freshness">
             <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-coverage">Coverage 92%</span>
@@ -94,6 +100,7 @@
           </div>
         </div>
 
+        <div class="dd-well">
         <div id="dd-sec-overview" class="dd-sec" data-dd-section="overview">
           <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
             <p class="dd-decision__kicker">Budget call</p>
@@ -454,25 +461,25 @@
                   <tr>
                     <th scope="col">Line</th>
                     <th scope="col">Plan</th>
-                    <th scope="col">MTD actual</th>
+                    <th scope="col">Actual</th>
                     <th scope="col">Pace</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <th scope="row">Total Sales</th>
+                    <th scope="row">Total Sales (USD)</th>
                     <td id="dd-goals-plan-sales">$465,000</td>
                     <td id="dd-goals-act-sales">$412,400</td>
                     <td id="dd-goals-pace-sales">On track</td>
                   </tr>
                   <tr>
-                    <th scope="row">Ad spend</th>
+                    <th scope="row">Ad spend (USD)</th>
                     <td id="dd-goals-plan-spend">$116,250</td>
                     <td id="dd-goals-act-spend">$98,500</td>
                     <td id="dd-goals-pace-spend">Inside plan</td>
                   </tr>
                   <tr>
-                    <th scope="row">Total ROAS</th>
+                    <th scope="row">Total ROAS (×)</th>
                     <td id="dd-goals-plan-roas">4.00×</td>
                     <td id="dd-goals-act-roas">4.19×</td>
                     <td id="dd-goals-pace-roas">Cleared</td>
@@ -548,7 +555,7 @@
         </div>
 
         <section id="dd-sec-explorer" class="dd-explorer dd-sec" data-dd-section="explorer" hidden aria-labelledby="dd-explorer-title">
-          <p class="dd-explorer-note" id="dd-explorer-title">Spend explorer · SAMPLE spine (independent of period toggle above)</p>
+          <p class="dd-explorer-note" id="dd-explorer-title">Spend explorer · the same SAMPLE book as the period chips</p>
           <div
             id="mcfly-spend-explorer"
             class="sx-demo sx-demo--desk"
@@ -679,10 +686,8 @@
             </p>
           </section>
         </div>
-      </div>
 
-
-        <div id="dd-sec-orders" class="dd-sec" data-dd-section="orders" hidden>
+<div id="dd-sec-orders" class="dd-sec" data-dd-section="orders" hidden>
           <section class="dd-panel" aria-labelledby="dd-orders-title">
             <div class="dd-panel__head">
               <h2 id="dd-orders-title">Orders</h2>
@@ -697,8 +702,8 @@
             </div>
             <p id="dd-orders-prior">vs prior</p>
             <div id="dd-day-chart" class="dd-day-chart" role="group" aria-label="Daily sales shape"></div>
-            <p id="dd-day-caption">SAMPLE shape of the published total. Not a shop’s day file.</p>
-            <p id="dd-day-readout">Select a day.</p>
+            <p id="dd-day-caption">A day file is not stored on this SAMPLE book.</p>
+            <p id="dd-day-readout"></p>
             <h3>Weekday shape</h3>
             <div id="dd-weekday" class="dd-weekday"></div>
             <p id="dd-tt2">Days to a second order are not stored on this SAMPLE book.</p>
@@ -751,12 +756,12 @@
               <div><p class="dd-ltv__k">Cash CAC</p><p class="dd-ltv__v" id="dd-ltv2-cac">—</p></div>
             </div>
             <p class="dd-ltv__foot" id="dd-ltv2-note">Cash CAC is stored spend ÷ stored new customers. Cohort AOV is not a payback promise.</p>
-            <div class="dd-compact" aria-label="Estimated contribution">
+            <div class="dd-compact" aria-label="Sales times the margin you set, minus spend">
               <article class="dd-compact__cell"><p class="dd-compact__label">Sales</p><p class="dd-compact__value" id="dd-contrib-sales">—</p></article>
               <article class="dd-compact__cell"><p class="dd-compact__label">Spend</p><p class="dd-compact__value" id="dd-contrib-spend">—</p></article>
-              <article class="dd-compact__cell"><p class="dd-compact__label">Estimated contribution</p><p class="dd-compact__value" id="dd-contrib">—</p></article>
+              <article class="dd-compact__cell"><p class="dd-compact__label">Sales × margin − spend</p><p class="dd-compact__value" id="dd-contrib">—</p></article>
             </div>
-            <p id="dd-contrib-note">Sales × the sample margin, then minus spend. Not a profit ledger.</p>
+            <p id="dd-contrib-note">Sales × the margin you set, minus spend.</p>
             <p id="dd-orders-returns">Returns: —</p>
             <p id="dd-segments">Order keys are not stored on this SAMPLE book.</p>
             <button type="button" class="dd-spend__btn" id="dd-cohort-csv">Export cohort CSV</button>
@@ -785,7 +790,7 @@
           <section class="dd-panel" aria-labelledby="dd-ledger-title">
             <div class="dd-panel__head">
               <h2 id="dd-ledger-title">Ledger</h2>
-              <p class="dd-panel__muted">Channel lines are stored. Daily rows are a shape of the published total.</p>
+              <p class="dd-panel__muted">Channel lines are stored. A day file is not stored on this SAMPLE book.</p>
             </div>
             <div class="dd-spend__actions">
               <button type="button" class="dd-spend__btn" id="dd-ledger-all">All days</button>
@@ -871,8 +876,10 @@
             <p>Dual close is cash Total ROAS next to the labeled claim. The claim does not replace cash.</p>
           </section>
         </div>
+        </div>
+      </div>
 
-      <div
+<div
         id="dd-drawer-backdrop"
         class="dd-drawer-backdrop"
         hidden
@@ -907,11 +914,11 @@
     </div>
   </main>
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260925restored"></script>
-  <script src="/assets/chrome.js?v=20260925restored"></script>
-  <script src="/assets/app.js?v=20260925restored"></script>
-  <script src="/assets/demo-desk.js?v=20260925restored"></script>
-  <script src="/assets/spend-explorer-demo.js?v=20260925restored"></script>
-  <script src="/assets/desk-restore.js?v=20260925restored"></script>
+  <script src="/assets/cta-config.js?v=20260925deskstd"></script>
+  <script src="/assets/chrome.js?v=20260925deskstd"></script>
+  <script src="/assets/app.js?v=20260925deskstd"></script>
+  <script src="/assets/demo-desk.js?v=20260925deskstd"></script>
+  <script src="/assets/spend-explorer-demo.js?v=20260925deskstd"></script>
+  <script src="/assets/desk-restore.js?v=20260925deskstd"></script>
 </body>
 </html>
