@@ -569,3 +569,98 @@ body.launch .foot {
     font-size: 0.8rem;
   }
 }
+
+body.launch {
+  --dd-display: Figtree, system-ui, sans-serif;
+  --dd-font: Figtree, system-ui, sans-serif;
+  --dd-bg: #e7eee9;
+  --dd-ink: #14211c;
+  --dd-accent: #14352c;
+  --dd-accent-ink: #14352c;
+  --dd-paper: #ffffff;
+}
+
+body.launch .dd-desk,
+body.launch .dd-kpi__value,
+body.launch .dd-claim__value,
+body.launch .dd-eq__me,
+body.launch .dd-compact__value,
+body.launch .dd-ltv__v,
+body.launch .dd-goals__v,
+body.launch .dd-pace__v,
+body.launch .dd-goals-tab__target,
+body.launch .dd-goals-tab__v {
+  font-family: Figtree, system-ui, sans-serif;
+}
+
+body.launch .dd-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+body.launch .dd-day-chart,
+body.launch .dd-weekday {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  min-height: 104px;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+body.launch .dd-day {
+  flex: 1 1 0;
+  min-width: 6px;
+  border: 0;
+  border-radius: 3px 3px 0 0;
+  background: #14352c;
+  padding: 0;
+}
+
+body.launch .dd-day.is-on {
+  background: #9a4308;
+}
+
+body.launch .dd-weekday__cell {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+body.launch .dd-typed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: flex-end;
+  margin: 0.75rem 0;
+}
+
+body.launch .dd-typed input,
+body.launch .dd-typed select {
+  display: block;
+  margin-top: 0.2rem;
+  min-height: 40px;
+  font: inherit;
+}
+
+body.launch .dd-typed-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+body.launch .dd-ledger-days {
+  max-height: 18rem;
+  overflow: auto;
+  margin-top: 0.75rem;
+}
+
+body.launch .launch-home-tools {
+  margin: 1.5rem 0 2rem;
+}
+
+body.launch .till-be {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+}

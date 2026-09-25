@@ -70,6 +70,8 @@
     <a href="/pricing">Pricing</a>
     <a href="/support">Support</a>
     <a href="/faq">FAQ</a>
+    <a href="/about">About</a>
+    <a href="/monday-close">Close memo</a>
     <a data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
   </div>`;
   }
@@ -108,6 +110,8 @@
         <a href="/pricing">Pricing</a>
         <a href="/support">Support</a>
         <a href="/faq">FAQ</a>
+        <a href="/about">About</a>
+        <a href="/monday-close">Close memo</a>
         <a href="/privacy">Privacy</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>

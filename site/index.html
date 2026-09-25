@@ -60,6 +60,66 @@
         </article>
       </section>
 
+      <section class="launch-home-tools" aria-label="Spend explorer and break-even">
+        <p class="eyebrow">SAMPLE</p>
+        <h2>Spend explorer and the margin floor.</h2>
+        <p class="lede">Northline Supply sample spine. Not a live shop. The full desk, including orders depth, ledger, CPA, and audit, is on the sample desk.</p>
+        <p><a href="/demo">Open every desk section</a></p>
+        <div id="mcfly-spend-explorer" class="sx-demo sx-demo--desk" data-sample="1" aria-label="Spend explorer — sample">
+          <section class="sx-pace" aria-label="Monthly pacing">
+            <div class="sx-pace__head">
+              <h3 class="sx-pace__title">Monthly pacing</h3>
+              <p class="sx-pace__muted" data-sx-pace-period>Month to date · target 4.00×</p>
+            </div>
+            <div class="sx-pace__stats">
+              <p>Sales <span data-sx-pace-sales>$412,400</span></p>
+              <p>Spend <span data-sx-pace-spend>$98,500</span></p>
+              <p>Days <span data-sx-pace-days>27 / 31 days</span></p>
+              <p>Avg daily sales <span data-sx-pace-avg-sales>$15,274</span></p>
+              <p>Daily sales needed <span data-sx-pace-daily-need>$9,993</span></p>
+            </div>
+          </section>
+          <div class="sx-demo__controls">
+            <div class="sx-demo__primary">
+              <div class="sx-demo__seg" role="group" aria-label="Explorer range">
+                <button type="button" class="sx-demo__btn" data-sx-range="14d">14d</button>
+                <button type="button" class="sx-demo__btn is-on" data-sx-range="90d" aria-current="true">90d</button>
+                <button type="button" class="sx-demo__btn" data-sx-range="1y">1y</button>
+              </div>
+              <div class="sx-demo__seg" role="group" aria-label="Bucket size">
+                <button type="button" class="sx-demo__btn" data-sx-gran="Day">Day</button>
+                <button type="button" class="sx-demo__btn is-on" data-sx-gran="Week" aria-current="true">Week</button>
+              </div>
+              <div class="sx-demo__seg" role="group" aria-label="Chart mode">
+                <button type="button" class="sx-demo__btn is-on" data-sx-mode="stacked" aria-current="true">Stacked</button>
+                <button type="button" class="sx-demo__btn" data-sx-mode="share">Share</button>
+                <button type="button" class="sx-demo__btn" data-sx-mode="total">Total</button>
+              </div>
+              <div class="sx-demo__seg" role="group" aria-label="Sales overlay">
+                <button type="button" class="sx-demo__btn" data-sx-sales="1" aria-pressed="false">Show sales</button>
+              </div>
+            </div>
+          </div>
+          <div class="sx-demo__chart-wrap">
+            <div class="sx-demo__chart" data-sx-chart></div>
+            <div class="sx-demo__tip" data-sx-tip hidden role="tooltip"></div>
+          </div>
+          <p class="sx-demo__inspect" data-sx-inspect aria-live="polite">Select a column to inspect a spend bucket</p>
+          <div class="sx-demo__readout" data-sx-readout aria-live="polite">Select a column · Total ROAS = sales ÷ spend</div>
+          <ul class="sx-demo__legend" data-sx-legend aria-label="Chart legend"></ul>
+        </div>
+        <div class="till-be" id="till-be">
+          <p class="eyebrow">Break-even</p>
+          <p class="till-be__be"><span data-till-be>2.86×</span></p>
+          <label class="till-be__control">
+            <span>Profit margin <strong data-till-margin-val>35%</strong></span>
+            <input data-till-margin type="range" min="20" max="60" step="1" value="35" />
+          </label>
+          <p class="till-be__verdict" data-till-verdict data-tone="good">Sample Total ROAS 3.2× clears break-even — protect the mix.</p>
+          <p>Break-even ≈ 1 ÷ margin · Sample at 3.2×</p>
+        </div>
+      </section>
+
       <section class="price-band" aria-labelledby="price-title">
         <p class="eyebrow">One plan</p>
         <h2 id="price-title">7-day trial, then $39 per store per month.</h2>
@@ -76,5 +136,7 @@
   <script src="/assets/chrome.js?v=20260925desk"></script>
   <script src="/assets/app.js?v=20260925desk"></script>
   <script src="/assets/sample-desk.js?v=20260925desk"></script>
+  <script src="/assets/spend-explorer-demo.js?v=20260925restored"></script>
+  <script src="/assets/till-be.js?v=20260925restored"></script>
 </body>
 </html>
