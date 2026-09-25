@@ -700,9 +700,11 @@ export default function Dashboard() {
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
-    orderHero,
+    orderHero: orderHeroLoaded,
     orderBookDepth,
   } = data;
+  // Loader returns a frozen hero; enrich from period stats without reassigning const.
+  let orderHero = orderHeroLoaded;
   const isLoading = useDeskTabRefresh();
   const requestScreen = shotMode
     ? null
