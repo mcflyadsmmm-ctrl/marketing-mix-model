@@ -1,8 +1,7 @@
 /* launch-v2-20260826-one-product */
 /**
  * Public CTA honesty gate.
- * Listing not live — primary CTA is Try the demo.
- * Never invent apps.shopify.com URLs. Never "Install free" → /support.
+ * Primary CTA opens the sample desk. Never "Install free" → /support.
  *
  * Tokens:
  *   data-mcfly-cta="primary"   → Try the demo /demo
@@ -16,16 +15,16 @@
   w.MCFLY_APP_STORE_LIVE = false;
 
   function primary() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "Sample desk", href: "/demo" };
   }
 
   /** Chrome mobile nav / intentional demo CTAs only. */
   function secondary() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "Sample desk", href: "/demo" };
   }
 
   function demo() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "Sample desk", href: "/demo" };
   }
 
   function apply(root) {

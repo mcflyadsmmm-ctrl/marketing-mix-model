@@ -21,7 +21,8 @@
   var PERIODS = {
     l7d: {
       id: "l7d",
-      label: "Last 7d",
+      label: "Last 7 days",
+      startIso: "2026-07-21",
       asOf: "Jul 21–27, 2026",
       netSales: 86420,
       grossSales: 97850,
@@ -61,7 +62,8 @@
     },
     mtd: {
       id: "mtd",
-      label: "MTD",
+      label: "This month",
+      startIso: "2026-07-01",
       asOf: "Jul 1–27, 2026",
       netSales: 412400,
       grossSales: 468200,
@@ -101,7 +103,8 @@
     },
     qtd: {
       id: "qtd",
-      label: "QTD",
+      label: "This quarter",
+      startIso: "2026-04-01",
       asOf: "Apr 1–Jul 27, 2026",
       netSales: 1185200,
       grossSales: 1346800,
@@ -141,7 +144,8 @@
     },
     ytd: {
       id: "ytd",
-      label: "YTD",
+      label: "This year",
+      startIso: "2026-01-01",
       asOf: "Jan 1–Jul 27, 2026",
       netSales: 2640800,
       grossSales: 2996400,
@@ -179,6 +183,74 @@
       shiftCutWhy: "Learning cut — average ≠ marginal.",
       monthPlanSales: 465000,
     },
+    lm: {
+      id: "lm",
+      label: "Last month",
+      asOf: "Jun 1–30, 2026",
+      startIso: "2026-06-01",
+      netSales: 378200,
+      grossSales: null,
+      spend: 96800,
+      eomProjectedMer: null,
+      priorMer: null,
+      priorSales: null,
+      priorSpend: null,
+      orders: null,
+      newCustomers: null,
+      returning: null,
+      daysElapsed: 30,
+      daysInPeriod: 30,
+      claimedMer: null,
+      ltvAov30: null,
+      ltvAov90: null,
+      repeatRate30: null,
+      channels: null,
+      alloc: "Channel split is not stored for last month.",
+      allocWhy: "Last month is the stored prior sales and spend line only.",
+      decisionLead: "Last month is the stored prior line.",
+      decisionWhy: "Order counts and channel split are not stored on this prior line.",
+      shiftProtect: "—",
+      shiftProtectWhy: "Not stored for last month.",
+      shiftHold: "—",
+      shiftHoldWhy: "Not stored for last month.",
+      shiftCut: "—",
+      shiftCutWhy: "Not stored for last month.",
+      monthPlanSales: null,
+    },
+    l12m: {
+      id: "l12m",
+      label: "Last 12 months",
+      asOf: "No stored 12-month total",
+      startIso: null,
+      netSales: null,
+      grossSales: null,
+      spend: null,
+      eomProjectedMer: null,
+      priorMer: null,
+      priorSales: null,
+      priorSpend: null,
+      orders: null,
+      newCustomers: null,
+      returning: null,
+      daysElapsed: 0,
+      daysInPeriod: 0,
+      claimedMer: null,
+      ltvAov30: null,
+      ltvAov90: null,
+      repeatRate30: null,
+      channels: null,
+      alloc: "No 12-month total is stored.",
+      allocWhy: "Last 12 months has no stored sales or spend on this SAMPLE book.",
+      decisionLead: "No 12-month total is stored.",
+      decisionWhy: "This SAMPLE book does not keep a last-12-months sales total.",
+      shiftProtect: "—",
+      shiftProtectWhy: "Not stored.",
+      shiftHold: "—",
+      shiftHoldWhy: "Not stored.",
+      shiftCut: "—",
+      shiftCutWhy: "Not stored.",
+      monthPlanSales: null,
+    },
   };
 
   var state = {
@@ -189,6 +261,11 @@
     drawerOpen: false,
     drawerKind: null,
     drawerId: null,
+    selectedDay: null,
+    ledgerFilter: "all",
+    userGoal: null,
+    typedSpend: [],
+    typedNext: 1,
   };
 
   var drawerFocusReturn = null;
@@ -202,6 +279,7 @@
   }
 
   function money(n) {
+    if (n == null || !Number.isFinite(n)) return "—";
     return n.toLocaleString("en-US", {
       style: "currency",
       currency: "USD",
@@ -429,6 +507,10 @@
   function renderChannels(period) {
     var host = $("#dd-channels");
     if (!host) return;
+    if (!period.channels || !period.channels.length || !(period.spend > 0)) {
+      host.textContent = "Channel split is not stored for this window.";
+      return;
+    }
     var maxSpend = Math.max.apply(
       null,
       period.channels.map(function (c) {
@@ -792,16 +874,22 @@
     el.className = "dd-kpi__delta dd-kpi__delta--" + cls;
   }
 
-  function flash(sel) {
-    var el = $(sel);
-    if (!el) return;
-    el.style.opacity = "0.55";
-    requestAnimationFrame(function () {
-      el.style.opacity = "1";
-    });
-  }
+  function flash() {}
 
   function renderPace(period, mer) {
+    if (period.netSales == null || !(period.daysElapsed > 0)) {
+      setText("#dd-pace-period", period.label + " · SAMPLE");
+      setText("#dd-pace-days", "—");
+      setText("#dd-pace-avg", "—");
+      setText("#dd-pace-need", "—");
+      setText("#dd-pace-sales-pct", "—");
+      setText("#dd-pace-cal-pct", "—");
+      var emptySales = $("#dd-pace-sales-fill");
+      var emptyCal = $("#dd-pace-cal-fill");
+      if (emptySales) emptySales.style.width = "0%";
+      if (emptyCal) emptyCal.style.width = "0%";
+      return;
+    }
     var pace = computePace(period, mer);
     setText(
       "#dd-pace-period",
@@ -904,6 +992,19 @@
       "At " + Math.round(state.margin * 100) + "% profit margin",
     );
 
+    if (period.netSales == null) {
+      setText("#dd-goals-plan-sales", "—");
+      setText("#dd-goals-act-sales", "—");
+      setText("#dd-goals-pace-sales", "—");
+      setText("#dd-goals-plan-spend", "—");
+      setText("#dd-goals-act-spend", "—");
+      setText("#dd-goals-pace-spend", "—");
+      setText("#dd-goals-plan-roas", formatMer(planRoas));
+      setText("#dd-goals-act-roas", "—");
+      setText("#dd-goals-pace-roas", "—");
+      return;
+    }
+
     setText("#dd-goals-plan-sales", money(planSales));
     setText("#dd-goals-act-sales", money(period.netSales));
     setText(
@@ -985,6 +1086,253 @@
     if (fill) fill.style.width = Math.round(COVERAGE * 100) + "%";
   }
 
+
+  function addDays(iso, days) {
+    var parts = iso.split("-");
+    var date = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+    date.setUTCDate(date.getUTCDate() + days);
+    return date;
+  }
+
+  function isoOf(date) {
+    var y = date.getUTCFullYear();
+    var m = String(date.getUTCMonth() + 1).padStart(2, "0");
+    var d = String(date.getUTCDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
+  }
+
+  function shapeDays(total, startIso, count) {
+    var weights = [];
+    var weightSum = 0;
+    var i;
+    for (i = 0; i < count; i += 1) {
+      var dow = addDays(startIso, i).getUTCDay();
+      var weekend = dow === 0 || dow === 6 ? 0.74 : 1;
+      var wave = 0.9 + 0.18 * Math.sin(i / 3.1);
+      var weight = weekend * wave;
+      weights.push(weight);
+      weightSum += weight;
+    }
+    var amounts = [];
+    var used = 0;
+    for (i = 0; i < count; i += 1) {
+      var amount = i === count - 1 ? total - used : Math.round((total * weights[i]) / weightSum);
+      if (amount < 0) amount = 0;
+      amounts.push(amount);
+      used += amount;
+    }
+    return amounts;
+  }
+
+  function shapedSeries(period) {
+    if (period.netSales == null || !period.startIso || !(period.daysElapsed > 0)) return [];
+    var amounts = shapeDays(period.netSales, period.startIso, period.daysElapsed);
+    return amounts.map(function (amount, index) {
+      var date = addDays(period.startIso, index);
+      return {
+        iso: isoOf(date),
+        amount: amount,
+        weekend: date.getUTCDay() === 0 || date.getUTCDay() === 6,
+        dow: date.getUTCDay(),
+      };
+    });
+  }
+
+  function renderDayChart() {
+    var chart = $("#dd-day-chart");
+    var readout = $("#dd-day-readout");
+    var caption = $("#dd-day-caption");
+    if (chart) chart.replaceChildren();
+    if (caption) caption.textContent = "A day file is not stored on this SAMPLE book.";
+    if (readout) readout.textContent = "";
+  }
+
+  function dayReadout(series, iso) {
+    var found = null;
+    series.forEach(function (day) {
+      if (day.iso === iso) found = day;
+    });
+    if (!found) return "That day is outside this window.";
+    return found.iso + " · " + money(found.amount) + " · SAMPLE shape";
+  }
+
+  function renderWeekday() {
+    var host = $("#dd-weekday");
+    if (!host) return;
+    host.replaceChildren();
+    host.textContent = "A day file is not stored on this SAMPLE book.";
+  }
+
+  function renderLedger(period) {
+    var channels = $("#dd-ledger-channels");
+    var days = $("#dd-ledger-days");
+    if (channels) {
+      channels.replaceChildren();
+      if (!period.channels || !period.channels.length) {
+        channels.textContent = "Channel lines are not stored for this window.";
+      } else {
+        var table = document.createElement("table");
+        table.className = "dd-goals-tab__table";
+        table.innerHTML = "<thead><tr><th>Channel</th><th>Spend (USD)</th></tr></thead>";
+        var body = document.createElement("tbody");
+        period.channels.forEach(function (ch) {
+          var row = document.createElement("tr");
+          row.innerHTML = "<th scope='row'>" + ch.label + "</th><td>" + money(ch.spend) + "</td>";
+          body.appendChild(row);
+        });
+        table.appendChild(body);
+        channels.appendChild(table);
+      }
+    }
+    if (!days) return;
+    days.replaceChildren();
+    days.textContent = "A day file is not stored on this SAMPLE book.";
+  }
+
+  function emailSpend(period) {
+    if (!period.channels) return null;
+    var found = null;
+    period.channels.forEach(function (ch) {
+      if (ch.id === "email") found = ch.spend;
+    });
+    return found;
+  }
+
+  function renderExtra(period, mer, be, aov) {
+    setText("#dd-orders-sales", money(period.netSales));
+    setText("#dd-orders-count", formatInt(period.orders));
+    setText("#dd-orders-aov", aov != null ? money(aov) : "—");
+    setText("#dd-orders-returning", formatInt(period.returning));
+    setText("#dd-orders-new", formatInt(period.newCustomers));
+    setText(
+      "#dd-orders-prior",
+      period.priorSales == null
+        ? "No prior stored"
+        : "vs prior " + money(period.priorSales) + " · " + deltaMoneyText(period.netSales, period.priorSales),
+    );
+    renderDayChart(period);
+    renderWeekday(period);
+    setText("#dd-tt2", "Days to a second order are not stored on this SAMPLE book.");
+    setText("#dd-weekend", "Weekend share of second orders is not stored on this SAMPLE book.");
+
+    setText("#dd-cust-orders", formatInt(period.orders));
+    setText("#dd-cust-new", formatInt(period.newCustomers));
+    setText("#dd-cust-returning", formatInt(period.returning));
+    setText(
+      "#dd-cust-mix",
+      period.returning != null && period.orders
+        ? formatPct(period.returning / period.orders) + " of orders"
+        : "—",
+    );
+
+    setText("#dd-growth-repeat", formatPct(period.repeatRate30));
+    setText("#dd-growth-30", money(period.ltvAov30));
+    setText("#dd-growth-90", money(period.ltvAov90));
+
+    setText("#dd-ltv2-30", money(period.ltvAov30));
+    setText("#dd-ltv2-90", money(period.ltvAov90));
+    setText("#dd-ltv2-repeat", formatPct(period.repeatRate30));
+    var cac =
+      period.spend > 0 && period.newCustomers > 0
+        ? Math.round(period.spend / period.newCustomers)
+        : null;
+    setText("#dd-ltv2-cac", cac == null ? "—" : money(cac));
+
+    var priorMer = period.priorMer;
+    setText(
+      "#dd-compare-sales",
+      period.priorSales == null ? "—" : money(period.netSales) + " vs " + money(period.priorSales),
+    );
+    setText(
+      "#dd-compare-spend",
+      period.priorSpend == null ? "—" : money(period.spend) + " vs " + money(period.priorSpend),
+    );
+    setText(
+      "#dd-compare-mer",
+      priorMer == null || mer == null ? "—" : formatMer(mer) + " vs " + formatMer(priorMer),
+    );
+    setText(
+      "#dd-compare-days",
+      period.daysElapsed > 0 ? String(period.daysElapsed) : "—",
+    );
+    setText(
+      "#dd-compare-sales-day",
+      period.daysElapsed > 0 && period.netSales != null
+        ? money(Math.round(period.netSales / period.daysElapsed))
+        : "—",
+    );
+    setText(
+      "#dd-compare-spend-day",
+      period.daysElapsed > 0 && period.spend != null
+        ? money(Math.round(period.spend / period.daysElapsed))
+        : "—",
+    );
+    setText(
+      "#dd-compare-note",
+      "Last year is not a stored line on this book. This compare uses the stored prior window only.",
+    );
+
+    renderLedger(period);
+
+    setText("#dd-cpa-new", cac == null ? "—" : money(cac));
+    setText(
+      "#dd-cpa-all",
+      period.spend > 0 && period.orders > 0
+        ? money(Math.round(period.spend / period.orders))
+        : "—",
+    );
+    setText("#dd-cpa-90", money(period.ltvAov90));
+    setText("#dd-cpa-payback", "—");
+
+    setText("#dd-yoy-sales", money(period.netSales));
+    setText("#dd-yoy-prior", money(period.priorSales));
+    setText("#dd-yoy-spend", money(period.priorSpend));
+    setText(
+      "#dd-yoy-note",
+      "A prior-year total is not stored. The prior line is the previous window, not last year.",
+    );
+
+    setText("#dd-honesty-lie", period.claimedMer == null ? "—" : "~" + period.claimedMer.toFixed(1) + "×");
+    setText("#dd-honesty-truth", formatMer(mer));
+    setText("#dd-email-spend", money(emailSpend(period)));
+    setText(
+      "#dd-audit-coverage",
+      Math.round(COVERAGE * 100) + "%",
+    );
+    setText("#dd-audit-recon", "±" + (RECON_PCT * 100).toFixed(1) + "%");
+    setText("#dd-audit-margin", Math.round(state.margin * 100) + "%");
+    setText("#dd-audit-asof", AS_OF_SHORT);
+    var contribution =
+      period.netSales != null && period.spend != null && state.margin > 0
+        ? Math.round(period.netSales * state.margin - period.spend)
+        : null;
+    setText("#dd-contrib-sales", money(period.netSales));
+    setText("#dd-contrib-spend", money(period.spend));
+    setText("#dd-contrib", contribution == null ? "—" : money(contribution));
+    var returns =
+      period.grossSales != null && period.netSales != null
+        ? period.grossSales - period.netSales
+        : null;
+    setText(
+      "#dd-orders-returns",
+      returns == null
+        ? "Returns are not stored for this window."
+        : "Order totals minus sales after returns: " + money(returns) + ".",
+    );
+    var desk = $("#dd-desk");
+    if (desk) {
+      desk.setAttribute("data-start", period.startIso || "");
+      var end = period.startIso && period.daysElapsed > 0 ? isoOf(addDays(period.startIso, period.daysElapsed - 1)) : "";
+      desk.setAttribute("data-end", end);
+      desk.setAttribute("data-sales", period.netSales == null ? "" : String(period.netSales));
+      desk.setAttribute("data-spend", period.spend == null ? "" : String(period.spend));
+      desk.setAttribute("data-label", period.label);
+      desk.setAttribute("data-channels", JSON.stringify(period.channels || []));
+    }
+    document.dispatchEvent(new CustomEvent("dd-rendered"));
+    void be;
+  }
+
   function render() {
     var period = PERIODS[state.period] || PERIODS.mtd;
     var be = breakEven(state.margin);
@@ -994,7 +1342,7 @@
     var verdict = verdictCopy(mer, be, state.targetMer);
     var aov =
       period.orders > 0 ? Math.round(period.netSales / period.orders) : null;
-    var claimed = period.claimedMer != null ? period.claimedMer : CLAIMED_MER;
+    var claimed = period.claimedMer != null ? period.claimedMer : null;
 
     var decisionLead = verdict.lead;
     if (mer != null && be != null && Math.abs(state.margin - DEFAULT_MARGIN) < 0.001) {
@@ -1002,6 +1350,11 @@
     }
 
     setText("#dd-asof", period.asOf);
+    setText("#dd-hero-sales", money(period.netSales));
+    setText(
+      "#dd-hero-window",
+      period.asOf ? period.label + " · " + period.asOf : period.label,
+    );
     setText(
       "#dd-trust-coverage",
       "Coverage " + Math.round(COVERAGE * 100) + "%",
@@ -1029,7 +1382,7 @@
           : ""),
     );
 
-    setText("#dd-claim-lie", "~" + claimed.toFixed(1) + "×");
+    setText("#dd-claim-lie", claimed == null ? "—" : "~" + claimed.toFixed(1) + "×");
     setText("#dd-claim-truth", formatMer(mer));
 
     setText("#dd-kpi-mer", formatMer(mer));
@@ -1149,6 +1502,7 @@
 
     renderPace(period, mer);
     renderGoals(period, be);
+    renderExtra(period, mer, be, aov);
     renderShifts(period);
     renderChannels(period);
     renderSettings();
@@ -1176,11 +1530,22 @@
   function showSection(key) {
     var known = {
       overview: true,
+      orders: true,
       spend: true,
       goals: true,
+      customers: true,
+      growth: true,
+      ltv: true,
       mix: true,
       explorer: true,
+      compare: true,
+      ledger: true,
+      cpa: true,
+      yoy: true,
+      honesty: true,
+      email: true,
       close: true,
+      audit: true,
       settings: true,
     };
     if (!known[key]) key = "overview";
@@ -1191,9 +1556,11 @@
       if (on) {
         sec.hidden = false;
         sec.removeAttribute("hidden");
+        sec.inert = false;
       } else {
         sec.hidden = true;
         sec.setAttribute("hidden", "");
+        sec.inert = true;
       }
     });
     $$("[data-dd-nav]").forEach(function (b) {
@@ -1220,7 +1587,12 @@
           b.setAttribute("aria-pressed", on ? "true" : "false");
         });
         if (state.drawerOpen) closeDrawer();
+        state.selectedDay = null;
         render();
+        var url = new URL(window.location.href);
+        url.searchParams.set("period", id);
+        url.searchParams.set("section", state.section);
+        history.replaceState(null, "", url);
       });
       btn.addEventListener("keydown", function (ev) {
         if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
@@ -1254,6 +1626,46 @@
       state.targetMer = Number(input.value) / 10;
       render();
     });
+  }
+
+  function parseSpendPaste(raw) {
+    var names = {
+      meta: "Meta",
+      google: "Google",
+      microsoft: "Microsoft",
+      email: "Email",
+      tiktok: "TikTok",
+      pinterest: "Pinterest",
+      snapchat: "Snapchat",
+      reddit: "Reddit",
+      x: "X",
+      linkedin: "LinkedIn",
+      amazon: "Amazon",
+      apple: "Apple Search",
+      impact: "Impact / CJ",
+      klaviyo: "Klaviyo / Mailchimp",
+      other: "Other",
+    };
+    var rows = [];
+    String(raw)
+      .split(/\r?\n/)
+      .forEach(function (line) {
+        var parts = line.split(",").map(function (part) {
+          return part.trim();
+        });
+        if (parts.length < 3) return;
+        if (parts[0].toLowerCase() === "date") return;
+        var day = parts[0];
+        var amount = Number(parts[2].replace(/[$,]/g, ""));
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !(amount > 0)) return;
+        var key = parts[1].toLowerCase();
+        rows.push({
+          day: day,
+          amount: Math.round(amount),
+          channel: names[key] || parts[1],
+        });
+      });
+    return rows;
   }
 
   function bindSpendDemo() {
@@ -1297,7 +1709,13 @@
           return;
         }
         if (kind === "import") {
-          toast("SAMPLE desk — no upload. In app: paste CSV or combine platform files.");
+          var pasted = parseSpendPaste(($("#dd-spend-paste") || {}).value || "");
+          if (!pasted.length) {
+            toast("Paste date, channel, and amount. This page does not upload a file.");
+            return;
+          }
+          document.dispatchEvent(new CustomEvent("dd-paste-spend", { detail: pasted }));
+          toast("Added " + pasted.length + " pasted row" + (pasted.length === 1 ? "" : "s") + " to this SAMPLE desk.");
         }
       });
     });
@@ -1318,10 +1736,10 @@
         if (!key) return;
         if (state.drawerOpen) closeDrawer();
         showSection(key);
-        var desk = $("#dd-desk");
-        if (desk) {
-          desk.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        var url = new URL(window.location.href);
+        url.searchParams.set("section", key);
+        url.searchParams.set("period", state.period);
+        history.replaceState(null, "", url);
       });
     });
   }
@@ -1426,6 +1844,94 @@
     });
   }
 
+
+  function bindDepth() {
+    var chart = $("#dd-day-chart");
+    if (chart) {
+      chart.addEventListener("click", function (ev) {
+        var button = ev.target.closest("[data-dd-day]");
+        if (!button) return;
+        state.selectedDay = button.getAttribute("data-dd-day");
+        render();
+      });
+    }
+    function setFilter() {
+      setText("#dd-ledger-toast", "A day file is not stored on this SAMPLE book.");
+    }
+    var all = $("#dd-ledger-all");
+    var weekday = $("#dd-ledger-weekday");
+    var weekend = $("#dd-ledger-weekend");
+    if (all) all.addEventListener("click", function () { setFilter("all"); });
+    if (weekday) weekday.addEventListener("click", function () { setFilter("weekday"); });
+    if (weekend) weekend.addEventListener("click", function () { setFilter("weekend"); });
+    var exp = $("#dd-ledger-export");
+    if (exp) {
+      exp.addEventListener("click", function () {
+        var period = PERIODS[state.period] || PERIODS.mtd;
+        if (!period.channels || !period.channels.length) {
+          setText("#dd-ledger-toast", "Channel lines are not stored for this window.");
+          return;
+        }
+        var lines = ["channel,spend_usd"];
+        period.channels.forEach(function (ch) {
+          lines.push(ch.label + "," + ch.spend);
+        });
+        var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "northline-sample-channels.csv";
+        link.click();
+        setText("#dd-ledger-toast", "Exported stored channel spend. A day file is not on this book.");
+      });
+    }
+    var cohort = $("#dd-cohort-csv");
+    if (cohort) {
+      cohort.addEventListener("click", function () {
+        var period = PERIODS[state.period] || PERIODS.mtd;
+        var contribution =
+          period.netSales != null && period.spend != null && state.margin > 0
+            ? Math.round(period.netSales * state.margin - period.spend)
+            : "";
+        var cac =
+          period.spend > 0 && period.newCustomers > 0
+            ? Math.round(period.spend / period.newCustomers)
+            : "";
+        var returns =
+          period.grossSales != null && period.netSales != null
+            ? period.grossSales - period.netSales
+            : "";
+        var lines = [
+          "field,value",
+          "window," + period.label,
+          "sales," + (period.netSales == null ? "" : period.netSales),
+          "spend," + (period.spend == null ? "" : period.spend),
+          "margin_percent," + Math.round(state.margin * 100),
+          "sales_x_margin_minus_spend," + contribution,
+          "cohort_30d_aov," + (period.ltvAov30 == null ? "" : period.ltvAov30),
+          "cohort_90d_aov," + (period.ltvAov90 == null ? "" : period.ltvAov90),
+          "repeat_30d," + (period.repeatRate30 == null ? "" : period.repeatRate30),
+          "cash_cac," + cac,
+          "returns," + returns,
+          "days_to_second,",
+          "payback_days,",
+          "order_keys,",
+        ];
+        var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "northline-sample-cohort.csv";
+        link.click();
+      });
+    }
+    var pack = $("#dd-ledger-audit");
+    if (pack) {
+      pack.addEventListener("click", function () {
+        setText("#dd-ledger-toast", "SAMPLE audit pack: coverage, recon, and as-of. No upload.");
+        showSection("audit");
+      });
+    }
+  }
+
   function boot() {
     if (!$("#dd-desk")) return;
     bindPeriods();
@@ -1437,8 +1943,18 @@
     bindClaimExpand();
     bindDrawerChrome();
     markNav();
-    showSection("overview");
+    bindDepth();
+    var params = new URLSearchParams(window.location.search);
+    var period = params.get("period");
+    var section = params.get("section") || params.get("tab");
+    if (section === "roas") section = "overview";
+    if (PERIODS[period]) state.period = period;
+    showSection(section || "overview");
     render();
+    $$("[data-dd-period]").forEach(function (b) {
+      var on = b.getAttribute("data-dd-period") === state.period;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
   }
 
   if (document.readyState === "loading") {
