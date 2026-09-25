@@ -2396,3 +2396,37 @@ body.dd-drawer-open {
     padding-right: 0.25rem;
   }
 }
+
+.dd-recon__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.dd-recon__table th,
+.dd-recon__table td {
+  padding: 0.35rem 0.45rem;
+  vertical-align: top;
+}
+
+.dd-recon__table thead th,
+.dd-recon__table td {
+  text-align: right;
+}
+
+.dd-recon__table tbody th,
+.dd-recon__table thead th:first-child {
+  text-align: left;
+}
+
+.dd-recon__file {
+  display: block;
+  margin: 0.75rem 0;
+}
+
+@media (max-width: 720px) {
+  .dd-recon__table {
+    display: block;
+    overflow-x: auto;
+  }
+}

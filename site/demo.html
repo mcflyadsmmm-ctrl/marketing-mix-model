@@ -98,6 +98,15 @@
 
         <div class="dd-well">
         <div id="dd-sec-overview" class="dd-sec" data-dd-section="overview">
+          <section class="dd-recon" aria-label="Reconciliation">
+            <h2 class="dd-panel__title">Reconciliation</h2>
+            <p class="dd-panel__muted">Last 7 days and this month. Published book figures only. A missing figure stays blank.</p>
+            <div id="dd-recon"></div>
+            <label class="dd-recon__file">Cost file
+              <input id="dd-cost-file" type="file" accept=".csv,text/csv,text/plain" />
+            </label>
+            <div id="dd-cost-out"></div>
+          </section>
           <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
             <p class="dd-decision__kicker">Budget call</p>
             <p class="dd-decision__takeaway" id="dd-decision-takeaway">Above target on sales after returns ÷ spend.</p>
@@ -310,6 +319,8 @@
               Pick platforms → blank template → Sheets Import → paste here.
               SyncWith / Coupler / Supermetrics optional <em>(you pay them)</em>.
             </p>
+            <p id="dd-spend-new">Spend per new customer —</p>
+            <p id="dd-spend-lanes">Wholesale — · Draft — · unknown —</p>
 
             <div class="dd-spend__chips" role="group" aria-label="Platforms you spend on">
               <button type="button" class="dd-spend__chip is-on" data-dd-platform="meta" aria-pressed="true">Meta</button>
