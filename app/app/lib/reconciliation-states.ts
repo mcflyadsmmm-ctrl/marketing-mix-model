@@ -6,12 +6,13 @@
 
 import { formatMer } from "./mer-format";
 import type { ReadStatus } from "./reconciliation-gap";
+import { SPEND_EMPTY_MER_STRIP } from "./spend-upload-findings";
 
 export const LOADING_ORDERS = "Loading your Shopify order history.";
 export const FAILED_LOAD = "This load failed. Sales are not zero.";
 export const PRIOR_YEAR_MISSING = "No comparable history loaded for last year.";
 export const LTV_UNAVAILABLE = "Customer LTV is not available with Live data yet. Same on trial and paid.";
-export const EMPTY_SPEND_NOTE = "Order reports stay usable.";
+export const EMPTY_SPEND_NOTE = SPEND_EMPTY_MER_STRIP;
 export const PARTIAL_SPEND_NOTE = "This ratio only covers the spend you entered.";
 export const FULL_SPEND_NOTE = "Shopify sales divided by the spend you entered.";
 

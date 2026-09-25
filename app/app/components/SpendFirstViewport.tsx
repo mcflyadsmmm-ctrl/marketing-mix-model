@@ -6,11 +6,11 @@ import type { CashChip } from "../lib/mer-control";
 import { formatCurrency } from "../lib/mer-format";
 import { formatSpendOnFile } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { HONEST_MER_LINE } from "../lib/spend-upload-findings";
 import {
-  SPEND_ANALYTICS_SR_LINE,
-  SPEND_THIN_EMPTY_LINE,
-} from "../lib/spend-first-viewport";
+  HONEST_MER_LINE,
+  SPEND_EMPTY_MER_STRIP,
+} from "../lib/spend-upload-findings";
+import { SPEND_ANALYTICS_SR_LINE } from "../lib/spend-first-viewport";
 
 /**
  * Spend first fold — one Total ROAS hero, sales · spend meta, no essay ledes.
@@ -80,12 +80,16 @@ export function SpendFirstViewport({
         </p>
         <p className="mcfly-overview-plane__meta">
           <span className="mcfly-overview-plane__prior">{PRODUCT_NOUN.totalRoas}</span>
-          <span aria-hidden="true"> · </span>
-          <span className="mcfly-overview-plane__source">
-            {hasSpend ? "Entered spend on file" : HONEST_MER_LINE}
-          </span>
+          {hasSpend ? (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="mcfly-overview-plane__source">Entered spend on file</span>
+            </>
+          ) : null}
         </p>
-        <span className="mcfly-overview-plane__sr">{SPEND_ANALYTICS_SR_LINE}</span>
+        <span className="mcfly-overview-plane__sr">
+          {SPEND_ANALYTICS_SR_LINE} {HONEST_MER_LINE}
+        </span>
       </div>
 
       {hasSpend && cashChips && cashChips.length > 0 ? (
@@ -95,6 +99,8 @@ export function SpendFirstViewport({
           plan={null}
           placement="firstFold"
         />
+      ) : !hasSpend ? (
+        <p className="mcfly-scoreboard__empty">{SPEND_EMPTY_MER_STRIP}</p>
       ) : null}
 
       {hasSpend && pairEquation && pairCopyText ? (
@@ -102,8 +108,6 @@ export function SpendFirstViewport({
           <p className="mcfly-overview-plane__note">{pairEquation}</p>
           <CopySpendPair text={pairCopyText} />
         </div>
-      ) : !hasSpend ? (
-        <p className="mcfly-overview-plane__note">{SPEND_THIN_EMPTY_LINE}</p>
       ) : null}
 
       <p className="mcfly-overview-plane__note">{metaHint}</p>

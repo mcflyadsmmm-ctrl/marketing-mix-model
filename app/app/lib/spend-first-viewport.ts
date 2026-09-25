@@ -10,9 +10,6 @@ import type { PeriodDeltas } from "./period-deltas";
 export const SPEND_PENDING_LINE =
   "Sales for closed days are still loading — not $0.";
 
-export const SPEND_THIN_EMPTY_LINE =
-  "Enter spend to pair with Shopify sales — Total ROAS stays —, never 0×.";
-
 export const SPEND_FIRST_LANE_LABEL = "Total ROAS";
 
 export const SPEND_COMPARE_SECTION_LABEL = "Vs prior period";

@@ -618,6 +618,21 @@ describe("explorerSalesCeil + subtitle", () => {
     expect(sub).toContain("closed days only");
     expect(sub).toContain("as of 2026-07-22");
   });
+
+  it("empty spend subtitle is an em dash, never 0× or $0", () => {
+    const sub = formatExplorerSubtitle({
+      bucketCount: 3,
+      granularity: "Day",
+      totalSpend: 0,
+      overallMer: 0,
+      asOfKey: null,
+      formatCurrency: (n) => `$${n}`,
+      formatMer: (n) => (n == null ? "—" : `${n.toFixed(2)}×`),
+    });
+    expect(sub).toContain("spend —");
+    expect(sub).toContain("Total ROAS —");
+    expect(sub).not.toMatch(/0\.00×|\$0/);
+  });
 });
 
 describe("priorExplorerBucketKey", () => {
