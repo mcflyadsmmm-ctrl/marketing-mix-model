@@ -46,6 +46,8 @@ import {
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
 } from "./overview-order-book";
+import { isDeskPeriodChip, type DeskPeriodChip } from "./book-window";
+import { orderWindowsFromBook } from "./desk-stored-windows";
 import {
   parsePeriodPreset,
   resolvePeriod,
@@ -121,6 +123,8 @@ export type PublicSamplePage = {
   yoyCards: OverviewYoyCard[];
   /** OrderFact first-fold hero — From orders, never SalesDayFact. */
   orderHero: OverviewOrderBookHero;
+  /** Five chips, sliced once from the sample book. */
+  orderWindows: Partial<Record<DeskPeriodChip, OverviewOrderBookHero>>;
   explorerDays: Array<{ dateKey: string; sales: number; orders: number }>;
   mixForecast: OverviewMixForecastView;
   orderHistoryForecast: OrderHistoryForecastView;
@@ -370,6 +374,15 @@ export async function loadPublicSamplePage(
     weekendShare: lock.weekendShare,
     orderCount: orderHeroBase.orderCount,
   };
+  const orderWindows = orderWindowsFromBook({
+    orders: allOrderBook,
+    now,
+    timeZone: PUBLIC_SAMPLE_TZ,
+    thisMonth: preset === "mtd" ? orderHero : null,
+  });
+  if (isDeskPeriodChip(preset) && preset !== "mtd") {
+    orderWindows[preset] = orderHero;
+  }
   const native = shopifyNativePeriodStats({
     sales: sales.totalSales,
     orderCount: sales.orderCount,
@@ -546,6 +559,7 @@ export async function loadPublicSamplePage(
     cashControl,
     yoyCards,
     orderHero,
+    orderWindows,
     explorerDays,
     mixForecast,
     orderHistoryForecast,

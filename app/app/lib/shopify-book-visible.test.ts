@@ -43,7 +43,7 @@ describe("Shopify five books are visible cards", () => {
 
   it("Orders mounts the typical-order first fold then the weekday/hour chart", () => {
     expect(orders).toMatch(/throw redirect/);
-    expect(read("../routes/app._index.tsx")).toContain("<OverviewFirstViewport");
+    expect(read("../routes/app._index.tsx")).toContain("<EnterpriseScoreboard");
     const firstView = read("../components/OrdersFirstViewport.tsx");
     const scoreboard = read("../components/OrdersScoreboard.tsx");
     expect(`${firstView}\n${scoreboard}`).toMatch(/typical/i);

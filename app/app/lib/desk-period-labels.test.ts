@@ -31,7 +31,7 @@ describe("Desk period labels and Overview clocks", () => {
     expect(overview).toContain("buildOverviewYoyCards");
     expect(overview).not.toContain("SpendExplorer");
     expect(overview).not.toContain("<PeriodControl");
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeLessThan(
       overview.indexOf("<OverviewYoyCards"),
     );
   });

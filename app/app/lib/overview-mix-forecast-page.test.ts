@@ -18,7 +18,7 @@ const css = read("../styles/mcfly-desk.css");
 describe("Overview mix + month close — habit, not a dump", () => {
   it("sits after the sales chart in the mix-close fold", () => {
     const order = [
-      "<OverviewFirstViewport",
+      "<EnterpriseScoreboard",
       "<OverviewYoyCards",
       "<OverviewSalesChart",
       "<OverviewMixForecast",
@@ -81,7 +81,7 @@ describe("Overview mix + month close — habit, not a dump", () => {
     expect(board).toContain("Order history only");
     expect(board.match(/<ActionCard[\s\n]/g)?.length).toBe(2);
     expect(firstView).toContain("Typical order");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
   });
 
   it("is full-history aware and withholds a fake year of pace", () => {

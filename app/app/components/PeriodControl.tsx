@@ -47,14 +47,19 @@ export function PeriodControl({
   compact = false,
   orderBookDepth,
 }: PeriodControlProps) {
-  const [, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const periodOptions = compact
     ? COMPACT_PERIOD_OPTIONS
     : shotMode
       ? [...DESK_PERIOD_OPTIONS, { value: "y3" as const, label: "3 yr" }]
       : DESK_PERIOD_OPTIONS;
-  const activeValue = periodOptions.some((p) => p.value === preset)
-    ? preset
+  const urlPeriod = searchParams.get("period");
+  const fromUrl =
+    urlPeriod && periodOptions.some((option) => option.value === urlPeriod)
+      ? urlPeriod
+      : null;
+  const activeValue = periodOptions.some((option) => option.value === (fromUrl ?? preset))
+    ? (fromUrl ?? preset)
     : "mtd";
 
   const setPeriod = (value: PeriodPreset) => {

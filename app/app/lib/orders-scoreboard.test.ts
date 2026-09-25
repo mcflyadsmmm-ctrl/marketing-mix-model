@@ -335,7 +335,7 @@ describe("Orders page craft lock", () => {
   it("is a Black Clover scoreboard — first-fold typical, clock, depth, timing, then the open chart", () => {
     expect(orders).toMatch(/throw redirect/);
     const overview = read("../routes/app._index.tsx");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).not.toContain("SpendExplorer");
     expect(`${firstView}\n${chart}`).toContain("not $0");
     expect(orders).not.toContain("if (metrics.salesPending) return");

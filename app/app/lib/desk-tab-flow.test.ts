@@ -72,7 +72,7 @@ describe("desk tab flow", () => {
           "https://mcflyads.com/demo?period=lm",
         ),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("does not paint a reload when the merchant leaves this tab", () => {

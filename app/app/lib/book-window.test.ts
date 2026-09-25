@@ -113,7 +113,7 @@ describe("period window stays off the order-row click", () => {
       overview.indexOf("LIVE_PERIOD_WINDOW"),
       overview.indexOf("const factsPending"),
     );
-    expect(live).toContain("readDeskMetricSnapshot");
+    expect(live).toContain("readDeskMetricWindows");
     expect(live).not.toContain("loadOrderDepthRows");
     expect(live).not.toContain("loadCustomerAnalytics");
     expect(live).not.toContain("loadLtvDepth");

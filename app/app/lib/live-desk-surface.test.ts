@@ -277,7 +277,7 @@ describe("live desk stage gate", () => {
     expect(orders).toContain("throw redirect");
     expect(orders).not.toContain("LiveDeskLockedPage");
     expect(overview).not.toContain("LiveDeskLockedPage");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
 
     const checklist = readRepo("docs/ops/LIVE_UNPARK_CHECKLIST.md");
     expect(checklist).toContain("liveDeskTabAllowed");

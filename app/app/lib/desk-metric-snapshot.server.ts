@@ -191,15 +191,21 @@ function rowsInRange(rows: StoredOrderRow[], range: DateRange): StoredOrderRow[]
   });
 }
 
+export type DeskMetricWindows = {
+  asOf: Date;
+  windows: Partial<Record<DeskPeriodChip, StoredChip>>;
+  legacyHero: StoredDeskHero | null;
+  legacyDepth: ShopifyDepthStats | null;
+  boards: StoredBoards | null;
+};
+
 /**
- * Latest stored window. Pass a chip to read that period.
+ * One read of the five stored chips.
  * A missing chip does not fall back to another month.
- * `mtd` with no chip map still reads the legacy hero written before windows.
  */
-export async function readDeskMetricSnapshot(
+export async function readDeskMetricWindows(
   shopId: string,
-  preset?: PeriodPreset | null,
-): Promise<DeskMetricSnapshot | null> {
+): Promise<DeskMetricWindows | null> {
   const row = await prisma.syncRun.findFirst({
     where: { shopId, phase: DESK_METRICS_PHASE, status: "ready" },
     orderBy: { finishedAt: "desc" },
@@ -214,33 +220,51 @@ export async function readDeskMetricSnapshot(
     windows?: unknown;
     boards?: unknown;
   };
-  const boards = asBoards(metrics.boards);
-  const windows = asWindows(metrics.windows);
+  return {
+    asOf: row.finishedAt ?? new Date(0),
+    windows: asWindows(metrics.windows),
+    legacyHero: asHero(metrics.hero),
+    legacyDepth: asDepth(metrics.depth),
+    boards: asBoards(metrics.boards),
+  };
+}
+
+/**
+ * Latest stored window. Pass a chip to read that period.
+ * A missing chip does not fall back to another month.
+ * `mtd` with no chip map still reads the legacy hero written before windows.
+ */
+export async function readDeskMetricSnapshot(
+  shopId: string,
+  preset?: PeriodPreset | null,
+): Promise<DeskMetricSnapshot | null> {
+  const parsed = await readDeskMetricWindows(shopId);
+  if (!parsed) return null;
   const chipPreset = preset && isDeskPeriodChip(preset) ? preset : null;
   let hero: StoredDeskHero | null;
   let depth: ShopifyDepthStats | null;
   if (chipPreset) {
-    const chip = windows[chipPreset];
+    const chip = parsed.windows[chipPreset];
     if (chip) {
       hero = chip.hero;
       depth = chip.depth;
     } else if (chipPreset === "mtd") {
-      hero = asHero(metrics.hero);
-      depth = asDepth(metrics.depth);
+      hero = parsed.legacyHero;
+      depth = parsed.legacyDepth;
     } else {
       hero = null;
       depth = null;
     }
   } else {
-    hero = asHero(metrics.hero);
-    depth = asDepth(metrics.depth);
+    hero = parsed.legacyHero;
+    depth = parsed.legacyDepth;
   }
-  if (!hero && !depth && !boards) return null;
+  if (!hero && !depth && !parsed.boards) return null;
   return {
-    asOf: row.finishedAt ?? new Date(0),
+    asOf: parsed.asOf,
     depth,
     hero,
-    boards,
+    boards: parsed.boards,
   };
 }
 

@@ -97,7 +97,7 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
   it("keeps the sales-five paint order and ranks the stacks", () => {
     const order = [
       'rank="first"',
-      "<OverviewFirstViewport",
+      "<EnterpriseScoreboard",
       "<OverviewYoyCards",
       "<OverviewSalesChart",
       'label="Mix and month close"',
@@ -192,8 +192,8 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
   it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {
     expect(orders).toMatch(/throw redirect/);
     const overview = read("../routes/app._index.tsx");
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeGreaterThan(-1);
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeGreaterThan(-1);
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeLessThan(
       overview.indexOf('rank="more"'),
     );
     expect(scoreboard).toContain("<DeskLane");

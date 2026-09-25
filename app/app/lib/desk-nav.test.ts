@@ -149,9 +149,9 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(overview).toContain("mcfly-ctx__brand");
     expect(overview).not.toContain("<PeriodControl");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).toContain("<OverviewSalesChart");
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeLessThan(
       overview.indexOf("<OverviewYoyCards"),
     );
     expect(overview).not.toContain("<DeskOverviewTabs");

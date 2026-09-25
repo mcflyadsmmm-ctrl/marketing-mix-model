@@ -1,5 +1,6 @@
 import { useLocation, useNavigation } from "react-router";
 import type { ShouldRevalidateFunctionArgs } from "react-router";
+import { deskPeriodClickStaysOnStoredWindows } from "./desk-stored-windows";
 
 /**
  * Orders, Spend, Goals, Customers, Settings.
@@ -48,6 +49,7 @@ export function deskPageShouldRevalidate({
   defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
   if (isMutation(formMethod)) return true;
+  if (deskPeriodClickStaysOnStoredWindows(currentUrl, nextUrl)) return false;
   const samePeriod =
     currentUrl.searchParams.get("period") === nextUrl.searchParams.get("period");
   if (currentUrl.pathname !== nextUrl.pathname && samePeriod) return false;
