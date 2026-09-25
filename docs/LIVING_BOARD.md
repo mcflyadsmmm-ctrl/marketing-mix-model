@@ -4,15 +4,15 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-23 · America/Denver · Site **v45** · occupancy **0/4** · ads **NO** · reviews **0** · **PCD L2 Approved** · `read_reports` + QL clocks **shipped** · #219 Live Shopify Total Sales · **#220 merged** Customers/Growth/LTV locked at `overview_orders` · assert-live-secrets.sh on tip · Mac finalize **blocked on Marty Result** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v45** · quality-rescue · H1 Spend next to real Shopify sales · SAMPLE still $68,457 · home → Open the SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · **v467** · image `deployment-01M386Y8YGPSJHNMG9SBN2QP0Z` · `/health` **200** · SSH `MCFLY_SAMPLE_ONLY=false` · `MCFLY_LIVE_STAGE=overview_orders` · `scripts/assert-live-secrets.sh` PASS · git `[env]` kill-switch `true`/`parked` · tip SHA `58023c4` · **Fly deploy skipped** tonight · git `SCOPES` includes `read_reports` |
+| **Updated** | 2026-09-25 · America/Denver · Site probe **v5/visual-site** (drift — Pages republish pending) · occupancy **1/4** Desk QL fold · ads **NO** · reviews **0** · **#221 MERGED** whole-desk default on tip · Fly **v475+** · Conductor final draft executing · **Marty: secrets + Admin Result** |
+| **Live** | https://mcflyads.com · probe `mcfly-version` **v5** / build visual-site (board previously v45 — do not invent) · H1 TBD on republish |
+| **Fly** | https://mcfly-analytics.fly.dev · **v475** (orderHero fix redeploy in flight → tip `7ef9710`) · `/health` **200** · git `[env]` kill-switch `true`/`parked` · tip SHA includes #221 merge `b5b29e9` + hotfix · **Secrets: Marty must re-assert** `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=ltv` (or unset) after deploy |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
 | **App code** | **UNFROZEN** 2026-08-29 · Fly + `app/**` open for App Store approval |
-| **Conductor** | **This Mac Cursor chat = Mcfly Conductor** · SoT [`research/2026-09-23-CURSOR_FINISH_PLAN.md`](./research/2026-09-23-CURSOR_FINISH_PLAN.md) · Mac-shell [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
+| **Conductor** | **This Mac Cursor chat = Mcfly Conductor** · SoT [`research/2026-09-25-FINAL_DRAFT_CONDUCTOR_PROMPT.md`](./research/2026-09-25-FINAL_DRAFT_CONDUCTOR_PROMPT.md) · Copycode [`research/2026-09-25-COPYCODE_PLAN.md`](./research/2026-09-25-COPYCODE_PLAN.md) · Mac-shell [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
 
 Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/mcfly-site/SKILL.md`](../.cursor/skills/mcfly-site/SKILL.md)
 
