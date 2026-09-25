@@ -19,6 +19,8 @@ import {
   isEmbeddedAdminRequest,
 } from "../../scripts/shopify-app-path.mjs";
 import { ReconciliationDesk } from "../components/ReconciliationDesk";
+import { liveDeskSurfaceOpen } from "../lib/live-desk-surface";
+import { resolveLiveUnparkStage } from "../lib/live-unpark";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { readReconciliationWindows } from "../lib/reconciliation-read.server";
 import { EnterpriseScoreboard } from "../components/EnterpriseScoreboard";
@@ -867,7 +869,14 @@ export default function Dashboard() {
                 : null
             }
             customerLtvAvailable={
-              useSampleDesk ? true : metrics.customerMetricsAvailable
+              useSampleDesk
+                ? true
+                : metrics.customerMetricsAvailable &&
+                  liveDeskSurfaceOpen({
+                    sampleDesk: false,
+                    stage: resolveLiveUnparkStage(),
+                    surface: "ltv",
+                  })
             }
             priorYearLoaded={
               useSampleDesk
