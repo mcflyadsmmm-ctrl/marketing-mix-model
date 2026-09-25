@@ -11,9 +11,7 @@
   ensureMeta("mcfly-build", "pr-23");
 
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
-  const isHome = path === "/" || path === "/index.html" || path === "";
   const isAnalytics =
-    isHome ||
     path === "/about" ||
     path === "/about.html" ||
     path === "/custom-analytics" ||
@@ -51,14 +49,14 @@
   } else if (chrome) {
     chrome.innerHTML = `
   <header class="top" data-top>
-    <a class="brand" href="/" aria-label="Mcfly">
+    <a class="brand" href="/" aria-label="Mcfly Analytics">
       <img class="brand-mark-img" src="/favicon-192.png" width="32" height="32" alt="" />
-      <span class="brand-name">Mcfly</span>
+      <span class="brand-name">Mcfly Analytics</span>
     </a>
     <nav class="nav" aria-label="Primary">
+      <a href="/demo" data-nav="demo">Desk</a>
       <a href="/product" data-nav="product">Product</a>
       <a href="/pricing" data-nav="pricing">Pricing</a>
-      <a href="/demo" data-nav="demo">Demo</a>
       <a href="/support" data-nav="support">Support</a>
       <a class="nav-cta" data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     </nav>
@@ -67,13 +65,12 @@
     </button>
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
+    <a href="/demo">Desk</a>
     <a href="/product">Product</a>
     <a href="/pricing">Pricing</a>
-    <a href="/demo">Demo</a>
     <a href="/support">Support</a>
-    <a href="/custom-analytics">Custom Data Solutions</a>
+    <a href="/faq">FAQ</a>
     <a data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
-    <a data-mcfly-cta="demo" href="${shopifySecondary.href}">${shopifySecondary.label}</a>
   </div>`;
   }
 
@@ -103,19 +100,18 @@
     <div class="wrap foot-grid">
       <div class="foot-brand">
         <img src="/favicon-192.png" width="28" height="28" alt="" />
-        <span>Mcfly</span>
+        <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">
+        <a href="/demo">Desk</a>
         <a href="/product">Product</a>
         <a href="/pricing">Pricing</a>
-        <a href="/demo">Demo</a>
-        <a href="/about">About</a>
         <a href="/support">Support</a>
+        <a href="/faq">FAQ</a>
         <a href="/privacy">Privacy</a>
-        <a href="/monday-close">Close memo</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly. See ad spend next to sales, day by day. 7-day trial then $39.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. 7-day trial, then $39 per store per month. No ads.</p>
     </div>
   </footer>`;
   }
@@ -156,6 +152,5 @@
     });
   }
 
-  void isHome;
   void shopifySecondary;
 })();
