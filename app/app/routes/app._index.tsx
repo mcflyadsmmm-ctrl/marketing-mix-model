@@ -831,6 +831,47 @@ export default function Dashboard() {
     setSearchParams(params);
   };
   const olderMonthsLoading = Boolean(orderBackfillResumeLine);
+  const reconciliationDesk =
+    onHome && reconciliation ? (
+      <ReconciliationDesk
+        data={reconciliation}
+        shopName={shopLabel}
+        live={!useSampleDesk}
+        spendEntered={!useSampleDesk && metrics.onboarding.hasSpend}
+        spendPartial={
+          !useSampleDesk &&
+          metrics.onboarding.hasSpend &&
+          metrics.spendCoverage.incomplete
+        }
+        totalRoas={
+          !useSampleDesk &&
+          metrics.onboarding.hasSpend &&
+          !metrics.salesPending &&
+          metrics.mer != null &&
+          Number.isFinite(metrics.mer)
+            ? metrics.mer
+            : null
+        }
+        customerLtvAvailable={
+          useSampleDesk
+            ? true
+            : metrics.customerMetricsAvailable &&
+              liveDeskSurfaceOpen({
+                sampleDesk: false,
+                stage: resolveLiveUnparkStage(),
+                surface: "ltv",
+              })
+        }
+        priorYearLoaded={
+          useSampleDesk
+            ? null
+            : orderHero != null &&
+              orderHero.priorSales != null &&
+              Number.isFinite(orderHero.priorSales)
+        }
+        trialEndsAt={null}
+      />
+    ) : null;
 
   return (
     <s-page heading={onHome && !shotMode ? undefined : pageHeading} inlineSize="large">
@@ -848,46 +889,7 @@ export default function Dashboard() {
           .join(" ")}
       >
         {/* SAMPLE chip lives on the shell header. */}
-        {onHome && reconciliation ? (
-          <ReconciliationDesk
-            data={reconciliation}
-            shopName={shopLabel}
-            live={!useSampleDesk}
-            spendEntered={!useSampleDesk && metrics.onboarding.hasSpend}
-            spendPartial={
-              !useSampleDesk &&
-              metrics.onboarding.hasSpend &&
-              metrics.spendCoverage.incomplete
-            }
-            totalRoas={
-              !useSampleDesk &&
-              metrics.onboarding.hasSpend &&
-              !metrics.salesPending &&
-              metrics.mer != null &&
-              Number.isFinite(metrics.mer)
-                ? metrics.mer
-                : null
-            }
-            customerLtvAvailable={
-              useSampleDesk
-                ? true
-                : metrics.customerMetricsAvailable &&
-                  liveDeskSurfaceOpen({
-                    sampleDesk: false,
-                    stage: resolveLiveUnparkStage(),
-                    surface: "ltv",
-                  })
-            }
-            priorYearLoaded={
-              useSampleDesk
-                ? null
-                : orderHero != null &&
-                  orderHero.priorSales != null &&
-                  Number.isFinite(orderHero.priorSales)
-            }
-            trialEndsAt={null}
-          />
-        ) : null}
+        {scoreboardReady && onHome ? null : reconciliationDesk}
 
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
 
@@ -908,6 +910,7 @@ export default function Dashboard() {
                     retryHref={`/app?period=${picked.chip}`}
                   />
                   </div>
+                  {reconciliationDesk}
                   {showOverviewChartBeat ? (
                     <div
                       className="mcfly-desk-anchor mcfly-overview-chart-beat"

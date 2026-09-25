@@ -7,7 +7,6 @@ import {
   LTV_UNAVAILABLE,
   PRIOR_YEAR_MISSING,
   emptyOrdersLine,
-  liveHeaderRange,
   loadingLine,
   spendNote,
   totalRoasDisplay,
@@ -85,7 +84,6 @@ export function ReconciliationDesk({
     costFile && asOf && data.variantLines
       ? rankVariants({ lines: data.variantLines, file: costFile, asOf })
       : [];
-  const headerRange = liveHeaderRange(data.windows);
   const loading = loadingLine(data.windows);
   const trialLine = trialEndLine(trialEndsAt);
   const roasValue = live ? totalRoasDisplay(spendEntered ? totalRoas : null) : "—";
@@ -109,21 +107,10 @@ export function ReconciliationDesk({
 
   return (
     <section className="mcfly-recon" aria-label="Reconciliation">
-      {live ? (
-        <header className="mcfly-recon__live">
-          <h2>{shopName || "—"}</h2>
-          <p>{headerRange || "—"}</p>
-        </header>
-      ) : null}
+      {live ? <p className="mcfly-recon__shop">{shopName || "—"}</p> : null}
       {loading ? <p className="mcfly-recon__state">{loading}</p> : null}
       {live && priorYearLoaded === false ? (
         <p className="mcfly-recon__state">{PRIOR_YEAR_MISSING}</p>
-      ) : null}
-      {live ? (
-        <p className="mcfly-recon__roas">
-          <span>Total ROAS</span> <strong>{roasValue}</strong>
-          {roasNote ? <span className="mcfly-recon__def">{roasNote}</span> : null}
-        </p>
       ) : null}
       {live && !customerLtvAvailable ? (
         <p className="mcfly-recon__state">{LTV_UNAVAILABLE}</p>
@@ -133,7 +120,7 @@ export function ReconciliationDesk({
         {data.windows.map((window) => (
           <article key={window.id} className="mcfly-recon__window" aria-label={window.label}>
             <header className="mcfly-recon__head">
-              <h2>{window.label}</h2>
+              <p className="mcfly-recon__window-label">{window.label}</p>
               <p>
                 <span className={`mcfly-recon__status mcfly-recon__status--${window.status}`}>
                   {statusLabel(window.status)}
@@ -263,8 +250,14 @@ export function ReconciliationDesk({
           </article>
         ))}
       </div>
+      {live ? (
+        <p className="mcfly-recon__roas">
+          <span>Total ROAS</span> <strong>{roasValue}</strong>
+          {roasNote ? <span className="mcfly-recon__def">{roasNote}</span> : null}
+        </p>
+      ) : null}
       <section className="mcfly-recon__costs" aria-label="Dated costs">
-        <h2>Costs</h2>
+        <p className="mcfly-recon__window-label">Costs</p>
         <p className="mcfly-recon__def">
           Start date on each cost. Provisional until an invoice settles it. A later invoice shows the change and leaves a closed day on the earlier cost. A missing cost stays blank.
         </p>

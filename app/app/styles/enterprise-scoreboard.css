@@ -125,3 +125,83 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Overview already has the shell heading and one period toolbar. */
+.mcfly-scoreboard--overview > .mcfly-lane--first > .mcfly-lane__head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Ordinary metric cards stay white. Color stays on status text, not the fill. */
+.mcfly-scoreboard--soft,
+.mcfly-scoreboard--certified.mcfly-well,
+.mcfly-scoreboard.mcfly-well.mcfly-scoreboard--soft,
+.mcfly-scoreboard__chip--soft,
+.mcfly-scoreboard__chip--soft.mcfly-scoreboard__chip--ok,
+.mcfly-scoreboard__chip--soft.mcfly-scoreboard__chip--below,
+.mcfly-scoreboard__chip--soft.mcfly-scoreboard__chip--empty,
+.mcfly-scoreboard--certified .mcfly-scoreboard__chip--soft,
+.mcfly-scoreboard--certified .mcfly-scoreboard__chip--ok,
+.mcfly-scoreboard--certified .mcfly-scoreboard__chip--below,
+.mcfly-scoreboard--certified .mcfly-scoreboard__chip--empty,
+.mcfly-acq-tile--cream,
+.mcfly-acq-tile--sky,
+.mcfly-acq-tile--mint,
+.mcfly-kpi,
+.mcfly-recon__window,
+.mcfly-recon__roas {
+  background: #fff;
+  box-shadow: none;
+}
+
+.mcfly-scoreboard__chip:hover {
+  box-shadow: none;
+}
+
+.mcfly-recon {
+  min-height: 0;
+  background: transparent;
+}
+
+.mcfly-recon__shop,
+.mcfly-recon__window-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--p-color-text-secondary, #6d7175);
+}
+
+.mcfly-recon__window {
+  border: 1px solid #dee4e8;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.mcfly-recon__roas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin: 12px 0 0;
+  border: 1px solid #dee4e8;
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: default;
+}
+
+.mcfly-recon__roas strong {
+  font-family: var(--p-font-family-sans, var(--mcfly-font, "Source Sans 3", "Segoe UI", sans-serif));
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
