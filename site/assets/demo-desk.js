@@ -1088,6 +1088,12 @@
     setText("#dd-compact-new", formatInt(period.newCustomers));
     setText("#dd-compact-returning", formatInt(period.returning));
     setText("#dd-compact-aov", aov != null ? money(aov) : "—");
+    setText("#dd-two-window", period.asOf);
+    setText("#dd-two-report", money(period.grossSales));
+    setText("#dd-two-net", money(period.netSales));
+    setText("#dd-two-gap", money(period.grossSales - period.netSales));
+    setText("#dd-two-spend", period.spend ? money(period.spend) : "—");
+    setText("#dd-two-roas", formatMer(mer));
 
     setText("#dd-ltv-aov30", money(period.ltvAov30));
     setText("#dd-ltv-aov90", money(period.ltvAov90));
@@ -1165,9 +1171,11 @@
       live.textContent =
         "SAMPLE, illustrative, not a live client. " +
         period.label +
-        ". " +
-        formatInt(period.orders) +
-        " orders. Spend is optional.";
+        ". Net sales " +
+        money(period.netSales) +
+        " beside the Shopify sales-report total " +
+        money(period.grossSales) +
+        ".";
     }
   }
 

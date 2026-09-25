@@ -3974,24 +3974,28 @@ body.pricing-page .btn.ghost {
   font-weight: 650;
   color: var(--mkt-ink);
 }
-.mkt-metrics {
+.mkt-metrics,
+.mkt-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin: 0;
 }
-.mkt-metrics div {
+.mkt-metrics div,
+.mkt-pair div {
   background: var(--mkt-surface);
   border: 1px solid var(--mkt-line);
   border-radius: 8px;
   padding: 12px 16px;
 }
-.mkt-metrics dt {
+.mkt-metrics dt,
+.mkt-pair dt {
   margin: 0;
   font-size: 13px;
   color: var(--mkt-mute);
 }
-.mkt-metrics dd {
+.mkt-metrics dd,
+.mkt-pair dd {
   margin: 4px 0 0;
   font-size: 28px;
   font-weight: 650;
@@ -4058,7 +4062,7 @@ body.pricing-page .btn.ghost {
   font-size: 16px;
   line-height: 1.5;
   color: var(--mkt-mute);
-  max-width: 36ch;
+  max-width: 60ch;
 }
 .mkt-proof a {
   display: inline-flex;
