@@ -133,6 +133,10 @@ import {
   overviewShopifyFactsPending,
   periodRangeIncludesShopToday,
 } from "../lib/overview-live-period-clock";
+import {
+  buildOverviewQlFirstFold,
+  OVERVIEW_QL_FIRST_LANE_LABEL,
+} from "../lib/overview-ql-first-fold";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { parseYoyYear } from "../lib/yoy-workspace";
 import {
@@ -627,6 +631,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     priorDayOnFile,
     priorDaySales,
   });
+  const qlFirstFold = buildOverviewQlFirstFold({
+    useSampleDesk,
+    coverageComplete: salesFactsCoverageForBanner?.complete === true,
+    periodExceedsFactWindow:
+      salesFactsCoverageForBanner?.periodExceedsFactWindow === true,
+    shopifyPeriodTotal:
+      useSampleDesk || salesError != null ? null : sales.totalSales,
+    periodIncludesToday: periodRangeIncludesShopToday(range, deskTz, now),
+    todayShopifyTotalKnown: salesError == null && !todaySalesUnavailable,
+    factsPending,
+    netSales: sales.netSales,
+    netSalesKnown: sales.netSalesKnown === true,
+    grossSales: sales.grossSales,
+    grossSalesKnown: sales.grossSalesKnown === true,
+    priorYearTotalSales: priorSales?.totalSales ?? null,
+  });
 
   return {
     metrics,
@@ -654,6 +674,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesExplorerDays: orderExplorerDays,
     analyticsExplorerDays,
     shopifyPeriodClock,
+    qlFirstFold,
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
@@ -697,6 +718,7 @@ export default function Dashboard() {
     salesExplorerDays = [],
     analyticsExplorerDays = [],
     shopifyPeriodClock = null,
+    qlFirstFold = null,
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
@@ -1027,7 +1049,15 @@ export default function Dashboard() {
                 className="mcfly-desk-anchor mcfly-scoreboard--overview"
                 id={DESK_SECTION.overview}
               >
-                <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
+                <DeskLane
+                  rank="first"
+                  label={
+                    useSampleDesk
+                      ? OVERVIEW_FIRST_LANE_LABEL
+                      : OVERVIEW_QL_FIRST_LANE_LABEL
+                  }
+                  hint=""
+                >
                   <div className="mcfly-overview-first-beat">
                   <OverviewFirstViewport
                     orderCount={orderHero.orderCount}
@@ -1077,8 +1107,12 @@ export default function Dashboard() {
                     orderBookDepth={orderBookDepth}
                     orderBackfillLine={orderBackfillResumeLine}
                     hideInlinePending={syncNeedsTop && !orderBackfillResumeLine}
+                    qlFold={qlFirstFold}
+                    ordersSealed={Boolean(
+                      useSampleDesk || orderBackfillProgress?.bookSealed,
+                    )}
                   />
-                  {shopifyPeriodClock ? (
+                  {shopifyPeriodClock && !qlFirstFold ? (
                     <OverviewLivePeriodClock
                       clock={shopifyPeriodClock}
                       periodLabel={

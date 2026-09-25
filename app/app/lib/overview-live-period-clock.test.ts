@@ -90,7 +90,7 @@ describe("Live Overview Shopify period clock", () => {
         DeskCurrencyContext.Provider,
         { value: "USD" },
         createElement(OverviewFirstViewport, {
-          orderCount: 12,
+          orderCount: 108,
           typicalOrder: 631,
           meanAov: 634,
           returningSalesShare: 0.66,
@@ -98,24 +98,30 @@ describe("Live Overview Shopify period clock", () => {
           salesPending: false,
           ordersHref: "/app/orders",
           orderBookDepth: "paid_full",
-          orderHero: {
-            sales: 68_457,
-            priorSales: 69_891,
+          ordersSealed: true,
+          qlFold: {
+            sourceLabel: OVERVIEW_PERIOD_TOTAL_LABEL,
+            totalSales: 68_457,
+            netSales: 61_200,
+            netSalesKnown: true,
+            gapAmount: 7_257,
+            gapKind: "tax",
+            gapLabel: "Tax, shipping, duties, and fees above Net Sales",
+            priorYearTotalSales: 69_891,
             yoyPct: -2,
-            orderCount: 108,
-            typicalOrder: 631,
-            returningSales: 45_409,
-            weekendShare: 0.23,
-            empty: false,
             zone: "down",
+            empty: false,
+            periodNote: null,
+            spendDisplay: "—",
           },
           periodLabel: "This month",
         }),
       ),
     );
-    expect(hero).toContain("From orders");
+    expect(hero).toContain("Shopify Total Sales");
     expect(hero).toContain("$68,457");
-    expect(hero).not.toContain("Shopify Total Sales");
+    expect(hero).toContain("Net Sales");
+    expect(hero).not.toContain("From orders");
   });
 
   it("shows this month’s stored sales before the 24-month pull finishes", () => {
@@ -264,12 +270,14 @@ describe("Live Overview Shopify period clock", () => {
     ).toBe(false);
   });
 
-  it("wires Live Overview to SalesDayFact and leaves the order hero on From orders", () => {
+  it("wires Live Overview to SalesDayFact QL first fold, not From orders", () => {
     const overview = read("../routes/app._index.tsx");
     const first = read("../components/OverviewFirstViewport.tsx");
     const chart = read("../components/OverviewSalesChart.tsx");
     expect(overview).toContain("buildOverviewShopifyPeriodClock");
-    expect(overview).toContain("OverviewLivePeriodClock");
+    expect(overview).toContain("buildOverviewQlFirstFold");
+    expect(overview).toContain("qlFirstFold");
+    expect(overview).toContain("OVERVIEW_QL_FIRST_LANE_LABEL");
     expect(overview).toContain("deskAnalyticsDayTotalsLive(useSampleDesk)");
     expect(overview).toContain(
       "useSampleDesk || salesError != null ? null : sales.totalSales",
@@ -286,7 +294,8 @@ describe("Live Overview Shopify period clock", () => {
     expect(clockBlock).not.toContain("orderBook");
     expect(chart).toContain("shopifyDayTotals");
     expect(chart).toContain("overviewCertifiedSpanSales");
+    expect(first).toContain("qlFold");
+    expect(first).toContain("OVERVIEW_QL_NET_LABEL");
     expect(first).toContain("OVERVIEW_FROM_ORDERS_LABEL");
-    expect(first).not.toContain("Shopify Total Sales");
   });
 });

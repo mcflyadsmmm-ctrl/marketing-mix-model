@@ -244,10 +244,15 @@ describe("overview first viewport", () => {
     expect(cards).not.toContain("Click for detail");
   });
 
-  it("first viewport is order-book hero plane — never a soft KPI grid or ROAS hero", () => {
+  it("first viewport is order-book or QL hero plane — never a soft KPI grid or ROAS hero", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
+    const overview = read("../routes/app._index.tsx");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(firstView).toContain("qlFold");
+    expect(firstView).toContain("OVERVIEW_QL_NET_LABEL");
+    expect(overview).toContain("buildOverviewQlFirstFold");
+    expect(overview).toContain("qlFold={qlFirstFold}");
     expect(firstView).toContain("mcfly-overview-plane__meta");
     expect(firstView).toContain("overviewCoverageLine(orderBookDepth)");
     expect(firstView).toContain("mcfly-overview-plane__sr");
@@ -277,11 +282,13 @@ describe("overview first viewport", () => {
     expect(firstView).not.toContain("spendEmpty");
     expect(firstView).not.toContain("hasSpend");
     expect(firstView).not.toContain("matches Analytics");
-    expect(firstView).not.toContain("Shopify Total Sales");
+    expect(firstView).toContain("OVERVIEW_QL_NET_LABEL");
   });
 
   it("order-book depth peeks stay below the fold — first fold never blanks on salesPending", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
+    expect(firstView).toContain("ordersSealed");
+    expect(firstView).toContain("stripSealed");
     expect(firstView).toContain("salesPending: _salesPending");
     expect(firstView).toContain("OVERVIEW_ORDERS_EMPTY_LINE");
     expect(firstView).toContain("OVERVIEW_THIN_EMPTY_LINE");
@@ -624,11 +631,14 @@ describe("Overview first-fold SCORECARD vs free Shopify Analytics", () => {
     const overview = read("../routes/app._index.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
+    expect(overview).toContain("OVERVIEW_QL_FIRST_LANE_LABEL");
     expect(overview).toContain("orderHero");
+    expect(overview).toContain("qlFold={qlFirstFold}");
     expect(overview).toContain("ltvPeek={ltvPeek?.amount ?? null}");
     expect(overview).toContain("monthClose={mixView.forecast?.projected ?? null}");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("OVERVIEW_FROM_ORDERS_LABEL");
+    expect(firstView).toContain("OVERVIEW_QL_NET_LABEL");
     expect(firstView).toContain("mcfly-overview-plane__meta");
     expect(firstView).toContain("overviewCoverageLine(orderBookDepth)");
     expect(firstView).toContain("mcfly-overview-plane__sr");

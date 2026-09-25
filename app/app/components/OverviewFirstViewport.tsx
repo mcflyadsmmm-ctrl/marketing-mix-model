@@ -23,6 +23,13 @@ import {
   overviewOrderDeltaLabel,
   type OverviewOrderBookHero,
 } from "../lib/overview-order-book";
+import {
+  OVERVIEW_QL_GAP_LABEL,
+  OVERVIEW_QL_NET_LABEL,
+  OVERVIEW_QL_SPEND_LABEL,
+  overviewQlPriorYearLine,
+  type OverviewQlFirstFold,
+} from "../lib/overview-ql-first-fold";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskHref } from "../lib/desk-base-path";
 import { deskNavHref } from "../lib/desk-nav";
@@ -66,6 +73,10 @@ export type OverviewPeekProps = {
   orderBackfillLine?: string | null;
   /** When Home already shows one pending banner, skip duplicate inline lines. */
   hideInlinePending?: boolean;
+  /** Live ShopifyQL first fold — SAMPLE keeps order-book hero only. */
+  qlFold?: OverviewQlFirstFold | null;
+  /** OrderFact strip peeks only when the crawl sealed this window. */
+  ordersSealed?: boolean;
 };
 
 function PeekCard({
@@ -266,9 +277,9 @@ function handoffPeekCard(
 }
 
 /**
- * Overview first fold — one morning plane from OrderFact sums.
- * Hero $ labeled From orders. No soft KPI grid. No spend / ROAS.
- * salesPending (SalesDayFact) must not blank median / returning / weekend.
+ * Overview first fold — Live paints ShopifyQL day totals; SAMPLE stays order book.
+ * Hero $ labeled Shopify Total Sales on Live, From orders on SAMPLE.
+ * Thin strip under the hero is order-gated (sealed crawl only). No spend / ROAS.
  */
 export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Orders this period",
@@ -282,49 +293,85 @@ export function OverviewFirstViewport({
   orderBookDepth,
   orderBackfillLine = null,
   hideInlinePending = false,
+  qlFold = null,
+  ordersSealed = false,
   ...rest
 }: OverviewPeekProps) {
   const currency = useDeskCurrency();
   const money = (n: number) => formatCurrency(n, currency);
 
-  const hero = orderHero;
-  const empty = hero?.empty ?? !(orderCount > 0);
-  const heroSales =
-    hero?.sales != null && Number.isFinite(hero.sales) ? hero.sales : null;
+  const liveQl = qlFold != null && !useSampleDesk;
+  const hero = liveQl ? null : orderHero;
+  const qlEmpty = liveQl ? qlFold.empty : false;
+  const empty = liveQl ? qlEmpty : (hero?.empty ?? !(orderCount > 0));
+  const heroSales = liveQl
+    ? qlFold.totalSales != null && Number.isFinite(qlFold.totalSales)
+      ? qlFold.totalSales
+      : null
+    : hero?.sales != null && Number.isFinite(hero.sales)
+      ? hero.sales
+      : null;
   const heroValue =
-    !empty && heroSales != null ? money(heroSales) : "—";
+    heroSales != null && Number.isFinite(heroSales) ? money(heroSales) : "—";
   const count = hero?.orderCount ?? orderCount;
-  const countLabel =
-    empty && !(count > 0)
+  const countLabel = liveQl
+    ? count > 0
+      ? `${count.toLocaleString()} orders in ShopifyQL`
+      : "Order count still loading — not 0."
+    : empty && !(count > 0)
       ? "Order count still loading — not 0."
       : `${count.toLocaleString()} orders`;
   const sectionStillLoading =
     !useSampleDesk && (salesPending || Boolean(orderBackfillLine));
   const loadingOr = (label: string) =>
     label === "—" && sectionStillLoading ? "orders still loading" : label;
-  const missingPrior = hero == null || hero.priorSales == null;
-  const delta = overviewOrderDeltaLabel({
-    yoyPct: hero?.yoyPct ?? null,
-    missingPrior,
-  });
-  const zone = hero?.zone ?? "empty";
+  const missingPrior = liveQl
+    ? qlFold.priorYearTotalSales == null
+    : hero == null || hero.priorSales == null;
+  const delta = liveQl
+    ? overviewOrderDeltaLabel({
+        yoyPct: qlFold.yoyPct,
+        missingPrior,
+      })
+    : overviewOrderDeltaLabel({
+        yoyPct: hero?.yoyPct ?? null,
+        missingPrior,
+      });
+  const zone = liveQl ? qlFold.zone : (hero?.zone ?? "empty");
+
+  const stripSealed = useSampleDesk || ordersSealed;
+  const returningRaw =
+    hero?.returningSales != null && hero.returningSales > 0
+      ? hero.returningSales
+      : overviewReturningCompactDollars(rest.returningSales);
+  const typicalRaw =
+    hero?.typicalOrder != null && hero.typicalOrder > 0
+      ? hero.typicalOrder
+      : rest.typicalOrder != null && Number.isFinite(rest.typicalOrder)
+        ? rest.typicalOrder
+        : null;
+  const weekendShareRaw =
+    hero?.weekendShare ?? rest.weekendSalesShare ?? null;
 
   const returning =
-    hero?.returningSales != null && hero.returningSales > 0
-      ? money(hero.returningSales)
-      : overviewReturningCompactDollars(rest.returningSales) != null
-        ? money(overviewReturningCompactDollars(rest.returningSales)!)
-        : "—";
+    stripSealed && returningRaw != null ? money(returningRaw) : "—";
   const typical =
-    hero?.typicalOrder != null && hero.typicalOrder > 0
-      ? money(hero.typicalOrder)
-      : rest.typicalOrder != null && Number.isFinite(rest.typicalOrder)
-        ? money(rest.typicalOrder)
-        : "—";
-  const weekendShare =
-    hero?.weekendShare ?? rest.weekendSalesShare ?? null;
-  const weekend = overviewWeekendWeekday(weekendShare);
+    stripSealed && typicalRaw != null ? money(typicalRaw) : "—";
+  const weekend = stripSealed
+    ? overviewWeekendWeekday(weekendShareRaw)
+    : null;
   const weekendLabel = weekend ? `${weekend.weekendPct}%` : "—";
+
+  const qlNetValue =
+    liveQl && qlFold.netSalesKnown && qlFold.netSales != null
+      ? money(qlFold.netSales)
+      : "—";
+  const qlGapValue =
+    liveQl && qlFold.gapLabel
+      ? qlFold.gapLabel
+      : liveQl && qlFold.netSalesKnown && qlFold.gapAmount === 0
+        ? "Even with Net Sales"
+        : "—";
 
   return (
     <section
@@ -352,15 +399,47 @@ export function OverviewFirstViewport({
                   <p className="mcfly-overview-plane__value">{heroValue}</p>
         <p className="mcfly-overview-plane__count">{countLabel}</p>
         <p className="mcfly-overview-plane__meta">
-          <span className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</span>
-          <span aria-hidden="true"> · </span>
-          <span className="mcfly-overview-plane__prior">
-            {missingPrior || hero?.priorSales == null
-              ? sectionStillLoading
-                ? "Last year still loading — not $0."
-                : OVERVIEW_PRIOR_MISSING_LINE
-              : `same days last year ${money(hero.priorSales)}`}
-          </span>
+          {liveQl ? (
+            <>
+              <span className="mcfly-overview-plane__source">
+                {qlFold.sourceLabel}
+              </span>
+              <span aria-hidden="true"> · </span>
+              <span>
+                {OVERVIEW_QL_NET_LABEL} {qlNetValue}
+              </span>
+              <span aria-hidden="true"> · </span>
+              <span>
+                {OVERVIEW_QL_GAP_LABEL} {qlGapValue}
+              </span>
+              <span aria-hidden="true"> · </span>
+              <span>
+                {OVERVIEW_QL_SPEND_LABEL} {qlFold.spendDisplay}
+              </span>
+              <span aria-hidden="true"> · </span>
+              <span className="mcfly-overview-plane__prior">
+                {overviewQlPriorYearLine(
+                  qlFold.priorYearTotalSales,
+                  money,
+                  sectionStillLoading && missingPrior,
+                )}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="mcfly-overview-plane__source">
+                {OVERVIEW_FROM_ORDERS_LABEL}
+              </span>
+              <span aria-hidden="true"> · </span>
+              <span className="mcfly-overview-plane__prior">
+                {missingPrior || hero?.priorSales == null
+                  ? sectionStillLoading
+                    ? "Last year still loading — not $0."
+                    : OVERVIEW_PRIOR_MISSING_LINE
+                  : `same days last year ${money(hero.priorSales)}`}
+              </span>
+            </>
+          )}
         </p>
         <span className="mcfly-overview-plane__sr">
           {useSampleDesk
@@ -369,7 +448,9 @@ export function OverviewFirstViewport({
         </span>
       </div>
 
-      {!hideInlinePending && orderBackfillLine ? (
+      {liveQl && qlFold.periodNote ? (
+        <p className="mcfly-overview-plane__pending">{qlFold.periodNote}</p>
+      ) : !hideInlinePending && orderBackfillLine ? (
         <p className="mcfly-overview-plane__pending">{orderBackfillLine}</p>
       ) : !hideInlinePending && salesPending ? (
         <p className="mcfly-overview-plane__pending">{OVERVIEW_PENDING_LINE}</p>
@@ -383,7 +464,7 @@ export function OverviewFirstViewport({
         <span>Weekend {loadingOr(weekendLabel)}</span>
       </p>
 
-      {empty && !useSampleDesk ? (
+      {empty && !useSampleDesk && !liveQl ? (
         <p className="mcfly-overview-plane__note">{OVERVIEW_THIN_EMPTY_LINE}</p>
       ) : null}
     </section>

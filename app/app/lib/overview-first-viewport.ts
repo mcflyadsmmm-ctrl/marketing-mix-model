@@ -3,9 +3,9 @@ import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
 /**
- * Overview first viewport — OrderFact book only on the first fold.
- * Hero dollars are order sums labeled From orders — never Shopify Total
- * Sales / Analytics-matched. Spend stays off Overview. Marketing tabs own cash.
+ * Overview first viewport — Live first fold is ShopifyQL SalesDayFact (see
+ * overview-ql-first-fold). SAMPLE keeps OrderFact sums labeled From orders.
+ * Spend stays off Overview. Marketing tabs own cash.
  */
 
 /** First-fold coverage — order book depth only, no ShopifyQL wording. */
@@ -46,7 +46,7 @@ export const OVERVIEW_PERIOD_TOTAL_SENTENCE =
 
 export const OVERVIEW_LAST_YEAR_NOT_ON_FILE = "not on file";
 
-/** First-lane label — morning YoY from orders, not a soft KPI farm. */
+/** SAMPLE first-lane label — order-book YoY, not a soft KPI farm. */
 export const OVERVIEW_FIRST_LANE_LABEL =
   "This period vs last year · from orders";
 
