@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Understand your Shopify orders before adding spend. | Mcfly Analytics</title>
-  <meta name="description" content="Understand your Shopify orders before adding spend. One plan: 7-day trial, then $39 per store per month. Uninstall stops the next cycle." />
+  <title>Shopify records the orders. Mcfly does not. | Mcfly Analytics</title>
+  <meta name="description" content="Shopify records the orders. Ad platforms and inboxes claim them. Mcfly does not. One plan: 7-day trial, then $39 per store per month." />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
@@ -23,19 +23,18 @@
   <meta name="twitter:description" content="7-day free trial. Then $39/month. Full desk. See ad spend next to sales, day by day." />
   <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260826live" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260925quiet" />
   <style>
     body.pricing-page {
-      background:
-        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(94, 231, 240, 0.12), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(26, 163, 122, 0.08), transparent 50%),
-        var(--paper-2);
+      background: #F6F7F8;
+      color: #17212B;
     }
     body.pricing-page .brand-kicker .ads {
       color: var(--cyan-deep);
     }
     body.pricing-page .page-hero h1 {
-      max-width: 18ch;
+      max-width: 28ch;
+      font-size: clamp(1.65rem, 3vw, 2.15rem);
     }
     body.pricing-page .price-proof {
       margin: 1.25rem 0 0;
@@ -125,10 +124,8 @@
       max-width: 36rem;
     }
     body.pricing-page .tax-pane.mcfly {
-      border-color: rgba(26, 163, 122, 0.35);
-      background:
-        linear-gradient(165deg, rgba(94, 231, 240, 0.1), transparent 55%),
-        rgba(255, 255, 255, 0.55);
+      border-color: #DEE4E8;
+      background: #FFFFFF;
     }
     body.pricing-page .tax-pane h3 {
       font-family: var(--display);
@@ -212,16 +209,14 @@
   <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
-      <h1>Understand your Shopify orders before adding spend.</h1>
+      <h1>Shopify records the orders. Ad platforms and inboxes claim them. Mcfly does not.</h1>
       <p>
-        One plan for <strong>Mcfly Analytics</strong>: a 7-day trial, then
-        <span class="mono formula-inline">$39</span> per store per month, flat. Not a GMV tax.
-        Trial and paid share the full desk and up to 24 months of orders.
+        Sales are Shopify’s. Spend is what you type or paste. Total ROAS is the first divided only by the second. Empty spend is an em dash.
+        One plan: a 7-day trial, then
+        <span class="mono formula-inline">$39</span> per store per month. Trial and paid share the same desk.
         Uninstall stops the next cycle. A period already paid may run to its end.
-        No ads. No pixels, path credit, or multi-touch attribution.
-        The app runs at https://mcfly-analytics.fly.dev. Shopify does not host it.
+        No pixel. The app runs at https://mcfly-analytics.fly.dev. Shopify does not host it.
       </p>
-      <p class="price-proof" aria-label="What you pay for">Orders first. <span>Spend when you need it.</span></p>
     </header>
 
     <div class="price-block">
@@ -232,14 +227,24 @@
           <h2>Whole desk</h2>
           <p class="amount">$39 <span>/ store / mo</span></p>
           <p class="plan-lede">
-            After a 7-day trial. Same tabs in Sample data and Live data — Live = this shop’s Shopify sales + uploaded spend.
+            After a 7-day trial. Trial and paid share the same desk. Live sales are this shop’s Shopify sales. Spend is what you type or paste.
           </p>
+          <p class="plan-lede">Two totals sit beside each other. The gap is timing, tax, discounts, channels, company or draft orders. No spend file: the orders stay, and the ratio stays an em dash. A CSV or Ads Manager export uses these steps.</p>
+          <ol class="mkt-steps">
+            <li>Type a channel, an amount, and a date — or paste a CSV. An Ads Manager CSV also works.</li>
+            <li>Columns are date, channel, amount.</li>
+            <li>Use the same date window as the orders you are reading.</li>
+            <li>Total ROAS is Shopify sales divided only by the spend you entered.</li>
+          </ol>
+          <ul class="mkt-rules">
+            <li>An empty cell is an em dash, not zero.</li>
+            <li>Partial spend covers only what was entered.</li>
+            <li>Adding spend does not change the orders.</li>
+          </ul>
+          <p class="plan-lede">Order count, average order value, and new versus returning are Shopify’s numbers. They are not the product.</p>
           <ul class="plan-list">
-            <li>Open Overview and explore Shopify orders before any spend</li>
-            <li>Total ROAS is Shopify sales divided by spend you type. Empty spend stays an em dash.</li>
-            <li>Customer LTV is not available with Live data yet. Same on trial and paid.</li>
-            <li>Goals: year ceilings and pacing</li>
-            <li>Trial and paid share the full desk and up to 24 months of orders.</li>
+            <li>Customer LTV is not available with Live data yet. Same on trial and paid. This is not a paid upgrade.</li>
+            <li>Trial and paid share the same desk.</li>
             <li>Uninstall stops the next cycle. A period already paid may run to its end.</li>
             <li>No ads. No pixels, path credit, or multi-touch attribution.</li>
           </ul>
@@ -288,7 +293,7 @@
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260826live"></script>
-  <script src="/assets/chrome.js?v=20260826live"></script>
+  <script src="/assets/chrome.js?v=20260925quiet"></script>
   <script src="/assets/app.js?v=20260826live"></script>
 </body>
 </html>
