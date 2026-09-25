@@ -18,7 +18,9 @@ import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
 } from "../../scripts/shopify-app-path.mjs";
+import { ReconciliationDesk } from "../components/ReconciliationDesk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { readReconciliationWindows } from "../lib/reconciliation-read.server";
 import { EnterpriseScoreboard } from "../components/EnterpriseScoreboard";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
 import { OverviewDepthPeeks } from "../components/OverviewFirstViewport";
@@ -160,6 +162,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
+  const reconciliationPromise = readReconciliationWindows({
+    admin,
+    timeZone: ianaTimezone,
+    currency: shop.currencyCode,
+  });
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const orderBookDepth = useSampleDesk
     ? "paid_full"
@@ -618,7 +625,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     priorDaySales,
   });
 
+  const reconciliation = await reconciliationPromise;
+
   return {
+    reconciliation,
     metrics,
     salesError,
     todaySalesUnavailable,
@@ -686,6 +696,7 @@ export default function Dashboard() {
     orderHero,
     orderWindows = null,
     orderBookDepth,
+    reconciliation,
   } = data;
   const requestScreen = shotMode
     ? null
@@ -834,6 +845,10 @@ export default function Dashboard() {
           .join(" ")}
       >
         {/* SAMPLE chip lives on the shell header. */}
+        {onHome && reconciliation ? (
+          <ReconciliationDesk data={reconciliation} />
+        ) : null}
+
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
 
         {!marginBlocked ? (
