@@ -23,8 +23,8 @@
   <meta name="twitter:description" content="Sample desk — sales after returns ÷ spend, break-even, Export memo. No install required." />
   <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
-  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260825live" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260925quiet" />
+  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260925quiet" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -55,29 +55,10 @@
   <div data-chrome></div>
 
   <main id="main">
-    <header class="page-hero">
-      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
-      <h1>Understand your Shopify orders before adding spend.</h1>
-      <p>SAMPLE — illustrative data, not your store. Open Overview, explore orders, then add spend when you need it. Installing opens your Live desk in Shopify Admin.</p>
-      <div class="demo-hero-meta">
-        <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE — illustrative data, not your store</span>
-      </div>
-      <div class="cta-row demo-hero-actions">
-        <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public">Install Mcfly Analytics</a>
-        <a class="btn ghost" href="#dd-desk">View SAMPLE demo</a>
-      </div>
-      <p class="fine-line" style="margin-top:0.75rem">How it works: Open Overview, explore your orders, add spend when needed. Customers and customer LTV are not fully available in Live yet. Pricing: <a href="/pricing">7-day trial then $39/store/month</a>.</p>
-    </header>
-
-    <aside class="demo-howto" aria-label="How to use this demo">
-      <p class="demo-howto__kicker">How to use this demo</p>
-      <ul class="demo-howto__list">
-        <li>Walk the desk: <strong>Overview → your orders → add spend when needed</strong></li>
-        <li>Toggle <strong>Last 7d / MTD / QTD / YTD</strong> — the order window changes. Spend stays optional.</li>
-        <li>Open <strong>Add spend when needed</strong> for the SAMPLE ratio. Empty spend stays an em dash.</li>
-        <li>When it clicks, <a href="https://apps.shopify.com/mcfly-analytics-public">install</a> — SAMPLE numbers stay illustrative</li>
-      </ul>
-    </aside>
+    <div class="demo-sample-strip">
+      <h1 class="demo-sample-strip__text"><strong>SAMPLE</strong> — illustrative data, not your store.</h1>
+      <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public">Install Mcfly Analytics</a>
+    </div>
 
     <div class="demo-stage">
       <div
@@ -99,16 +80,6 @@
           </p>
         </div>
 
-        <nav class="dd-nav" aria-label="Desk sections">
-          <button type="button" class="dd-nav__btn" data-dd-nav="overview" aria-current="true">Overview</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="spend">Spend</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="goals">Goals</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="mix">Mix</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="explorer">Explorer</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="close">Close</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="settings">Settings</button>
-        </nav>
-
         <div class="dd-ctx">
           <div class="dd-ctx__main">
             <span class="dd-ctx__brand">SAMPLE</span>
@@ -121,17 +92,19 @@
               <button type="button" class="dd-period__btn" data-dd-period="ytd" aria-pressed="false">YTD</button>
             </div>
           </div>
-          <div class="dd-trust" aria-label="Trust and freshness">
-            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-coverage">Coverage 92%</span>
-            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-recon">Recon ±2.8%</span>
-            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-margin">Margin 35% confirmed</span>
-            <span class="dd-trust__chip dd-trust__chip--sample">SAMPLE</span>
-            <span class="dd-trust__chip" id="dd-trust-asof">As-of Jul 27</span>
-          </div>
         </div>
 
+        <nav class="dd-nav" aria-label="Desk sections">
+          <button type="button" class="dd-nav__btn" data-dd-nav="overview" aria-current="true">Overview</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="close">Close</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="settings">Settings</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="goals">Goals</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="explorer">Explorer</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="spend">Spend</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="mix">Mix</button>
+        </nav>
+
         <div id="dd-sec-overview" class="dd-sec" data-dd-section="overview">
-          <p class="dd-orders-first">Understand your Shopify orders before adding spend. SAMPLE — illustrative data, not a live client. Adding spend does not change these orders.</p>
           <div class="dd-compact" aria-label="Order density metrics">
             <article class="dd-compact__cell">
               <p class="dd-compact__label">Orders</p>
@@ -149,6 +122,14 @@
               <p class="dd-compact__label">AOV</p>
               <p class="dd-compact__value" id="dd-compact-aov">$92</p>
             </article>
+          </div>
+          <p class="dd-live-note">AOV is Shopify sales after returns divided by orders. Returning is a buyer count. Customer LTV is not available with Live data yet. This is not a paid upgrade.</p>
+          <div class="dd-trust" aria-label="Trust and freshness">
+            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-coverage">Coverage 92%</span>
+            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-recon">Recon ±2.8%</span>
+            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-margin">Margin 35% confirmed</span>
+            <span class="dd-trust__chip dd-trust__chip--sample">SAMPLE</span>
+            <span class="dd-trust__chip" id="dd-trust-asof">As-of Jul 27</span>
           </div>
 
           <details class="dd-spend-later">
@@ -700,29 +681,11 @@
       </aside>
     </div>
 
-    <section class="demo-seeing" aria-labelledby="seeing-title">
-      <p class="eyebrow">What you’re seeing</p>
-      <h2 id="seeing-title" class="display">Three truths.<br />No path credit.</h2>
-      <ul class="demo-seeing__grid">
-        <li>
-          <h3>Orders first</h3>
-          <p>Open Overview and read the SAMPLE orders before any spend. Illustrative data, not a live client.</p>
-        </li>
-        <li>
-          <h3>Spend when needed</h3>
-          <p>Total ROAS is Shopify sales divided by spend you type. Empty spend stays an em dash. The ratio only covers what was entered.</p>
-        </li>
-        <li>
-          <h3>No pixel</h3>
-          <p>No platform credit. SAMPLE numbers stay on this page. Install to open your Live orders.</p>
-        </li>
-      </ul>
-    </section>
   </main>
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260825live"></script>
+  <script src="/assets/chrome.js?v=20260925quiet"></script>
   <script src="/assets/app.js?v=20260825live"></script>
   <script src="/assets/demo-desk.js?v=20260825live"></script>
   <script src="/assets/spend-explorer-demo.js?v=20260825live"></script>

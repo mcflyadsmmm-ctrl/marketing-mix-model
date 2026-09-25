@@ -5,16 +5,16 @@
  */
 
 :root {
-  --dd-bg: #e8f2fa;
-  --dd-ink: #0c1929;
-  --dd-ink-soft: #152536;
-  --dd-mute: #5a6f85;
+  --dd-bg: #f6f7f8;
+  --dd-ink: #17212b;
+  --dd-ink-soft: #17212b;
+  --dd-mute: #52606d;
   --dd-paper: #ffffff;
-  --dd-line: #c5d5e4;
-  --dd-line-soft: #d8e6f0;
-  --dd-accent: #0284c7;
-  --dd-accent-ink: #0369a1;
-  --dd-accent-soft: #e8f4fb;
+  --dd-line: #dee4e8;
+  --dd-line-soft: #dee4e8;
+  --dd-accent: #0f766e;
+  --dd-accent-ink: #0f766e;
+  --dd-accent-soft: #f6f7f8;
   --dd-truth: #047857;
   --dd-truth-soft: #ecfdf5;
   --dd-lie: #b91c1c;
@@ -24,8 +24,8 @@
   --dd-radius: 12px;
   --dd-motion: 160ms;
   --dd-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dd-font: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
-  --dd-display: "Fraunces", Georgia, serif;
+  --dd-font: "Figtree", system-ui, sans-serif;
+  --dd-display: "Figtree", system-ui, sans-serif;
   --dd-meta: #7dd3e8;
   --dd-google: #e8a090;
   --dd-microsoft: #c4d4a8;
@@ -35,10 +35,7 @@
 
 /* —— Page shell (marketing chrome outside desk) —— */
 body.demo-page {
-  background:
-    radial-gradient(ellipse 70% 42% at 88% -4%, rgba(94, 231, 240, 0.1), transparent 55%),
-    radial-gradient(ellipse 48% 32% at 0% 18%, rgba(2, 132, 199, 0.06), transparent 50%),
-    var(--paper-2, #f3f6f9);
+  background: #f6f7f8;
 }
 
 body.demo-page .brand-kicker .ads {
@@ -75,9 +72,9 @@ body.demo-page .page-hero p {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--dd-warn);
-  background: rgba(180, 83, 9, 0.08);
-  border: 1px solid rgba(180, 83, 9, 0.28);
+  color: #17212b;
+  background: #f6f7f8;
+  border: 1px solid #dee4e8;
 }
 
 .demo-sample-badge i {
@@ -2346,5 +2343,65 @@ body.dd-drawer-open {
   .dd-drawer__title {
     font-size: 1.08rem;
     padding-right: 0.25rem;
+  }
+}
+
+.demo-sample-strip {
+  position: sticky;
+  top: 64px;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 64px 0 0;
+  padding: 12px 32px;
+  background: #f6f7f8;
+  border-bottom: 1px solid #dee4e8;
+}
+.demo-sample-strip__text {
+  margin: 0;
+  max-width: 60ch;
+  font-family: "Figtree", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: #17212b;
+}
+.dd-live-note {
+  margin: 12px 0 16px;
+  max-width: 60ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #52606d;
+}
+.dd-desk {
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(23, 33, 43, 0.06);
+}
+.dd-trust__chip--ok,
+.dd-trust__chip--sample,
+.demo-sample-badge {
+  color: #17212b;
+  background: #f6f7f8;
+  border-color: #dee4e8;
+}
+.dd-nav__btn {
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .demo-sample-strip {
+    padding-inline: 20px;
+  }
+  .dd-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .dd-nav__btn {
+    flex: 0 0 auto;
   }
 }
