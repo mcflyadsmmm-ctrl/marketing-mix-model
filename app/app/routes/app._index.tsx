@@ -373,7 +373,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     periodPreset: preset,
   });
 
-  const ymd = shopLocalYmd(now, deskTz);
+  const ymd = deskTz
+    ? shopLocalYmd(now, deskTz)
+    : {
+        y: now.getFullYear(),
+        m: now.getMonth() + 1,
+        d: now.getDate(),
+      };
   const asOf = { year: ymd.y, month: ymd.m, day: ymd.d };
   const yoyYear = parseYoyYear(url.searchParams.get("year"), asOf.year);
 
@@ -811,16 +817,17 @@ export default function Dashboard() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
+  let hero = orderHero;
   if (shopBook.returningSales != null && shopBook.returningSales > 0) {
-    orderHero = { ...orderHero, returningSales: shopBook.returningSales };
+    hero = { ...hero, returningSales: shopBook.returningSales };
   }
   if (
     metrics.shopifyDepth.medianAov != null &&
     Number.isFinite(metrics.shopifyDepth.medianAov) &&
     metrics.shopifyDepth.medianAov > 0
   ) {
-    orderHero = {
-      ...orderHero,
+    hero = {
+      ...hero,
       typicalOrder: metrics.shopifyDepth.medianAov,
     };
   }
@@ -954,7 +961,7 @@ export default function Dashboard() {
   const dayOne =
     !useSampleDesk && !shotMode
       ? dayOneOrdersCopy({
-          orderCount: orderHero?.orderCount ?? metrics.orderCount,
+          orderCount: hero?.orderCount ?? metrics.orderCount,
           completeDays: orderBackfillProgress?.completeDays ?? 0,
           windowDays: orderBackfillProgress?.windowDays ?? 0,
           remainingDays: orderBackfillProgress?.remainingDays ?? 0,
@@ -1053,29 +1060,29 @@ export default function Dashboard() {
                 <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
                   <div className="mcfly-overview-first-beat">
                   <OverviewFirstViewport
-                    orderCount={orderHero.orderCount}
-                    typicalOrder={orderHero.typicalOrder}
+                    orderCount={hero.orderCount}
+                    typicalOrder={hero.typicalOrder}
                     meanAov={
-                      orderHero.orderCount > 0 && orderHero.sales != null
-                        ? orderHero.sales / orderHero.orderCount
+                      hero.orderCount > 0 && hero.sales != null
+                        ? hero.sales / hero.orderCount
                         : null
                     }
                     typicalDay={metrics.shopifyDepth.medianDailySales}
                     returningSalesShare={
-                      orderHero.sales != null &&
-                      orderHero.sales > 0 &&
-                      orderHero.returningSales != null
-                        ? orderHero.returningSales / orderHero.sales
+                      hero.sales != null &&
+                      hero.sales > 0 &&
+                      hero.returningSales != null
+                        ? hero.returningSales / hero.sales
                         : shopBook.returningSalesShare
                     }
-                    returningSales={orderHero.returningSales}
+                    returningSales={hero.returningSales}
                     newSales={shopBook.newSales}
                     mixGreeting={mixRead?.line}
                     medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
-                    weekendSalesShare={orderHero.weekendShare}
+                    weekendSalesShare={hero.weekendShare}
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                     weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={orderHero.sales}
+                    windowSales={hero.sales}
                     ltvPeek={ltvPeek?.amount ?? null}
                     ltvPeekDays={ltvPeek?.days ?? null}
                     ltvHistoryLimited={Boolean(
@@ -1091,7 +1098,7 @@ export default function Dashboard() {
                     salesPending={greetingPending}
                     ordersHref={ordersHref}
                     useSampleDesk={useSampleDesk}
-                    orderHero={orderHero}
+                    orderHero={hero}
                     periodLabel={
                       metrics.period.label === "Month to date"
                         ? "This month"
@@ -1178,34 +1185,35 @@ export default function Dashboard() {
                   defaultOpen={shotMode}
                 >
                   <OverviewDepthPeeks
-                    orderCount={orderHero.orderCount}
-                    typicalOrder={orderHero.typicalOrder}
+                    orderBookDepth={orderBookDepth}
+                    orderCount={hero.orderCount}
+                    typicalOrder={hero.typicalOrder}
                     meanAov={
-                      orderHero.orderCount > 0 && orderHero.sales != null
-                        ? orderHero.sales / orderHero.orderCount
+                      hero.orderCount > 0 && hero.sales != null
+                        ? hero.sales / hero.orderCount
                         : null
                     }
                     typicalDay={metrics.shopifyDepth.medianDailySales}
                     returningSalesShare={
-                      orderHero.sales != null &&
-                      orderHero.sales > 0 &&
-                      orderHero.returningSales != null
-                        ? orderHero.returningSales / orderHero.sales
+                      hero.sales != null &&
+                      hero.sales > 0 &&
+                      hero.returningSales != null
+                        ? hero.returningSales / hero.sales
                         : shopBook.returningSalesShare
                     }
-                    returningSales={orderHero.returningSales}
-                    weekendSalesShare={orderHero.weekendShare}
+                    returningSales={hero.returningSales}
+                    weekendSalesShare={hero.weekendShare}
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                     weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={orderHero.sales}
+                    windowSales={hero.sales}
                     salesPending={greetingPending}
                     ordersHref={ordersHref}
                     useSampleDesk={useSampleDesk}
-                    orderHero={orderHero}
+                    orderHero={hero}
                   />
                   <WeekdaySalesChart
                     shares={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={orderHero.sales ?? metrics.sales}
+                    windowSales={hero.sales ?? metrics.sales}
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                   />
                 </DeskLane>
