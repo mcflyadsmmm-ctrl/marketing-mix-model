@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sample desk — Mcfly</title>
-  <meta name="description" content="Click around a sample Total ROAS desk: Shopify sales after returns ÷ ad spend, break-even from margin, Export memo preview. SAMPLE data only — no install." />
+  <title>Understand your Shopify orders before adding spend. | Mcfly Analytics</title>
+  <meta name="description" content="Understand your Shopify orders before adding spend. SAMPLE is illustrative, not a live client. Install Mcfly Analytics for your Live orders." />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
@@ -57,27 +57,25 @@
   <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
-      <h1>Sample desk</h1>
-      <p>Play a fake store without installing. Same trusted math: sales ÷ spend vs break-even. SAMPLE data only.</p>
+      <h1>Understand your Shopify orders before adding spend.</h1>
+      <p>SAMPLE — illustrative data, not your store. Open Overview, explore orders, then add spend when you need it. Installing opens your Live desk in Shopify Admin.</p>
       <div class="demo-hero-meta">
-        <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE · Northline Supply</span>
+        <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE — illustrative data, not your store</span>
       </div>
       <div class="cta-row demo-hero-actions">
-        <a class="btn primary solid" href="#dd-desk">Try the Sample desk</a>
-        <a class="btn ghost" href="/mer-calculator">Your numbers in 60s →</a>
-        <a class="btn ghost" href="/monday-close">Monday Close memo</a>
-        <a class="btn ghost" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+        <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public">Install Mcfly Analytics</a>
+        <a class="btn ghost" href="#dd-desk">View SAMPLE demo</a>
       </div>
-      <p class="fine-line" style="margin-top:0.75rem">Sample data shows the whole desk (Spend, Overview, LTV, Goals). Live data = this shop’s Shopify sales + uploaded spend. Pricing: <a href="/pricing">7-day trial then $39/store/mo</a>. Want <strong>your</strong> numbers? <a href="/mer-calculator">ROAS calculator</a> — no account.</p>
+      <p class="fine-line" style="margin-top:0.75rem">How it works: Open Overview, explore your orders, add spend when needed. Customers and customer LTV are not fully available in Live yet. Pricing: <a href="/pricing">7-day trial then $39/store/month</a>.</p>
     </header>
 
     <aside class="demo-howto" aria-label="How to use this demo">
       <p class="demo-howto__kicker">How to use this demo</p>
       <ul class="demo-howto__list">
-        <li>Walk the tabs: <strong>Overview → Spend → Goals → Mix → Explorer → Close → Settings</strong></li>
-        <li>Toggle <strong>Last 7d / MTD / QTD / YTD</strong> — same sales ÷ spend math, new window</li>
-        <li>Click a <strong>KPI</strong> or <strong>channel row</strong> for the formula and next move</li>
-        <li>When it clicks, see <a href="/pricing">pricing</a> (7-day trial then $39) — SAMPLE numbers stay SAMPLE</li>
+        <li>Walk the desk: <strong>Overview → your orders → add spend when needed</strong></li>
+        <li>Toggle <strong>Last 7d / MTD / QTD / YTD</strong> — the order window changes. Spend stays optional.</li>
+        <li>Open <strong>Add spend when needed</strong> for the SAMPLE ratio. Empty spend stays an em dash.</li>
+        <li>When it clicks, <a href="https://apps.shopify.com/mcfly-analytics-public">install</a> — SAMPLE numbers stay illustrative</li>
       </ul>
     </aside>
 
@@ -86,18 +84,18 @@
         id="dd-desk"
         class="dd-desk"
         role="region"
-        aria-label="Sample desk — Northline Supply"
+        aria-label="SAMPLE desk — illustrative data, not a live client"
       >
         <p id="dd-live" class="dd-sr-only" aria-live="polite"></p>
 
         <div class="dd-topbar">
           <div>
-            <h2 class="dd-topbar__title">Total ROAS</h2>
-            <p class="dd-topbar__def">Sales after returns ÷ ad spend · not platform ROAS</p>
+            <h2 class="dd-topbar__title">Orders</h2>
+            <p class="dd-topbar__def">Shopify orders first. Spend is optional. SAMPLE.</p>
           </div>
           <p class="dd-topbar__shop">
-            Northline Supply
-            <span>Sample desk · Jul 2026</span>
+            SAMPLE
+            <span>Illustrative data, not a live client · Jul 2026</span>
           </p>
         </div>
 
@@ -113,7 +111,7 @@
 
         <div class="dd-ctx">
           <div class="dd-ctx__main">
-            <span class="dd-ctx__brand">Northline</span>
+            <span class="dd-ctx__brand">SAMPLE</span>
             <span class="dd-ctx__sep" aria-hidden="true">·</span>
             <span class="dd-ctx__asof" id="dd-asof">Jul 1–27, 2026</span>
             <div class="dd-period" role="group" aria-label="Period">
@@ -133,12 +131,35 @@
         </div>
 
         <div id="dd-sec-overview" class="dd-sec" data-dd-section="overview">
+          <p class="dd-orders-first">Understand your Shopify orders before adding spend. SAMPLE — illustrative data, not a live client. Adding spend does not change these orders.</p>
+          <div class="dd-compact" aria-label="Order density metrics">
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">Orders</p>
+              <p class="dd-compact__value" id="dd-compact-orders">4,480</p>
+            </article>
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">New customers</p>
+              <p class="dd-compact__value" id="dd-compact-new">2,860</p>
+            </article>
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">Returning</p>
+              <p class="dd-compact__value" id="dd-compact-returning">1,620</p>
+            </article>
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">AOV</p>
+              <p class="dd-compact__value" id="dd-compact-aov">$92</p>
+            </article>
+          </div>
+
+          <details class="dd-spend-later">
+            <summary>Add spend when needed · SAMPLE</summary>
+
           <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
             <p class="dd-decision__kicker">Budget call</p>
             <p class="dd-decision__takeaway" id="dd-decision-takeaway">Above target on sales after returns ÷ spend.</p>
             <p class="dd-decision__why" id="dd-decision-why">MTD Total ROAS clears the 4.00× target and break-even.</p>
             <div class="dd-decision__actions">
-              <a class="dd-decision__verb" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+              <a class="dd-decision__verb" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public">Install Mcfly Analytics</a>
               <a class="dd-decision__link" href="/product">Product →</a>
             </div>
           </section>
@@ -210,25 +231,6 @@
               <span class="dd-kpi__delta" id="dd-kpi-eom-delta">EOM proj. 4.28× · +0.19× vs target</span>
               <span class="dd-kpi__hint">Click for detail</span>
             </button>
-          </div>
-
-          <div class="dd-compact" aria-label="Order density metrics">
-            <article class="dd-compact__cell">
-              <p class="dd-compact__label">Orders</p>
-              <p class="dd-compact__value" id="dd-compact-orders">4,480</p>
-            </article>
-            <article class="dd-compact__cell">
-              <p class="dd-compact__label">New customers</p>
-              <p class="dd-compact__value" id="dd-compact-new">2,860</p>
-            </article>
-            <article class="dd-compact__cell">
-              <p class="dd-compact__label">Returning</p>
-              <p class="dd-compact__value" id="dd-compact-returning">1,620</p>
-            </article>
-            <article class="dd-compact__cell">
-              <p class="dd-compact__label">AOV</p>
-              <p class="dd-compact__value" id="dd-compact-aov">$92</p>
-            </article>
           </div>
 
           <p class="dd-pipe" id="dd-pipe">
@@ -333,6 +335,7 @@
             </div>
             <p class="dd-ltv__foot">Shopify orders only — opaque customer keys, no email/PII profiles.</p>
           </section>
+          </details>
         </div>
 
         <div id="dd-sec-spend" class="dd-sec" data-dd-section="spend" hidden>
@@ -702,16 +705,16 @@
       <h2 id="seeing-title" class="display">Three truths.<br />No path credit.</h2>
       <ul class="demo-seeing__grid">
         <li>
-          <h3>Transparent ROAS</h3>
-          <p>Total Sales ÷ ad spend for the same window — with profit margin, goals, and allocate-to-grow. Order totals are secondary for Ads Manager comparison only.</p>
+          <h3>Orders first</h3>
+          <p>Open Overview and read the SAMPLE orders before any spend. Illustrative data, not a live client.</p>
         </li>
         <li>
-          <h3>Daily spend by platform</h3>
-          <p>Pick platforms → blank template → Sheets Import → paste on Spend. SyncWith / Coupler / Supermetrics optional — you pay them; we don’t claim “Works with.”</p>
+          <h3>Spend when needed</h3>
+          <p>Total ROAS is Shopify sales divided by spend you type. Empty spend stays an em dash. The ratio only covers what was entered.</p>
         </li>
         <li>
-          <h3>No pixels</h3>
-          <p>This desk never ships path credit, view-through, or “true ROAS.” SAMPLE numbers only — try the craft, then bring your store.</p>
+          <h3>No pixel</h3>
+          <p>No platform credit. SAMPLE numbers stay on this page. Install to open your Live orders.</p>
         </li>
       </ul>
     </section>

@@ -11,9 +11,7 @@
   ensureMeta("mcfly-build", "pr-23");
 
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
-  const isHome = path === "/" || path === "/index.html" || path === "";
   const isAnalytics =
-    isHome ||
     path === "/about" ||
     path === "/about.html" ||
     path === "/custom-analytics" ||
@@ -115,7 +113,7 @@
         <a href="/monday-close">Close memo</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly. See ad spend next to sales, day by day. 7-day trial then $39.</p>
+      <p class="fine">© <span data-year></span> Mcfly. Understand your Shopify orders before adding spend. 7-day trial, then $39/store/month.</p>
     </div>
   </footer>`;
   }
@@ -156,6 +154,5 @@
     });
   }
 
-  void isHome;
   void shopifySecondary;
 })();
