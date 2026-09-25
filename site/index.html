@@ -67,7 +67,7 @@
           <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public">Install Mcfly Analytics</a>
           <a class="btn ghost" data-mcfly-cta="demo" href="/demo">View SAMPLE demo</a>
         </div>
-        <p class="mkt-meta">7-day trial, then $39/store/month. Trial and paid share the same desk. Uninstall stops the next cycle.</p>
+        <p class="mkt-meta">Order reports work with no spend file. 7-day trial, then $39/store/month. Trial and paid share the same desk. Uninstall stops the next cycle.</p>
       </div>
 
       <figure class="mkt-preview">
@@ -133,12 +133,21 @@
       </div>
     </section>
 
-    <section class="mkt-band mkt-band--spend" aria-labelledby="spend-title">
-      <div class="mkt-wrap mkt-spend">
-        <div>
-          <h2 id="spend-title">Add spend when you need the comparison</h2>
-          <p class="mkt-lede">Total ROAS is Shopify sales divided by the spend you type. Empty spend stays an em dash. No pixel. No platform credit. Order reports still work when spend is empty.</p>
-        </div>
+    <section class="mkt-band mkt-band--spend" id="spend-steps" aria-labelledby="spend-title">
+      <div class="mkt-wrap">
+        <h2 id="spend-title">Add spend when you need the comparison</h2>
+        <p class="mkt-lede">Order reports work with no spend file.</p>
+        <ol class="mkt-steps">
+          <li>Type a channel, an amount, and a date — or paste a CSV. An Ads Manager CSV also works.</li>
+          <li>Columns are date, channel, amount.</li>
+          <li>Use the same date window as the orders you are reading.</li>
+          <li>Total ROAS is Shopify sales divided only by the spend you entered.</li>
+        </ol>
+        <ul class="mkt-rules">
+          <li>An empty cell is an em dash, not zero.</li>
+          <li>Partial spend covers only what was entered.</li>
+          <li>Adding spend does not change the orders.</li>
+        </ul>
         <div class="mkt-ratio" aria-label="SAMPLE Total ROAS">
           <p class="mkt-sample">SAMPLE</p>
           <p class="mkt-ratio__eq"><span>$412,400</span> sales ÷ <span>$98,500</span> spend</p>

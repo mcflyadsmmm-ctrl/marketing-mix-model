@@ -4103,6 +4103,80 @@ body.pricing-page .btn.ghost {
   font-variant-numeric: tabular-nums;
   color: var(--mkt-accent);
 }
+#spend-steps {
+  scroll-margin-top: 150px;
+}
+.mkt-steps {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: mkt-step;
+  max-width: 60ch;
+}
+.mkt-steps li {
+  counter-increment: mkt-step;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-top: 1px solid var(--mkt-line, #dee4e8);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--mkt-ink, #17212b);
+}
+.mkt-steps li::before {
+  content: counter(mkt-step);
+  font-weight: 650;
+  color: var(--mkt-accent, #0f766e);
+}
+.mkt-rules {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 60ch;
+}
+.mkt-rules li {
+  margin: 0;
+  padding: 4px 0 4px 40px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--mkt-mute, #52606d);
+}
+.mkt-band--spend .mkt-ratio {
+  margin-top: 24px;
+}
+.dd-spend-steps {
+  margin: 16px 0 20px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #dee4e8;
+  border-radius: 12px;
+  max-width: 60ch;
+}
+.dd-spend-steps h2 {
+  margin: 8px 0 8px;
+  font-family: "Figtree", system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #17212b;
+}
+.dd-spend-steps > p,
+.dd-spend-steps__note {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #52606d;
+}
+.dd-spend-steps .mkt-sample {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid #dee4e8;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
 .mkt-plan__price {
   margin: 0 0 8px;
   font-size: 48px;

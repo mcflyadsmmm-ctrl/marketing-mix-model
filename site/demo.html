@@ -123,7 +123,24 @@
               <p class="dd-compact__value" id="dd-compact-aov">$92</p>
             </article>
           </div>
-          <p class="dd-live-note">AOV is Shopify sales after returns divided by orders. Returning is a buyer count. Customer LTV is not available with Live data yet. This is not a paid upgrade.</p>
+          <p class="dd-live-note">Order reports work with no spend file. AOV is Shopify sales after returns divided by orders. Returning is a buyer count. Customer LTV is not available with Live data yet. This is not a paid upgrade.</p>
+          <section class="dd-spend-steps" id="spend-steps" aria-labelledby="spend-steps-title">
+            <p class="mkt-sample">SAMPLE</p>
+            <h2 id="spend-steps-title">Add spend when you need the comparison</h2>
+            <p>Order reports work with no spend file.</p>
+            <ol class="mkt-steps">
+              <li>Type a channel, an amount, and a date — or paste a CSV. An Ads Manager CSV also works.</li>
+              <li>Columns are date, channel, amount.</li>
+              <li>Use the same date window as the orders you are reading.</li>
+              <li>Total ROAS is Shopify sales divided only by the spend you entered.</li>
+            </ol>
+            <ul class="mkt-rules">
+              <li>An empty cell is an em dash, not zero.</li>
+              <li>Partial spend covers only what was entered.</li>
+              <li>Adding spend does not change the orders.</li>
+            </ul>
+            <p class="dd-spend-steps__note">This SAMPLE page does not upload a file. Install to add spend for your store.</p>
+          </section>
           <div class="dd-trust" aria-label="Trust and freshness">
             <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-coverage">Coverage 92%</span>
             <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-recon">Recon ±2.8%</span>
@@ -133,7 +150,7 @@
           </div>
 
           <details class="dd-spend-later">
-            <summary>Add spend when needed · SAMPLE</summary>
+            <summary>Add spend when you need the comparison · SAMPLE</summary>
 
           <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
             <p class="dd-decision__kicker">Budget call</p>
@@ -215,9 +232,9 @@
           </div>
 
           <p class="dd-pipe" id="dd-pipe">
-            Get spend into Mcfly: pick platforms → download a blank template → Sheets Import → paste on Spend.
-            Free CSV always works; SyncWith / Coupler / Supermetrics optional <em>(you pay them)</em>.
-            <a class="dd-pipe__link" href="/assets/mcfly-sheets-spend-guide">Sheets guide →</a>
+            Order reports work with no spend file. Columns are date, channel, amount.
+            An empty cell is an em dash, not zero.
+            <a class="dd-pipe__link" href="#spend-steps">Spend steps</a>
           </p>
 
           <div class="dd-margin">
@@ -325,10 +342,18 @@
               <h2 id="dd-spend-title">Daily spend by platform</h2>
               <p class="dd-panel__muted">SAMPLE workflow · CSV path · no real upload</p>
             </div>
-            <p class="dd-spend__lead">
-              Pick platforms → blank template → Sheets Import → paste here.
-              SyncWith / Coupler / Supermetrics optional <em>(you pay them)</em>.
-            </p>
+            <p class="dd-spend__lead">Order reports work with no spend file.</p>
+            <ol class="mkt-steps">
+              <li>Type a channel, an amount, and a date — or paste a CSV. An Ads Manager CSV also works.</li>
+              <li>Columns are date, channel, amount.</li>
+              <li>Use the same date window as the orders you are reading.</li>
+              <li>Total ROAS is Shopify sales divided only by the spend you entered.</li>
+            </ol>
+            <ul class="mkt-rules">
+              <li>An empty cell is an em dash, not zero.</li>
+              <li>Partial spend covers only what was entered.</li>
+              <li>Adding spend does not change the orders.</li>
+            </ul>
 
             <div class="dd-spend__chips" role="group" aria-label="Platforms you spend on">
               <button type="button" class="dd-spend__chip is-on" data-dd-platform="meta" aria-pressed="true">Meta</button>
@@ -383,12 +408,12 @@
             </div>
 
             <aside class="dd-spend__tip" aria-labelledby="dd-spend-tip-title">
-              <h3 id="dd-spend-tip-title">Sheets tip</h3>
-              <ol>
-                <li>Download the blank Mcfly template for selected platforms</li>
-                <li>File → Import in Google Sheets (or Excel)</li>
-                <li>Fill daily spend — sales stay in Shopify</li>
-                <li>Copy rows → paste on Spend in the app</li>
+              <h3 id="dd-spend-tip-title">Same steps</h3>
+              <ol class="mkt-steps">
+                <li>Type a channel, an amount, and a date — or paste a CSV. An Ads Manager CSV also works.</li>
+                <li>Columns are date, channel, amount.</li>
+                <li>Use the same date window as the orders you are reading.</li>
+                <li>Total ROAS is Shopify sales divided only by the spend you entered.</li>
               </ol>
               <p>
                 <a class="dd-pipe__link" href="/assets/mcfly-sheets-spend-guide">Full Sheets guide →</a>

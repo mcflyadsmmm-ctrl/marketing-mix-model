@@ -101,34 +101,28 @@
   <div class="guide-wrap">
     <p class="eyebrow">Spend onboarding</p>
     <h1>Get spend into Mcfly via Google Sheets</h1>
-    <p class="guide-lede">
-      No Google OAuth from Mcfly. Download a blank Day + selected-platform CSV,
-      import it into a new Sheet, fill daily spend, download CSV, paste on Spend.
-    </p>
+    <p class="guide-lede">Order reports work with no spend file.</p>
     <ol class="guide-steps" aria-label="Sheets spend steps">
       <li>
         <span class="n" aria-hidden="true">1</span>
-        <span>In the Mcfly Spend tab, check the ad platforms you actually run (Meta + Google are pre-selected).</span>
+        <span>Type a channel, an amount, and a date — or paste a CSV. An Ads Manager CSV also works.</span>
       </li>
       <li>
         <span class="n" aria-hidden="true">2</span>
-        <span>Download your Mcfly blank template — or open a new Google Sheet and import that CSV.</span>
+        <span>Columns are date, channel, amount.</span>
       </li>
       <li>
         <span class="n" aria-hidden="true">3</span>
-        <span>In the new Sheet: <strong>File → Import → Upload →</strong> your CSV → <strong>Replace spreadsheet → Import data</strong>.</span>
+        <span>Use the same date window as the orders you are reading.</span>
       </li>
       <li>
         <span class="n" aria-hidden="true">4</span>
-        <span>Fill daily spend by hand — or optionally connect SyncWith / Coupler / Supermetrics / Coefficient to these columns (<strong>you pay those tools</strong>).</span>
-      </li>
-      <li>
-        <span class="n" aria-hidden="true">5</span>
-        <span><strong>File → Download → Comma Separated Values (.csv)</strong> → paste or import back on Spend.</span>
+        <span>Total ROAS is Shopify sales divided only by the spend you entered.</span>
       </li>
     </ol>
     <p class="guide-tip">
-      Free path never requires SyncWith, Coupler, or Supermetrics. Mcfly does not claim “Works with” logos for those products. Paste/CSV alone is enough.
+      An empty cell is an em dash, not zero. Partial spend covers only what was entered. Adding spend does not change the orders.
+      In Sheets: File → Import the blank CSV, fill those columns, then File → Download → CSV and paste it on Spend. You do not need SyncWith, Coupler, or Supermetrics.
     </p>
     <div class="guide-actions">
       <a class="btn" href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener noreferrer">Open Google Sheets</a>
