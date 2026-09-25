@@ -1,188 +1,69 @@
 /**
- * Mcfly SAMPLE desk — illustrative data, not a live client (Jul 2026).
- * Demo data only. Loud SAMPLE labeling. No pixels / MTA / path credit.
+ * Mcfly SAMPLE desk — Snowdevil, illustrative snowboard orders.
+ * Not a live store. One window: Sep 1–25, 2026.
+ * Total ROAS = our net sales ÷ spend you type. Empty spend is an em dash.
+ * No pixels, no MTA, no view-through, no channel ROAS, no ad logins.
  */
 (function () {
   "use strict";
 
   var DEFAULT_TARGET = 4;
   var DEFAULT_MARGIN = 0.35;
-  var AS_OF_SHORT = "Jul 27";
-  var SHOP = "SAMPLE";
+  var AS_OF_SHORT = "Sep 25";
+  var SHOP = "Snowdevil";
   var COVERAGE = 0.92;
   var RECON_PCT = 0.028;
-  var CLAIMED_MER = 4.8;
 
   /**
-   * Coherent DTC sample periods. Total ROAS = sales after returns ÷ spend.
-   * Gross shown as secondary (Ads Manager–comparable) only.
-   * Compact metrics + pacing days are SAMPLE numbers only.
+   * One SAMPLE window for the whole Overview.
+   * Gap lines are timing, tax, discounts, channels, B2B/draft and sum to
+   * Shopify sales report − our net sales ($82,410 − $75,940 = $6,470).
    */
   var PERIODS = {
-    l7d: {
-      id: "l7d",
-      label: "Last 7d",
-      asOf: "Jul 21–27, 2026",
-      netSales: 86420,
-      grossSales: 97850,
-      spend: 24180,
-      eomProjectedMer: 3.92,
-      priorMer: 3.55,
-      priorSales: 79800,
-      priorSpend: 23600,
-      orders: 942,
-      newCustomers: 611,
-      returning: 331,
-      daysElapsed: 7,
-      daysInPeriod: 7,
-      claimedMer: 4.9,
-      ltvAov30: 118,
-      ltvAov90: 142,
-      repeatRate30: 0.18,
-      channels: [
-        { id: "meta", label: "Meta", spend: 13200, badge: "protect" },
-        { id: "google", label: "Google", spend: 7800, badge: "cut" },
-        { id: "microsoft", label: "Microsoft", spend: 1980, badge: "hold" },
-        { id: "email", label: "Email", spend: 1200, badge: "hold" },
-      ],
-      alloc: "Protect Meta · step-test −10% Google",
-      allocWhy:
-        "Illustrative only — average channel Total ROAS ≠ marginal. A small Google cut tests whether cash holds while Meta carries the week.",
-      decisionLead: "Above break-even; short of target.",
-      decisionWhy:
-        "Last 7 days cleared break-even with room to protect Meta. Step-test Google before chasing the target rail.",
-      shiftProtect: "Meta",
-      shiftProtectWhy: "Carry the week while cash clears break-even.",
-      shiftHold: "Microsoft · Email",
-      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
-      shiftCut: "Google −10%",
-      shiftCutWhy: "Learn marginal response. Average ≠ marginal.",
-      monthPlanSales: 120000,
-    },
-    mtd: {
-      id: "mtd",
-      label: "MTD",
-      asOf: "Jul 1–27, 2026",
-      netSales: 412400,
-      grossSales: 468200,
-      spend: 98500,
-      eomProjectedMer: 4.28,
-      priorMer: 3.91,
-      priorSales: 378200,
-      priorSpend: 96800,
-      orders: 4480,
-      newCustomers: 2860,
-      returning: 1620,
-      daysElapsed: 27,
-      daysInPeriod: 31,
-      claimedMer: 4.8,
-      ltvAov30: 124,
-      ltvAov90: 151,
-      repeatRate30: 0.21,
-      channels: [
-        { id: "meta", label: "Meta", spend: 51200, badge: "protect" },
-        { id: "google", label: "Google", spend: 32800, badge: "cut" },
-        { id: "microsoft", label: "Microsoft", spend: 8900, badge: "hold" },
-        { id: "email", label: "Email", spend: 5600, badge: "hold" },
-      ],
-      alloc: "Protect Meta · step-test −10% Google",
-      allocWhy:
-        "Illustrative recommendation from cash efficiency vs break-even — not path credit. Average ≠ marginal. Allocate to grow.",
-      decisionLead: "Above target on sales after returns ÷ spend.",
-      decisionWhy:
-        "MTD Total ROAS clears the target rail and break-even. Protect Meta; step-test a −10% Google cut to learn marginal response.",
-      shiftProtect: "Meta",
-      shiftProtectWhy: "Carry the month while cash clears target.",
-      shiftHold: "Microsoft · Email",
-      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
-      shiftCut: "Google −10%",
-      shiftCutWhy: "Learn marginal response. Average ≠ marginal.",
-      monthPlanSales: 465000,
-    },
-    qtd: {
-      id: "qtd",
-      label: "QTD",
-      asOf: "Apr 1–Jul 27, 2026",
-      netSales: 1185200,
-      grossSales: 1346800,
-      spend: 312400,
-      eomProjectedMer: 3.95,
-      priorMer: 3.62,
-      priorSales: 1098400,
-      priorSpend: 303200,
-      orders: 12840,
-      newCustomers: 7920,
-      returning: 4920,
-      daysElapsed: 118,
-      daysInPeriod: 122,
-      claimedMer: 4.7,
-      ltvAov30: 121,
-      ltvAov90: 148,
-      repeatRate30: 0.2,
-      channels: [
-        { id: "meta", label: "Meta", spend: 148800, badge: "protect" },
-        { id: "google", label: "Google", spend: 112600, badge: "cut" },
-        { id: "microsoft", label: "Microsoft", spend: 31200, badge: "hold" },
-        { id: "email", label: "Email", spend: 19800, badge: "hold" },
-      ],
-      alloc: "Protect Meta · step-test −10% Google",
-      allocWhy:
-        "Quarter mix shows Google softer vs cash break-even. Illustrative step-test — average channel Total ROAS is not marginal.",
-      decisionLead: "Above break-even; below target.",
-      decisionWhy:
-        "QTD clears break-even with headroom, but sits under the target rail. Protect Meta; step-test Google before a larger reallocation.",
-      shiftProtect: "Meta",
-      shiftProtectWhy: "Protect the cash-efficient line into quarter close.",
-      shiftHold: "Microsoft · Email",
-      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
-      shiftCut: "Google −10%",
-      shiftCutWhy: "Soft vs break-even — step-test before a larger cut.",
-      monthPlanSales: 465000,
-    },
-    ytd: {
-      id: "ytd",
-      label: "YTD",
-      asOf: "Jan 1–Jul 27, 2026",
-      netSales: 2640800,
-      grossSales: 2996400,
-      spend: 682500,
-      eomProjectedMer: 4.02,
-      priorMer: 3.74,
-      priorSales: 2412600,
-      priorSpend: 645800,
-      orders: 28650,
-      newCustomers: 17420,
-      returning: 11230,
-      daysElapsed: 208,
-      daysInPeriod: 365,
-      claimedMer: 4.85,
-      ltvAov30: 126,
-      ltvAov90: 155,
+    window: {
+      id: "window",
+      label: "Sep 1–25",
+      asOf: "Sep 1–25, 2026",
+      netSales: 75940,
+      grossSales: 82410,
+      priorSales: 67620,
+      priorGross: 73410,
+      gapLines: [1840, 2160, 1120, 860, 490],
+      shopifyAov: 595,
+      spend: 21100,
+      eomProjectedMer: 3.6,
+      priorMer: 3.48,
+      priorSpend: 19800,
+      orders: 128,
+      newCustomers: 46,
+      returning: 82,
+      daysElapsed: 25,
+      daysInPeriod: 30,
+      ltvAov30: 640,
+      ltvAov90: 710,
       repeatRate30: 0.22,
       channels: [
-        { id: "meta", label: "Meta", spend: 324000, badge: "protect" },
-        { id: "google", label: "Google", spend: 248500, badge: "cut" },
-        { id: "microsoft", label: "Microsoft", spend: 68500, badge: "hold" },
-        { id: "email", label: "Email", spend: 41500, badge: "hold" },
+        { id: "meta", label: "Meta", spend: 10128, badge: "hold" },
+        { id: "google", label: "Google", spend: 8018, badge: "hold" },
+        { id: "email", label: "Email", spend: 1266, badge: "hold" },
+        { id: "other", label: "Other", spend: 1688, badge: "hold" },
       ],
-      alloc: "Protect Meta · step-test −10% Google",
-      allocWhy:
-        "Year-to-date cash picture favors protecting Meta. Any Google cut is a learning step-test — not attributed path credit.",
-      decisionLead: "Near target on year-to-date cash.",
-      decisionWhy:
-        "YTD Total ROAS sits near the target rail while clearing break-even. Keep Meta protected; step-test Google.",
+      alloc: "Spend is optional on this window.",
+      allocWhy: "Orders stand without a spend file.",
+      decisionLead: "Orders are in. Spend is still empty.",
+      decisionWhy: "Sep 1–25, 2026. Add spend when you need the comparison.",
       shiftProtect: "Meta",
-      shiftProtectWhy: "YTD cash favors protecting this line.",
-      shiftHold: "Microsoft · Email",
-      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
-      shiftCut: "Google −10%",
-      shiftCutWhy: "Learning cut — average ≠ marginal.",
-      monthPlanSales: 465000,
+      shiftProtectWhy: "Sample mix only.",
+      shiftHold: "Google · Email",
+      shiftHoldWhy: "Sample mix only.",
+      shiftCut: "—",
+      shiftCutWhy: "No channel ROAS on this desk.",
+      monthPlanSales: 91200,
     },
   };
 
   var state = {
-    period: "mtd",
+    period: "window",
     section: "orders",
     margin: DEFAULT_MARGIN,
     targetMer: DEFAULT_TARGET,
@@ -232,33 +113,29 @@
     return Number.isFinite(m) ? m : null;
   }
 
-  /** SAMPLE gap lines. Shares of (sales report − net) so the five lines add up. */
-  function gapAmounts(gap) {
-    var weights = [0.222, 0.334, 0.176, 0.147];
-    var parts = weights.map(function (w) {
-      return Math.round(gap * w);
-    });
-    var used = parts.reduce(function (sum, n) {
-      return sum + n;
-    }, 0);
-    parts.push(gap - used);
-    return parts;
+  /** Named gap lines. They are stored so they sum to the gap exactly. */
+  function gapAmounts(period) {
+    var lines = period.gapLines;
+    if (lines && lines.length === 5) return lines.slice();
+    var gap = period.grossSales - period.netSales;
+    return [gap, 0, 0, 0, 0];
   }
 
-  function sumPastedRows() {
-    var box = $("#dd-spend-rows");
-    if (!box) return null;
-    var lines = box.value
-      .split(/\n/)
-      .map(function (line) {
-        return line.trim();
-      })
-      .filter(Boolean);
-    if (!lines.length) return null;
+  function amountFields() {
+    return $$("[data-dd-spend-amount]");
+  }
+
+  function pasteFields() {
+    return $$("[data-dd-spend-rows]");
+  }
+
+  function parsePaste(box) {
+    if (!box || !box.value.trim()) return null;
     var total = 0;
     var days = 0;
-    lines.forEach(function (line) {
-      if (/^date\b/i.test(line)) return;
+    box.value.split(/\n/).forEach(function (line) {
+      line = line.trim();
+      if (!line || /^date\b/i.test(line)) return;
       var parts = line.split(/[,\t]/);
       var amount = Number(String(parts[parts.length - 1]).replace(/[$,]/g, "").trim());
       if (amount > 0) {
@@ -266,32 +143,59 @@
         days += 1;
       }
     });
+    if (!(total > 0)) return null;
     return { total: total, days: days };
   }
 
-  function readEnteredSpend(period) {
-    var input = $("#dd-entered-spend");
-    if (input && !state.spendTouched && document.activeElement !== input) {
-      input.value = String(period.spend);
+  function sumPastedRows() {
+    var boxes = pasteFields();
+    var i;
+    for (i = 0; i < boxes.length; i++) {
+      if (document.activeElement === boxes[i]) {
+        var active = parsePaste(boxes[i]);
+        if (active) return active;
+      }
     }
+    for (i = 0; i < boxes.length; i++) {
+      var parsed = parsePaste(boxes[i]);
+      if (parsed) return parsed;
+    }
+    return null;
+  }
+
+  function readAmountRaw() {
+    var fields = amountFields();
+    var i;
+    for (i = 0; i < fields.length; i++) {
+      if (document.activeElement === fields[i]) return fields[i].value;
+    }
+    return fields.length ? fields[0].value : "";
+  }
+
+  function readEnteredSpend() {
     var pasted = sumPastedRows();
     if (pasted && pasted.total > 0) {
+      amountFields().forEach(function (input) {
+        if (document.activeElement !== input) {
+          input.value = String(Math.round(pasted.total));
+        }
+      });
       return {
         spend: pasted.total,
-        note: "This ratio only covers the spend you entered.",
+        note: "Our net sales divided by the rows you pasted.",
       };
     }
-    var raw = input ? input.value.trim().replace(/[$,\s]/g, "") : "";
+    var raw = String(readAmountRaw()).trim().replace(/[$,\s]/g, "");
     if (raw === "") {
-      return { spend: null, note: "Order reports stay usable." };
+      return { spend: null, note: "Add spend when you need the comparison." };
     }
     var n = Number(raw);
     if (!(n > 0) || !Number.isFinite(n)) {
-      return { spend: null, note: "Order reports stay usable." };
+      return { spend: null, note: "Add spend when you need the comparison." };
     }
     return {
       spend: n,
-      note: "Shopify sales divided by the spend you entered.",
+      note: "Our net sales divided by the spend you typed.",
     };
   }
 
@@ -677,7 +581,7 @@
   }
 
   function openKpiDrawer(key, trigger) {
-    var period = PERIODS[state.period] || PERIODS.mtd;
+    var period = PERIODS[state.period] || PERIODS.window;
     var be = breakEven(state.margin);
     var mer = merOf(period.netSales, period.spend);
     var html = "";
@@ -799,7 +703,7 @@
   }
 
   function openChannelDrawer(channelId, trigger) {
-    var period = PERIODS[state.period] || PERIODS.mtd;
+    var period = PERIODS[state.period] || PERIODS.window;
     var ch = null;
     for (var i = 0; i < period.channels.length; i++) {
       if (period.channels[i].id === channelId) {
@@ -986,7 +890,11 @@
     );
     setText(
       "#dd-goals-pace-spend",
-      period.spend <= planSpend ? "Inside plan" : "Over plan",
+      state.enteredSpend == null
+        ? "—"
+        : state.enteredSpend <= planSpend
+          ? "Inside plan"
+          : "Over plan",
     );
     setText("#dd-goals-plan-roas", formatMer(planRoas));
     setText("#dd-goals-act-roas", formatMer(mer));
@@ -1068,7 +976,7 @@
   }
 
   function render() {
-    var period = PERIODS[state.period] || PERIODS.mtd;
+    var period = PERIODS[state.period] || PERIODS.window;
     var be = breakEven(state.margin);
     var entered = readEnteredSpend(period);
     var spend = entered.spend;
@@ -1078,9 +986,7 @@
     var vsTarget =
       mer != null && state.targetMer != null ? mer - state.targetMer : null;
     var verdict = verdictCopy(mer, be, state.targetMer);
-    var aov =
-      period.orders > 0 ? Math.round(period.netSales / period.orders) : null;
-    var claimed = period.claimedMer != null ? period.claimedMer : CLAIMED_MER;
+    var aov = period.shopifyAov != null ? period.shopifyAov : null;
 
     var decisionLead = verdict.lead;
     if (mer != null && be != null && Math.abs(state.margin - DEFAULT_MARGIN) < 0.001) {
@@ -1115,7 +1021,6 @@
           : ""),
     );
 
-    setText("#dd-claim-lie", "~" + claimed.toFixed(1) + "×");
     setText("#dd-claim-truth", formatMer(mer));
 
     setText("#dd-kpi-mer", formatMer(mer));
@@ -1175,17 +1080,31 @@
     setText("#dd-compact-returning", formatInt(period.returning));
     setText("#dd-compact-aov", aov != null ? money(aov) : "—");
     setText("#dd-two-window", period.asOf);
-    setText("#dd-recon-checked", period.asOf);
+    setText("#dd-recon-checked", "Checked");
     setText("#dd-two-report", money(period.grossSales));
     setText("#dd-two-net", money(period.netSales));
+    setText(
+      "#dd-two-net-prior",
+      period.priorSales != null
+        ? "Same days last year " + money(period.priorSales)
+        : "",
+    );
+    setText(
+      "#dd-two-report-prior",
+      period.priorGross != null
+        ? "Same days last year " + money(period.priorGross)
+        : "",
+    );
     var gap = period.grossSales - period.netSales;
     setText("#dd-two-gap", money(gap));
-    var lines = gapAmounts(gap);
+    var lines = gapAmounts(period);
     setText("#dd-gap-timing", money(lines[0]));
     setText("#dd-gap-tax", money(lines[1]));
     setText("#dd-gap-discounts", money(lines[2]));
     setText("#dd-gap-channels", money(lines[3]));
     setText("#dd-gap-b2b", money(lines[4]));
+    var lineSum = lines.reduce(function (sum, n) { return sum + n; }, 0);
+    setText("#dd-gap-sum", money(lineSum));
     setText("#dd-fig-discounts", money(lines[2]));
     var refunds = Math.round(period.grossSales * 0.031);
     setText("#dd-fig-refunds", money(refunds));
@@ -1287,8 +1206,10 @@
     var live = $("#dd-live");
     if (live) {
       live.textContent =
-        "SAMPLE, illustrative, not a live client. " +
-        period.label +
+        "SAMPLE. " +
+        SHOP +
+        ". " +
+        period.asOf +
         ". Net sales " +
         money(period.netSales) +
         " beside the Shopify sales-report total " +
@@ -1383,22 +1304,27 @@
   }
 
   function bindSpendEntry() {
-    var input = $("#dd-entered-spend");
-    if (input) {
+    amountFields().forEach(function (input) {
       input.addEventListener("input", function () {
         state.spendTouched = true;
-        var rows = $("#dd-spend-rows");
-        if (rows && rows.value.trim()) rows.value = "";
+        pasteFields().forEach(function (box) {
+          box.value = "";
+        });
+        amountFields().forEach(function (other) {
+          if (other !== input) other.value = input.value;
+        });
         render();
       });
-    }
-    var rows = $("#dd-spend-rows");
-    if (rows) {
-      rows.addEventListener("input", function () {
+    });
+    pasteFields().forEach(function (box) {
+      box.addEventListener("input", function () {
         state.spendTouched = true;
+        pasteFields().forEach(function (other) {
+          if (other !== box) other.value = box.value;
+        });
         render();
       });
-    }
+    });
   }
 
   function bindGoalSave() {
