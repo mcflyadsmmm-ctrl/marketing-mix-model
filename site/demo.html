@@ -381,8 +381,7 @@
                 id="dd-spend-paste"
                 class="dd-spend__paste"
                 rows="4"
-                readonly
-                placeholder="date,channel,amount&#10;2026-07-01,meta,1850&#10;2026-07-01,google,1120&#10;… SAMPLE only — no upload on this page"
+                placeholder="date,channel,amount&#10;2026-07-01,meta,1850&#10;2026-07-01,google,1120"
               ></textarea>
               <div class="dd-spend__import-row">
                 <label class="dd-spend__file">
@@ -748,6 +747,15 @@
               <div><p class="dd-ltv__k">Cash CAC</p><p class="dd-ltv__v" id="dd-ltv2-cac">—</p></div>
             </div>
             <p class="dd-ltv__foot" id="dd-ltv2-note">Cash CAC is stored spend ÷ stored new customers. Cohort AOV is not a payback promise.</p>
+            <div class="dd-compact" aria-label="Estimated contribution">
+              <article class="dd-compact__cell"><p class="dd-compact__label">Sales</p><p class="dd-compact__value" id="dd-contrib-sales">—</p></article>
+              <article class="dd-compact__cell"><p class="dd-compact__label">Spend</p><p class="dd-compact__value" id="dd-contrib-spend">—</p></article>
+              <article class="dd-compact__cell"><p class="dd-compact__label">Estimated contribution</p><p class="dd-compact__value" id="dd-contrib">—</p></article>
+            </div>
+            <p id="dd-contrib-note">Sales × the sample margin, then minus spend. Not a profit ledger.</p>
+            <p id="dd-orders-returns">Returns: —</p>
+            <p id="dd-segments">Order keys are not stored on this SAMPLE book.</p>
+            <button type="button" class="dd-spend__btn" id="dd-cohort-csv">Export cohort CSV</button>
           </section>
         </div>
 

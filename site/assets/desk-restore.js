@@ -176,6 +176,20 @@
     });
   }
 
+  document.addEventListener("dd-paste-spend", function (event) {
+    var parsed = event.detail || [];
+    parsed.forEach(function (row) {
+      rows.push({
+        id: nextId,
+        channel: row.channel,
+        amount: row.amount,
+        day: row.day,
+      });
+      nextId += 1;
+    });
+    paintSpend();
+  });
+
   document.addEventListener("dd-rendered", function () {
     paintSpend();
     paintGoal();

@@ -58,6 +58,8 @@
       <a href="/product" data-nav="product">Product</a>
       <a href="/pricing" data-nav="pricing">Pricing</a>
       <a href="/support" data-nav="support">Support</a>
+      <a href="/about" data-nav="about">About</a>
+      <a href="/monday-close" data-nav="close">Close memo</a>
       <a class="nav-cta" data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">

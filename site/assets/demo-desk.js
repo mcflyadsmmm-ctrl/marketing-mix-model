@@ -1375,6 +1375,23 @@
     setText("#dd-audit-recon", "±" + (RECON_PCT * 100).toFixed(1) + "%");
     setText("#dd-audit-margin", Math.round(state.margin * 100) + "%");
     setText("#dd-audit-asof", AS_OF_SHORT);
+    var contribution =
+      period.netSales != null && period.spend != null && state.margin > 0
+        ? Math.round(period.netSales * state.margin - period.spend)
+        : null;
+    setText("#dd-contrib-sales", money(period.netSales));
+    setText("#dd-contrib-spend", money(period.spend));
+    setText("#dd-contrib", contribution == null ? "—" : money(contribution));
+    var returns =
+      period.grossSales != null && period.netSales != null
+        ? period.grossSales - period.netSales
+        : null;
+    setText(
+      "#dd-orders-returns",
+      returns == null
+        ? "Returns are not stored for this window."
+        : "Order totals minus sales after returns: " + money(returns) + ".",
+    );
     var desk = $("#dd-desk");
     if (desk) {
       desk.setAttribute("data-start", period.startIso || "");
@@ -1674,6 +1691,46 @@
     });
   }
 
+  function parseSpendPaste(raw) {
+    var names = {
+      meta: "Meta",
+      google: "Google",
+      microsoft: "Microsoft",
+      email: "Email",
+      tiktok: "TikTok",
+      pinterest: "Pinterest",
+      snapchat: "Snapchat",
+      reddit: "Reddit",
+      x: "X",
+      linkedin: "LinkedIn",
+      amazon: "Amazon",
+      apple: "Apple Search",
+      impact: "Impact / CJ",
+      klaviyo: "Klaviyo / Mailchimp",
+      other: "Other",
+    };
+    var rows = [];
+    String(raw)
+      .split(/\r?\n/)
+      .forEach(function (line) {
+        var parts = line.split(",").map(function (part) {
+          return part.trim();
+        });
+        if (parts.length < 3) return;
+        if (parts[0].toLowerCase() === "date") return;
+        var day = parts[0];
+        var amount = Number(parts[2].replace(/[$,]/g, ""));
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !(amount > 0)) return;
+        var key = parts[1].toLowerCase();
+        rows.push({
+          day: day,
+          amount: Math.round(amount),
+          channel: names[key] || parts[1],
+        });
+      });
+    return rows;
+  }
+
   function bindSpendDemo() {
     $$("[data-dd-platform]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -1715,7 +1772,13 @@
           return;
         }
         if (kind === "import") {
-          toast("SAMPLE desk — no upload. In app: paste CSV or combine platform files.");
+          var pasted = parseSpendPaste(($("#dd-spend-paste") || {}).value || "");
+          if (!pasted.length) {
+            toast("Paste date, channel, and amount. This page does not upload a file.");
+            return;
+          }
+          document.dispatchEvent(new CustomEvent("dd-paste-spend", { detail: pasted }));
+          toast("Added " + pasted.length + " pasted row" + (pasted.length === 1 ? "" : "s") + " to this SAMPLE desk.");
         }
       });
     });
@@ -1879,6 +1942,45 @@
         link.download = "northline-sample-ledger.csv";
         link.click();
         setText("#dd-ledger-toast", "Exported the SAMPLE shape. Not a shop day file.");
+      });
+    }
+    var cohort = $("#dd-cohort-csv");
+    if (cohort) {
+      cohort.addEventListener("click", function () {
+        var period = PERIODS[state.period] || PERIODS.mtd;
+        var contribution =
+          period.netSales != null && period.spend != null && state.margin > 0
+            ? Math.round(period.netSales * state.margin - period.spend)
+            : "";
+        var cac =
+          period.spend > 0 && period.newCustomers > 0
+            ? Math.round(period.spend / period.newCustomers)
+            : "";
+        var returns =
+          period.grossSales != null && period.netSales != null
+            ? period.grossSales - period.netSales
+            : "";
+        var lines = [
+          "field,value",
+          "window," + period.label,
+          "sales," + (period.netSales == null ? "" : period.netSales),
+          "spend," + (period.spend == null ? "" : period.spend),
+          "margin_percent," + Math.round(state.margin * 100),
+          "estimated_contribution," + contribution,
+          "cohort_30d_aov," + (period.ltvAov30 == null ? "" : period.ltvAov30),
+          "cohort_90d_aov," + (period.ltvAov90 == null ? "" : period.ltvAov90),
+          "repeat_30d," + (period.repeatRate30 == null ? "" : period.repeatRate30),
+          "cash_cac," + cac,
+          "returns," + returns,
+          "days_to_second,",
+          "payback_days,",
+          "order_keys,",
+        ];
+        var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "northline-sample-cohort.csv";
+        link.click();
       });
     }
     var pack = $("#dd-ledger-audit");
