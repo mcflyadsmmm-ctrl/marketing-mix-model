@@ -20,6 +20,7 @@ import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
 import { MonthlyPacing } from "../components/MonthlyPacing";
 import { PeriodControl } from "../components/PeriodControl";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { StoreCustomerCost } from "../components/StoreCustomerCost";
 import { SpendFindingStrip } from "../components/SpendFindingStrip";
 import {
   SpendExplorer,
@@ -60,6 +61,8 @@ import {
 import { formatCurrency, formatMer, formatSpendAmount } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
+import { reconciliationDayWindows } from "../lib/reconciliation-gap";
+import { readStoredOrderLanes } from "../lib/reconciliation-read.server";
 import {
   canUseChannel,
   getShopEntitlements,
@@ -498,7 +501,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ? requestedDate
       : yesterdayKey;
 
+  const month = reconciliationDayWindows(todayKey).mtd;
+  const orderLanes = sampleDesk.enabled
+    ? { draftNet: null, unknownNet: null, wholesaleNet: null as null }
+    : await readStoredOrderLanes({
+        shopId: shop.id,
+        since: month.since,
+        until: month.until,
+        sample: false,
+      });
+
   return {
+    orderLanes,
     entries,
     editing,
     recurring,
@@ -710,6 +724,7 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
 export default function SpendEntryPage() {
   const {
     entries,
+    orderLanes,
     editing,
     recurring,
     sampleDesk,
@@ -1035,6 +1050,16 @@ export default function SpendEntryPage() {
         <DeskLane rank="first" label={SPEND_FIRST_LANE_LABEL} hint="">
         {showRoas ? (
         <div className="mcfly-overview-first-beat mcfly-spend-first-beat">
+          <StoreCustomerCost
+            currency={currencyCode}
+            spend={hasSpend ? metrics.totalSpend : null}
+            newCustomers={
+              metrics.customerMetricsAvailable ? metrics.newCustomers : null
+            }
+            draftNet={orderLanes.draftNet}
+            unknownNet={orderLanes.unknownNet}
+            wholesaleNet={orderLanes.wholesaleNet}
+          />
           <SpendFirstViewport
             roasValue={roasValue}
             hasSpend={hasSpend}

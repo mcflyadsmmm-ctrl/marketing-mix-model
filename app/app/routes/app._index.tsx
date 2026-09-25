@@ -18,7 +18,11 @@ import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
 } from "../../scripts/shopify-app-path.mjs";
+import { ReconciliationDesk } from "../components/ReconciliationDesk";
+import { liveDeskSurfaceOpen } from "../lib/live-desk-surface";
+import { resolveLiveUnparkStage } from "../lib/live-unpark";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { readReconciliationWindows } from "../lib/reconciliation-read.server";
 import { EnterpriseScoreboard } from "../components/EnterpriseScoreboard";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
 import { OverviewDepthPeeks } from "../components/OverviewFirstViewport";
@@ -160,6 +164,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
+  const reconciliationPromise = readReconciliationWindows({
+    admin,
+    timeZone: ianaTimezone,
+    currency: shop.currencyCode,
+  });
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const orderBookDepth = useSampleDesk
     ? "paid_full"
@@ -618,7 +627,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     priorDaySales,
   });
 
+  const reconciliation = await reconciliationPromise;
+
   return {
+    reconciliation,
     metrics,
     salesError,
     todaySalesUnavailable,
@@ -686,6 +698,8 @@ export default function Dashboard() {
     orderHero,
     orderWindows = null,
     orderBookDepth,
+    reconciliation,
+    shopLabel,
   } = data;
   const requestScreen = shotMode
     ? null
@@ -834,6 +848,47 @@ export default function Dashboard() {
           .join(" ")}
       >
         {/* SAMPLE chip lives on the shell header. */}
+        {onHome && reconciliation ? (
+          <ReconciliationDesk
+            data={reconciliation}
+            shopName={shopLabel}
+            live={!useSampleDesk}
+            spendEntered={!useSampleDesk && metrics.onboarding.hasSpend}
+            spendPartial={
+              !useSampleDesk &&
+              metrics.onboarding.hasSpend &&
+              metrics.spendCoverage.incomplete
+            }
+            totalRoas={
+              !useSampleDesk &&
+              metrics.onboarding.hasSpend &&
+              !metrics.salesPending &&
+              metrics.mer != null &&
+              Number.isFinite(metrics.mer)
+                ? metrics.mer
+                : null
+            }
+            customerLtvAvailable={
+              useSampleDesk
+                ? true
+                : metrics.customerMetricsAvailable &&
+                  liveDeskSurfaceOpen({
+                    sampleDesk: false,
+                    stage: resolveLiveUnparkStage(),
+                    surface: "ltv",
+                  })
+            }
+            priorYearLoaded={
+              useSampleDesk
+                ? null
+                : orderHero != null &&
+                  orderHero.priorSales != null &&
+                  Number.isFinite(orderHero.priorSales)
+            }
+            trialEndsAt={null}
+          />
+        ) : null}
+
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
 
         {!marginBlocked ? (

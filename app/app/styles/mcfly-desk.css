@@ -22419,3 +22419,107 @@ button.mcfly-habit-goals__read:focus-visible {
     display: none;
   }
 }
+
+.mcfly-recon {
+  min-height: 28rem;
+  margin: 0 0 1.5rem;
+}
+
+.mcfly-recon__live h2,
+.mcfly-recon__roas {
+  margin: 0 0 0.35rem;
+}
+
+.mcfly-recon__state {
+  margin: 0.35rem 0 0.75rem;
+}
+
+.mcfly-recon__windows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.mcfly-recon__head h2,
+.mcfly-recon__costs h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mcfly-recon__status {
+  font-weight: 650;
+  margin-right: 0.5rem;
+}
+
+.mcfly-recon__def {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 450;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.mcfly-recon__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-recon__table th,
+.mcfly-recon__table td {
+  padding: 0.35rem 0.4rem;
+  vertical-align: top;
+}
+
+.mcfly-recon__table thead th,
+.mcfly-recon__table td {
+  text-align: right;
+}
+
+.mcfly-recon__table tbody th,
+.mcfly-recon__table thead th:first-child {
+  text-align: left;
+}
+
+.mcfly-recon__num {
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-recon__line {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mcfly-recon__mix {
+  display: block;
+}
+
+.mcfly-cohort-scroll {
+  overflow: auto;
+  max-height: 24rem;
+}
+
+.mcfly-cohort thead th {
+  position: sticky;
+  top: 0;
+  background: #e7eee9;
+  z-index: 1;
+}
+
+.mcfly-cohort tbody th {
+  position: sticky;
+  left: 0;
+  background: #e7eee9;
+  z-index: 1;
+}
+
+@media (max-width: 720px) {
+  .mcfly-recon__windows {
+    grid-template-columns: 1fr;
+  }
+}

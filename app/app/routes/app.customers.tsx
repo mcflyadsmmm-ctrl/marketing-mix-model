@@ -13,6 +13,7 @@ import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
 import { DeskLane } from "../components/DeskLane";
 import { CustomersCompareGlance } from "../components/CustomersCompareGlance";
+import { CohortGridTable } from "../components/CohortGridTable";
 import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
 import { CustomersGrowthSection } from "../components/CustomersGrowthSection";
 import {
@@ -31,7 +32,9 @@ import {
   LIVE_SALES_ERROR,
   loadedBookRangeLine,
 } from "../lib/merchant-book-progress";
+import { loadCohortBoard } from "../lib/cohort-grid.server";
 import { loadCustomersStackPage } from "../lib/desk-customers-stack.server";
+import { ensureShop } from "../lib/mer-dashboard.server";
 import {
   customersLivePageDecision,
   liveDeskLockedCopy,
@@ -72,12 +75,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const page = await loadCustomersStackPage(request, {
     includeLtv: decision.ltvOpen,
   });
+  const shop = await ensureShop(session.shop);
+  const sampleDesk = await getSampleDeskEnabled(session.shop);
+  const cohort = await loadCohortBoard({
+    shopId: shop.id,
+    timeZone: sampleDesk ? "UTC" : shop.ianaTimezone,
+    sample: sampleDesk,
+  });
   return {
     ...page,
     kind: "open" as const,
     ltvOpen: decision.ltvOpen,
     growthOpen: decision.growthOpen,
     liveStage: decision.stage,
+    cohort,
+    cohortCurrency: shop.currencyCode,
   };
 };
 
@@ -258,6 +270,7 @@ export default function CustomersPage() {
       <div id="mcfly-returning">
       <DeskLane rank="first" label={showCustomers ? PRODUCT_NOUN.buyersTitle : CUSTOMERS_FIRST_LANE_LABEL} hint="">
         <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
+          <CohortGridTable board={data.cohort} currency={data.cohortCurrency} />
           <CustomersFirstViewport
             analytics={analytics}
             book={book}
