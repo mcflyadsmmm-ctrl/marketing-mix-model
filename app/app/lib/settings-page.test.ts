@@ -53,18 +53,14 @@ describe("Settings page", () => {
     expect(settings).not.toContain("dataModeAction");
   });
 
-  it("types optional returning-$ only — LTV Target Line is the observed average", () => {
-    expect(settings).toContain("Order-history targets");
-    expect(settings).toContain('name="intent" value="save_habit_goals"');
-    expect(settings).not.toContain('name="ltvTarget"');
-    expect(settings).toContain('name="returningSalesTarget"');
-    expect(settings).toContain("LTV Target Line is");
-    expect(settings).toContain("observed average");
-    expect(settings).not.toContain('href="/app/goals"');
-    expect(settings).toContain("Desk targets");
+  it("does not ask for a target — that field lives on Goals", () => {
+    expect(settings).toContain("The one target lives on Goals");
+    expect(settings).not.toContain('name="intent" value="save_habit_goals"');
+    expect(settings).not.toContain('name="targetMer"');
+    expect(settings).not.toContain('name="returningSalesTarget"');
+    expect(settings).not.toContain("Order-history targets");
     expect(settings).not.toContain("Snowdevil stretch");
     expect(settings).not.toContain("SAMPLE_HABIT_RETURNING_TARGET");
-    expect(settings).not.toContain("? String(SAMPLE_HABIT_RETURNING_TARGET)");
   });
 
   it("does not ask merchants for profit margin, COGS, or break-even", () => {
@@ -75,26 +71,27 @@ describe("Settings page", () => {
     expect(settings).not.toMatch(/name="marginPct"/);
   });
 
-  it("plan block names 90 closed days vs paid 24 months, $39 after 7 days, one plan", () => {
+  it("plan block names one 24-month desk, $39 after 7 days, one plan", () => {
     expect(settings).toContain("TRIAL_VS_VIEW");
     expect(settings).toContain("BILLING_HONESTY.flat");
     expect(settings).toContain("aria-label=\"Your plan\"");
     expect(settings).not.toMatch(/full-access/);
-    expect(settings).toMatch(/\$39 per store \/ month after a 7-day trial/);
-    expect(settings).toMatch(/90 closed days|LIVE_UNPAID_INGEST_DAYS/);
+    expect(settings).toMatch(/7 days, then \$39/);
+    expect(settings).toMatch(/Trial and paid both keep the full desk/);
     expect(settings).toMatch(/24 months/);
     expect(settings).not.toContain("UnlockFullHistoryBanner");
     expect(entitlements).not.toMatch(/full-access/);
-    expect(entitlements).toMatch(/90 closed days|LIVE_UNPAID_INGEST_DAYS/);
+    expect(entitlements).toMatch(/Trial and paid keep/);
     expect(entitlements).toMatch(/24 months/);
     expect(entitlements).toMatch(/\$39/);
     expect(entitlements).toMatch(/7-day trial/);
   });
 
-  it("public /demo/settings says SAMPLE is paid-shaped and Live trial is 90 closed days", () => {
+  it("public /demo/settings says SAMPLE matches the live 24-month book", () => {
     expect(demoSettings).toContain('orderBookDepth="paid_full"');
-    expect(demoSettings).toMatch(/paid-shaped/);
-    expect(demoSettings).toMatch(/90 closed days|LIVE_UNPAID_INGEST_DAYS/);
+    expect(demoSettings).toMatch(/up to 24 months/);
+    expect(demoSettings).toMatch(/Trial and paid both keep/);
+    expect(demoSettings).toMatch(/full desk/);
     expect(demoSettings).toMatch(/\$39/);
     expect(demoSettings).not.toMatch(/full-access/);
     expect(demoSettings).not.toContain("UnlockFullHistoryBanner");

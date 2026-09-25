@@ -125,8 +125,8 @@ describe("overview first viewport", () => {
   it("coverage line names order book + 24mo orders, not a blanket 60d", () => {
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
     expect(overviewCoverageLine("paid_full")).toBe(OVERVIEW_COVERAGE_LINE);
-    expect(overviewCoverageLine("trial_slice")).toMatch(/90 closed days/);
-    expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
+    expect(overviewCoverageLine("trial_slice")).toBe("Up to 24 months of orders");
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/Trial|90 closed days/);
     expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/ShopifyQL|read_reports|day totals/i);
     expect(overviewCoverageLine("trial_slice")).not.toMatch(
       /ShopifyQL|read_reports|day totals/i,
@@ -145,7 +145,6 @@ describe("overview first viewport", () => {
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
     const mixAt = overview.indexOf("<OverviewMixForecast");
-    const shareAt = overview.indexOf("<ShareableInsightCards");
     const chartAt = overview.indexOf("<OverviewSalesChart");
     const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
@@ -156,8 +155,8 @@ describe("overview first viewport", () => {
     expect(chartAt).toBeGreaterThan(viewportAt);
     expect(overview).toContain("mcfly-overview-first-beat");
     expect(mixAt).toBeGreaterThan(yoyAt);
-    expect(shareAt).toBeGreaterThan(mixAt);
-    expect(depthAt).toBeGreaterThan(shareAt);
+    expect(overview).not.toContain("<ShareableInsightCards");
+    expect(depthAt).toBeGreaterThan(mixAt);
     expect(weekdayAt).toBeGreaterThan(depthAt);
     expect(yearAt).toBeGreaterThan(weekdayAt);
     expect(overview).toContain("orderHero");
@@ -168,9 +167,9 @@ describe("overview first viewport", () => {
     expect(overview).toContain("OVERVIEW_MIX_CLOSE_ID");
     expect(overview).toContain("id={DESK_SECTION.chart}");
     expect(overview).toContain('hint=""');
-    expect(overview).not.toContain('"/app/yoy"');
-    expect(overview).not.toContain('"/app/growth"');
-    expect(overview).not.toContain('"/app/ltv"');
+    expect(overview).toContain('"/app/yoy"');
+    expect(overview).toContain('"/app/growth"');
+    expect(overview).toContain('"/app/ltv"');
     expect(overview).not.toContain("<PeriodControl");
     expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");

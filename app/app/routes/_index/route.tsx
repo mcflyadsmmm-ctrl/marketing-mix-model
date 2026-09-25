@@ -13,7 +13,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Total ROAS = Shopify sales ÷ ad spend. Every platform including billboards. 7-day free trial, then $39/month for the whole desk.",
+      "Total ROAS = Shopify sales ÷ ad spend. Every platform including billboards. 7 days, then $39 for the whole desk.",
   },
   { name: "theme-color", content: "#f2f5f8" },
 ];
@@ -46,7 +46,7 @@ export default function AppLanding() {
         <p className={styles.lede}>
           Put spend from every platform — including billboards — next to
           Shopify sales. Break-even from margin, Customer LTV, and a full-year
-          Goals board. One plan: 7-day free trial, then $39/store/mo for the
+          Goals board. One plan: 7 days, then $39 for the
           whole desk via Shopify App Pricing.
         </p>
 

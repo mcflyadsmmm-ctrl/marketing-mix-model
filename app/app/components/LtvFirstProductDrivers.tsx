@@ -68,7 +68,7 @@ export function LtvFirstProductDrivers({
   if (!showTable && !empty) return null;
 
   const source = useSampleDesk
-    ? "From SAMPLE Snowdevil orders. Shopify orders only, no spend."
+    ? "From Sample shop orders. Shopify orders only, no spend."
     : "From this shop’s Shopify orders. No spend required.";
 
   return (

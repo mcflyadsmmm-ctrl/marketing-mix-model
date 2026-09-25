@@ -141,6 +141,15 @@ export async function claimNextJob(
           WHERE running."shopId" = c."shopId"
             AND running.status = 'running'::"JobStatus"
         )
+        AND NOT (
+          c.type IN ('backfill_order_facts', 'backfill_sales_day_facts')
+          AND EXISTS (
+            SELECT 1
+            FROM "Job" backfill
+            WHERE backfill.status = 'running'::"JobStatus"
+              AND backfill.type IN ('backfill_order_facts', 'backfill_sales_day_facts')
+          )
+        )
       ORDER BY c."runAfter" ASC, c."createdAt" ASC
       FOR UPDATE SKIP LOCKED
       LIMIT 1

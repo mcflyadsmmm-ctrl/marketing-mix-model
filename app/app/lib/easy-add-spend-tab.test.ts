@@ -21,14 +21,16 @@ describe("Spend day card", () => {
     expect(labels).toContain('uploadSpend: "Upload Spend"');
     expect(labels).toContain('setupAddSpend: "Upload Spend"');
     expect(appShell).toContain("DESK_PRIMARY_NAV");
-    expect(spend).toContain('heading="Spend"');
+    expect(spend).toContain("heading={pageHeading}");
+    expect(spend).toContain(': "Spend"');
     expect(spend).not.toContain("heading={PRODUCT_NOUN.marketingSection}");
     expect(spend).toContain("Same numbers above");
     expect(spend).not.toContain("Same numbers on Overview");
   });
 
   it("contrasts Shopify Analytics with typed, uploaded, or daily-rate spend, not Ads Manager login", () => {
-    expect(spend).toContain('heading="Spend"');
+    expect(spend).toContain("heading={pageHeading}");
+    expect(spend).toContain(': "Spend"');
     expect(spend).toContain("SPEND_ANALYTICS_CONTRAST");
     expect(spend).toContain("SPEND_UPLOAD_CONTRAST");
     expect(spend).toContain("Days with no row have no spend entered");
@@ -49,7 +51,7 @@ describe("Spend day card", () => {
     expect(spend).toContain("<DeskLane");
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
     expect(spend).toMatch(
-      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+      /defaultOpen=\{\s*shotMode \|\|[\s\S]*spendPanel === "mix" \|\|[\s\S]*spendPanel === "cpa"\s*\}/,
     );
     expect(spend).toContain('rank="more"');
     const firstAdd = spend.indexOf('id="mcfly-spend-add"');
@@ -57,7 +59,8 @@ describe("Spend day card", () => {
     const cpaAt = spend.indexOf('id="mcfly-cpa"');
     const explorerAt = spend.indexOf('id="mcfly-explorer"');
     expect(firstAdd).toBeGreaterThan(-1);
-    expect(explorerAt).toBeLessThan(firstAdd);
+    expect(spend.indexOf("<SpendFirstViewport")).toBeLessThan(firstAdd);
+    expect(firstAdd).toBeLessThan(explorerAt);
     expect(firstAdd).toBeLessThan(mixAt);
     expect(firstAdd).toBeLessThan(cpaAt);
     const firstLaneStart = spend.indexOf('<DeskLane rank="first"');
@@ -400,8 +403,9 @@ describe("Total ROAS page", () => {
     const roas = read("../routes/app.roas.tsx");
     const spend = read("../routes/app.spend.tsx");
     const viewport = read("../components/SpendFirstViewport.tsx");
-    expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
+    expect(roas).toContain("spendLoader");
     expect(roas).toContain("requireAdmin");
+    expect(roas).not.toContain("throw redirect");
     expect(roas).not.toContain("<SpendExplorer");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<DualCloseLine");
@@ -410,7 +414,8 @@ describe("Total ROAS page", () => {
     expect(spend).toContain("formatTotalRoasEquation");
     expect(viewport).toContain("formatSpendOnFile");
     expect(spend).toContain("SpendFindingStrip");
-    expect(spend).toContain("quiet={false}");
+    expect(spend).toContain("quiet");
+    expect(spend).not.toContain("quiet={false}");
     expect(spend).toContain('href="#mcfly-spend-add"');
     expect(spend).toContain("mcfly-spend-add");
     expect(spend).not.toContain("0.00×");
@@ -431,18 +436,16 @@ describe("Total ROAS page", () => {
 describe("Goals, CPA, and Allocation honesty", () => {
   it("keeps Goals pace on a certified $0 month instead of a pending shell", () => {
     const goals = read("../routes/app.goals.tsx");
-    expect(goals).toContain("salesCoverage: periodSalesCoverage");
-    expect(goals).toContain("Still loading — not $0");
-    expect(goals).toContain("pace vs your typed plan");
-    expect(goals).toContain("Certified $0");
-    expect(goals).toContain("<SalesGoalGauges");
-    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).toContain("No target saved.");
+    expect(goals).not.toContain("<SalesGoalGauges");
   });
 
   it("keeps CPA/CAC as dashes without spend and cards once spend exists on Spend", () => {
     const cpa = read("../routes/app.cpa.tsx");
     const spend = read("../routes/app.spend.tsx");
-    expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
+    expect(cpa).toContain("spendLoader");
+    expect(cpa).not.toContain("throw redirect");
     expect(spend).toContain("cpaHasSpend ? (");
     expect(spend).toContain("<CpaWindowCards");
     expect(spend).toContain("<CpaPaybackDesk");
@@ -455,7 +458,8 @@ describe("Goals, CPA, and Allocation honesty", () => {
     const allocation = read("../routes/app.allocation.tsx");
     const spend = read("../routes/app.spend.tsx");
     const mix = read("../components/SpendMixSection.tsx");
-    expect(allocation).toContain('spendPanelRedirectPath(request.url, "mix"');
+    expect(allocation).toContain("spendLoader");
+    expect(allocation).not.toContain("throw redirect");
     expect(spend).toContain("salesFactsIncomplete");
     expect(mix).toContain("salesFactsIncomplete");
     expect(mix).toContain("<SpendMixPlan");

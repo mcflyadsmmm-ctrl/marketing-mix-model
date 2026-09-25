@@ -1,3 +1,8 @@
+import {
+  bookLoadHonestyLine,
+  customersBookRangeLine,
+} from "./book-window";
+
 /**
  * Trust-banner copy — keep first-run incomplete coverage from looking like a 404.
  * Reviewers saw “Sales loaded for 0 of 23 days” right after install (App Store 2.1.1 tape).
@@ -34,6 +39,12 @@ export type OrderHistoryProgressInput = {
   completeDays: number;
   windowDays: number;
   remainingDays: number;
+  /** Closed months fully sealed. Present on the live order crawl. */
+  monthsFinished?: number;
+  bookSealed?: boolean;
+  historyLimited?: boolean;
+  /** Customers and LTV name a partial range until the book is sealed. */
+  customersRange?: boolean;
 };
 
 /**
@@ -43,6 +54,24 @@ export type OrderHistoryProgressInput = {
 export function orderHistoryProgressMessage(
   input: OrderHistoryProgressInput,
 ): { heading: string; body: string } | null {
+  if (
+    typeof input.monthsFinished === "number" ||
+    typeof input.bookSealed === "boolean"
+  ) {
+    const honesty = {
+      monthsFinished: Math.max(0, Math.floor(input.monthsFinished ?? 0)),
+      bookSealed: Boolean(input.bookSealed),
+      historyLimited: Boolean(input.historyLimited),
+    };
+    const status = bookLoadHonestyLine(honesty);
+    const range = input.customersRange ? customersBookRangeLine(honesty) : null;
+    const body = range && range !== status ? `${status} ${range}` : status;
+    return {
+      heading: honesty.bookSealed ? "Order history" : "Older months still loading",
+      body,
+    };
+  }
+
   const completeDays = Math.max(0, Math.floor(input.completeDays));
   const windowDays = Math.max(0, Math.floor(input.windowDays));
   const remainingDays = Math.max(0, Math.floor(input.remainingDays));

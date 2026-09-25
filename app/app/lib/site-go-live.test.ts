@@ -115,16 +115,14 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     const support = readFileSync(join(siteRoot, "support.html"), "utf8");
     const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
     const privacy = readFileSync(join(siteRoot, "privacy.html"), "utf8");
-    expect(support).toMatch(/Try the demo|full Snowdevil demo/i);
-    expect(support).toMatch(/every platform/i);
+    expect(support).toMatch(/Try the demo|full Sample shop demo/i);
+    expect(support).toMatch(/Meta, Google, Email, or Other/);
     expect(support).toMatch(/\$39/);
     expect(support).toMatch(/no.{0,40}shop-domain form/i);
-    expect(pricing).toMatch(/every platform/i);
+    expect(pricing).toMatch(/Meta, Google, Email, or Other/);
     expect(pricing).toMatch(/\$39/);
-    expect(pricing).toMatch(/7-day/);
-    expect(pricing).toMatch(
-      /Trial includes 90 days of order history; paid includes up to 24 months/,
-    );
+    expect(pricing).toMatch(/7 days, then \$39/);
+    expect(pricing).toMatch(/Trial and paid both keep the full desk/);
     expect(pricing).not.toMatch(/full-access/i);
     expect(pricing).not.toMatch(/Trial includes 24 months/);
     expect(pricing).not.toMatch(/\$79/);
@@ -132,13 +130,16 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     expect(privacy).toMatch(/read_customers/);
   });
 
-  it("names 90 days on trial vs 24 months paid — never a 24-month trial", () => {
+  it("uses one trial sentence and never calls 90 days a trial", () => {
     const index = readFileSync(join(siteRoot, "index.html"), "utf8");
     const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
-    const history =
-      /Trial includes 90 days of order history; paid includes up to 24 months/;
+    const history = /7 days, then \$39/;
     expect(index).toMatch(history);
     expect(pricing).toMatch(history);
+    expect(index).toMatch(/Trial and paid both keep the full desk/);
+    expect(pricing).toMatch(/current cycle may still charge/);
+    expect(index).not.toMatch(/90 days/i);
+    expect(pricing).not.toMatch(/90 days/i);
     expect(index).not.toMatch(/Trial includes 24 months/);
     expect(pricing).not.toMatch(/Trial includes 24 months/);
   });

@@ -17,8 +17,13 @@ import { OVERVIEW_FROM_ORDERS_LABEL } from "./overview-order-book";
 import { deskAnalyticsDayTotalsLive } from "./shopify-analytics-totals";
 import { shopLocalDayKey, shopLocalDayRange } from "./shop-local-day";
 
-/** Unknown ShopifyQL total — never a painted $0. */
-export const OVERVIEW_SHOPIFY_CLOCK_PENDING = "Still loading — not $0.";
+/** Unknown ShopifyQL total — name the window, never a painted $0. */
+export const OVERVIEW_SHOPIFY_CLOCK_PENDING =
+  "Shopify Total Sales for this window still loading — not $0.";
+
+/** This month’s stored sales are on screen while older closed days are still filling. */
+export const OVERVIEW_SHOPIFY_CLOCK_PARTIAL =
+  "Closed-day sales for this window still loading";
 
 export type OverviewShopifyPeriodClock = {
   label: typeof OVERVIEW_PERIOD_TOTAL_LABEL;
@@ -96,18 +101,30 @@ export function buildOverviewShopifyPeriodClock(input: {
       : OVERVIEW_LAST_YEAR_NOT_ON_FILE;
 
   const todayOk = !input.periodIncludesToday || input.todayShopifyTotalKnown;
+  const finiteTotal = finiteNumber(input.shopifyPeriodTotal);
   const periodReady =
     input.coverageComplete &&
     !input.periodExceedsFactWindow &&
     !input.factsPending &&
     todayOk &&
-    finiteNumber(input.shopifyPeriodTotal);
-  const periodSales = periodReady ? input.shopifyPeriodTotal : null;
+    finiteTotal;
+  // This month’s stored sales show before the one-time 24-month pull finishes.
+  // A missing total stays blank, not $0.
+  const storedWhileBackfill =
+    !periodReady &&
+    todayOk &&
+    !input.periodExceedsFactWindow &&
+    finiteTotal &&
+    input.shopifyPeriodTotal > 0;
+  const periodSales =
+    periodReady || storedWhileBackfill ? input.shopifyPeriodTotal : null;
   const periodNote = periodReady
     ? null
-    : input.factsPending
-      ? OVERVIEW_SHOPIFY_CLOCK_PENDING
-      : OVERVIEW_LAST_YEAR_NOT_ON_FILE;
+    : storedWhileBackfill
+      ? OVERVIEW_SHOPIFY_CLOCK_PARTIAL
+      : input.factsPending
+        ? OVERVIEW_SHOPIFY_CLOCK_PENDING
+        : OVERVIEW_LAST_YEAR_NOT_ON_FILE;
 
   return {
     label: OVERVIEW_PERIOD_TOTAL_LABEL,

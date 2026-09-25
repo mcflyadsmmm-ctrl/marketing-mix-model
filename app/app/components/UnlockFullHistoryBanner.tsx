@@ -1,23 +1,22 @@
 import { ProUpgradeButton } from "./ProUpgradeButton";
-import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 
 /**
- * Unpaid / trial shops stop at {@link LIVE_UNPAID_INGEST_DAYS} closed days
- * of order rows. Paid is up to 24 months. Flat $39. One plan.
+ * Billing does not shorten the book. Trial and paid share Customers, LTV,
+ * and up to 24 months of orders. Flat $39. One plan.
  */
 export function UnlockFullHistoryBanner() {
   return (
     <section
       className="mcfly-state mcfly-state--empty mcfly-state--soft"
-      aria-label={`Trial is ${LIVE_UNPAID_INGEST_DAYS} closed days`}
+      aria-label="Trial and paid keep 24 months of orders"
     >
       <p className="mcfly-state__copy">
         <strong>
-          This unpaid till is {LIVE_UNPAID_INGEST_DAYS} closed days of order rows.
+          Trial and paid keep the same desk: Customers, LTV, and up to 24
+          months of orders.
         </strong>{" "}
-        Paid is up to 24 months of orders. After the trial, $39 per store /
-        month keeps the longer book. The price does not rise with sales. One
-        plan.
+        7 days, then $39. Spend stays optional. The price
+        does not rise with sales. One plan.
       </p>
       <div className="mcfly-state__cta">
         <ProUpgradeButton

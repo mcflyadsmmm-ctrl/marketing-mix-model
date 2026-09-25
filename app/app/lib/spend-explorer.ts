@@ -5,7 +5,6 @@
 
 import type { PeriodPreset } from "./periods";
 import type { LiveIngestDepth } from "./live-ingest-depth";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
@@ -131,20 +130,19 @@ export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
     { value: "All", label: "All" },
   ];
 
-/** Year-length chips that sell a finished year on a 90-day unpaid book. */
+/** Year-length chips. Trial and paid both keep them. */
 export function explorerSellsFinishedYear(range: ExplorerRange): boolean {
   return range === "YTD" || range === "1y" || range === "All";
 }
 
 export function explorerRangeAllowedOnBook(
-  range: ExplorerRange,
+  _range: ExplorerRange,
   orderBookDepth: LiveIngestDepth,
 ): boolean {
   switch (orderBookDepth) {
     case "paid_full":
-      return true;
     case "trial_slice":
-      return !explorerSellsFinishedYear(range);
+      return true;
     default: {
       const _never: never = orderBookDepth;
       return _never;
@@ -173,9 +171,8 @@ export function explorerYearChipNote(
 ): string | null {
   switch (orderBookDepth) {
     case "paid_full":
-      return null;
     case "trial_slice":
-      return `${LIVE_UNPAID_INGEST_DAYS} closed days of order rows on this unpaid till. This year / 1 year / All wait until you pay — day totals vs order rows.`;
+      return null;
     default: {
       const _never: never = orderBookDepth;
       return _never;
@@ -191,7 +188,7 @@ export const EXPLORER_GRANULARITY_OPTIONS: {
   { value: "Week", label: "Week" },
   { value: "Weekday", label: "Weekday" },
   { value: "Month", label: "Month" },
-  { value: "Quarter", label: "Quarter" },
+  { value: "Quarter", label: "Chart quarter" },
 ];
 
 export const EXPLORER_MODE_OPTIONS: { value: ExplorerMode; label: string }[] = [
@@ -1280,16 +1277,54 @@ function formatPeriodCopy(opts: {
   lastYear: number | null;
   previousWeek: number | null;
   money: (n: number) => string;
+  lastYearPhrase?: string;
+  missingPhrase?: string;
 }): string | null {
   if (opts.current == null) return null;
   const currentText = `Shopify Total Sales ${opts.label} is ${opts.money(opts.current)}`;
   if (opts.lastYear != null) {
-    return `${currentText} versus ${opts.money(opts.lastYear)} the same weekdays last year.`;
+    return `${currentText} versus ${opts.money(opts.lastYear)} ${opts.lastYearPhrase ?? "the same weekdays last year"}.`;
   }
   if (opts.previousWeek != null) {
     return `${currentText} versus ${opts.money(opts.previousWeek)} last week (same weekdays last year not on file).`;
   }
-  return `${currentText}. Same weekdays last year and last week are not on file.`;
+  return `${currentText}. ${opts.missingPhrase ?? "Same weekdays last year and last week are not on file."}`;
+}
+
+function calendarLastYearKeys(keys: readonly string[]): string[] | null {
+  const shifted: string[] = [];
+  for (const key of keys) {
+    if (!DATE_KEY_RE.test(key)) return null;
+    const year = Number(key.slice(0, 4)) - 1;
+    const month = Number(key.slice(5, 7));
+    const day = Number(key.slice(8, 10));
+    const probe = new Date(Date.UTC(year, month - 1, day));
+    if (
+      probe.getUTCFullYear() !== year ||
+      probe.getUTCMonth() !== month - 1 ||
+      probe.getUTCDate() !== day
+    ) {
+      return null;
+    }
+    shifted.push(`${String(year).padStart(4, "0")}-${key.slice(5, 7)}-${key.slice(8, 10)}`);
+  }
+  return shifted;
+}
+
+/** Last year prints only when every day of that window is on file. */
+function sumCompleteSales(
+  salesByDay: ReadonlyMap<string, number>,
+  keys: readonly string[] | null,
+): number | null {
+  if (keys == null || keys.length === 0) return null;
+  let sum = 0;
+  for (const key of keys) {
+    if (!salesByDay.has(key)) return null;
+    const amount = salesByDay.get(key);
+    if (amount == null || !Number.isFinite(amount)) return null;
+    sum += amount;
+  }
+  return round2(sum);
 }
 
 export type ExplorerWeekMonthCopy = {
@@ -1316,10 +1351,6 @@ export function explorerWeekMonthCopyText(opts: {
     weekKeys,
     EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS,
   );
-  const lastYearMonthKeys = shiftedKeys(
-    monthKeys,
-    EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS,
-  );
   const week = formatPeriodCopy({
     label: "this week",
     current: sumSalesOnFile(opts.salesByDay, weekKeys),
@@ -1330,9 +1361,14 @@ export function explorerWeekMonthCopyText(opts: {
   const month = formatPeriodCopy({
     label: "this month",
     current: sumSalesOnFile(opts.salesByDay, monthKeys),
-    lastYear: sumSalesOnFile(opts.salesByDay, lastYearMonthKeys),
-    previousWeek: sumSalesOnFile(opts.salesByDay, prevWeekKeys),
+    lastYear: sumCompleteSales(
+      opts.salesByDay,
+      calendarLastYearKeys(monthKeys),
+    ),
+    previousWeek: null,
     money: opts.money,
+    lastYearPhrase: "the same dates last year",
+    missingPhrase: "Same dates last year are not on file.",
   });
   if (!week && !month) return null;
   const combined = [week, month].filter(Boolean).join("\n");

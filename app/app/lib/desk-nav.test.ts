@@ -58,15 +58,17 @@ describe("deskNavHref", () => {
 describe("DESK_PRIMARY_NAV", () => {
   it("locks three analysis tabs then Settings — Spend not Spend Upload", () => {
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
-      "Home",
-      "Customers",
+      "Orders",
       "Spend",
+      "Goals",
+      "Customers",
       "Settings",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.path)).toEqual([
       "/app",
-      "/app/customers",
       "/app/spend",
+      "/app/goals",
+      "/app/customers",
       "/app/settings",
     ]);
     expect(DESK_PRIMARY_NAV.every((item) => !item.hash)).toBe(true);
@@ -89,16 +91,17 @@ describe("DESK_PRIMARY_NAV", () => {
       "Total ROAS",
     );
     expect(DESK_TOP_NAV.map((item) => item.label)).not.toContain("Settings");
-    expect(DESK_TOP_NAV).toHaveLength(3);
+    expect(DESK_TOP_NAV).toHaveLength(4);
     expect(DESK_IFRAME_NAV.map((item) => item.path)).toEqual(
       DESK_TOP_NAV.map((item) => item.path),
     );
     expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
-      "Home",
-      "Customers",
+      "Orders",
       "Spend",
+      "Goals",
+      "Customers",
     ]);
-    expect(DESK_IFRAME_NAV[1]?.label).toBe("Customers");
+    expect(DESK_IFRAME_NAV[1]?.label).toBe("Spend");
     expect(isDeskNavActive("/app", "/app")).toBe(true);
     expect(isDeskNavActive("/app", "/app/customers")).toBe(false);
     expect(isDeskNavActive("/app/customers", "/app/customers")).toBe(true);
@@ -111,13 +114,15 @@ describe("DESK_PRIMARY_NAV", () => {
     );
     expect(shell).toContain("<s-app-nav>");
     expect(shell).toContain("<DeskTopTabs");
-    expect(shell).toContain("3 analysis tabs + Settings");
+    expect(shell).toContain("Orders, Spend, Goals, Customers, plus Settings");
     const tabs = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../components/DeskTopTabs.tsx"),
       "utf8",
     );
     expect(tabs).toContain("DESK_IFRAME_NAV");
-    expect(tabs).toContain("<DeskPanelRail");
+    expect(tabs).not.toContain("<DeskPanelRail");
+    expect(tabs).toContain('data-desk-tab={item.path}');
+    expect(tabs).toContain('prefetch="intent"');
     expect(tabs).toContain("<Link");
     expect(tabs).toContain("mcfly-desk-tabs--pills");
     expect(tabs).not.toContain("scrollIntoView");
@@ -158,19 +163,25 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(overview).not.toContain("Same dates as Overview");
   });
 
-  it("retired tool hashes land on Overview home", () => {
+  it("retired tool hashes open that tool, and Orders stays Orders", () => {
     expect(deskStageFromHash("")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-ledger")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-compare")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-mix")).toBe(DESK_SECTION.overview);
-    expect(deskStageFromHash("#mcfly-plan")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#mcfly-ledger")).toBe(DESK_SECTION.ledger);
+    expect(deskStageFromHash("#mcfly-compare")).toBe(DESK_SECTION.compare);
+    expect(deskStageFromHash("#mcfly-mix")).toBe(DESK_SECTION.mix);
+    expect(deskStageFromHash("#mcfly-plan")).toBe(DESK_SECTION.plan);
     expect(deskStageFromHash("mcfly-orders")).toBe(DESK_SECTION.overview);
     expect(deskStageFromHash("#nope")).toBe(DESK_SECTION.overview);
     expect(isOverviewHomeStage(DESK_SECTION.overview)).toBe(true);
     expect(isOverviewHomeStage(DESK_SECTION.chart)).toBe(true);
     expect(isOverviewHomeStage(DESK_SECTION.ledger)).toBe(false);
-    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Overview");
-    expect(deskStageHeading(DESK_SECTION.overview)).toBe("Overview");
+    expect(deskStageHeading(DESK_SECTION.compare)).toBe("Compare");
+    expect(deskStageHeading(DESK_SECTION.ledger)).toBe("Ledger");
+    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Mix");
+    expect(deskStageHeading(DESK_SECTION.plan)).toBe("Plan");
+    expect(deskStageHeading(DESK_SECTION.overview)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.orders)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.ltv)).toBe("Orders");
+    expect(deskStageHeading(DESK_SECTION.goals)).toBe("Orders");
   });
 
   it("keeps a helper for Overview section hashes", () => {
@@ -193,9 +204,11 @@ describe("DESK_PRIMARY_NAV", () => {
       "utf8",
     );
     expect(orders).toMatch(/throw redirect\(`\$\{home\}/);
-    expect(goals).toMatch(/throw redirect\(`\/app\/settings/);
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).not.toMatch(/throw redirect\(`\/app\/settings/);
     expect(demoOrders).toMatch(/throw redirect\(`\$\{home\}/);
-    expect(demoGoals).toMatch(/throw redirect\(`\$\{settings\}/);
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).not.toMatch(/throw redirect/);
   });
 
   it("compactDeskRedirect keeps search params, sets panel, and maps /demo", () => {

@@ -6,6 +6,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 import { wholePercent } from "../lib/customers-scoreboard";
+import { returningMixPendingLine } from "../lib/desk-request-screen";
 
 function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
@@ -112,7 +113,7 @@ export function CustomersScoreboard({
   depth,
   periodLabel,
   salesPending,
-  useSampleDesk,
+  useSampleDesk: _useSampleDesk,
   growthHref = "#mcfly-growth",
   ltvHref = "#mcfly-ltv",
   ltvNextLabel = "Open LTV",
@@ -126,6 +127,7 @@ export function CustomersScoreboard({
   ltvHref?: string;
   ltvNextLabel?: string;
 }) {
+  void _useSampleDesk;
   const currency = useDeskCurrency();
   const returning = isNum(book.returningSales) && book.returningSales > 0 ? book.returningSales : null;
   const returningValue = salesPending || returning == null ? "—" : formatCurrency(returning, currency);
@@ -142,16 +144,8 @@ export function CustomersScoreboard({
     : isNum(book.returningBuyerArpu)
       ? money(book.returningBuyerArpu)
       : money(book.newBuyerArpu);
-  const perBuyerNote =
-    !salesPending && isNum(book.newBuyerArpu) && isNum(book.returningBuyerArpu)
-      ? `New ${money(book.newBuyerArpu)} · returning ${money(book.returningBuyerArpu)}`
-      : undefined;
   const guests =
     !salesPending && book.guestOrders > 0 && hasShare(book.guestShare) ? pct(book.guestShare) : "—";
-  const guestNote =
-    !salesPending && isNum(depth.guestAov) && isNum(depth.identifiedAov)
-      ? `Typical ${money(depth.guestAov)} vs ${money(depth.identifiedAov)} with an account`
-      : undefined;
   const biggest =
     !salesPending && hasShare(depth.topDecileSalesShare)
       ? pct(depth.topDecileSalesShare)
@@ -167,7 +161,7 @@ export function CustomersScoreboard({
       <div className="mcfly-panel__head">
         <h2>Returning customers</h2>
         <p className="mcfly-panel__muted">
-          {periodLabel} · dollars, not headcount{useSampleDesk ? " · Sample data" : ""}
+          {periodLabel} · dollars, not headcount
         </p>
       </div>
 
@@ -176,19 +170,18 @@ export function CustomersScoreboard({
 
         <div className="mcfly-cust-facts">
           <Fact
-            label="Guests"
+            label={`Guests · ${periodLabel}`}
             value={guests}
-            note={guestNote}
             icon="customers"
-            formula="Share of orders placed without a customer account — guests can never count as returning."
+            formula="Share of orders placed without a customer account in this window. Guests stay out of returning dollars."
             next="Growth covers who came back after a first order."
             nextHref={growthHref}
             nextLabel="Open Growth"
           />
           <Fact
-            label="Sales per buyer"
+            label={`Sales per buyer · ${periodLabel}`}
             value={perBuyer}
-            note={perBuyerNote}
+            note={periodLabel}
             icon="customers"
             formula="Window sales dollars per unique buyer — new and returning spend differently."
             next="LTV tracks what a new buyer is worth over 30 / 90 / 365 days."
@@ -209,7 +202,11 @@ export function CustomersScoreboard({
       {empty ? (
         <p className="mcfly-cust-empty__copy">
           {salesPending
-            ? "Returning dollars are still loading — not $0."
+            ? returningMixPendingLine(
+                periodLabel.trim()
+                  ? `the weeks in ${periodLabel}`
+                  : "this week",
+              )
             : "Returning dollars need identified buyers in this window — not $0."}
         </p>
       ) : null}

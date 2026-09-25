@@ -752,8 +752,8 @@ describe("Goals leftover honesty locks", () => {
   it("does not mount a fake twelve-month $0 Admin plan on public demo Goals", () => {
     const demo = read("../routes/demo.goals.tsx");
     expect(demo).not.toMatch(/Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/);
-    expect(demo).toContain("mcfly-goals-table");
-    expect(demo).toContain("buildGoalMonthRows");
+    expect(demo).toContain('name="targetMer"');
+    expect(demo).not.toMatch(/throw redirect/);
     expect(demo).not.toMatch(/Same year plan as Admin/);
     expect(demo).not.toMatch(/\$800k/);
     expect(demo).not.toMatch(/800_000/);
@@ -762,10 +762,8 @@ describe("Goals leftover honesty locks", () => {
   it("keeps ThisMonthPlanStack copy on Admin and habit copy on the order-history board", () => {
     const goals = read("../routes/app.goals.tsx");
     const board = read("../components/OrderHistoryGoalsBoard.tsx");
-    expect(goals).toContain("ThisMonthPlanStack");
-    expect(goals).toContain("thisMonthPlanCopyText");
-    expect(goals).toContain("typedGoalAmount");
-    expect(goals).toContain("Copy plan");
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).toContain("No target saved.");
     expect(board).toContain("CopyMorningSentence");
     expect(board).toContain("morningSentence");
   });

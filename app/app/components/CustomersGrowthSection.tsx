@@ -15,15 +15,16 @@ import {
   growthOrderDepthBars,
   growthStandupCopyText,
   type GrowthMonthBar,
+  type QuotedComebackWindow,
 } from "../lib/growth-comeback";
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import type { GrowthTt2View } from "../lib/growth-tt2";
 import {
-  growthTt2HistoryLine,
-  growthTt2Read,
-  type GrowthTt2View,
-} from "../lib/growth-tt2";
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import {
   daysToSecondSlackInsight,
   firstTimeSlackInsight,
@@ -54,6 +55,8 @@ export function CustomersGrowthSection({
   quietBack,
   comebackWait,
   lifetimeSpan,
+  windowDays,
+  quotedComeback = null,
 }: {
   book: ShopifyNativePeriodStats;
   tt2: GrowthTt2View;
@@ -75,19 +78,25 @@ export function CustomersGrowthSection({
   quietBack: QuietBackView;
   comebackWait: ComebackNextWait;
   lifetimeSpan: BuyerLifetimeSpan;
+  /** Period already on screen. Days to a second order uses this wait only. */
+  windowDays: CustomersWindowDays;
+  /** Customers-analytics come-back. Growth quotes this window, not the full book. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
   const currency = useDeskCurrency();
   const orderDepthBars = growthOrderDepthBars(depth);
   const firstOrderMonths =
     months ?? growthFirstOrderMonths(cohorts ?? []);
-  const read = salesPending && !tt2.available ? null : growthTt2Read(tt2);
-  const daysSlack = daysToSecondSlackInsight({
-    typicalDays: read?.typicalDays ?? null,
-    readLine: read?.line ?? null,
-    shopLabel,
-    sample: useSampleDesk,
-    where: growthTt2HistoryLine(tt2),
-  });
+  const windowCopy = salesPending ? null : customersDaysToSecondCopy(windowDays);
+  const daysSlack = windowCopy
+    ? daysToSecondSlackInsight({
+        typicalDays: windowDays.days,
+        readLine: windowCopy.line,
+        shopLabel,
+        sample: useSampleDesk,
+        where: windowDays.label,
+      })
+    : null;
   const firstTimeSlack = firstTimeSlackInsight({
     line: growthStandupCopyText({
       salesPending,
@@ -96,7 +105,7 @@ export function CustomersGrowthSection({
       secondShare: depth.secondOrderBuyerShare,
       thirdShare: depth.thirdPlusBuyerShare,
       reachNow: tt2.reachNow,
-      clockAvailable: !tt2.empty && tt2.available,
+      clockAvailable: false,
     }),
     shopLabel,
     sample: useSampleDesk,
@@ -111,6 +120,7 @@ export function CustomersGrowthSection({
           tt2={tt2}
           salesPending={Boolean(salesPending)}
           useSampleDesk={useSampleDesk}
+          windowDays={windowDays}
         />
         <SlackInsightCard insight={daysSlack} shotMode={shotMode} />
       </div>
@@ -124,6 +134,8 @@ export function CustomersGrowthSection({
         drillNext="What each first order is worth in 30 / 90 / 365 days sits on this page."
         drillHref="#mcfly-ltv"
         drillLabel={PRODUCT_NOUN.openLtv}
+        windowDays={windowDays}
+        quotedComeback={quotedComeback}
       />
       <GrowthScoreboard
         book={book}
@@ -136,11 +148,17 @@ export function CustomersGrowthSection({
         quietBack={quietBack}
         comebackWait={comebackWait}
         lifetimeSpan={lifetimeSpan}
-        reachNow={tt2.reachNow}
-        clockAvailable={!tt2.empty && tt2.available}
+        reachNow={quotedComeback?.saveNowOneOrder ?? tt2.reachNow}
+        clockAvailable={false}
+        windowDays={windowDays}
+        quotedComeback={quotedComeback}
       />
       {firstTimeSlack ? <SlackInsightCard insight={firstTimeSlack} shotMode={shotMode} /> : null}
-      <GrowthTt2Board tt2={tt2} />
+      <GrowthTt2Board
+        tt2={tt2}
+        windowDays={windowDays}
+        quotedComeback={quotedComeback}
+      />
       <GrowthOrderStepsBoard steps={orderSteps} />
     </>
   );

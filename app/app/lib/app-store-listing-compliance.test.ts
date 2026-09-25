@@ -44,11 +44,13 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     }
   });
 
-  it("sales-first paste still names billboards and refuses platform ROAS", () => {
+  it("sales-first paste names the demo channels and refuses platform ROAS", () => {
     expect(short).toMatch(/typical order/i);
-    expect(short).toMatch(/billboard/i);
-    expect(features).toMatch(/billboard/i);
-    expect(long).toMatch(/billboard/i);
+    expect(short).toMatch(/Meta, Google, Email, or Other/);
+    expect(features).toMatch(/Meta, Google, Email, or Other/);
+    expect(long).toMatch(/Meta, Google, Email, and Other/);
+    expect(long).not.toMatch(/billboard|TikTok|Affiliate/i);
+    expect(short).not.toMatch(/billboard|TikTok/i);
     expect(long).not.toMatch(/paid plan unlocks every named/i);
     expect(long).not.toMatch(/paid plan/i);
     expect(long).not.toMatch(/\bone plan\b/i);

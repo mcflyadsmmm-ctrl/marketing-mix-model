@@ -1,3 +1,7 @@
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { VerticalBars } from "./CustomerCharts";
@@ -110,7 +114,7 @@ function RetentionEmptyFrame() {
       </div>
       <p className="mcfly-cust-empty__copy">
         Repurchase cadence needs identified buyers with a second order on file —
-        not $0. Snowdevil SAMPLE fills this in; a fresh live shop fills in as
+        not $0. Sample shop fills this in; a fresh live shop fills in as
         orders land.
       </p>
     </section>
@@ -124,9 +128,17 @@ function RetentionEmptyFrame() {
  * metric dump. Order history only — no email, no spend. Product-level cross-sell
  * is withheld (no SKU/title in Level-1 facts), never guessed.
  */
-export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnalytics }) {
+export function CustomerRetentionBoard({
+  analytics,
+  windowDays,
+}: {
+  analytics: CustomerAnalytics;
+  /** Period on screen. Typical repurchase uses that wait, not a longer window. */
+  windowDays?: CustomersWindowDays;
+}) {
   const drill = useDeskDrill();
   const a = analytics;
+  const windowCopy = windowDays ? customersDaysToSecondCopy(windowDays) : null;
 
   if (!a.available) {
     return <RetentionEmptyFrame />;
@@ -161,42 +173,67 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
     a.identifiedBuyers > 0
       ? `${pct(a.everRepeatShare)} ever a 2nd order · ${a.everRepeatCount.toLocaleString()} of ${a.identifiedBuyers.toLocaleString()}`
       : undefined;
+  const within30Window = `last ~${a.historyDays} days`;
   const within30Line =
     a.eligible30 > 0
-      ? `${pct(a.within30Share)} came back ≤30d · ${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible`
-      : "Came back ≤30d needs 30 days of follow-up — not zero.";
+      ? `${pct(a.within30Share)} came back ≤30d · ${within30Window} · ${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible`
+      : `Came back ≤30d · ${within30Window} needs 30 days of follow-up — not zero.`;
 
   return (
     <section className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-desk-anchor" aria-label="What to do">
       <div className="mcfly-panel__head">
         <h2>What to do</h2>
         <p className="mcfly-panel__muted">
-          When they come back · repurchase clock · fall-off &amp; win-back · last ~{a.historyDays} days
+          {windowDays
+            ? windowDays.label
+            : `When they come back · last ~${a.historyDays} days`}
         </p>
       </div>
 
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">
         <ActionCard
           label="Typical repurchase"
-          value={day(a.repurchaseTypicalDays)}
-          sub={clockSub}
+          value={
+            windowDays
+              ? (windowCopy?.value ?? "—")
+              : day(a.repurchaseTypicalDays)
+          }
+          sub={windowDays ? windowDays.label : clockSub}
           tone="good"
           verb="Repurchase"
-          detail="Time the ask around this day — when identified buyers typically place a second order from this shop's order history."
+          detail={
+            windowCopy
+              ? windowCopy.line
+              : "Time the ask around this day — when identified buyers typically place a second order from this shop's order history."
+          }
         />
         <ActionCard
           label="Win-back by"
-          value={day(a.winBackDay)}
-          sub="typical repurchase + 15 days"
+          value={
+            windowDays ? (windowCopy?.value ?? "—") : day(a.winBackDay)
+          }
+          sub={
+            windowDays ? windowDays.label : "typical repurchase + 15 days"
+          }
           tone="warn"
           verb="Win-back"
-          detail="Reach one-order buyers by this day — just past typical repurchase, before the slow tail falls off."
+          detail={
+            windowCopy
+              ? windowCopy.line
+              : "Reach one-order buyers by this day — just past typical repurchase, before the slow tail falls off."
+          }
           href="#mcfly-win-back"
         />
         <ActionCard
           label="Save now"
           value={a.saveNowOneOrder.toLocaleString()}
-          sub="one-order buyers past win-back"
+          sub={
+            windowDays
+              ? `last ~${a.historyDays} days`
+              : isNum(a.winBackDay)
+                ? `past day ${Math.round(a.winBackDay)} · last ~${a.historyDays} days`
+                : "one-order buyers past win-back"
+          }
           tone="warn"
           verb="Save now"
           detail="These one-order buyers are already past the win-back day. Prioritize them first — order history timing, not an email guess."
@@ -210,7 +247,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
         ariaUnit=" buyers"
         emptyCopy="No second orders on file yet — not zero."
       />
-      {a.daysToSecondTruncatedAt != null ? (
+      {a.daysToSecondTruncatedAt != null && !windowDays ? (
         <p className="mcfly-cust-note">
           Days-to-2nd past ~{a.daysToSecondTruncatedAt} days needs more order history than
           Shopify shares on this install — withheld, not zero.
@@ -263,14 +300,16 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
           <DeskIcon name="clock" /> Win-back play
         </p>
         <p className="mcfly-cust-play__body">
-          {isNum(a.winBackDay)
-            ? `Reach the ${a.saveNowOneOrder.toLocaleString()} one-order buyers already past ${day(a.winBackDay).toLowerCase()} — just beyond the typical repurchase, before the slow tail.`
-            : "Win-back timing needs more repeat orders on file — not zero."}
+          {windowCopy
+            ? windowCopy.line
+            : isNum(a.winBackDay)
+              ? `Reach the ${a.saveNowOneOrder.toLocaleString()} one-order buyers already past ${day(a.winBackDay).toLowerCase()} — just beyond the typical repurchase, before the slow tail.`
+              : "Win-back timing needs more repeat orders on file — not zero."}
         </p>
         {everLine ? <p className="mcfly-cust-play__meta">{everLine}. {within30Line}</p> : null}
         <p className="mcfly-cust-play__note">
           Suggesting a specific 2nd-order product needs order line items (SKUs / titles), which
-          <code> read_orders</code> Level-1 facts don't include — so Mcfly won't guess one. Timing above is from real order history.
+          <code> read_orders</code> Level-1 facts do not include — so Mcfly will not guess one. Timing above is from real order history.
         </p>
       </div>
     </section>

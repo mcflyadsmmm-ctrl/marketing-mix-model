@@ -47,26 +47,15 @@ export function CpaWindowCards({
               ? "even"
               : "empty";
           const hero = moneyOrDash(window.cashCpa, currency);
-          const foot =
-            window.id === "this_month"
-              ? {
-                  left: hasSpend ? formatCurrency(window.spend, currency) : "—",
-                  leftK: "Spend",
-                  right:
-                    window.buyersKnown && window.identifiedBuyers > 0
-                      ? window.identifiedBuyers.toLocaleString()
-                      : "—",
-                  rightK: "Buyers",
-                }
-              : {
-                  left: moneyOrDash(window.cashCac, currency),
-                  leftK: "Cash CAC",
-                  right:
-                    window.buyersKnown && window.newCustomers > 0
-                      ? window.newCustomers.toLocaleString()
-                      : "—",
-                  rightK: "New buyers",
-                };
+          const foot = {
+            left: moneyOrDash(window.cashCac, currency),
+            leftK: "Cash CAC",
+            right:
+              window.buyersKnown && window.newCustomers > 0
+                ? window.newCustomers.toLocaleString()
+                : "—",
+            rightK: "New buyers",
+          };
           const amer =
             window.amer != null ? `${formatMer(window.amer)}×` : "—";
           return (

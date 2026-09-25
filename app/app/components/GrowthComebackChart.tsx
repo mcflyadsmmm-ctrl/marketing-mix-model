@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import { formatCurrency } from "../lib/mer-format";
 import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
 import {
@@ -10,6 +14,7 @@ import {
 } from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { comebackPendingLine } from "../lib/desk-request-screen";
 import {
   overviewChartAxis,
   overviewChartLabelIndices,
@@ -24,7 +29,9 @@ import {
   growthGrainReady,
   growthResolveGrain,
   growthWholePct,
+  quotedWithin30Line,
   type GrowthBar,
+  type QuotedComebackWindow,
   type GrowthExplorerGrain,
   type GrowthMonthBar,
 } from "../lib/growth-comeback";
@@ -85,7 +92,13 @@ function grainNoun(grain: GrowthExplorerGrain): string {
   }
 }
 
-function ComebackEmptyFrame({ pending }: { pending: boolean }) {
+function ComebackEmptyFrame({
+  pending,
+  windowLabel,
+}: {
+  pending: boolean;
+  windowLabel: string;
+}) {
   const ghost = [0.42, 0.58, 0.5, 0.72, 0.64, 0.8, 0.7];
   return (
     <section
@@ -139,8 +152,8 @@ function ComebackEmptyFrame({ pending }: { pending: boolean }) {
       </div>
       <p className="mcfly-cust-mix__empty-copy">
         {pending
-          ? "Come-back months are still loading — not $0."
-          : "Days to a second order and 30-day come-backs are not on file yet — not $0. Needs two first-order months or a two-step come-back. Snowdevil SAMPLE fills this in; a fresh live shop fills in as second orders land."}
+          ? comebackPendingLine(windowLabel)
+          : "Days to a second order and 30-day come-backs are not on file yet — not $0. Needs two first-order months or a two-step come-back. Sample shop fills this in; a fresh live shop fills in as second orders land."}
       </p>
     </section>
   );
@@ -162,6 +175,8 @@ export function GrowthComebackChart({
   drillNext = "Open LTV for what each first order is worth in 30 / 90 / 365 days.",
   drillHref = "#mcfly-ltv",
   drillLabel,
+  windowDays,
+  quotedComeback = null,
 }: {
   depthBars: GrowthBar[];
   months: GrowthMonthBar[];
@@ -172,6 +187,10 @@ export function GrowthComebackChart({
   drillNext?: string;
   drillHref?: string;
   drillLabel?: string;
+  /** Period on screen. When set, days-to-2nd is that wait only. */
+  windowDays?: CustomersWindowDays;
+  /** Customers-analytics ≤30d figure. Quoted instead of a second depth rate. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -212,7 +231,12 @@ export function GrowthComebackChart({
   );
 
   if (!plotReady) {
-    return <ComebackEmptyFrame pending={salesPending} />;
+    return (
+      <ComebackEmptyFrame
+        pending={salesPending}
+        windowLabel={windowDays?.label?.trim() || "these months"}
+      />
+    );
   }
 
   const effective = growthResolveGrain(grain, ready);
@@ -352,7 +376,20 @@ export function GrowthComebackChart({
       nextLabel: drillLabel,
     });
 
-  const muted = growthComebackSentence(depth, repeatRate);
+  const windowCopy =
+    windowDays && !salesPending ? customersDaysToSecondCopy(windowDays) : null;
+  const comebackLine = quotedComeback
+    ? quotedWithin30Line(quotedComeback)
+    : growthComebackSentence(depth, repeatRate);
+  const otherWaitDays =
+    depth.medianDaysToSecond != null && Number.isFinite(depth.medianDaysToSecond)
+      ? `${Math.round(depth.medianDaysToSecond)} days`
+      : null;
+  const muted =
+    windowDays && otherWaitDays && comebackLine.includes(otherWaitDays)
+      ? (windowCopy?.line ??
+        `Days to a second order in ${windowDays.label} needs a second order on file — not $0.`)
+      : comebackLine;
   const firstTimeText =
     firstTimeDollars != null && firstTimeDollars > 0
       ? money(firstTimeDollars)
@@ -365,20 +402,28 @@ export function GrowthComebackChart({
       sub: "this window",
     },
     {
-      k: "Came back ≤30d",
-      v: ratePct(depth.secondOrderWithin30Share),
-      sub:
-        depth.eligibleFirstTimers > 0
+      k: quotedComeback
+        ? `Came back ≤30d · last ~${Math.round(quotedComeback.historyDays)} days`
+        : "Came back ≤30d · buyers with 30 days on file",
+      v: quotedComeback
+        ? quotedComeback.within30Share != null
+          ? growthWholePct(quotedComeback.within30Share)
+          : "—"
+        : ratePct(depth.secondOrderWithin30Share),
+      sub: quotedComeback
+        ? `${quotedComeback.within30Count.toLocaleString()} of ${quotedComeback.eligible30.toLocaleString()} eligible`
+        : depth.eligibleFirstTimers > 0
           ? `${depth.eligibleFirstTimers.toLocaleString()} had 30 days`
           : "needs 30 days of follow-up",
     },
     {
-      k: "Days to 2nd",
-      v:
-        depth.medianDaysToSecond != null
+      k: windowDays ? `Days to 2nd · ${windowDays.label}` : "Days to 2nd",
+      v: windowDays
+        ? (windowCopy?.value ?? "—")
+        : depth.medianDaysToSecond != null
           ? `${Math.round(depth.medianDaysToSecond)}d`
           : "—",
-      sub: "typical wait",
+      sub: windowDays ? windowDays.label : "typical wait",
     },
     {
       k: "Extra orders",

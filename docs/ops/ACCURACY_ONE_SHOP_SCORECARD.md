@@ -33,7 +33,7 @@
 | 6 | **Orders typical** | 10-order median spot-check | Orders typical (median) · average labeled separately | HOLD | ≈ (tol $5 / 10%) · thin = **—** | | | ☐ |
 | 7 | **Sync / pending** | — | Pending copy while backfill | HOLD | Not a fake complete year · stable after seal | | | ☐ |
 | 8 | **Customers** *(stage ≥ customers)* | Analytics returning-customer **rate** is the contrast | Returning **$** · guests out | HOLD | Dollars, not headcount | | | ☐ |
-| 9 | **LTV** *(stage = ltv)* | — | Unpaid: first-90 on file; year **—**. Paid $39: full book | HOLD | Year never $0 on a 90-day book | | | ☐ |
+| 9 | **LTV** *(stage = ltv)* | — | Trial and paid share up to 24 months. Year **—** while that book is still loading | HOLD | Year never $0 while history is loading | | | ☐ |
 | 10 | **Empty vs zero** | Spend empty / thin shop | Total ROAS **—** · no SAMPLE-as-Live | **RUN** | Never `0.00×` for empty spend | | | ☐ |
 
 Production is on **`overview_orders`**. Fill **1–7 and 10** on one Live shop. Rows **8–9** stay locked until `customers` / `ltv`. This sheet does not deploy, advance the stage, or re-park.
@@ -44,7 +44,7 @@ Production is on **`overview_orders`**. Fill **1–7 and 10** on one Live shop. 
 
 1. Open Mcfly on the shop in **Live** mode (`overview_orders`). SAMPLE watermark belongs on SAMPLE only (rows 1, 2). Snowdevil dollars are not this shop.
 2. Spend Upload with **no** live spend: Total ROAS is **—**, not `0.00×` (row 10). Thin / missing last year is **—**, not `$0`.
-3. Kill switch still exists: freeze on forces SAMPLE and no-ops Switch to Live. Production secrets are already freeze **off**. Do not flip them from this sheet.
+3. Kill switch still exists: freeze on forces SAMPLE and no-ops Switch to Live. Production secrets are already freeze **off**. do **not** flip them from this sheet. Git stays `MCFLY_SAMPLE_ONLY=true`. Host move is not this PR. fill **1 · 2 · 10** on this one shop before a wider claim.
 4. Same period on Admin Analytics vs Mcfly Overview / Orders. Write both dollars. Judge with `compareAdminMoney` / `compareTypicalTicket` (or the tols in the table). Refund: one refunded order, net drop matches Admin.
 5. Customers / LTV only after those stages unlock. They are **not** unlocked. Returning is **$**, not the Analytics headcount rate. Unpaid LTV year stays **—**.
 

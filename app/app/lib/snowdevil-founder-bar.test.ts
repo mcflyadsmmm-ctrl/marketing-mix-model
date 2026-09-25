@@ -51,12 +51,16 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(sampleChrome).not.toContain("Harbor Home Co");
     expect(sampleChrome).not.toMatch(/Harbor \$8[0-9]|Harbor \$1[0-1][0-9]/);
     expect(sampleChrome).not.toMatch(/typical order around \$92/i);
-    expect(PRODUCT_NOUN.sampleHint).toMatch(/Snowdevil/);
+    expect(PRODUCT_NOUN.sampleHint).toMatch(/Sample shop/);
     expect(PRODUCT_NOUN.sampleHint).not.toMatch(/Harbor/);
-    expect(SAMPLE_OVERVIEW_DOOR).toMatch(/Snowdevil/);
-    expect(SAMPLE_GROWTH_DOOR).toMatch(/Snowdevil/);
-    expect(SAMPLE_SPEND_NOT_LIVE).toMatch(/Snowdevil/);
-    expect(SAMPLE_LEDGER_HANDOFF).toMatch(/Snowdevil/);
+    expect(SAMPLE_OVERVIEW_DOOR).toMatch(/example orders/i);
+    expect(SAMPLE_GROWTH_DOOR).toMatch(/example order history/i);
+    expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/\bSAMPLE\b/);
+    expect(SAMPLE_GROWTH_DOOR).not.toMatch(/\bSAMPLE\b/);
+    expect(SAMPLE_SPEND_NOT_LIVE).toMatch(/example spend/);
+    expect(SAMPLE_LEDGER_HANDOFF).toMatch(/example spend/);
+    expect(SAMPLE_SPEND_NOT_LIVE).not.toMatch(/\bSAMPLE\b/);
+    expect(SAMPLE_LEDGER_HANDOFF).not.toMatch(/\bSAMPLE\b/);
     expect(
       SAMPLE_OVERVIEW_DOOR +
         SAMPLE_GROWTH_DOOR +
@@ -120,7 +124,8 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(spend).toContain("isSampleOnlyFreeze()");
     expect(spend).not.toContain("Switch to Live in Settings");
     expect(spend).not.toContain("Live is parked until launch");
-    expect(bar).toContain("Sample mode is locked");
+    expect(bar).toContain("if (!useSampleDesk || !shotMode) return null");
+    expect(bar).toContain("sampleHint");
     expect(bar).not.toContain("Live is parked until launch");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).not.toContain("Live is parked until launch");
@@ -210,10 +215,10 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const overview = readApp("../routes/app._index.tsx");
     const firstView = readApp("../components/OverviewFirstViewport.tsx");
     expect(fixture).toContain("SAMPLE");
-    expect(fixture).toContain("Snowdevil example sales");
+    expect(fixture).toContain("Sample shop example sales");
     expect(fixture).not.toContain("Example spend");
     expect(fixture).toContain("mcfly-desk--sample");
-    expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
+    expect(css).toMatch(/content:\s*none/);
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("<OverviewFirstViewport");
     expect(overview).toContain("<OverviewSalesChart");
@@ -225,9 +230,9 @@ describe("Snowdevil founder leave-for-day bar", () => {
 
   it("8+9. Public demo and SAMPLE tests are not Harbor / Northline truth", () => {
     const demo = readSite("site/demo.html") + readSite("site/assets/demo-desk.js");
-    expect(demo).toContain("Snowdevil");
-    expect(demo).toContain("$68,457");
-    expect(demo).toContain("$631");
+    expect(demo).toContain("Sample shop");
+    expect(demo).toContain("$75,943");
+    expect(demo).toContain("$595");
     expect(demo).not.toContain("Northline Supply");
     expect(demo).not.toMatch(/\$98,?500/);
     expect(demo).not.toMatch(/4\.19×/);

@@ -42,7 +42,7 @@ describe("Marketing spend room", () => {
     expect(room).toContain("vs prior window");
     expect(room).toContain("mcfly-spend-room__compare");
     expect(room).toContain("Same calendar days so far");
-    expect(room).toContain("Sales vs this month");
+    expect(room).toContain("Vs last year");
     expect(mixPlan).toContain("vs last month");
     expect(mixPlan).toContain("Spend left at goal");
     expect(mixPlan).toContain("Daily spend cap");
@@ -156,18 +156,21 @@ describe("Spend MER desk", () => {
     expect(spend).not.toContain("12-month");
   });
 
-  it("converts roas, allocation, and cpa routes to Spend panel redirects", () => {
-    expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
+  it("keeps roas, allocation, and cpa on their own screens", () => {
+    expect(roas).toContain("spendLoader");
     expect(roas).toContain("requireAdmin");
+    expect(roas).not.toContain("throw redirect");
     expect(roas).not.toContain("<SpendExplorer");
-    expect(allocation).toContain('spendPanelRedirectPath(request.url, "mix"');
+    expect(allocation).toContain("spendLoader");
     expect(allocation).toContain("requireAdmin");
+    expect(allocation).not.toContain("throw redirect");
     expect(allocation).not.toContain("<SpendMixPlan");
-    expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
+    expect(cpa).toContain("spendLoader");
     expect(cpa).toContain("requireAdmin");
+    expect(cpa).not.toContain("throw redirect");
     expect(cpa).not.toContain("<CpaWindowCards");
     expect(spend).toMatch(
-      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+      /defaultOpen=\{\s*shotMode \|\|[\s\S]*spendPanel === "mix" \|\|[\s\S]*spendPanel === "cpa"\s*\}/,
     );
     expect(spend).not.toContain("defaultOpen={!emptyLiveSpend");
   });

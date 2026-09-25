@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useLocation, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
@@ -11,7 +11,6 @@ import { CustomerRfmBoard } from "../components/CustomerRfmBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskLane } from "../components/DeskLane";
 import { CustomersCompareGlance } from "../components/CustomersCompareGlance";
 import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
@@ -38,16 +37,20 @@ import { requireAdmin } from "../lib/public-app-gate.server";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+} from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
+import { useDeskHref } from "../lib/desk-base-path";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
-import { formatCurrency } from "../lib/mer-format";
-import { useDeskCurrency } from "../lib/desk-currency";
-import { flagshipDailyRead } from "../lib/ltv-flagship";
 import {
-  buildShareableInsights,
-  emptyShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
+  customersOnScreenWindow,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await requireAdmin(request);
@@ -76,12 +79,35 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function CustomersPage() {
   const data = useLoaderData<typeof loader>();
-  const currency = useDeskCurrency();
   const navigation = useNavigation();
+  const location = useLocation();
+  const deskHref = useDeskHref();
+  const pathScreen = namedDeskScreenFromPath(location.pathname);
   if (data.kind === "locked") {
+    const lockedHeading = pathScreen
+      ? namedDeskTitle(pathScreen)
+      : PRODUCT_NOUN.buyersTitle;
+    if (pathScreen === "ltv") {
+      return (
+        <LiveDeskLockedPage
+          heading={lockedHeading}
+          surface="ltv"
+          copy={data.copy}
+        />
+      );
+    }
+    if (pathScreen === "growth" || pathScreen === "who-to-save") {
+      return (
+        <LiveDeskLockedPage
+          heading={lockedHeading}
+          surface="growth"
+          copy={data.copy}
+        />
+      );
+    }
     return (
       <LiveDeskLockedPage
-        heading={PRODUCT_NOUN.buyersTitle}
+        heading={lockedHeading}
         surface="customers"
         copy={data.copy}
       />
@@ -112,6 +138,17 @@ export default function CustomersPage() {
     growthOpen,
     liveStage,
   } = data;
+  const screen =
+    pathScreen ??
+    (panel === "ltv" ? "ltv" : panel === "growth" ? "growth" : null);
+  const showCustomers = screen == null;
+  const showLtv = screen === "ltv";
+  const showGrowth = screen === "growth";
+  const showSave = screen === "who-to-save";
+  const pageHeading =
+    screen === "ltv" || screen === "growth" || screen === "who-to-save"
+      ? namedDeskTitle(screen)
+      : PRODUCT_NOUN.buyersTitle;
   const isLoading = navigation.state === "loading";
   const tillLabel = deskPeriodTillLabel({
     periodLabel: metrics.period.label,
@@ -139,10 +176,6 @@ export default function CustomersPage() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
-  const historyLimited = Boolean(
-    !useSampleDesk &&
-      (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
-  );
   const ltvBlock =
     ltvOpen && depth
       ? {
@@ -164,56 +197,15 @@ export default function CustomersPage() {
           shotMode,
         }
       : null;
-  const daily = ltvBlock
-    ? flagshipDailyRead(ltvBlock.depth.windows, ltvBlock.depth.predictive)
-    : null;
-  const ltvPeek = !ltvOpen
-    ? null
-    : daily
-      ? { amount: daily.worth, days: daily.worthDays }
-      : pickShareableLtvPeek({
-          revenue30: metrics.tillLtv.avgRevenueD30,
-          revenue90: metrics.tillLtv.avgRevenueD90,
-          revenue365: metrics.tillLtv.avgRevenueD365,
-          historyLimited,
-        });
-  const insightView = metrics.salesPending
-    ? emptyShareableInsights()
-    : buildShareableInsights(
-        {
-          salesPending: Boolean(metrics.salesPending),
-          orderCount: metrics.orderCount,
-          returningSales: book.returningSales,
-          returningShare: book.returningSalesShare,
-          newSales: book.newSales,
-          typicalOrder: metrics.shopifyDepth.medianAov,
-          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
-          ltvPeek: ltvPeek?.amount ?? null,
-          ltvPeekDays: ltvPeek?.days ?? null,
-          historyLimited,
-          shopLabel,
-          sample: useSampleDesk,
-          periodLabel: metrics.period.label,
-          todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
-        },
-        (n) => formatCurrency(n, currency),
-      );
-  const returningInsight = {
-    ...insightView,
-    cards: insightView.cards.filter((card) => card.kind === "returning"),
-    empty: null,
-  };
-  const depthInsight = {
-    ...insightView,
-    cards: insightView.cards.filter(
-      (card) =>
-        card.kind !== "returning" && (ltvOpen || card.kind !== "ltvPeek"),
-    ),
+  const windowDays: CustomersWindowDays = {
+    label: customersOnScreenWindow(metrics.period.label),
+    days: metrics.shopifyDepth.medianDaysToSecond,
+    cameBack: metrics.shopifyDepth.repeatBuyers,
   };
 
   return (
     <DeskBookPage
-      heading={PRODUCT_NOUN.buyersTitle}
+      heading={pageHeading}
       tillLabel={tillLabel}
       preset={preset}
       shotMode={shotMode}
@@ -229,6 +221,10 @@ export default function CustomersPage() {
               completeDays: orderBackfillProgress.completeDays,
               windowDays: orderBackfillProgress.windowDays,
               remainingDays: orderBackfillProgress.remainingDays,
+              monthsFinished: orderBackfillProgress.monthsFinished,
+              bookSealed: orderBackfillProgress.bookSealed,
+              historyLimited: orderBackfillProgress.historyLimited,
+              customersRange: true,
             }
           : null
       }
@@ -242,8 +238,9 @@ export default function CustomersPage() {
       retryHref={`/app/customers?period=${preset}`}
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
+      {showCustomers ? (
       <div id="mcfly-returning">
-      <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL} hint="">
+      <DeskLane rank="first" label={showCustomers ? PRODUCT_NOUN.buyersTitle : CUSTOMERS_FIRST_LANE_LABEL} hint="">
         <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
           <CustomersFirstViewport
             analytics={analytics}
@@ -256,6 +253,7 @@ export default function CustomersPage() {
                 ? "This month"
                 : metrics.period.label
             }
+            windowSales={metrics.sales}
           />
           <CustomersCompareGlance
             book={book}
@@ -263,7 +261,16 @@ export default function CustomersPage() {
             salesPending={Boolean(metrics.salesPending)}
           />
         </div>
-        <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
+        <CustomerMixChart
+          analytics={analytics}
+          salesPending={metrics.salesPending}
+          quotedShare={book.returningSalesShare}
+          quotedWindow={
+            metrics.period.label === "Month to date"
+              ? "This month"
+              : metrics.period.label
+          }
+        />
       </DeskLane>
       <DeskLane
         rank="more"
@@ -271,22 +278,21 @@ export default function CustomersPage() {
         fold
         defaultOpen={shotMode}
       >
-        {returningInsight.cards.length > 0 ? (
-          <ShareableInsightCards view={returningInsight} shotMode={shotMode} />
-        ) : null}
         <CustomersScoreboard
           book={book}
           depth={metrics.shopifyDepth}
           periodLabel={metrics.period.label}
           salesPending={metrics.salesPending}
           useSampleDesk={useSampleDesk}
-          growthHref="#mcfly-growth"
-          ltvHref="#mcfly-ltv"
+          growthHref={deskHref("/app/growth")}
+          ltvHref={deskHref("/app/ltv")}
           ltvNextLabel={ltvOpen ? "Open LTV" : "LTV locked"}
         />
       </DeskLane>
       </div>
+      ) : null}
 
+      {showLtv ? (
       <div id="mcfly-ltv">
       {ltvBlock ? (
         <>
@@ -303,7 +309,9 @@ export default function CustomersPage() {
         />
       )}
       </div>
+      ) : null}
 
+      {showGrowth ? (
       <div id="mcfly-growth">
       {growthOpen ? (
       <DeskLane rank="next" label={GROWTH_FIRST_LANE_LABEL}>
@@ -322,6 +330,15 @@ export default function CustomersPage() {
           quietBack={analytics.quietBack}
           comebackWait={analytics.comebackWait}
           lifetimeSpan={analytics.lifetimeSpan}
+          windowDays={windowDays}
+          quotedComeback={{
+            historyDays: analytics.historyDays,
+            within30Share: analytics.within30Share,
+            within30Count: analytics.within30Count,
+            eligible30: analytics.eligible30,
+            winBackDay: analytics.winBackDay,
+            saveNowOneOrder: analytics.saveNowOneOrder,
+          }}
         />
       </DeskLane>
       ) : (
@@ -331,7 +348,9 @@ export default function CustomersPage() {
         />
       )}
       </div>
+      ) : null}
 
+      {showCustomers ? (
       <div id="mcfly-depth">
       <DeskLane
         rank="more"
@@ -340,7 +359,7 @@ export default function CustomersPage() {
         defaultOpen={shotMode || panel === "depth"}
       >
         <div className="mcfly-cust-action-row">
-          <CustomerRetentionBoard analytics={analytics} />
+          <CustomerRetentionBoard analytics={analytics} windowDays={windowDays} />
           <CustomerWhaleWatch rfm={analytics.rfm} />
         </div>
         <CustomerRfmBoard rfm={analytics.rfm} />
@@ -350,13 +369,20 @@ export default function CustomersPage() {
           <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
         ) : null}
         {ltvBlock ? <CustomersLtvDepth {...ltvBlock} /> : null}
-        {depthInsight.cards.length > 0 || depthInsight.empty ? (
-          <ShareableInsightCards view={depthInsight} shotMode={shotMode} />
-        ) : null}
       </DeskLane>
       </div>
+      ) : null}
 
-      {!metrics.customerMetricsAvailable ? (
+      {showSave ? (
+        <section aria-label="Who to save">
+          <CustomerRetentionBoard
+            analytics={analytics}
+            windowDays={windowDays}
+          />
+        </section>
+      ) : null}
+
+      {showCustomers && !metrics.customerMetricsAvailable ? (
         <p className="mcfly-state__copy">
           Returning dollars need identified buyers in this window — not $0.
         </p>

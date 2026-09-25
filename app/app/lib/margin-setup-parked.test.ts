@@ -30,7 +30,7 @@ describe("Profit-margin / COGS setup is parked", () => {
     expect(settings).not.toMatch(/Break-even preview/);
     expect(settings).not.toMatch(/Reconfirm profit margin/);
     expect(settings).not.toMatch(/name="marginPct"/);
-    expect(settings).toContain("Order-history targets");
+    expect(settings).toContain("The one target lives on Goals");
     expect(settings).toContain("Sample");
   });
 
@@ -39,8 +39,8 @@ describe("Profit-margin / COGS setup is parked", () => {
     expect(allocation).not.toMatch(/Set profit margin/);
     expect(allocation).not.toMatch(/set margin for break-even/i);
     expect(allocation).not.toMatch(/Set margin in Settings/);
-    expect(allocation).toContain("throw redirect");
-    expect(allocation).toContain('"mix"');
+    expect(allocation).toContain("spendLoader");
+    expect(allocation).not.toContain("throw redirect");
   });
 
   it("does not ask LTV merchants to confirm a default margin", () => {
@@ -60,7 +60,8 @@ describe("Profit-margin / COGS setup is parked", () => {
     const orderBlock = ltv.slice(orderStart, orderEnd);
     expect(orderStart).toBeGreaterThan(-1);
     expect(orderEnd).toBeGreaterThan(orderStart);
-    expect(orderBlock).toContain('k: "First year"');
+    expect(orderBlock).not.toContain('k: "First year"');
+    expect(orderBlock).not.toContain('k: "First 30 days"');
     expect(orderBlock).not.toContain("contrib365");
     expect(orderBlock).not.toMatch(/kept\./);
     expect(orderBlock).not.toMatch(/after margin/i);

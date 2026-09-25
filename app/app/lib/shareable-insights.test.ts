@@ -59,7 +59,7 @@ describe("shareable insight floors", () => {
 
 describe("shareableShopBrand", () => {
   it("labels SAMPLE as Snowdevil and strips the myshopify host", () => {
-    expect(shareableShopBrand("anything.myshopify.com", true)).toBe("Snowdevil");
+    expect(shareableShopBrand("anything.myshopify.com", true)).toBe("Sample shop");
     expect(shareableShopBrand("harbor-home.myshopify.com", false)).toBe(
       "harbor-home",
     );
@@ -172,7 +172,7 @@ describe("buildShareableInsights — 2–4 soft cards from desk truths", () => {
     const view = richInput();
     expect(view.available).toBe(true);
     expect(view.empty).toBeNull();
-    expect(view.shopBrand).toBe("Snowdevil");
+    expect(view.shopBrand).toBe("Sample shop");
     expect(view.sample).toBe(true);
     expect(view.cards.map((c) => c.kind)).toEqual([
       "returning",
@@ -299,8 +299,8 @@ describe("ShareableInsightCards render", () => {
     expect(html).toContain("first 90 days");
     expect(html).toContain("Copy for Slack");
     expect(html).toContain("Save PNG");
-    expect(html).toContain("Snowdevil");
-    expect(html).toContain("SAMPLE");
+    expect(html).toContain("Sample shop");
+    expect(html).not.toContain("SAMPLE");
     expect(html).toContain("Returning $ ÷ (new $ + returning $)");
     expect(html).not.toContain(">$0<");
     expect(html).not.toContain("Total ROAS");
@@ -333,9 +333,11 @@ describe("Slack insight paste — one sealed number", () => {
       sample: true,
       periodLabel: view.periodLabel,
     });
-    expect(slack.slack.startsWith("*Returning $* · Snowdevil · SAMPLE · This month")).toBe(
-      true,
-    );
+    expect(
+      slack.slack.startsWith(
+        "*Returning $ · This month* · Sample shop · This month",
+      ),
+    ).toBe(true);
     expect(slack.slack).toContain(card!.line);
     expect(slack.slack).toContain(card!.formula);
     expect(slack.slack).not.toContain("$0");
@@ -352,7 +354,8 @@ describe("Slack insight paste — one sealed number", () => {
     });
     expect(sealed?.line).toContain("18 days");
     expect(sealed?.slack).toContain("*Days to second*");
-    expect(sealed?.slack).toContain("Snowdevil · SAMPLE");
+    expect(sealed?.slack).toContain("Sample shop");
+    expect(sealed?.slack).not.toContain("Sample shop · SAMPLE");
     expect(
       daysToSecondSlackInsight({
         typicalDays: null,
@@ -585,7 +588,8 @@ describe("Slack insight paste — one sealed number", () => {
       where: "On file",
       money,
     });
-    expect(days?.slack).toContain("Snowdevil · SAMPLE");
+    expect(days?.slack).toContain("Sample shop");
+    expect(days?.slack).not.toContain("Sample shop · SAMPLE");
     expect(days?.line).toMatch(/\d+ days/);
     expect(days?.slack).not.toContain("$0");
     expect(worth?.line).toMatch(/first (30|90) days|first year/);

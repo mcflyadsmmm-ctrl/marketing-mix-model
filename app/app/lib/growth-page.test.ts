@@ -23,13 +23,15 @@ const stack = read("./desk-customers-stack.server.ts");
 const panelLib = read("./customers-first-viewport.ts");
 
 describe("Growth page", () => {
-  it("redirects to Customers with panel=growth and preserves query", () => {
+  it("stays on /app/growth when Growth is the request", () => {
     expect(growth).toContain("authenticate.admin");
-    expect(growth).toContain('customersPanelRedirectPath');
-    expect(growth).toContain('"growth"');
-    expect(growth).toContain("/app/customers");
-    expect(growth).toContain("throw redirect");
+    expect(growth).toContain("!decision.growthOpen");
+    expect(growth).toContain("customersLoader");
+    expect(growth).toContain('retryHref="/app/growth"');
+    expect(growth).not.toContain("throw redirect");
+    expect(growth).not.toContain("customersPanelRedirectPath");
     expect(panelLib).toContain('next.set("panel", panel)');
+    expect(customers).toContain('namedDeskTitle');
     expect(growth).not.toContain("<GrowthFirstViewport");
     expect(growth).not.toContain("Spend Upload");
     expect(growth).not.toContain("Total ROAS");

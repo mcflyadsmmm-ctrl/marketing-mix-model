@@ -28,10 +28,19 @@ import {
   shopifyReadOrdersScopesAllowDeep,
 } from "./shopify-order-window";
 import { isBillingEnabled } from "./billing-flag.server";
-import { resolveLiveIngestWindowDays } from "./live-ingest-depth";
+import {
+  orderRowWindowDayCount,
+  resolveLiveIngestWindowDays,
+} from "./live-ingest-depth";
 import { shopIsProForIngest } from "./live-ingest-depth.server";
-/** SalesDayFact.source for rows written by the ShopifyQL totals lane. */
+import { orderMissingIngestDays } from "./ingest-priority";
+/** SalesDayFact.source for closed days written by the ShopifyQL totals lane. */
 export const SALES_DAY_FACT_SOURCE = "shopifyql_sales_day_v1";
+/**
+ * In-progress local today. Not a sealed closed day — backfill still treats
+ * the day as missing once it closes, then overwrites with {@link SALES_DAY_FACT_SOURCE}.
+ */
+export const SALES_DAY_FACT_OPEN_SOURCE = "shopifyql_sales_day_open_v1";
 
 /**
  * Desk horizon for charts and the spend template: Jan 1 of (UTC year − N).
@@ -165,6 +174,7 @@ async function upsertSalesDayFact(
   sales: SalesResult,
   currencyCode: string | null,
   asOf: Date,
+  source: string = SALES_DAY_FACT_SOURCE,
 ): Promise<void> {
   const day = dayKeyToUtcDate(dayKey);
   const data = {
@@ -180,13 +190,16 @@ async function upsertSalesDayFact(
     customerMetricsAvailable: sales.customerMetricsAvailable,
     currency: currencyCode,
     asOf,
-    source: SALES_DAY_FACT_SOURCE,
+    source,
   };
 
-  // Upsert only after the full per-day pagination above has succeeded — a zero-sales
+  // Upsert only after the ShopifyQL read succeeded — a zero-sales
   // day is a legitimate fact (written as sales: 0), a failed fetch is not (left missing).
   // Never write demo/sample into SalesDayFact — sample till stays on SampleSalesDay.
-  if (data.source !== SALES_DAY_FACT_SOURCE) {
+  if (
+    data.source !== SALES_DAY_FACT_SOURCE &&
+    data.source !== SALES_DAY_FACT_OPEN_SOURCE
+  ) {
     throw new Error(`SalesDayFact source must be ${SALES_DAY_FACT_SOURCE}`);
   }
   await prisma.salesDayFact.upsert({
@@ -198,8 +211,8 @@ async function upsertSalesDayFact(
 
 /**
  * Closed days this shop may ingest.
- * Unpaid / Shopify trial stops at LIVE_UNPAID_INGEST_DAYS. Paid and a host
- * that is not charging keep the ShopifyQL window. An explicit `windowDays`
+ * Trial and paid both stop at 24 months — same cap as order rows.
+ * No five-year or ten-year ShopifyQL pull. An explicit `windowDays`
  * can only shrink that result.
  */
 async function salesIngestDayCount(
@@ -207,7 +220,10 @@ async function salesIngestDayCount(
   now: Date,
   windowDays?: number,
 ): Promise<number> {
-  const granted = salesTotalsWindowDayCount(now);
+  const granted = Math.min(
+    salesTotalsWindowDayCount(now),
+    orderRowWindowDayCount(now),
+  );
   const billingEnabled = isBillingEnabled();
   const isPro = billingEnabled ? await shopIsProForIngest(shopId) : false;
   const commercial = resolveLiveIngestWindowDays({
@@ -273,16 +289,21 @@ export async function runSalesFactsBackfill(
   );
   const existing = await existingFactDayKeys(shopId, windowDayKeys);
   const missing = windowDayKeys.filter((key) => !existing.has(key));
-  const batch = missing.slice(0, maxDays);
+  // Newest closed days first, then the rest of the 24-month window.
+  const batch = orderMissingIngestDays(windowDayKeys, existing).slice(
+    0,
+    maxDays,
+  );
 
   let written = 0;
   const failed: string[] = [];
   const unseen: string[] = [];
   if (batch.length > 0) {
     try {
+      const chronological = [...batch].sort();
       const totals = await fetchShopifySalesDayTotals(admin, {
-        since: batch[0]!,
-        until: batch[batch.length - 1]!,
+        since: chronological[0]!,
+        until: chronological[chronological.length - 1]!,
       });
       for (const dayKey of batch) {
         await upsertSalesDayFact(
@@ -324,6 +345,43 @@ export async function runSalesFactsBackfill(
 }
 
 /**
+ * Nightly sales refresh. One ShopifyQL span for the last closed days only.
+ * Does not walk the 24-month book.
+ */
+export async function refreshRecentSalesFromShopify(
+  admin: AdminApiContext,
+  shopId: string,
+  dayCount: number,
+  now: Date = new Date(),
+): Promise<void> {
+  const days = Math.max(1, Math.floor(dayCount));
+  const metadata = await ensureShopMetadata(admin, shopId);
+  if (!metadata.ianaTimezone) return;
+  const dayKeys = listRecentClosedShopLocalDays(
+    metadata.ianaTimezone,
+    days,
+    now,
+  );
+  if (dayKeys.length === 0) return;
+  const chronological = [...dayKeys].sort();
+  const totals = await fetchShopifySalesDayTotals(admin, {
+    since: chronological[0]!,
+    until: chronological[chronological.length - 1]!,
+  });
+  for (const dayKey of dayKeys) {
+    const row = totals.get(dayKey);
+    if (!row) continue;
+    await upsertSalesDayFact(
+      shopId,
+      dayKey,
+      salesResultFromDayTotal(row),
+      metadata.currencyCode,
+      now,
+    );
+  }
+}
+
+/**
  * Closed days still missing from SalesDayFact in the same ingest window
  * `runSalesFactsBackfill` uses. Used by the first-session one-shot gate so a
  * sealed shop does not re-arm window jobs on every Live tab.
@@ -357,14 +415,13 @@ export async function getSalesFactsWindowRemainingDays(
 export type SalesDayReconcileSkip =
   | "no_timezone"
   /**
-   * The day is the shop's in-progress local today. Writing a partial fact would
-   * poison it permanently: `runSalesFactsBackfill` only fills MISSING days, so a
-   * half-day row would never be corrected once the day closed. Today's orders reach
-   * the desk through the live read path, and the day lands in facts via backfill
-   * once it closes.
+   * The day is still in the future on the shop clock. In-progress today is
+   * written with {@link SALES_DAY_FACT_OPEN_SOURCE} so the open page can read
+   * it, and closed-day backfill still reseals the day after midnight.
    */
   | "day_not_closed"
-  /** Older than the Jan-1 × N-year serving window — the day can no longer be recomputed. */
+  /** Older than the serving window — the day is not recomputed. */
+  | "day_outside_window"
   | "reports_scope_missing";
 
 export interface SalesDayReconcileResult {
@@ -399,9 +456,11 @@ export async function reconcileSalesDayFact(
   }
   const timeZone = metadata.ianaTimezone;
 
-  if (dayKey >= shopLocalDayKey(now, timeZone)) {
+  const todayKey = shopLocalDayKey(now, timeZone);
+  if (dayKey > todayKey) {
     return { shopId, dayKey, written: false, skippedReason: "day_not_closed" };
   }
+  const openToday = dayKey === todayKey;
 
   const windowStart = salesDayFactWindowStartUtc(now);
   const range = shopLocalDayRange(dayKey, timeZone);
@@ -427,7 +486,14 @@ export async function reconcileSalesDayFact(
     }
     throw err;
   }
-  await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
+  await upsertSalesDayFact(
+    shopId,
+    dayKey,
+    sales,
+    metadata.currencyCode,
+    now,
+    openToday ? SALES_DAY_FACT_OPEN_SOURCE : SALES_DAY_FACT_SOURCE,
+  );
   return { shopId, dayKey, written: true, skippedReason: null };
 }
 
@@ -782,9 +848,10 @@ export interface LoadDeskSalesForPeriodResult {
 }
 
 /**
- * HARD-STOP desk sales loader: SalesDayFact totals + optional capped today top-up.
- * Never starts unbounded `fetchShopifySales` for a multi-day period.
- * Callers (Overview / Allocation / Close / LTV / API) share this path.
+ * Desk sales loader: stored SalesDayFact only, including an open today row
+ * when orders/create or orders/updated have already reconciled it.
+ * Never calls ShopifyQL or pages orders. Callers share this path.
+ * `admin` stays on the signature so existing callers compile; paint does not use it.
  */
 export async function loadDeskSalesForPeriod(args: {
   admin: AdminApiContext;
@@ -795,7 +862,7 @@ export async function loadDeskSalesForPeriod(args: {
   signal?: AbortSignal;
 }): Promise<LoadDeskSalesForPeriodResult> {
   const now = args.now ?? new Date();
-  const { admin, shopId, range, ianaTimezone, signal } = args;
+  const { shopId, range, ianaTimezone, signal } = args;
   throwIfChartRequestAborted(signal);
 
   let factsCoverage: SalesFactsCoverage | null = null;
@@ -824,16 +891,38 @@ export async function loadDeskSalesForPeriod(args: {
       const todayKey = shopLocalDayKey(now, ianaTimezone);
       const todayBounds = shopLocalDayRange(todayKey, ianaTimezone);
       if (range.end >= todayBounds.start) {
-        try {
-          const totals = await fetchShopifySalesDayTotals(admin, {
-            since: todayKey,
-            until: todayKey,
+        const todayRow = await prisma.salesDayFact.findUnique({
+          where: {
+            shopId_day: { shopId, day: dayKeyToUtcDate(todayKey) },
+          },
+          select: {
+            sales: true,
+            netSales: true,
+            grossSales: true,
+            orderCount: true,
+            newCustomerNetSales: true,
+            returningCustomerNetSales: true,
+            customerMetricsAvailable: true,
+            source: true,
+          },
+        });
+        throwIfChartRequestAborted(signal);
+        const readable =
+          todayRow?.source === SALES_DAY_FACT_SOURCE ||
+          todayRow?.source === SALES_DAY_FACT_OPEN_SOURCE;
+        if (todayRow && readable) {
+          todaySales = salesResultFromDayTotal({
+            dayKey: todayKey,
+            totalSales: todayRow.sales,
+            netSales: todayRow.netSales ?? todayRow.sales,
+            grossSales: todayRow.grossSales ?? todayRow.sales,
+            orderCount: todayRow.orderCount,
+            newCustomerNetSales: todayRow.newCustomerNetSales ?? 0,
+            returningCustomerNetSales: todayRow.returningCustomerNetSales ?? 0,
+            customerMetricsAvailable: todayRow.customerMetricsAvailable,
           });
-          todaySales = salesResultFromDayTotal(totals.get(todayKey));
-          throwIfChartRequestAborted(signal);
-        } catch (err) {
-          if (isChartAbortError(err)) throw err;
-          // Reports scope / ShopifyQL failure — not an orders crawl for totals.
+        } else {
+          // Honest loading — webhook reconcile writes today off the open page.
           todaySales = null;
           todaySalesUnavailable = true;
         }

@@ -13,7 +13,7 @@ type PeriodControlProps = {
   language?: "desk" | "spend";
   /** Demo-desk chips: MTD / QTD / YTD / Last mo. No history caption. */
   compact?: boolean;
-  /** Unpaid = 90 closed days. Paid / SAMPLE = up to 24 months. Required. */
+  /** Trial and paid both say up to 24 months. Required. */
   orderBookDepth: LiveIngestDepth;
 };
 

@@ -49,7 +49,7 @@ export function CustomerValueBands({ analytics }: { analytics: CustomerAnalytics
           ))}
         </div>
         <p className="mcfly-cust-empty__copy">
-          Needs identified buyers on file — not $0. Snowdevil SAMPLE fills this in.
+          Needs identified buyers on file — not $0. Sample shop fills this in.
         </p>
       </section>
     );

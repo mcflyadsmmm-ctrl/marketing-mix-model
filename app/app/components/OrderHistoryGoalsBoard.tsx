@@ -132,7 +132,7 @@ function returningActionDetail(track: HabitGoalTrack | null): string {
   }
   switch (track.targetSource) {
     case "sample":
-      return `Sales from returning buyers in this Goals year. SAMPLE does not invent a returning-$ target. ${guests}`;
+      return `Sales from returning buyers in this Goals year. This book does not invent a returning-$ target. ${guests}`;
     case "typed":
       return `Sales from returning buyers in this Goals year, over the returning-$ target you typed. ${guests}`;
     case "average":
@@ -458,7 +458,7 @@ export function OrderHistoryGoalsBoard({
                   k: "Source",
                   v:
                     returning.targetSource === "sample"
-                      ? "SAMPLE example — not a target you typed."
+                      ? "Example — not a target you typed."
                       : habitGoalTargetSourceLabel(returning.targetSource),
                 },
               ],

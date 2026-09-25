@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useLocation, useNavigation } from "react-router";
 
 import { CustomerMixChart } from "../components/CustomerMixChart";
 import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
@@ -11,7 +11,6 @@ import { CustomerRfmBoard } from "../components/CustomerRfmBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskLane } from "../components/DeskLane";
 import { CustomersGrowthSection } from "../components/CustomersGrowthSection";
@@ -21,8 +20,17 @@ import {
   CustomersLtvWindows,
   type CustomersLtvMetrics,
 } from "../components/CustomersLtvSection";
-import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
+import {
+  CUSTOMERS_FIRST_LANE_LABEL,
+  parseCustomersPanel,
+} from "../lib/customers-first-viewport";
 import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+} from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
+import { useDeskHref } from "../lib/desk-base-path";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import {
@@ -30,14 +38,10 @@ import {
   type PublicSamplePage,
 } from "../lib/public-sample-page.server";
 import { loadLtvDepth } from "../lib/ltv-depth-page.server";
-import { parseCustomersPanel } from "../lib/customers-first-viewport";
-import { formatCurrency } from "../lib/mer-format";
-import { useDeskCurrency } from "../lib/desk-currency";
-import { flagshipDailyRead } from "../lib/ltv-flagship";
 import {
-  buildShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
+  customersOnScreenWindow,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
 
@@ -74,6 +78,8 @@ function demoLtvMetrics(data: PublicSamplePage): CustomersLtvMetrics {
   };
 }
 
+export const shouldRevalidate = deskPageShouldRevalidate;
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const page = await loadPublicSamplePage(request);
   const ltvDepth = await loadLtvDepth({
@@ -89,7 +95,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function PublicDemoCustomers() {
   const data = useLoaderData<typeof loader>();
   const navigation = useNavigation();
-  const currency = useDeskCurrency();
+  const location = useLocation();
+  const deskHref = useDeskHref();
+  const pathScreen = namedDeskScreenFromPath(location.pathname);
+  const screen =
+    pathScreen ??
+    (data.panel === "ltv" ? "ltv" : data.panel === "growth" ? "growth" : null);
+  const showCustomers = screen == null;
+  const showLtv = screen === "ltv";
+  const showGrowth = screen === "growth";
+  const showSave = screen === "who-to-save";
+  const pageHeading =
+    screen === "ltv" || screen === "growth" || screen === "who-to-save"
+      ? namedDeskTitle(screen)
+      : PRODUCT_NOUN.buyersTitle;
   const ltvMetrics = demoLtvMetrics(data);
   const ltvProps = {
     metrics: ltvMetrics,
@@ -100,48 +119,15 @@ export default function PublicDemoCustomers() {
     shopLabel: data.shopLabel,
     shotMode: data.shotMode,
   };
-  const historyLimited = false;
-  const daily = flagshipDailyRead(data.ltvDepth.windows, data.ltvDepth.predictive);
-  const ltvPeek = daily
-    ? { amount: daily.worth, days: daily.worthDays }
-    : pickShareableLtvPeek({
-        revenue30: data.ltv.revenue30,
-        revenue90: data.ltv.revenue90,
-        revenue365: data.ltv.revenue365,
-        historyLimited,
-      });
-  const insightView = buildShareableInsights(
-    {
-      salesPending: false,
-      orderCount: data.book.orderCount,
-      returningSales: data.book.returningSales,
-      returningShare: data.book.returningSalesShare,
-      newSales: data.book.newSales,
-      typicalOrder: data.depth.medianAov,
-      daysToSecond: data.depth.medianDaysToSecond,
-      ltvPeek: ltvPeek?.amount ?? null,
-      ltvPeekDays: ltvPeek?.days ?? null,
-      historyLimited,
-      shopLabel: data.shopLabel,
-      sample: true,
-      periodLabel: data.rangeLabel,
-      todaySalesTruncated: false,
-    },
-    (n) => formatCurrency(n, currency),
-  );
-  const returningInsight = {
-    ...insightView,
-    cards: insightView.cards.filter((card) => card.kind === "returning"),
-    empty: null,
-  };
-  const depthInsight = {
-    ...insightView,
-    cards: insightView.cards.filter((card) => card.kind !== "returning"),
+  const windowDays: CustomersWindowDays = {
+    label: customersOnScreenWindow(data.rangeLabel),
+    days: data.depth.medianDaysToSecond,
+    cameBack: data.depth.repeatBuyers,
   };
 
   return (
     <DeskBookPage
-      heading={PRODUCT_NOUN.buyersTitle}
+      heading={pageHeading}
       tillLabel={data.tillLabel}
       preset={data.preset}
       shotMode={data.shotMode}
@@ -152,8 +138,15 @@ export default function PublicDemoCustomers() {
       retryHref="/demo/customers"
     >
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
+        {showCustomers ? (
         <div id="mcfly-returning">
-          <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL} hint="">
+          <DeskLane
+            rank="first"
+            label={
+              showCustomers ? PRODUCT_NOUN.buyersTitle : CUSTOMERS_FIRST_LANE_LABEL
+            }
+            hint=""
+          >
             <div className="mcfly-overview-first-beat mcfly-customers-first-beat">
               <CustomersFirstViewport
                 analytics={data.customers}
@@ -166,6 +159,7 @@ export default function PublicDemoCustomers() {
                     ? "This month"
                     : data.rangeLabel
                 }
+                windowSales={data.sales.totalSales}
               />
               <CustomersCompareGlance
                 book={data.book}
@@ -173,7 +167,16 @@ export default function PublicDemoCustomers() {
                 salesPending={false}
               />
             </div>
-            <CustomerMixChart analytics={data.customers} salesPending={false} />
+            <CustomerMixChart
+              analytics={data.customers}
+              salesPending={false}
+              quotedShare={data.book.returningSalesShare}
+              quotedWindow={
+                data.rangeLabel === "Month to date"
+                  ? "This month"
+                  : data.rangeLabel
+              }
+            />
           </DeskLane>
           <DeskLane
             rank="more"
@@ -181,29 +184,27 @@ export default function PublicDemoCustomers() {
             fold
             defaultOpen={data.shotMode}
           >
-            {returningInsight.cards.length > 0 ? (
-              <ShareableInsightCards
-                view={returningInsight}
-                shotMode={data.shotMode}
-              />
-            ) : null}
             <CustomersScoreboard
               book={data.book}
               depth={data.depth}
               periodLabel={data.rangeLabel}
               salesPending={false}
               useSampleDesk
-              growthHref="#mcfly-growth"
-              ltvHref="#mcfly-ltv"
+              growthHref={deskHref("/app/growth")}
+              ltvHref={deskHref("/app/ltv")}
             />
           </DeskLane>
         </div>
+        ) : null}
+        {showLtv ? (
         <div id="mcfly-ltv">
           <DeskLane rank="next" label="What a new buyer is worth">
             <CustomersLtvWindows {...ltvProps} />
             <CustomersLtvEconomics {...ltvProps} />
           </DeskLane>
         </div>
+        ) : null}
+        {showGrowth ? (
         <div id="mcfly-growth">
           <DeskLane rank="next" label={GROWTH_FIRST_LANE_LABEL}>
             <CustomersGrowthSection
@@ -221,9 +222,20 @@ export default function PublicDemoCustomers() {
               quietBack={data.customers.quietBack}
               comebackWait={data.customers.comebackWait}
               lifetimeSpan={data.customers.lifetimeSpan}
+              windowDays={windowDays}
+              quotedComeback={{
+                historyDays: data.customers.historyDays,
+                within30Share: data.customers.within30Share,
+                within30Count: data.customers.within30Count,
+                eligible30: data.customers.eligible30,
+                winBackDay: data.customers.winBackDay,
+                saveNowOneOrder: data.customers.saveNowOneOrder,
+              }}
             />
           </DeskLane>
         </div>
+        ) : null}
+        {showCustomers ? (
         <div id="mcfly-depth">
           <DeskLane
             rank="more"
@@ -232,7 +244,10 @@ export default function PublicDemoCustomers() {
             defaultOpen={data.shotMode || data.panel === "depth"}
           >
             <div className="mcfly-cust-action-row">
-              <CustomerRetentionBoard analytics={data.customers} />
+              <CustomerRetentionBoard
+                analytics={data.customers}
+                windowDays={windowDays}
+              />
               <CustomerWhaleWatch rfm={data.customers.rfm} />
             </div>
             <CustomerRfmBoard rfm={data.customers.rfm} />
@@ -240,14 +255,17 @@ export default function PublicDemoCustomers() {
             <CustomerWhaleTable analytics={data.customers} />
             <CustomerConcentrationChart book={data.book} depth={data.depth} />
             <CustomersLtvDepth {...ltvProps} />
-            {depthInsight.cards.length > 0 || depthInsight.empty ? (
-              <ShareableInsightCards
-                view={depthInsight}
-                shotMode={data.shotMode}
-              />
-            ) : null}
           </DeskLane>
         </div>
+        ) : null}
+        {showSave ? (
+          <section aria-label="Who to save">
+            <CustomerRetentionBoard
+              analytics={data.customers}
+              windowDays={windowDays}
+            />
+          </section>
+        ) : null}
       </div>
     </DeskBookPage>
   );

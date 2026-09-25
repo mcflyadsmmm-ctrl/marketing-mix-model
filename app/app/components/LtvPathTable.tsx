@@ -8,7 +8,7 @@ import type { PathClarity } from "../lib/ltv-flagship";
 /**
  * First product → second product journeys: how many buyers walked each path,
  * what they are worth over their life, and in their first 90 days. Only orders
- * with product names on file count (SAMPLE Snowdevil) — live orders hide titles,
+ * with product names on file count (Sample shop) — live orders hide titles,
  * so this table simply does not paint there. Biggest journeys first.
  */
 export function LtvPathTable({

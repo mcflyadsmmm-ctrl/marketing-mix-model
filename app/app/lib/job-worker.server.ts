@@ -17,6 +17,7 @@ import {
   salesDayFactsWindowShouldResume,
 } from "./first-session-shopify-window.server";
 import { NonRetryableJobError, type ClaimedJob } from "./job-worker";
+import { recomputeDeskMetricSnapshot } from "./desk-metric-snapshot.server";
 
 export { BACKFILL_ORDER_FACTS_JOB, BACKFILL_SALES_DAY_FACTS_JOB };
 
@@ -35,6 +36,13 @@ export async function handleBackfillOrderFacts(
   const result = await runOrderFactsBackfill(admin, job.shopId, {
     enqueueRetry: false,
   });
+  try {
+    await recomputeDeskMetricSnapshot(job.shopId);
+  } catch (error) {
+    console.error(
+      `[queue] desk metrics snapshot failed shopId=${job.shopId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   if (
     orderFactsWindowShouldResume(result) &&

@@ -224,7 +224,7 @@ describe("goals targets already on the book", () => {
     expect(sales?.tone).toBe("down");
     expect(sales?.note).toMatch(/sales goal already/);
     expect(returning?.tone).toBe("down");
-    expect(returning?.note).toMatch(/Snowdevil stretch/);
+    expect(returning?.note).toMatch(/Example stretch/);
     expect(returning?.note).toMatch(/not a target you typed/);
     expect(ltv?.actual).toBe(186);
     expect(ltv?.pct).toBeNull();

@@ -58,7 +58,6 @@ import {
 } from "./first-session-shopify-window.server";
 import { BACKFILL_SALES_DAY_FACTS_JOB } from "./sales-facts.server";
 import { BACKFILL_ORDER_FACTS_JOB } from "./order-facts.server";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -186,19 +185,17 @@ describe("first-session Shopify window resume", () => {
     expect(runSalesFactsBackfill.mock.calls[0][2]?.maxDays).toBeUndefined();
   });
 
-  it("passes the unpaid closed-day window into both crawls when billing is on", async () => {
+  it("does not shrink the trial crawl to 90 days when billing is on", async () => {
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
     shopIsProForIngest.mockResolvedValue(false);
     const admin = {} as never;
     try {
       await scheduleFirstSessionShopifyWindow(admin, "shop_1");
-      expect(runSalesFactsBackfill).toHaveBeenCalledWith(admin, "shop_1", {
-        windowDays: LIVE_UNPAID_INGEST_DAYS,
-      });
-      expect(runOrderFactsBackfill).toHaveBeenCalledWith(admin, "shop_1", {
-        windowDays: LIVE_UNPAID_INGEST_DAYS,
-      });
+      expect(runSalesFactsBackfill).toHaveBeenCalledWith(admin, "shop_1");
+      expect(runOrderFactsBackfill).toHaveBeenCalledWith(admin, "shop_1");
+      expect(runSalesFactsBackfill.mock.calls[0]?.[2]?.windowDays).toBeUndefined();
+      expect(runOrderFactsBackfill.mock.calls[0]?.[2]?.windowDays).toBeUndefined();
     } finally {
       if (prev === undefined) delete process.env.MCFLY_BILLING;
       else process.env.MCFLY_BILLING = prev;
@@ -330,7 +327,7 @@ describe("first-session Shopify window resume", () => {
     expect(jobs).toContain("handleBackfillSalesDayFacts");
   });
 
-  it("caps order rows at 24 months and leaves sales on the Shopify window", () => {
+  it("caps order rows and sales ingest at 24 months", () => {
     const gate = read("./first-session-shopify-window.server.ts");
     const sales = read("./sales-facts.server.ts");
     const orders = read("./order-facts.server.ts");
@@ -338,8 +335,10 @@ describe("first-session Shopify window resume", () => {
     expect(gate).toContain("Order rows stop at 24 months");
     expect(gate).toContain("live-ingest-depth");
     expect(sales).toContain("fetchShopifySalesDayTotals");
+    expect(sales).toContain("orderRowWindowDayCount");
     expect(sales).toContain("resolveLiveIngestWindowDays");
     expect(sales).not.toContain("resolveOrderRowWindowDays");
+    expect(sales).toContain("stored SalesDayFact only");
     expect(orders).toContain("resolveCommercialOrderWindowDays");
     expect(depth).toContain("ORDER_ROW_WINDOW_MONTHS = 24");
     expect(depth).toContain("LIVE_UNPAID_INGEST_DAYS");
@@ -349,12 +348,10 @@ describe("first-session Shopify window resume", () => {
 
   it("order webhook enqueues OrderFact backfill after clearing the day seal", () => {
     const webhook = read("../routes/webhooks.orders.tsx");
-    expect(webhook).toContain("clearOrderFactDayCompleteSeal");
-    expect(webhook).toContain("enqueueOrderFactsWebhookDelta");
-    expect(webhook).toContain("backfill_order_facts");
-    const sealCall = webhook.lastIndexOf("clearOrderFactDayCompleteSeal");
-    const deltaCall = webhook.lastIndexOf("enqueueOrderFactsWebhookDelta");
-    expect(sealCall).toBeGreaterThan(-1);
-    expect(deltaCall).toBeGreaterThan(sealCall);
+    expect(webhook).toContain("shopLocalDayKey");
+    expect(webhook).toContain("RECONCILE_SALES_DAY_JOB");
+    expect(webhook).not.toContain("enqueueOrderFactsWebhookDelta");
+    expect(webhook).not.toContain("clearOrderFactDayCompleteSeal");
+    expect(webhook).toContain("today only");
   });
 });

@@ -31,6 +31,7 @@ import { BillingExitProvider } from "../lib/billing-exit-context";
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { buildManagedPricingPlansUrl } from "../lib/billing.server";
 import { deskNavHrefFromSearch, DESK_PRIMARY_NAV } from "../lib/desk-nav";
+import { deskShellShouldRevalidate } from "../lib/desk-tab-flow";
 import { deskNavLabel, liveDeskNavState } from "../lib/live-desk-surface";
 import { resolveLiveUnparkStage } from "../lib/live-unpark";
 import { OriginShell } from "./_index/OriginShell";
@@ -60,6 +61,8 @@ function isGoneResponse(error: unknown): boolean {
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: deskStyles },
 ];
+
+export const shouldRevalidate = deskShellShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Public tab / curl: never 410. 410 hydrates React Router, fetches /app.data,
@@ -144,7 +147,7 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       <DeskCurrencyContext.Provider value={currencyCode}>
       <BillingExitProvider plansUrl={plansUrl}>
-        {/* Admin nav: 3 analysis tabs + Settings. period + shot stay on every href. */}
+        {/* Admin nav: Orders, Spend, Goals, Customers, plus Settings. period + shot stay on every href. */}
         <s-app-nav>
           {DESK_PRIMARY_NAV.map((item) => (
             <s-link

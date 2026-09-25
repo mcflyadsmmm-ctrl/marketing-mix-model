@@ -3,8 +3,7 @@
  *
  * Product lock:
  * - Demo = SAMPLE full wow (this lane is Live ingest, not SAMPLE).
- * - Unpaid / Shopify trial Live ingest stops at LIVE_UNPAID_INGEST_DAYS closed days.
- * - Paid keeps the Shopify-visible sales window. Order rows stop at 24 months.
+ * - Trial and paid keep the same Shopify-visible window. Order rows stop at 24 months.
  * - Daily sales totals come from ShopifyQL, not from paging those orders.
  * - See live-ingest-depth. Paid $39 does not extend order rows past 24 months.
  *
@@ -13,8 +12,8 @@
  * the timid maxDays: 2 that left a sealed thin book.
  *
  * Live unpark: skip enqueue while SAMPLE freeze / stage parked
- * (`liveUnparkIngestPolicyFromEnv`). Unpaid/trial passes the closed-day
- * window into the crawl. Paid order rows stop at 24 months, not five years.
+ * (`liveUnparkIngestPolicyFromEnv`). Trial and paid both crawl 24 months,
+ * newest days first, not five years.
  * One-shot contract lives in LIVE_SYNC_LAW_PR_REF.
  * One-shot after that full window seals: Live tabs skip enqueue/burst.
  * OAuth / first-session still kick while work remains. Refunds/cancels
@@ -172,9 +171,9 @@ async function scheduleIngestPolicy(shopId: string) {
 
 /**
  * Fast: write resume jobs, then kick default-sized bursts without awaiting them.
- * Safe on OAuth and Overview — first paint stays facts-only / pending.
+ * Safe on OAuth and Overview — first paint stays on stored facts.
  * No-ops once the Shopify window is sealed.
- * Unpaid / trial passes {@link LIVE_UNPAID_INGEST_DAYS} into both crawls.
+ * Trial and paid do not pass a shorter window into the crawl.
  */
 export async function scheduleFirstSessionShopifyWindow(
   admin: AdminApiContext,

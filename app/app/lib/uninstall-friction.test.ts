@@ -62,8 +62,7 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
     expect(ltvLaneAt).toBeGreaterThan(-1);
     expect(unlockAt).toBeGreaterThan(ltvLaneAt);
     expect(valueAt).toBeGreaterThan(unlockAt);
-    expect(unlock).toContain("LIVE_UNPAID_INGEST_DAYS");
-    expect(unlock).toMatch(/closed days of order rows/);
+    expect(unlock).toMatch(/Trial and paid keep the same desk/);
     expect(unlock).toMatch(/up to 24 months of orders/);
     expect(unlock).not.toContain("~90 days");
     expect(unlock).not.toMatch(/already on this desk/);
@@ -72,7 +71,7 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
   it("5) Settings is Live-only with Snowdevil honesty and a human support path", () => {
     expect(settings).not.toContain('aria-label="Sample | Live"');
     expect(settings).toMatch(/one Live shop view|Live shop only|Live book/i);
-    expect(settings).toContain("Snowdevil");
+    expect(settings).toContain("Sample shop");
     expect(settings).toContain('aria-label="Support"');
     expect(settings).toContain("Need help?");
     expect(settings).toContain("mcflyadsmmm@gmail.com");

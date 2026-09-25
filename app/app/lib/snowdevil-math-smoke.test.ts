@@ -129,8 +129,9 @@ describe("Snowdevil SAMPLE math smoke", () => {
     const orders = read("../routes/app.orders.tsx");
     const ordersFirst = read("../components/OrdersFirstViewport.tsx");
     const ordersScore = read("../components/OrdersScoreboard.tsx");
+    const timing = read("../components/OrdersTimingChart.tsx");
     expect(`${ordersFirst}\n${ordersScore}`).toMatch(/average/i);
-    expect(`${ordersFirst}\n${orders}`).toMatch(/weekend/i);
+    expect(timing).toMatch(/weekend/i);
     expect(ordersScore).toMatch(/Online vs POS/);
     expect(orders).not.toContain("mcfly-book__lede");
 
@@ -154,6 +155,6 @@ describe("Snowdevil SAMPLE math smoke", () => {
     expect(settings).not.toContain("Live is parked until launch");
     expect(settings).toMatch(/7-day/);
     expect(settings).toMatch(/\$39/);
-    expect(settings).toContain("Snowdevil");
+    expect(settings).toContain("Sample shop");
   });
 });

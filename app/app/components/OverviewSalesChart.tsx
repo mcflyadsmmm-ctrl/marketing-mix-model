@@ -88,13 +88,13 @@ const PRESETS: readonly { key: OverviewRangePreset; label: string; long: string 
   { key: "1y", label: "1y", long: "Last 12 months" },
 ];
 
-function ChartEmptyFrame({ copy }: { copy: string }) {
+function ChartEmptyFrame({ copy, title }: { copy: string; title: string }) {
   return (
-    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label="Orders by day">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label={title}>
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
-          {OVERVIEW_CHART_CAPTION}
+          {title}
         </p>
       </div>
       <p className="mcfly-chart__empty">{copy}</p>
@@ -116,16 +116,23 @@ export function OverviewSalesChart({
   ordersHref = "/app/orders",
   salesPending = false,
   typicalDay = null,
+  typicalDayWindow = null,
   initialPreset = "30d",
   initialCustom = null,
   shopifyTotalsLive = false,
   shopifyDayTotals = null,
   shopifyTotalsPending = false,
+  caption = OVERVIEW_CHART_CAPTION,
 }: {
   days: SalesDayPoint[];
   ordersHref?: string;
   salesPending?: boolean;
   typicalDay?: number | null;
+  /**
+   * Named window for the one typical-day figure (month close).
+   * Day grain quotes this instead of a second median of the bars on screen.
+   */
+  typicalDayWindow?: string | null;
   /**
    * Order / sample history for other compares. Never the Shopify Total Sales
    * sentence — that reads `shopifyDayTotals` only, and only when Live.
@@ -138,6 +145,8 @@ export function OverviewSalesChart({
   /** Certified ShopifyQL SalesDayFact days. Not OrderFact page sums. */
   shopifyDayTotals?: SalesDayPoint[] | null;
   shopifyTotalsPending?: boolean;
+  /** Drawn-chart title. Ledger uses its own name. */
+  caption?: string;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -213,7 +222,7 @@ export function OverviewSalesChart({
   }
 
   if (sorted.length < 2) {
-    return <ChartEmptyFrame copy={OVERVIEW_CHART_EMPTY} />;
+    return <ChartEmptyFrame copy={OVERVIEW_CHART_EMPTY} title={caption} />;
   }
 
   const noun = GRAIN_NOUN[effectiveGrain];
@@ -221,13 +230,19 @@ export function OverviewSalesChart({
   const totalOrders = points.reduce((sum, bucket) => sum + bucket.orders, 0);
   const hasOrders = points.some((bucket) => bucket.orders > 0);
   const cumulative = overviewCumulative(points);
-  const typical = points.length > 0 ? overviewMedian(points.map((p) => p.sales)) : null;
+  const rangeMedian =
+    points.length > 0 ? overviewMedian(points.map((p) => p.sales)) : null;
+  const quotedTypical =
+    effectiveGrain === "day" &&
+    typicalDayWindow != null &&
+    typicalDayWindow.length > 0 &&
+    typicalDay != null &&
+    typicalDay > 0
+      ? typicalDay
+      : null;
   const typicalRef =
-    typical != null && typical > 0
-      ? typical
-      : typicalDay != null && typicalDay > 0
-        ? typicalDay
-        : null;
+    quotedTypical ??
+    (rangeMedian != null && rangeMedian > 0 ? rangeMedian : null);
   const avgBucket = points.length > 0 ? total / points.length : 0;
   const rangeAov = overviewAov(total, totalOrders);
   const aovValues = points.map((bucket) => overviewAov(bucket.sales, bucket.orders));
@@ -342,6 +357,10 @@ export function OverviewSalesChart({
       : range
         ? `${overviewChartDayLabel(range.fromKey)} – ${overviewChartDayLabel(range.toKey)}`
         : "Range";
+  const typicalLabel =
+    quotedTypical != null
+      ? `Typical day · ${typicalDayWindow}`
+      : `Typical ${noun} · ${rangeLabel}`;
 
   const bestBucket = points.reduce(
     (best, bucket) => (bucket.sales > best.sales ? bucket : best),
@@ -351,7 +370,7 @@ export function OverviewSalesChart({
   type Stat = { k: string; v: string; delta?: OverviewDelta | null; sub: string };
   const statCards: Stat[] = hasOrders
     ? [
-        { k: "Sales", v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
+        { k: `Sales · ${rangeLabel}`, v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
         { k: "Orders", v: numberFmt.format(totalOrders), delta: ordersDelta, sub: "in range" },
         {
           k: "AOV",
@@ -360,15 +379,15 @@ export function OverviewSalesChart({
           sub: "per order",
         },
         {
-          k: `Typical ${noun}`,
+          k: typicalLabel,
           v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
           sub: "median",
         },
       ]
     : [
-        { k: "Sales", v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
+        { k: `Sales · ${rangeLabel}`, v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
         {
-          k: `Typical ${noun}`,
+          k: typicalLabel,
           v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
           sub: "median",
         },
@@ -392,9 +411,9 @@ export function OverviewSalesChart({
   return (
     <section
       className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales"
-      aria-label={OVERVIEW_CHART_CAPTION}
+      aria-label={caption}
     >
-      <h3 className="mcfly-chart__serif">{OVERVIEW_CHART_CAPTION}</h3>
+      <h3 className="mcfly-chart__serif">{caption}</h3>
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
           <p className="mcfly-chart__muted">{rangeLabel}</p>
@@ -705,7 +724,7 @@ export function OverviewSalesChart({
             style={{ top: `${yPct(railY)}%`, left: `${xPct(PLOT_LEFT + 6)}%` }}
             aria-hidden="true"
           >
-            typical {noun} {formatCurrency(typicalRef!, currency)}
+            {typicalLabel} {formatCurrency(typicalRef!, currency)}
           </span>
         ) : null}
 
@@ -768,7 +787,7 @@ export function OverviewSalesChart({
               {typicalRef != null ? (
                 <li className="mcfly-chart__tip-row">
                   <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--typical" />
-                  <span className="mcfly-chart__tip-k">Typical {noun}</span>
+                  <span className="mcfly-chart__tip-k">{typicalLabel}</span>
                   <span className="mcfly-chart__tip-v">
                     {formatCurrency(typicalRef, currency)}
                   </span>

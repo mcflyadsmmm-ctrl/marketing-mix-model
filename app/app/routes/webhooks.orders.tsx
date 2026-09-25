@@ -1,11 +1,9 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { enqueueOrderFactsWebhookDelta } from "../lib/first-session-shopify-window.server";
 import { enqueueJob } from "../lib/job-queue.server";
-import { clearOrderFactDayCompleteSeal } from "../lib/order-facts.server";
+import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
-  extractOrderDirtyDayKey,
   extractOrderId,
   isOrderWebhookTopic,
   normalizeWebhookTopic,
@@ -19,11 +17,8 @@ import {
 /**
  * Order webhooks: `orders/create`, `orders/updated`, `orders/cancelled`.
  *
- * This handler does NOT compute sales. It marks the affected shop-local day dirty
- * and ACKs, so Shopify's 5s budget is never spent on GraphQL pagination. The queue
- * worker recomputes the day's SalesDayFact. When shop IANA is known it also clears
- * the OrderFact `__day_complete__` seal and enqueues `backfill_order_facts`
- * (shop-deduped) so refunds/cancels re-crawl nets without waiting for a tab.
+ * This handler does NOT compute sales and does NOT restart the 24-month backfill.
+ * orders/create and orders/updated enqueue a reconcile for shop-local today only.
  *
  * Level 1 only: order id and timestamp. `customer`, `email`, `phone`, addresses,
  * and line items are never read, logged, or persisted — the desk needs a dirty-day
@@ -77,40 +72,23 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       select: { id: true, ianaTimezone: true },
     });
 
-    const dayKey = extractOrderDirtyDayKey(payload, shopRow.ianaTimezone);
-    if (!dayKey) {
-      // Never guess a day from server-local time — that would dirty the wrong fact.
+    const timeZone = shopRow.ianaTimezone?.trim();
+    if (!timeZone) {
       console.log(
-        `Order webhook topic=${normalizedTopic} shop=${shop} has no usable timestamp — acked without enqueue`,
+        `Order webhook topic=${normalizedTopic} shop=${shop} has no timezone — acked without a history pull`,
       );
       return new Response();
     }
-
-    // OrderFact seals require IANA shop-local days (same keys as backfill).
-    // Without timezone, fail closed: still reconcile SalesDayFact, but do not
-    // clear a seal against a date-prefix guess that may not match the marker.
-    if (shopRow.ianaTimezone) {
-      const cleared = await clearOrderFactDayCompleteSeal(shopRow.id, dayKey);
-      if (cleared > 0) {
-        console.log(
-          `Order webhook topic=${normalizedTopic} shop=${shop} clearedOrderFactDaySeal=${dayKey}`,
-        );
-      }
-      await enqueueOrderFactsWebhookDelta(shopRow.id, {
-        reason: normalizedTopic,
-        day: dayKey,
-      });
-    }
-
+    const todayKey = shopLocalDayKey(new Date(), timeZone);
     const job = await enqueueJob({
       shopId: shopRow.id,
       type: RECONCILE_SALES_DAY_JOB,
-      dedupeKey: dayKey,
-      payload: { day: dayKey, reason: normalizedTopic },
+      dedupeKey: todayKey,
+      payload: { day: todayKey, reason: normalizedTopic },
     });
 
     console.log(
-      `Order webhook topic=${normalizedTopic} shop=${shop} dirtyDay=${dayKey} jobId=${job.jobId}`,
+      `Order webhook topic=${normalizedTopic} shop=${shop} today=${todayKey} jobId=${job.jobId}`,
     );
 
     return new Response();

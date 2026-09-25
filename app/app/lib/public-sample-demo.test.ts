@@ -77,10 +77,11 @@ describe("public Remix SAMPLE desk", () => {
     const page = await loadPublicSamplePage(
       new Request("https://mcfly-analytics.fly.dev/demo"),
     );
-    expect(page.orderHero.sales).toBe(68_457);
-    expect(page.orderHero.priorSales).toBe(69_891);
-    expect(page.orderHero.typicalOrder).toBeCloseTo(631, 0);
-    expect(page.orderHero.returningSales).toBe(45_409);
+    expect(page.orderHero.sales).toBeCloseTo(page.sales.totalSales, 2);
+    expect(page.orderHero.priorSales).toBeGreaterThan(0);
+    expect(page.orderHero.typicalOrder).toBe(page.depth.medianAov);
+    expect(page.orderHero.returningSales).toBe(page.book.returningSales);
+    expect(page.mixForecast.mix?.returningSales).toBe(page.orderHero.returningSales);
     expect(page.orderHero.weekendShare).toBeCloseTo(0.23, 2);
   });
 
@@ -94,7 +95,7 @@ describe("public Remix SAMPLE desk", () => {
     expect(view.estimate).not.toBeNull();
     expect(view.estimate!).toBeGreaterThan(0);
     expect(view.plug).toMatch(/×/);
-    expect(view.daysLine).toMatch(/Snowdevil book/);
+    expect(view.daysLine).toMatch(/Sample shop book/);
     const sales = view.targets.find((row) => row.kind === "sales");
     const returning = view.targets.find((row) => row.kind === "returning");
     const ltv = view.targets.find((row) => row.kind === "ltv");

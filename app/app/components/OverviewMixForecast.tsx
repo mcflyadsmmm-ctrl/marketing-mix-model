@@ -342,8 +342,12 @@ export function OverviewMixForecast({
                     : `${formatCurrency(forecast.soFar, currency)} + ${forecast.remainingDays} × ${formatCurrency(forecast.typicalDay, currency)} = ${formatCurrency(forecast.projected, currency)}`,
                 },
                 {
-                  k: "Typical day",
-                  v: `Median of ${view.factDays.toLocaleString()} stored days with sales. ${overviewMixHistoryLine(view)}`,
+                  k: view.typicalDayWindow
+                    ? `Typical day · ${view.typicalDayWindow}`
+                    : "Typical day",
+                  v: view.typicalDayWindow
+                    ? `Median selling day in ${view.typicalDayWindow}.`
+                    : `Median of ${view.factDays.toLocaleString()} stored days with sales. ${overviewMixHistoryLine(view)}`,
                 },
               ],
               next: "Order history only — if the typical day holds, not a promise.",
@@ -365,7 +369,11 @@ export function OverviewMixForecast({
               </span>
             </span>
             <span className="mcfly-depth-formula__part">
-              <span className="mcfly-depth-formula__part-k">Typical day</span>
+              <span className="mcfly-depth-formula__part-k">
+                {view.typicalDayWindow
+                  ? `Typical day · ${view.typicalDayWindow}`
+                  : "Typical day"}
+              </span>
               <span className="mcfly-depth-formula__part-v">
                 {formatCurrency(forecast.typicalDay, currency)}
               </span>

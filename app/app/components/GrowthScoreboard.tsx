@@ -8,6 +8,7 @@ import {
   growthSecondVsFirst,
   growthStandupCopyText,
   growthWholePct,
+  type QuotedComebackWindow,
 } from "../lib/growth-comeback";
 import { morningSentence } from "../lib/morning-habit";
 import { CopyMorningSentence } from "./MorningHabitStrip";
@@ -17,6 +18,10 @@ import {
   type ComebackNextWait,
   type QuietBackView,
 } from "../lib/customers-analytics";
+import {
+  customersDaysToSecondCopy,
+  type CustomersWindowDays,
+} from "../lib/customers-days-to-second";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 
@@ -128,15 +133,16 @@ export function GrowthScoreboard({
   book,
   depth,
   repeatRate,
-  avgOrdersD90,
   salesPending,
-  useSampleDesk,
+  useSampleDesk: _useSampleDesk,
   ltvHref = "#mcfly-ltv",
   quietBack,
   comebackWait,
   lifetimeSpan,
   reachNow,
   clockAvailable,
+  windowDays,
+  quotedComeback = null,
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;
@@ -150,7 +156,12 @@ export function GrowthScoreboard({
   lifetimeSpan: BuyerLifetimeSpan;
   reachNow: number;
   clockAvailable: boolean;
+  /** Period on screen. When set, the days chip is that wait — not another window. */
+  windowDays?: CustomersWindowDays;
+  /** Customers-analytics ≤30d figure. Quoted instead of a second depth rate. */
+  quotedComeback?: QuotedComebackWindow | null;
 }) {
+  void _useSampleDesk;
   const currency = useDeskCurrency();
   const firstTime =
     !salesPending && isNum(book.newSales) && book.newSales > 0
@@ -158,13 +169,32 @@ export function GrowthScoreboard({
       : "—";
   const firstShare =
     !salesPending && isNum(book.newSalesShare) ? book.newSalesShare : null;
-  const within30 = salesPending ? null : depth.secondOrderWithin30Share;
+  const within30 = salesPending
+    ? null
+    : quotedComeback
+      ? quotedComeback.within30Share
+      : depth.secondOrderWithin30Share;
+  const within30Caption = quotedComeback
+    ? `came back ≤30d · last ~${Math.round(quotedComeback.historyDays)} days · ${quotedComeback.within30Count.toLocaleString()} of ${quotedComeback.eligible30.toLocaleString()} eligible`
+    : "came back within 30 days · buyers with 30 days on file";
   const within30Value =
     !salesPending && isNum(within30) ? growthWholePct(within30) : "—";
-  const days =
-    !salesPending && isNum(depth.medianDaysToSecond)
+  const windowCopy =
+    windowDays && !salesPending ? customersDaysToSecondCopy(windowDays) : null;
+  const days = windowDays
+    ? (windowCopy?.value ?? "—")
+    : !salesPending && isNum(depth.medianDaysToSecond)
       ? `${Math.round(depth.medianDaysToSecond)}d`
       : "—";
+  const daysNote = windowDays
+    ? (windowCopy?.note ??
+      `Needs a second order in ${windowDays.label} — not $0.`)
+    : depth.repeatBuyers > 0
+      ? `${depth.repeatBuyers.toLocaleString()} buyers came back`
+      : "Needs a second order on file";
+  const daysLabel = windowDays
+    ? `Days to a second order · ${windowDays.label}`
+    : "Days to a second order";
   const cmp = !salesPending ? growthSecondVsFirst(depth) : null;
   const secondVsFirst =
     cmp != null
@@ -178,10 +208,6 @@ export function GrowthScoreboard({
       : "—";
   const repeat =
     !salesPending && isNum(repeatRate) ? growthWholePct(repeatRate) : "—";
-  const orders90 =
-    !salesPending && isNum(avgOrdersD90) && avgOrdersD90 > 0
-      ? avgOrdersD90.toFixed(1)
-      : "—";
   const quietValue =
     !salesPending &&
     quietBack.sealed &&
@@ -214,7 +240,7 @@ export function GrowthScoreboard({
     money: (n) => formatCurrency(n, currency),
     secondShare: depth.secondOrderBuyerShare,
     thirdShare: depth.thirdPlusBuyerShare,
-    reachNow,
+    reachNow: windowDays ? null : reachNow,
     clockAvailable,
   });
 
@@ -227,7 +253,6 @@ export function GrowthScoreboard({
         <h2>New dollars</h2>
         <p className="mcfly-panel__muted">
           First-time buyers · who came back
-          {useSampleDesk ? " · Sample data" : ""}
         </p>
       </div>
 
@@ -237,8 +262,10 @@ export function GrowthScoreboard({
           value={within30Value}
           caption={
             isNum(within30)
-              ? "came back within 30 days"
-              : "30-day come-back"
+              ? within30Caption
+              : quotedComeback
+                ? `30-day come-back · last ~${Math.round(quotedComeback.historyDays)} days`
+                : "30-day come-back · buyers with 30 days on file"
           }
         />
 
@@ -271,15 +298,14 @@ export function GrowthScoreboard({
 
           <div className="mcfly-cust-tiles">
             <Tile
-              label="Days to a second order"
+              label={daysLabel}
               value={days}
-              note={
-                depth.repeatBuyers > 0
-                  ? `${depth.repeatBuyers.toLocaleString()} buyers came back`
-                  : "Needs a second order on file"
-              }
+              note={daysNote}
               icon="clock"
-              formula="Middle wait between a first and second order, from order history."
+              formula={
+                windowCopy?.formula ??
+                "Middle wait between a first and second order, from order history."
+              }
               next="The explorer above splits how far past a first order buyers went."
             />
             <Tile
@@ -305,13 +331,9 @@ export function GrowthScoreboard({
               next="Comeback grain on the explorer is the same mix as bars."
             />
             <Tile
-              label="Repeat rate"
+              label="Repeat rate · first 90 days"
               value={repeat}
-              note={
-                orders90 !== "—"
-                  ? `${orders90} orders in the first 90 days · order history, not email`
-                  : "Extra orders beyond the first in the first 90 days. Order history, not email."
-              }
+              note="Extra orders beyond the first in the first 90 days. Order history, not email."
               icon="customers"
               formula="Extra orders beyond the first in the first 90 days. Order history, not an email list."
               next="Open LTV for first-90-day dollars per new buyer."

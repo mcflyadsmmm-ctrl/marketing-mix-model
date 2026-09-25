@@ -19,7 +19,7 @@ const LEDGER_FILTERS: { id: "all" | "hit" | "miss"; label: string }[] = [
 const LEDGER_GRAINS: { id: LedgerGrain; label: string }[] = [
   { id: "day", label: "Day" },
   { id: "month", label: "Month" },
-  { id: "quarter", label: "Quarter" },
+  { id: "quarter", label: "Quarter rows" },
   { id: "year", label: "Year" },
 ];
 
@@ -56,6 +56,7 @@ function hitRateLine(
   hitRate: number | null,
   targetMer: number,
 ): string {
+  if (!(targetMer > 0)) return "No target saved.";
   if (!(eligible > 0) || hitRate == null)
     return "No spend days to score against goal.";
   return `${hitDays} of ${eligible} spend days hit ${formatMer(targetMer)}× goal.`;
@@ -210,7 +211,7 @@ export function MarketingSpendRoom({
               <tr>
                 <th>Period</th>
                 <th>Sales</th>
-                <th>Sales vs this month</th>
+                <th>Vs last year</th>
                 <th>Spend</th>
                 <th>{PRODUCT_NOUN.totalRoas}</th>
               </tr>
@@ -252,7 +253,9 @@ export function MarketingSpendRoom({
                 {g.label}
               </button>
             ))}
-            {LEDGER_FILTERS.map((f) => (
+            {LEDGER_FILTERS.filter(
+              (f) => board.targetMer > 0 || f.id === "all",
+            ).map((f) => (
               <button
                 key={f.id}
                 type="button"
@@ -278,7 +281,7 @@ export function MarketingSpendRoom({
                 : ledgerGrain === "month"
                   ? "Months this feed"
                   : ledgerGrain === "quarter"
-                    ? "Quarters this feed"
+                    ? "Quarter rows in this feed"
                     : "Years this feed"}{" "}
               — click a row for the channel split.
             </caption>
@@ -345,7 +348,8 @@ export function MarketingSpendRoom({
                                 <ul className="mcfly-control__chan-list">
                                   {row.channels.map((ch) => (
                                     <li key={ch.channel}>
-                                      {channelName(ch.channel, channelLabels)}{" "}
+                                      {channelName(ch.channel, channelLabels)} ·{" "}
+                                      {row.label}{" "}
                                       {formatCurrency(ch.amount, currency)}
                                     </li>
                                   ))}

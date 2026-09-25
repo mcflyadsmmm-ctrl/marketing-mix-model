@@ -37,8 +37,8 @@ const liveTill = {
   includeShopifyOrderWindow: true,
 };
 
-describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
-  it("unpaid tills name 90 closed days after a sealed 90-day book, not 24 months", () => {
+describe("book coverage honesty — trial and paid share 24 months", () => {
+  it("unpaid tills name up to 24 months, not a 90-day trial", () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     expect(
       orderHistoryProgressMessage({
@@ -52,20 +52,16 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
       ...liveTill,
       orderBookDepth: "trial_slice",
     });
-    expect(unpaidTill).toBe(
-      `This month · live sales · ${LIVE_UNPAID_INGEST_DAYS} closed days of orders`,
-    );
-    expect(unpaidTill).not.toMatch(/24 months/);
+    expect(unpaidTill).toBe("This month · live sales · up to 24 months of orders");
+    expect(unpaidTill).not.toMatch(/90 closed days/);
 
     const unpaidCaption = deskHistoryCaption(
       new Date(Date.UTC(2026, 8, 22)),
       "sales",
       "trial_slice",
     );
-    expect(unpaidCaption).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days of orders`),
-    );
-    expect(unpaidCaption).not.toMatch(/24 months/);
+    expect(unpaidCaption).toMatch(/up to 24 months of orders/);
+    expect(unpaidCaption).not.toMatch(/90 closed days/);
     expect(unpaidCaption).toMatch(/reports/i);
 
     const unpaidSpend = deskHistoryCaption(
@@ -73,25 +69,19 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
       "spend",
       "trial_slice",
     );
-    expect(unpaidSpend).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days of orders`),
-    );
-    expect(unpaidSpend).not.toMatch(/24 months/);
+    expect(unpaidSpend).toMatch(/up to 24 months of orders/);
+    expect(unpaidSpend).not.toMatch(/90 closed days/);
 
-    expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
-    expect(overviewCoverageLine("trial_slice")).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(overviewCoverageLine("trial_slice")).toBe("Up to 24 months of orders");
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/Trial/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
 
     const unpaidLede = deskBookLede(
       "Returning dollars, not headcount.",
       "trial_slice",
     );
-    expect(unpaidLede).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
-    expect(unpaidLede).not.toMatch(/24 months/);
+    expect(unpaidLede).toMatch(/24 months/);
+    expect(unpaidLede).not.toMatch(/90 closed days/);
   });
 
   it("paid tills still name up to 24 months of order rows", () => {
@@ -104,22 +94,19 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
     expect(overviewCoverageLine("paid_full")).toBe(OVERVIEW_COVERAGE_LINE);
   });
 
-  it("Unlock banner names the unpaid 90 / paid 24 split, not the same book", () => {
+  it("Unlock banner names one 24-month desk for trial and paid", () => {
     const unlock = read("../components/UnlockFullHistoryBanner.tsx");
-    expect(unlock).toContain("LIVE_UNPAID_INGEST_DAYS");
-    expect(unlock).toMatch(/closed days of order rows/);
-    expect(unlock).toMatch(/up to 24 months of orders/);
-    expect(unlock).toMatch(/\$39 per store/);
+    expect(unlock).toMatch(/Trial and paid keep the same desk/);
+    expect(unlock).toMatch(/up to 24 months/);
+    expect(unlock).toMatch(/\$39/);
     expect(unlock).not.toMatch(/already on this desk/);
-    expect(unlock).not.toMatch(/Trial\s+and paid use the same book/);
     expect(unlock).not.toContain("~90 days");
+    expect(unlock).not.toContain("LIVE_UNPAID_INGEST_DAYS");
   });
 
   it("Orders, Customers, Overview, and Spend tills pass the unpaid book", () => {
     const orders = read("../routes/app.orders.tsx");
-    expect(orders).toContain("includeShopifyOrderWindow: true");
-    expect(orders).toMatch(/includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/);
-    expect(orders).toContain("orderBookDepth={orderBookDepth}");
+    expect(orders).toMatch(/throw redirect/);
     expect(orders).not.toContain("deskBookLede");
 
     const customers = read("../routes/app.customers.tsx");
@@ -294,9 +281,8 @@ describe("book coverage honesty — Spend today cap and no 60-day truncated clau
 
 describe("book coverage honesty — Settings / Spend leftover names the 90 vs 24 split", () => {
   it("does not recook Overview coverage; Settings, explorer, and CPA name the unpaid book", () => {
-    expect(overviewCoverageLine("trial_slice")).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(overviewCoverageLine("trial_slice")).toBe("Up to 24 months of orders");
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/90 days/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
 
     const settings = read("../routes/app.settings.tsx");

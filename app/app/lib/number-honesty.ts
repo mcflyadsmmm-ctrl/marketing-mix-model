@@ -76,6 +76,24 @@ export function formatTotalRoasEquation(opts: {
 }
 
 /**
+ * Coverage hint under the day table. When the header equation is on file,
+ * quote that equation for the named window — do not add a second ratio.
+ */
+export function spendCoverageQuote(opts: {
+  caption: string;
+  windowLabel: string;
+  equation: string | null;
+}): string {
+  const window = opts.windowLabel.trim();
+  if (opts.equation) {
+    return window
+      ? `${opts.caption}. ${window}: ${opts.equation}.`
+      : `${opts.caption}. ${opts.equation}.`;
+  }
+  return opts.caption;
+}
+
+/**
  * Clipboard line for the Spend first fold. Empty spend copies nothing.
  * Pending copies the loading line, not $0. Never copies 0×.
  */
@@ -139,14 +157,14 @@ export function formatOnlineRoasLine(opts: {
   const denom =
     `${formatCurrency(spend, currency)} every typed dollar (ads, retainers, billboards)`;
   if (hasNonOnlineSpend) {
-    return `Online Shopify Total Sales ÷ ${denom} is — because typed spend includes retainers and other non-ads dollars, not ads only. Total ROAS above uses every typed dollar. ${excluded}`;
+    return `Online-only ratio stays — because typed spend includes retainers and other non-ads dollars, not ads only. Total ROAS above uses every typed dollar. ${excluded}`;
   }
   if (
     mix == null ||
     !Number.isFinite(mix.online) ||
     !Number.isFinite(totalSales)
   ) {
-    return `Online Shopify Total Sales ÷ ${denom} is — until Online / POS / Shop mix is on file. ${excluded}`;
+    return `Online Shopify Total Sales stays — until Online / POS / Shop mix is on file. ${excluded}`;
   }
   const onlineSales = totalSales * mix.online;
   if (!(onlineSales > 0) || !Number.isFinite(onlineSales)) {

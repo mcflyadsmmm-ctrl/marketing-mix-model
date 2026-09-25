@@ -24,12 +24,12 @@ describe("Live ingest windows", () => {
     ).toBe(1800);
   });
 
-  it("clamps trial and unpaid sales days to the closed-day slice", () => {
+  it("does not shrink trial sales below the granted Shopify window", () => {
     expect(
       shopMayIngestFullHistory({ billingEnabled: true, isPro: false }),
-    ).toBe(false);
+    ).toBe(true);
     expect(liveIngestDepth({ billingEnabled: true, isPro: false })).toBe(
-      "trial_slice",
+      "paid_full",
     );
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     expect(
@@ -38,7 +38,7 @@ describe("Live ingest windows", () => {
         isPro: false,
         paidWindowDays: 1800,
       }),
-    ).toBe(LIVE_UNPAID_INGEST_DAYS);
+    ).toBe(1800);
     expect(
       resolveLiveIngestWindowDays({
         billingEnabled: true,
@@ -70,7 +70,7 @@ describe("Live ingest windows", () => {
     expect(resolveOrderRowWindowDays({ shopifyWindowDays: 60, now })).toBe(60);
   });
 
-  it("clamps unpaid order rows to 90 closed days and keeps paid at 24 months", () => {
+  it("keeps trial and paid order rows on the 24-month cap", () => {
     const now = new Date("2026-09-18T12:00:00.000Z");
     const cap = orderRowWindowDayCount(now);
     expect(
@@ -80,7 +80,7 @@ describe("Live ingest windows", () => {
         shopifyWindowDays: 1800,
         now,
       }),
-    ).toBe(LIVE_UNPAID_INGEST_DAYS);
+    ).toBe(cap);
     expect(
       resolveCommercialOrderWindowDays({
         billingEnabled: true,

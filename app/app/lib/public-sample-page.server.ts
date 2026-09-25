@@ -3,6 +3,11 @@
  * Never Shopify authenticate, never Prisma shop rows, never live orders.
  */
 
+import {
+  buildWindowSets,
+  type HistoryDay,
+  type WindowSets,
+} from "./allocation-history";
 import { buildCashControlBoard, type CashControlBoard } from "./mer-control";
 import { buildCustomerAnalytics, type RetentionOrderRow } from "./customers-analytics";
 import { buildCustomerRfm, type CustomerRfmView } from "./customers-rfm";
@@ -46,21 +51,20 @@ import {
   resolvePeriod,
   type PeriodPreset,
 } from "./periods";
-import { SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
+import { SAMPLE_DESK_MARGIN_PCT } from "./sample-desk.server";
 import { shopifyNativePeriodStats, type ShopifyNativePeriodStats } from "./shopify-native-stats";
 import {
   shopifyDepthStats,
   type OrderDepthRow,
   type ShopifyDepthStats,
 } from "./shopify-depth-stats";
-import { shopLocalYmd } from "./shop-local-day";
+import { shopLocalDayKey, shopLocalYmd } from "./shop-local-day";
 import {
   buildCpaWindowSnapshot,
   resolveCpaDeskWindows,
   type CpaDayPoint,
   type CpaWindowSnapshot,
 } from "./cpa-desk";
-import { PRODUCT_NOUN } from "./product-labels";
 import {
   PUBLIC_SAMPLE_LOCK_NOW,
   PUBLIC_SAMPLE_OVERVIEW_LOCK,
@@ -103,6 +107,9 @@ export type PublicSamplePage = {
   currencyCode: string;
   tillLabel: string;
   targetMer: number;
+  periodFromKey: string;
+  periodToKey: string;
+  spendWindows: { period: WindowSets; lookback: WindowSets };
   marginPct: number;
   rangeLabel: string;
   sales: SalesResult;
@@ -268,6 +275,17 @@ export function sampleGrowthCohorts(
     .map(([cohortMonth, bucket]) => ({ cohortMonth, ...bucket }));
 }
 
+function historyFromDays(days: PublicSampleDay[]): HistoryDay[] {
+  return days.map((day) => ({
+    dateKey: day.dateKey,
+    sales: day.sales,
+    spend: day.spend,
+    channels: Object.entries(day.spendByChannel)
+      .filter(([, amount]) => amount > 0)
+      .map(([channel, amount]) => ({ channel, amount })),
+  }));
+}
+
 function channelTotals(days: PublicSampleDay[]): Array<{ channel: string; amount: number }> {
   const totals = new Map<string, number>();
   for (const day of days) {
@@ -331,16 +349,24 @@ export async function loadPublicSamplePage(
     windowEnd: range.end,
   });
   const lock = PUBLIC_SAMPLE_OVERVIEW_LOCK;
-  const lockYoy = overviewYoyPct(lock.sales, lock.priorSales);
+  const priorSalesTotal = sampleSalesFromDays(
+    filterSampleDays(book.days, priorRange.start, priorRange.end),
+  ).totalSales;
+  const heroSales = sales.totalSales;
+  const heroPrior = priorSalesTotal > 0 ? priorSalesTotal : null;
+  const heroYoy = overviewYoyPct(heroSales, heroPrior);
   const orderHero: OverviewOrderBookHero = {
     ...orderHeroBase,
-    sales: lock.sales,
-    priorSales: lock.priorSales,
-    yoyPct: lockYoy,
-    zone: overviewYoyZoneFromPct(lockYoy),
+    sales: heroSales,
+    priorSales: heroPrior,
+    yoyPct: heroYoy,
+    zone: overviewYoyZoneFromPct(heroYoy),
     empty: false,
-    typicalOrder: lock.typicalOrder,
-    returningSales: lock.returningSales,
+    typicalOrder: depth.medianAov ?? orderHeroBase.typicalOrder,
+    returningSales:
+      sales.returningCustomerNetSales > 0
+        ? sales.returningCustomerNetSales
+        : orderHeroBase.returningSales,
     weekendShare: lock.weekendShare,
     orderCount: orderHeroBase.orderCount,
   };
@@ -359,7 +385,7 @@ export async function loadPublicSamplePage(
 
   const cashControl = buildCashControlBoard(
     explorerRowsFromDays(book.days),
-    SAMPLE_DESK_TARGET_MER,
+    0,
   );
   const yoyCards = buildOverviewYoyCards(cashControl.chips);
 
@@ -384,6 +410,7 @@ export async function loadPublicSamplePage(
     daysInMonth: clock.daysInMonth,
     remainingDays: clock.remainingDays,
     historyLimited: false,
+    monthDailySales: periodDays.map((day) => day.sales),
     historyDays: overviewHistoryDays(
       explorerDays[0]?.dateKey ?? null,
       explorerDays[explorerDays.length - 1]?.dateKey ?? null,
@@ -479,7 +506,7 @@ export async function loadPublicSamplePage(
     todayYear: ymd.y,
     todayMonth: ymd.m,
     historyLimited: false,
-    bookLabel: "Snowdevil book",
+    bookLabel: "Sample shop book",
     targets: {
       salesActual: mtdSales > 0 ? mtdSales : null,
       salesGoal: null,
@@ -501,8 +528,14 @@ export async function loadPublicSamplePage(
     embed,
     shopLabel: PUBLIC_SAMPLE_SHOP_LABEL,
     currencyCode: PUBLIC_SAMPLE_CURRENCY,
-    tillLabel: `${range.label}${PRODUCT_NOUN.samplePeriodSuffix}`,
-    targetMer: SAMPLE_DESK_TARGET_MER,
+    tillLabel: range.label,
+    targetMer: 0,
+    periodFromKey: shopLocalDayKey(range.start, PUBLIC_SAMPLE_TZ),
+    periodToKey: shopLocalDayKey(range.end, PUBLIC_SAMPLE_TZ),
+    spendWindows: {
+      period: buildWindowSets(historyFromDays(periodDays)),
+      lookback: buildWindowSets(historyFromDays(book.days)),
+    },
     marginPct: SAMPLE_DESK_MARGIN_PCT,
     rangeLabel: range.label,
     sales,

@@ -12,9 +12,8 @@ import { resolveSalesReadiness } from "./sales-pending";
 export function overviewCoverageLine(depth: LiveIngestDepth): string {
   switch (depth) {
     case "trial_slice":
-      return "Trial: 90 closed days of orders";
     case "paid_full":
-      return "Paid: up to 24 months of orders";
+      return "Up to 24 months of orders";
     default: {
       const _never: never = depth;
       return _never;
@@ -101,8 +100,26 @@ export const OVERVIEW_YOY_YEAR_PANEL = "yoy-year";
 export function overviewPanelElementId(
   panel: string | null | undefined,
 ): string | null {
-  if (panel === OVERVIEW_YOY_YEAR_PANEL) return OVERVIEW_YOY_YEAR_ID;
-  return null;
+  switch (panel) {
+    case OVERVIEW_YOY_YEAR_PANEL:
+      return OVERVIEW_YOY_YEAR_ID;
+    case "chart":
+      return "mcfly-chart";
+    case "mix-close":
+      return OVERVIEW_MIX_CLOSE_ID;
+    case "overview":
+      return "mcfly-overview";
+    case "compare":
+      return "mcfly-compare";
+    case "ledger":
+      return "mcfly-ledger";
+    case "mix":
+      return "mcfly-mix";
+    case "plan":
+      return "mcfly-plan";
+    default:
+      return null;
+  }
 }
 
 export const OVERVIEW_FIRST_FOLD_HEROES = [
@@ -118,8 +135,8 @@ export const OVERVIEW_FIRST_FOLD_HEROES = [
 
 export type OverviewFirstFoldHero = (typeof OVERVIEW_FIRST_FOLD_HEROES)[number];
 
-/** Overview as-of chip — never “still loading sales days” next to a sealed $0. */
-export const OVERVIEW_PENDING_ASOF = " · still loading — not $0";
+/** Overview as-of chip — name orders, never a sealed $0. */
+export const OVERVIEW_PENDING_ASOF = " · orders still loading — not $0";
 
 /** Live switch landed on Overview — sales only. Spend honesty lives later. */
 export const OVERVIEW_LIVE_HANDOFF_BODY =

@@ -59,7 +59,7 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(src).toMatch(/Live data/i);
     expect(src).not.toMatch(/practice/i);
     expect(src).toMatch(/top Admin frame/i);
-    expect(src).toMatch(/every named platform/i);
+    expect(src).toMatch(/Meta, Google, Email, or Other/);
     expect(src).toMatch(/\$39/);
   });
 
@@ -74,9 +74,10 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
   });
 
   it("Pricing and Terms match 7-day trial then $39 whole desk", () => {
-    expect(pages.pricing).toMatch(/every platform including billboards/i);
-    expect(pages.pricing).toMatch(/\$39 per store per month/i);
-    expect(pages.terms).toMatch(/\$39\/store\/mo after a 7-day trial/);
+    expect(pages.pricing).toMatch(/Meta, Google, Email, or Other/);
+    expect(pages.pricing).toMatch(/7 days, then \$39/);
+    expect(pages.terms).toMatch(/7 days, then \$39/);
+    expect(pages.terms).toMatch(/current cycle may still charge/);
     expect(pages.terms).toMatch(/Utah/);
   });
 

@@ -4032,7 +4032,7 @@
 }
 
 .mcfly-desk--shot.mcfly-desk--sample::after {
-  content: "SAMPLE DATA";
+  content: none;
   position: absolute;
   top: 0.55rem;
   right: 0.65rem;
@@ -13331,10 +13331,12 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy__k-main {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
   min-width: 0;
+  white-space: normal;
 }
 
 .mcfly-yoy__zone {
@@ -13756,8 +13758,7 @@ button.mcfly-chart__month {
     min-height: 0;
   }
 
-  .mcfly-yoy--glance .mcfly-yoy__zone,
-  .mcfly-yoy--glance .mcfly-yoy__range {
+  .mcfly-yoy--glance .mcfly-yoy__zone {
     display: none;
   }
 
@@ -21871,6 +21872,8 @@ button.mcfly-habit-goals__read:focus-visible {
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--mcfly-mute, #64748b);
+  overflow: visible;
+  white-space: normal;
 }
 
 .mcfly-chart__h {
@@ -22019,9 +22022,13 @@ button.mcfly-habit-goals__read:focus-visible {
 
 .mcfly-overview-first-beat {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.95fr);
   gap: clamp(0.75rem, 2.5vw, 1.35rem);
   align-items: start;
+}
+
+.mcfly-overview-first-beat .mcfly-yoy--metrics .mcfly-yoy__grid--metrics {
+  overflow: visible;
 }
 
 .mcfly-overview-first-beat .mcfly-yoy--plane {

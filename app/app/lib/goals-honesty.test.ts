@@ -20,10 +20,10 @@ describe("Goals honesty — SAMPLE does not invent profit or an $800k stretch", 
   it("public /demo/goals mounts the Admin year-plan stack, not a profit-margin KPI", () => {
     const demoGoals = read("../routes/demo.goals.tsx");
     const adminGoals = read("../routes/app.goals.tsx");
-    expect(adminGoals).toContain("<OrderHistoryGoalsBoard");
-    expect(demoGoals).toContain("<OrderHistoryGoalsBoard");
-    expect(demoGoals).toContain("<SalesGoalGauges");
-    expect(demoGoals).toContain("mcfly-goals-hero--soft");
+    expect(adminGoals).toContain('name="targetMer"');
+    expect(adminGoals).not.toContain("<OrderHistoryGoalsBoard");
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).not.toMatch(/throw redirect/);
     expect(demoGoals).not.toMatch(/profit margin/i);
     expect(demoGoals).not.toContain("calculateBreakEvenMer");
     expect(demoGoals).not.toContain("breakEvenTotalRoas");

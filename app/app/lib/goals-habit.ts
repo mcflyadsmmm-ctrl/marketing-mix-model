@@ -144,7 +144,7 @@ export function habitGoalTargetSourceLabel(
     case "typed":
       return "You typed";
     case "sample":
-      return "SAMPLE example";
+      return "Example";
     default: {
       const _exhaustive: never = source;
       return _exhaustive;
@@ -175,7 +175,7 @@ export function habitReturningDailyLine(track: HabitGoalTrack): string {
   switch (track.targetSource) {
     case "sample":
       return track.met
-        ? `Returning buyers already carry ${actual} this year — SAMPLE example, not a target you typed.`
+        ? `Returning buyers already carry ${actual} this year — example, not a target you typed.`
         : `Returning buyers carry ${actual} this year. No returning-$ target is typed.`;
     case "typed":
       return track.met

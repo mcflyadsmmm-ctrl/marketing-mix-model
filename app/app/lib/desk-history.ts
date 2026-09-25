@@ -4,24 +4,22 @@
  * Date slicers only change the view — they do not shrink this window.
  *
  * Sales day totals ask multi-year ShopifyQL (needs `read_reports`).
- * Unpaid order rows are {@link LIVE_UNPAID_INGEST_DAYS} closed days.
- * Paid order rows stay up to 24 months. When Shopify history is actually
- * limited (~60d without deep scope), callers pass shopifyOrderWindowLimited.
+ * Trial and paid order rows stay up to 24 months. The till does not name
+ * a 90-day trial. When Shopify history is actually limited (~60d without
+ * deep scope), callers pass shopifyOrderWindowLimited.
  */
 
 import type { LiveIngestDepth } from "./live-ingest-depth";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import { PRODUCT_NOUN } from "./product-labels";
 
 export const DESK_HISTORY_YEARS_BACK = 5;
 
 export type { LiveIngestDepth };
 
-/** Merchant-facing order-row window for this till. */
+/** Merchant-facing order-row window. Trial and paid share the full desk. */
 export function deskOrderWindowPhrase(depth: LiveIngestDepth): string {
   switch (depth) {
     case "trial_slice":
-      return `${LIVE_UNPAID_INGEST_DAYS} closed days of orders`;
     case "paid_full":
       return "up to 24 months of orders";
     default: {
@@ -31,11 +29,10 @@ export function deskOrderWindowPhrase(depth: LiveIngestDepth): string {
   }
 }
 
-/** Coverage muted line — names the book this till actually has. */
+/** Coverage muted line — trial and paid name the same book. */
 export function shopifyBookMutedFor(depth: LiveIngestDepth): string {
   switch (depth) {
     case "trial_slice":
-      return `From this shop’s orders. Stats Overview skips. ${LIVE_UNPAID_INGEST_DAYS} closed days of order rows · day totals when reports are on. Spend optional.`;
     case "paid_full":
       return PRODUCT_NOUN.shopifyBookMuted;
     default: {
@@ -87,12 +84,13 @@ export function deskPeriodTillLabel(input: {
   shopifyOrderWindowLimited?: boolean;
   /** Book pages: mention the order-detail window on the till. */
   includeShopifyOrderWindow?: boolean;
-  /** Unpaid = 90 closed days. Paid = up to 24 months. SAMPLE uses paid. Required so an omit cannot paint 24 months. */
+  /** Trial and paid both say up to 24 months. SAMPLE uses the same phrase. Required so an omit cannot drop the window. */
   orderBookDepth: LiveIngestDepth;
 }): string {
   const orderBookDepth = input.orderBookDepth;
   if (input.useSampleDesk) {
-    return `${input.periodLabel}${PRODUCT_NOUN.samplePeriodSuffix}`;
+    // The public layout names Sample shop once. Do not add a second Sample on the till.
+    return input.periodLabel;
   }
   if (input.shotMode) return input.periodLabel;
   if (
@@ -109,7 +107,7 @@ export function deskPeriodTillLabel(input: {
     return `${input.periodLabel}${PRODUCT_NOUN.factsIncompleteSuffix}`;
   }
   if (input.todaySalesUnavailable && !input.todaySalesTruncated) {
-    return `${input.periodLabel} · today’s sales unavailable`;
+    return `${input.periodLabel} · today’s sales still loading`;
   }
   if (input.todaySalesTruncated) {
     return `${input.periodLabel} · today’s sales incomplete`;
@@ -163,8 +161,8 @@ export function deskBookHonestyNotices(input: {
   if (input.todaySalesUnavailable && !input.todaySalesTruncated) {
     notices.push({
       tone: "warning",
-      heading: "Today’s live sales unavailable",
-      body: "Showing closed-day sales only — today’s Shopify pull did not complete.",
+      heading: "Today’s sales still loading",
+      body: "Today’s sales are still syncing — not $0. Closed days already on file stay on the desk.",
     });
   }
   return notices;

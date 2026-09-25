@@ -146,24 +146,19 @@ describe("entitlements whole-desk plan", () => {
   });
 });
 
-describe("entitlements plan copy names 90 vs 24", () => {
-  it("trial is not full-access — unpaid order rows stop at 90 closed days", () => {
+describe("entitlements plan copy names one 24-month desk", () => {
+  it("trial and paid keep the same book — not a 90-day withhold", () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const bullets = DESK_FEATURE_BULLETS.join(" ");
-    expect(bullets).toMatch(new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`));
-    expect(bullets).toMatch(/24 months/);
-    expect(bullets).toMatch(/\$39/);
-    expect(bullets).toMatch(/7-day trial/);
+    expect(bullets).toMatch(/Trial and paid both keep the full desk, up to 24 months/);
+    expect(bullets).toMatch(/7 days, then \$39/);
+    expect(bullets).toMatch(/Meta, Google, Email, or Other/);
+    expect(bullets).not.toMatch(/Full-year Goals|billboard/i);
     expect(bullets).not.toMatch(/full-access/);
-    expect(BILLING_HONESTY.flat).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(BILLING_HONESTY.flat).toMatch(/Trial and paid both keep the full desk/);
     expect(BILLING_HONESTY.flat).toMatch(/24 months/);
     expect(BILLING_HONESTY.flat).not.toMatch(/full-access/);
-    expect(PRO_UPSELL.includes).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
+    expect(PRO_UPSELL.includes).toMatch(/same desk/);
     expect(PRO_UPSELL.includes).toMatch(/24 months/);
-    expect(PRO_UPSELL.includes).toMatch(/view/i);
   });
 });

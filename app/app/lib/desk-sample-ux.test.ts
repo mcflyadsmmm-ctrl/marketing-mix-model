@@ -40,25 +40,21 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain('shotMode ? "mcfly-data-mode--shot"');
     expect(bar).toContain("mcfly-data-mode--shot");
     expect(bar).toContain("sampleHint");
-    expect(bar).toContain("if (!useSampleDesk) return null");
-    expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
+    expect(bar).toContain("if (!useSampleDesk || !shotMode) return null");
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("shotMode={shotMode}");
     expect(shell).not.toMatch(/\{!shotMode \? \(/);
     const css = read("../styles/mcfly-desk.css");
     expect(css).toMatch(/mcfly-desk--shot\.mcfly-desk--sample::after/);
-    expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
+    expect(css).toMatch(/content:\s*none/);
   });
 
   it("DataModeBar is SAMPLE honesty for freeze/shot only — no Settings switch", () => {
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("sampleData");
     expect(bar).toContain("sampleHint");
     expect(bar).not.toContain("Switch in Settings");
     expect(bar).toContain("sampleOnlyFreeze");
-    expect(bar).toContain("Sample mode is locked");
-    expect(bar).toContain("if (!useSampleDesk) return null");
-    expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
+    expect(bar).toContain("if (!useSampleDesk || !shotMode) return null");
     expect(bar).not.toContain("<Form");
     expect(bar).not.toContain('id="mcfly-data-mode-label"');
     expect(bar).not.toContain("liveDataHint");
@@ -69,7 +65,7 @@ describe("Sample data | Live data UX", () => {
     const labels = read("../lib/product-labels.ts");
     expect(labels).toContain('sampleData: "Sample data"');
     expect(labels).toContain('liveData: "Live data"');
-    expect(labels).toMatch(/sampleHint:\s*"Snowdevil/);
+    expect(labels).toMatch(/sampleHint:\s*"Sample shop/);
     expect(labels).not.toMatch(/sampleHint:[\s\S]{0,200}Harbor/);
   });
 
@@ -228,7 +224,8 @@ describe("Sample data | Live data UX", () => {
     expect(orders).toContain("OrdersRedirect");
     expect(orders).toContain("throw redirect");
     expect(customers).toContain("orderFactsTruncated");
-    expect(growthRedirect).toContain("throw redirect");
+    expect(growthRedirect).toContain("customersLoader");
+    expect(growthRedirect).not.toContain("throw redirect");
     const deskPage = read("../lib/desk-sales-page.server.ts");
     expect(deskPage).toContain("getOrderBackfillProgress");
     const bookPage = read("../components/DeskBookPage.tsx");
@@ -420,7 +417,8 @@ describe("Sample data | Live data UX", () => {
     }
     // Spend heading is the tab name. Chart range lives on the Spend explorer.
     const spend = read("../routes/app.spend.tsx");
-    expect(spend).toContain('heading="Spend"');
+    expect(spend).toContain("heading={pageHeading}");
+    expect(spend).toContain(': "Spend"');
     expect(spend).not.toContain("Same dates as Overview");
     // Import is the same paper — no second Total ROAS brand in the rail.
     expect(chrome("../routes/app.spend.import.tsx")).not.toContain(
@@ -434,8 +432,8 @@ describe("Sample data | Live data UX", () => {
     const gauges = read("../components/SalesGoalGauges.tsx");
     const habitBoard = read("../components/OrderHistoryGoalsBoard.tsx");
 
-    // T1: Goals route redirects to Settings; soft book craft lives on gauges + habit board.
-    expect(goals).toContain("redirect(`/app/settings");
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).not.toContain("redirect(`/app/settings");
     expect(habitBoard).toContain("Today’s read");
     expect(gauges).toContain("mcfly-goal-row--soft");
     expect(gauges).toContain("mcfly-goals-gauges--soft");

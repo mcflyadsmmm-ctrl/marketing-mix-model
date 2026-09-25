@@ -13,13 +13,10 @@ export function MorningHabitStrip() {
   return (
     <nav className="mcfly-morning-habit" aria-label="This morning">
       <p className="mcfly-morning-habit__k">This morning</p>
-      <Link className="mcfly-desk-tabs__pill" to={deskHref("/app")}>
+      <Link className="mcfly-desk-tabs__pill" to={deskHref("/app/close")}>
         Month close
       </Link>
-      <Link
-        className="mcfly-desk-tabs__pill"
-        to={deskHref("/app/customers?panel=growth")}
-      >
+      <Link className="mcfly-desk-tabs__pill" to={deskHref("/app/who-to-save")}>
         Who to save
       </Link>
       <Link className="mcfly-desk-tabs__pill" to={deskHref("/app/goals")}>

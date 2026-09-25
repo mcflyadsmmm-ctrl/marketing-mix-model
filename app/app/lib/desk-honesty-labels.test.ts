@@ -42,7 +42,7 @@ describe("Overview / LTV tillLabel honesty", () => {
 
   it("LTV route uses tillLtv.newBuyers rather than facts newCustomers", () => {
     expect(ltvSection).toContain("const ltv = metrics.tillLtv");
-    expect(ltvSection).toContain("metrics.tillLtv.newBuyers");
+    expect(ltvSection).toContain("ltv.newBuyers");
     expect(overview).not.toMatch(
       /cashCac[\s\S]{0,200}metrics\.newCustomers\s*>\s*0/,
     );
@@ -57,12 +57,12 @@ describe("Connections CSV-first redirect", () => {
   });
 });
 
-describe("Close redirect (Monday Close UI retired)", () => {
-  it("close route redirects to Home", () => {
+describe("Month close stays on its address", () => {
+  it("close route keeps /app/close", () => {
     const close = readFileSync(join(here, "../routes/app.close.tsx"), "utf8");
-    expect(close).toContain("RETIRED");
-    expect(close).toMatch(/redirect\(target\)|redirect\("\/app"\)/);
-    expect(close).toContain('"/app"');
+    expect(close).toContain('retryHref="/app/close"');
+    expect(close).not.toContain("throw redirect");
+    expect(close).toContain("loader");
   });
 });
 

@@ -3,12 +3,18 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useLoaderData, useLocation, useNavigation, useSearchParams, redirect } from "react-router";
+import { useLoaderData, useLocation, useSearchParams, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { PUBLIC_APP_STUB, isGoneResponse, requireAdmin } from "../lib/public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+  refreshingSalesLine,
+} from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
 import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
@@ -27,7 +33,6 @@ import {
   buildOverviewYoyYearModel,
   useOverviewPanelScroll,
 } from "../components/OverviewYoyYearSection";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewLivePeriodClock } from "../components/OverviewLivePeriodClock";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
@@ -52,6 +57,8 @@ import {
   deskStageFromHash,
   deskStageHeading,
   isOverviewHomeStage,
+  isOverviewToolStage,
+  overviewToolFromPanel,
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { deskPeriodTillLabel } from "../lib/desk-history";
@@ -64,8 +71,8 @@ import {
   OVERVIEW_YOY_YEAR_ID,
   OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
-  overviewOrderBackfillLine,
 } from "../lib/overview-first-viewport";
+import { bookLoadHonestyLine } from "../lib/book-window";
 import {
   buildOrderHistoryForecast,
   emptyForecastTargets,
@@ -78,11 +85,7 @@ import {
   overviewMonthClock,
   overviewMtdFromDays,
 } from "../lib/overview-mix-forecast";
-import {
-  buildShareableInsights,
-  emptyShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
+import { pickShareableLtvPeek } from "../lib/shareable-insights";
 import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
@@ -97,10 +100,12 @@ import {
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
 import { getOrderBackfillProgress, loadOrderDepthRows, ORDER_FACT_SOURCE } from "../lib/order-facts.server";
+import { readDeskMetricSnapshot } from "../lib/desk-metric-snapshot.server";
 import {
   buildOverviewOrderBookHero,
   orderBookDaySeries,
   orderBookFirstOrderMs,
+  orderBookReturningSales,
   shiftRangeOneYear,
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
@@ -152,6 +157,8 @@ function formatPctDelta(pct: number | null, priorLabel?: string): string {
   return `${sign}${pct.toFixed(0)}% vs ${vs}`;
 }
 
+export const shouldRevalidate = deskPageShouldRevalidate;
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!hasShopifySessionContext(request)) {
     return PUBLIC_APP_STUB;
@@ -175,7 +182,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!shotMode && requested === "y3") {
     const next = new URLSearchParams(url.searchParams);
     next.set("period", "ytd");
-    throw redirect(`/app?${next.toString()}`);
+    throw redirect(`${url.pathname}?${next.toString()}`);
   }
   const preset = requested;
   const shop = await ensureShop(session.shop);
@@ -229,13 +236,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesPulledAt = new Date().toISOString();
   } else {
     /*
-     * HARD-STOP (enterprise): desk paint NEVER starts unbounded fetchShopifySales /
-     * fetchShopifySalesByDay for the selected period, prior, or explorer window —
-     * that dies at 100k–1M orders on L12M / 3yr / incomplete coverage.
-     *
-     * Always serve stored SalesDayFact (+ honesty banners when incomplete /
-     * periodExceedsFactWindow). Live GraphQL is only the capped "today" top-up
-     * (LIVE_TODAY_MAX_PAGES). Window resume is fire-and-forget + job ticks.
+     * Desk paint reads stored SalesDayFact only. It does not call ShopifyQL
+     * and it does not page orders. Today's row is written by the order
+     * webhook job. Window resume is fire-and-forget + job ticks.
      */
     let mainCoverage: SalesFactsCoverage = {
       expectedClosedDays: 0,
@@ -363,6 +366,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesPulledAt,
     salesBasis,
     salesCoverage: salesFactsCoverageForBanner,
+    periodPreset: preset,
   });
 
   const ymd = shopLocalYmd(now, deskTz);
@@ -455,6 +459,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     historyLimited: Boolean(
       !useSampleDesk && orderBackfillProgress?.historyLimited,
     ),
+    monthDailySales: explorerDays
+      .filter((day) => day.dateKey.startsWith(monthPrefix))
+      .map((day) => day.sales),
     historyDays: overviewHistoryDays(
       explorerDays[0]?.dateKey ?? null,
       explorerDays[explorerDays.length - 1]?.dateKey ?? null,
@@ -514,47 +521,91 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       priorDaySales = null;
     }
   }
-  try {
-    const [windowRows, priorRows, historyRows] = await Promise.all([
-      loadOrderDepthRows(shop.id, range, orderFactSource),
-      loadOrderDepthRows(shop.id, priorOrderRange, orderFactSource),
-      loadOrderDepthRows(
-        shop.id,
-        { start: lookbackStart, end: range.end },
-        orderFactSource,
-      ),
-    ]);
-    const toBook = (
-      rows: Awaited<ReturnType<typeof loadOrderDepthRows>>,
-    ): OverviewOrderBookRow[] =>
-      rows.map((row) => ({
-        amount: row.amount,
-        orderedAt: row.orderedAt,
-        customerKey: row.customerKey,
-        shopLocalDate: row.shopLocalDate,
-      }));
-    const windowOrders = toBook(windowRows);
-    const priorOrders = toBook(priorRows);
-    const historyOrders = toBook(historyRows);
-    orderHero = buildOverviewOrderBookHero({
-      windowOrders,
-      priorOrders,
-      firstByCustomer: orderBookFirstOrderMs(historyOrders),
-      typicalOrder: metrics.shopifyDepth.medianAov,
-    });
-    if (
-      orderHero.weekendShare == null &&
-      metrics.shopifyDepth.weekendSalesShare != null
-    ) {
-      orderHero = {
-        ...orderHero,
-        weekendShare: metrics.shopifyDepth.weekendSalesShare,
-      };
+  if (useSampleDesk) {
+    try {
+      const [windowRows, priorRows, historyRows] = await Promise.all([
+        loadOrderDepthRows(shop.id, range, orderFactSource),
+        loadOrderDepthRows(shop.id, priorOrderRange, orderFactSource),
+        loadOrderDepthRows(
+          shop.id,
+          { start: lookbackStart, end: range.end },
+          orderFactSource,
+        ),
+      ]);
+      const toBook = (
+        rows: Awaited<ReturnType<typeof loadOrderDepthRows>>,
+      ): OverviewOrderBookRow[] =>
+        rows.map((row) => ({
+          amount: row.amount,
+          orderedAt: row.orderedAt,
+          customerKey: row.customerKey,
+          shopLocalDate: row.shopLocalDate,
+        }));
+      const windowOrders = toBook(windowRows);
+      const priorOrders = toBook(priorRows);
+      const historyOrders = toBook(historyRows);
+      orderHero = buildOverviewOrderBookHero({
+        windowOrders,
+        priorOrders,
+        firstByCustomer: orderBookFirstOrderMs(historyOrders),
+        typicalOrder: metrics.shopifyDepth.medianAov,
+      });
+      if (
+        orderHero.weekendShare == null &&
+        metrics.shopifyDepth.weekendSalesShare != null
+      ) {
+        orderHero = {
+          ...orderHero,
+          weekendShare: metrics.shopifyDepth.weekendSalesShare,
+        };
+      }
+      const series = orderBookDaySeries(historyOrders);
+      if (series.length > 0) orderExplorerDays = series;
+    } catch {
+      // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
     }
-    const series = orderBookDaySeries(historyOrders);
-    if (series.length > 0) orderExplorerDays = series;
-  } catch {
-    // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
+  } else {
+    // LIVE_PERIOD_WINDOW — stored chip. Sales stay on day rows.
+    // This click does not scan order rows and does not call Shopify for them.
+    const monthFactsLanded =
+      (salesFactsCoverageForBanner?.factDays ?? 0) > 0 ||
+      sales.orderCount > 0 ||
+      sales.totalSales > 0;
+    try {
+      const snap = await readDeskMetricSnapshot(shop.id, preset);
+      if (monthFactsLanded || (snap?.hero && !snap.hero.empty)) {
+        orderHero = {
+          sales: monthFactsLanded ? sales.totalSales : (snap?.hero?.sales ?? null),
+          priorSales: snap?.hero?.priorSales ?? null,
+          yoyPct: snap?.hero?.yoyPct ?? null,
+          zone:
+            snap?.hero?.zone && snap.hero.zone !== "empty"
+              ? snap.hero.zone
+              : "empty",
+          returningSales: snap?.hero?.returningSales ?? null,
+          typicalOrder: snap?.hero?.typicalOrder ?? null,
+          weekendShare: snap?.hero?.weekendShare ?? null,
+          orderCount: monthFactsLanded
+            ? sales.orderCount
+            : (snap?.hero?.orderCount ?? 0),
+          empty: !monthFactsLanded && (snap?.hero?.empty ?? true),
+        };
+      }
+    } catch {
+      if (monthFactsLanded) {
+        orderHero = {
+          sales: sales.totalSales,
+          priorSales: null,
+          yoyPct: null,
+          zone: "empty",
+          returningSales: null,
+          typicalOrder: null,
+          weekendShare: null,
+          orderCount: sales.orderCount,
+          empty: false,
+        };
+      }
+    }
   }
 
   const factsPending = overviewShopifyFactsPending({
@@ -592,7 +643,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
-    salesDays: [...new Set([...salesByDay.keys(), ...spendByDay.keys()])]
+    // Sales days only. A spend day with no sales fact must not paint as $0.
+    salesDays: [...salesByDay.keys()]
       .sort((a, b) => a.localeCompare(b))
       .map((dateKey) => ({
         dateKey,
@@ -651,12 +703,26 @@ export default function Dashboard() {
     orderHero,
     orderBookDepth,
   } = data;
-  const navigation = useNavigation();
-  const isLoading = navigation.state === "loading";
-  const stage = shotMode
+  const isLoading = useDeskTabRefresh();
+  const requestScreen = shotMode
+    ? null
+    : namedDeskScreenFromPath(location.pathname);
+  const hashStage = shotMode
     ? DESK_SECTION.overview
     : deskStageFromHash(location.hash);
-  const onHome = isOverviewHomeStage(stage);
+  const panelTool = shotMode
+    ? null
+    : overviewToolFromPanel(searchParams.get("panel"));
+  const toolStage =
+    requestScreen == null && panelTool == null && isOverviewToolStage(hashStage)
+      ? hashStage
+      : panelTool;
+  const onHome =
+    requestScreen == null && toolStage == null && isOverviewHomeStage(hashStage);
+  const pageHeading =
+    requestScreen === "year-over-year" || requestScreen === "month-close"
+      ? namedDeskTitle(requestScreen)
+      : deskStageHeading(toolStage ?? hashStage);
   const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
   const greetingPending = overviewGreetingPending({
     salesPending: metrics.salesPending,
@@ -670,13 +736,14 @@ export default function Dashboard() {
     factDays: salesFactsCoverage?.factDays,
   });
   const orderBackfillResumeLine =
-    !useSampleDesk &&
-    orderBackfillProgress != null &&
-    orderBackfillProgress.remainingDays > 0 &&
-    (orderBackfillProgress.truncated ||
-      orderBackfillProgress.completeDays < orderBackfillProgress.windowDays)
-      ? overviewOrderBackfillLine(orderBackfillProgress.completeDays)
+    !useSampleDesk && orderBackfillProgress
+      ? bookLoadHonestyLine({
+          monthsFinished: orderBackfillProgress.monthsFinished,
+          bookSealed: orderBackfillProgress.bookSealed,
+          historyLimited: orderBackfillProgress.historyLimited,
+        })
       : null;
+  const deeperStillLoading = greetingPending;
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel =
@@ -737,6 +804,19 @@ export default function Dashboard() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
+  if (shopBook.returningSales != null && shopBook.returningSales > 0) {
+    orderHero = { ...orderHero, returningSales: shopBook.returningSales };
+  }
+  if (
+    metrics.shopifyDepth.medianAov != null &&
+    Number.isFinite(metrics.shopifyDepth.medianAov) &&
+    metrics.shopifyDepth.medianAov > 0
+  ) {
+    orderHero = {
+      ...orderHero,
+      typicalOrder: metrics.shopifyDepth.medianAov,
+    };
+  }
   const mixView = greetingPending
     ? emptyOverviewMixForecast()
     : (mixForecast ?? emptyOverviewMixForecast());
@@ -761,30 +841,6 @@ export default function Dashboard() {
         (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
     ),
   });
-  const insightView = greetingPending
-    ? emptyShareableInsights()
-    : buildShareableInsights(
-        {
-          salesPending: greetingPending,
-          orderCount: metrics.orderCount,
-          returningSales: shopBook.returningSales,
-          returningShare: shopBook.returningSalesShare,
-          newSales: shopBook.newSales,
-          typicalOrder: metrics.shopifyDepth.medianAov,
-          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
-          ltvPeek: ltvPeek?.amount ?? null,
-          ltvPeekDays: ltvPeek?.days ?? null,
-          historyLimited: Boolean(
-            !useSampleDesk &&
-              (orderBackfillProgress?.historyLimited ||
-                metrics.tillLtv.historyLimited),
-          ),
-          shopLabel,
-          sample: useSampleDesk,
-          periodLabel: metrics.period.label,
-        },
-        (n) => formatCurrency(n, currency),
-      );
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
     periodStartDay: sharePeriodStartDay,
@@ -813,18 +869,9 @@ export default function Dashboard() {
           expectedClosedDays: salesFactsCoverage.expectedClosedDays,
         }
       : null;
-  const orderProgressInput =
-    !useSampleDesk && orderBackfillProgress
-      ? {
-          completeDays: orderBackfillProgress.completeDays,
-          windowDays: orderBackfillProgress.windowDays,
-          remainingDays: orderBackfillProgress.remainingDays,
-        }
-      : null;
   const syncNeedsTop =
     greetingPending ||
     salesFactsIncomplete != null ||
-    Boolean(orderProgressInput && orderProgressInput.remainingDays > 0) ||
     Boolean(orderBackfillProgress?.truncated);
   const closedDaysOnFile = useSampleDesk
     ? 1
@@ -848,7 +895,7 @@ export default function Dashboard() {
       }
       salesFactsIncomplete={salesFactsIncomplete}
       hasSpend={Boolean(metrics.onboarding.hasSpend)}
-      orderBackfillProgress={orderProgressInput}
+      orderBackfillProgress={null}
       todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
       orderFactsTruncated={
@@ -875,23 +922,19 @@ export default function Dashboard() {
 
   const shopBrand = shopLabel.replace(/\.myshopify\.com$/i, "");
   const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
-  const yoyHref = deskNavHref("/app", {
+  const yoyHref = deskNavHref("/app/yoy", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: OVERVIEW_YOY_YEAR_PANEL },
-    hash: OVERVIEW_YOY_YEAR_ID,
   });
   const customersHref = deskNavHrefFromSearch("/app/customers", searchParams);
   const goalsHref = deskNavHrefFromSearch("/app/goals", searchParams);
-  const customersGrowthHref = deskNavHref("/app/customers", {
+  const customersGrowthHref = deskNavHref("/app/growth", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: "growth" },
   });
-  const customersLtvHref = deskNavHref("/app/customers", {
+  const customersLtvHref = deskNavHref("/app/ltv", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: "ltv" },
   });
   const onYoyYearChange = (next: string) => {
     const params = new URLSearchParams(searchParams);
@@ -903,7 +946,7 @@ export default function Dashboard() {
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
 
   return (
-    <s-page heading={deskStageHeading(stage)} inlineSize="large">
+    <s-page heading={pageHeading} inlineSize="large">
       <div
         className={[
           "mcfly-desk",
@@ -934,7 +977,9 @@ export default function Dashboard() {
 
         {isLoading && !shotMode ? (
           <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing sales…</p>
+            <p className="mcfly-state__copy">
+              {refreshingSalesLine(metrics.period.label)}
+            </p>
           </section>
         ) : null}
 
@@ -1029,7 +1074,7 @@ export default function Dashboard() {
                     }
                     orderBookDepth={orderBookDepth}
                     orderBackfillLine={orderBackfillResumeLine}
-                    hideInlinePending={syncNeedsTop}
+                    hideInlinePending={syncNeedsTop && !orderBackfillResumeLine}
                   />
                   {shopifyPeriodClock ? (
                     <OverviewLivePeriodClock
@@ -1044,7 +1089,7 @@ export default function Dashboard() {
                   {showOverviewChartBeat ? (
                     <OverviewYoyCards
                       cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                      salesPending={greetingPending}
+                      salesPending={deeperStillLoading}
                       yoyHref={yoyHref}
                     />
                   ) : null}
@@ -1066,7 +1111,8 @@ export default function Dashboard() {
                         }
                         ordersHref={ordersHref}
                         salesPending={greetingPending}
-                        typicalDay={metrics.shopifyDepth.medianDailySales}
+                        typicalDay={mixView.forecast?.typicalDay ?? null}
+                        typicalDayWindow={mixView.typicalDayWindow}
                         shopifyTotalsLive={deskAnalyticsDayTotalsLive(useSampleDesk)}
                         shopifyDayTotals={
                           deskAnalyticsDayTotalsLive(useSampleDesk)
@@ -1098,7 +1144,6 @@ export default function Dashboard() {
                     variant="overview"
                     goalsHref={goalsHref}
                   />
-                  <ShareableInsightCards view={insightView} shotMode={shotMode} />
                   </div>
                 </DeskLane>
                 <DeskLane
@@ -1142,7 +1187,7 @@ export default function Dashboard() {
                 <DeskLane rank="more" label="Year board vs last year">
                   <OverviewYoyYearSection
                     {...yoyYearWorkspace}
-                    salesPending={greetingPending}
+                    salesPending={deeperStillLoading}
                     onYearChange={onYoyYearChange}
                   />
                 </DeskLane>
@@ -1163,6 +1208,86 @@ export default function Dashboard() {
                   </footer>
                 ) : null}
               </div>
+            ) : null}
+
+            {scoreboardReady && requestScreen === "year-over-year" ? (
+              <section id={OVERVIEW_YOY_YEAR_ID} data-panel={OVERVIEW_YOY_YEAR_PANEL} aria-label="Year over year">
+                <OverviewYoyYearSection
+                  {...yoyYearWorkspace}
+                  salesPending={greetingPending}
+                  onYearChange={onYoyYearChange}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && requestScreen === "month-close" ? (
+              <section id={OVERVIEW_MIX_CLOSE_ID} aria-label="Month close">
+                <OverviewMixForecast
+                  view={mixView}
+                  customersHref={customersHref}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.compare ? (
+              <section id={DESK_SECTION.compare} aria-label="Compare">
+                <OverviewYoyCards
+                  cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                  salesPending={deeperStillLoading}
+                  yoyHref={yoyHref}
+                />
+                <OverviewYoyYearSection
+                  {...yoyYearWorkspace}
+                  salesPending={deeperStillLoading}
+                  onYearChange={onYoyYearChange}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.ledger ? (
+              <section id={DESK_SECTION.ledger} aria-label="Ledger">
+                <OverviewSalesChart
+                  caption="Ledger"
+                  days={
+                    salesExplorerDays.length >= 2
+                      ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
+                          dateKey,
+                          sales,
+                          orders,
+                        }))
+                      : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
+                  }
+                  ordersHref={ordersHref}
+                  salesPending={greetingPending}
+                  typicalDay={mixView.forecast?.typicalDay ?? null}
+                  typicalDayWindow={mixView.typicalDayWindow}
+                  shopifyTotalsLive={deskAnalyticsDayTotalsLive(useSampleDesk)}
+                  shopifyDayTotals={
+                    deskAnalyticsDayTotalsLive(useSampleDesk)
+                      ? analyticsExplorerDays
+                      : null
+                  }
+                  shopifyTotalsPending={overviewShopifyFactsPending({
+                    useSampleDesk,
+                    salesError: salesError != null,
+                    coverage: salesFactsCoverage,
+                  })}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.mix ? (
+              <section id={DESK_SECTION.mix} aria-label="Mix">
+                <OverviewMixForecast
+                  view={mixView}
+                  customersHref={customersHref}
+                />
+              </section>
+            ) : null}
+            {scoreboardReady && toolStage === DESK_SECTION.plan ? (
+              <section id={DESK_SECTION.plan} aria-label="Plan">
+                <OrderHistoryForecast
+                  view={forecastView}
+                  variant="overview"
+                  goalsHref={goalsHref}
+                />
+              </section>
             ) : null}
 
             {!syncNeedsTop && !coldEmpty && onHome ? trustBanners : null}

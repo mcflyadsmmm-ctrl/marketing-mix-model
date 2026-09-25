@@ -118,6 +118,7 @@ export async function loadDeskSalesPage(
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(settings.salesBasis, "total"),
+    periodPreset: preset,
   });
   const orderBackfillProgress = useSampleDesk
     ? null

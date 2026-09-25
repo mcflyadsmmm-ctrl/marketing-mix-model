@@ -819,22 +819,19 @@ describe("unpaid explorer does not sell a finished year", () => {
     expect(parseExplorerRange("All")).toBe("All");
   });
 
-  it("trial_slice hides This year / 1 year / All and clamps them to 90d", () => {
+  it("trial_slice keeps This year / 1 year / All and does not call 90 days a trial", () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const paid = explorerRangeOptionsFor("paid_full").map((opt) => opt.value);
     expect(paid).toEqual(["14d", "30d", "90d", "YTD", "1y", "All"]);
     const unpaid = explorerRangeOptionsFor("trial_slice").map((opt) => opt.value);
-    expect(unpaid).toEqual(["14d", "30d", "90d"]);
-    expect(clampExplorerRangeToBook("YTD", "trial_slice")).toBe("90d");
-    expect(clampExplorerRangeToBook("1y", "trial_slice")).toBe("90d");
-    expect(clampExplorerRangeToBook("All", "trial_slice")).toBe("90d");
+    expect(unpaid).toEqual(["14d", "30d", "90d", "YTD", "1y", "All"]);
+    expect(clampExplorerRangeToBook("YTD", "trial_slice")).toBe("YTD");
+    expect(clampExplorerRangeToBook("1y", "trial_slice")).toBe("1y");
+    expect(clampExplorerRangeToBook("All", "trial_slice")).toBe("All");
     expect(clampExplorerRangeToBook("YTD", "paid_full")).toBe("YTD");
     expect(clampExplorerRangeToBook("90d", "trial_slice")).toBe("90d");
     expect(explorerYearChipNote("paid_full")).toBeNull();
-    expect(explorerYearChipNote("trial_slice")).toMatch(
-      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
-    );
-    expect(explorerYearChipNote("trial_slice")).not.toMatch(/\$0/);
+    expect(explorerYearChipNote("trial_slice")).toBeNull();
   });
 
   it("omit-path: chips and loader clamp year ranges on trial_slice", () => {
@@ -927,7 +924,8 @@ describe("explorerWeekMonthCopyText", () => {
     expect(copy?.week).toMatch(/not on file/i);
     expect(copy?.week).not.toMatch(/is \$0/);
     expect(copy?.month).toMatch(/this month is \$15,310/);
-    expect(copy?.month).toMatch(/last week/i);
+    expect(copy?.month).toMatch(/Same dates last year are not on file/);
+    expect(copy?.month).not.toMatch(/last week/i);
     expect(copy?.combined).not.toMatch(/is \$0/);
   });
 

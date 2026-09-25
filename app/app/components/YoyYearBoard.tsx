@@ -50,9 +50,9 @@ export function YoyYearBoard({
               <th scope="col">Actual</th>
               <th scope="col">Prior</th>
               <th scope="col">YoY</th>
-              {hasSpend ? <th scope="col">Spend</th> : null}
-              {hasSpend ? <th scope="col">LY spend</th> : null}
-              {hasSpend ? <th scope="col">Total ROAS</th> : null}
+              {hasSpend ? <th scope="col">Spend · {year}</th> : null}
+              {hasSpend ? <th scope="col">Spend · {year - 1}</th> : null}
+              {hasSpend ? <th scope="col">Total ROAS · {year}</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -76,9 +76,9 @@ export function YoyYearBoard({
                 <td>{money(row.actual)}</td>
                 <td>{money(row.prior)}</td>
                 <td>{formatYoyPct(row.yoyPct)}</td>
-                {hasSpend ? <td>{money(row.spend)}</td> : null}
-                {hasSpend ? <td>{money(row.priorSpend)}</td> : null}
-                {hasSpend ? <td>{merLabel(row.mer)}</td> : null}
+                {hasSpend ? <td>{row.isFuture ? "—" : money(row.spend)}</td> : null}
+                {hasSpend ? <td>{row.isFuture ? "—" : money(row.priorSpend)}</td> : null}
+                {hasSpend ? <td>{row.isFuture ? "—" : merLabel(row.mer)}</td> : null}
               </tr>
             ))}
           </tbody>
@@ -138,12 +138,14 @@ export function YoyChannelBoard({
               {rows.map((row) => (
                 <tr key={row.channel} className="mcfly-yoy-board__row">
                   <th scope="row">
-                    {row.channel === "Unmapped"
-                      ? "Unmapped spend"
-                      : spendChannelShortLabel({
-                          channel: row.channel,
-                          customLabel: channelLabels?.[row.channel],
-                        })}
+                    {`${
+                      row.channel === "Unmapped"
+                        ? "Unmapped spend"
+                        : spendChannelShortLabel({
+                            channel: row.channel,
+                            customLabel: channelLabels?.[row.channel],
+                          })
+                    } · ${year}`}
                   </th>
                   <td>{money(row.spend)}</td>
                   <td>{money(row.priorSpend)}</td>

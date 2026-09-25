@@ -102,7 +102,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (isSampleOnlyFreeze()) {
         return {
           ok: false as const,
-          message: "Sample mode is locked.",
+          message: "This book stays an example.",
         };
       }
       await setSampleDeskEnabled(shop.id, false);
@@ -119,7 +119,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (isSampleOnlyFreeze()) {
         return {
           ok: false as const,
-          message: "Sample mode is locked. The Snowdevil book stays.",
+          message: "This book stays an example.",
         };
       }
       await clearSampleDesk(shop.id);
@@ -205,7 +205,7 @@ export default function DemoPage() {
         {stats.enabled ? (
           <s-section heading="Sample data">
             <s-paragraph>
-              Sample data stays labeled while it is on. These are Snowdevil
+              Sample data stays labeled while it is on. These are Sample shop
               example numbers, not this shop.
             </s-paragraph>
             <div className="mcfly-decision__actions">

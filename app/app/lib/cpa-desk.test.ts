@@ -47,7 +47,7 @@ describe("resolveLastNDays", () => {
 });
 
 describe("resolveCpaDeskWindows", () => {
-  it("pins This month and Last 28 to closed days, and explorer covers YTD ∪ last 90", () => {
+  it("pins This month to the spend header through today, and Last 28 to closed days", () => {
     const windows = resolveCpaDeskWindows(
       new Date("2026-09-17T18:00:00.000Z"),
       "UTC",
@@ -55,24 +55,24 @@ describe("resolveCpaDeskWindows", () => {
     );
     expect(windows.thisMonth.label).toBe("Month to date");
     expect(windows.thisMonth.start.toISOString().slice(0, 10)).toBe("2026-09-01");
-    expect(windows.thisMonth.end.toISOString().slice(0, 10)).toBe("2026-09-16");
+    expect(windows.thisMonth.end.toISOString().slice(0, 10)).toBe("2026-09-17");
     expect(windows.last28.label).toBe("Last 28 days");
     expect(windows.explorer.start.toISOString().slice(0, 10)).toBe("2026-01-01");
-    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-16");
+    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-17");
   });
 
-  it("unpaid explorer lookback is 90 closed days, not a finished YTD", () => {
+  it("unpaid explorer lookback matches the paid year window", () => {
     const windows = resolveCpaDeskWindows(
       new Date("2026-09-17T18:00:00.000Z"),
       "UTC",
       "trial_slice",
     );
-    expect(windows.explorer.start.toISOString().slice(0, 10)).toBe("2026-06-19");
-    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-16");
+    expect(windows.explorer.start.toISOString().slice(0, 10)).toBe("2026-01-01");
+    expect(windows.explorer.end.toISOString().slice(0, 10)).toBe("2026-09-17");
     expect(windows.last90.start.toISOString().slice(0, 10)).toBe("2026-06-19");
   });
 
-  it("unpaid CPA has no YTD chip; paid and SAMPLE keep it", () => {
+  it("unpaid CPA keeps the YTD chip with paid and SAMPLE", () => {
     expect(cpaExplorerRangesFor("paid_full")).toEqual([
       "this_month",
       "last_28",
@@ -83,6 +83,7 @@ describe("resolveCpaDeskWindows", () => {
       "this_month",
       "last_28",
       "90d",
+      "ytd",
     ]);
   });
 });

@@ -185,7 +185,7 @@ export function getShopBillingSnapshot(
       ? "Whole desk · on"
       : copy.headline,
     detail: entitlements.isPro
-      ? "This shop has the whole desk. $39 per store / month after the 7-day trial. Uninstall stops the next 30-day cycle."
+      ? "7 days, then $39. This shop has the whole desk. Uninstall stops the next 30-day cycle. The current cycle may still charge."
       : copy.detail,
     upgradeCta: PRO_UPSELL.upgradeCta,
     deskBullets: DESK_FEATURE_BULLETS,

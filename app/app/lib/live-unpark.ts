@@ -7,17 +7,18 @@
  *
  * Stages (`MCFLY_LIVE_STAGE`) after freeze is off:
  *   parked | overview_orders | customers | ltv
- * Freeze off + unset stage → first slice (Overview / Orders), not wide LTV.
+ * Freeze off + unset stage → the whole desk ({@link LIVE_DEFAULT_STAGE}).
+ * Parking a rung is an explicit ops act, not what a deploy falls back to:
+ * `DESK_FEATURE_BULLETS` sells LTV and payback at $39, so a paid desk that
+ * answers "Customers · locked" is the app breaking its own price promise.
  *
  * Commercial ingest is data depth, not a tab feature gate:
- *   unpaid / Shopify trial → {@link LIVE_UNPAID_INGEST_DAYS} closed days
- *   paid $39 → full Shopify-visible history, then the 24-month order-row
- *   cap in live-ingest-depth. Flat $39 is the whole paid LTV book.
+ *   trial and paid → the same 24-month order book (Customers and LTV included).
+ *   Billing does not withhold history until the first charge. Flat $39.
  *
- * The crawl enforces that slice: `resolveLiveIngestWindowDays` and
- * `scheduleFirstSessionShopifyWindow` stop unpaid/trial at
- * {@link LIVE_UNPAID_INGEST_DAYS}. Paid is not cut to that slice.
- * One-shot + webhook context: {@link LIVE_SYNC_LAW_PR_REF}.
+ * `resolveLiveIngestWindowDays` and `scheduleFirstSessionShopifyWindow`
+ * do not pass a shorter unpaid window. One-shot + webhook context:
+ * {@link LIVE_SYNC_LAW_PR_REF}.
  */
 
 export const LIVE_UNPAID_INGEST_DAYS = 90;
@@ -34,6 +35,9 @@ export const LIVE_UNPARK_STAGES = [
 
 export type LiveUnparkStage = (typeof LIVE_UNPARK_STAGES)[number];
 
+/** Live with nothing pinned is the whole desk. Rungs are for staging a rollout. */
+export const LIVE_DEFAULT_STAGE: LiveUnparkStage = "ltv";
+
 export type LiveUnparkTab =
   | "overview"
   | "orders"
@@ -47,9 +51,10 @@ export function sampleOnlyFreezeOn(
   return raw === "true" || raw === "1";
 }
 
-export function parseLiveUnparkStage(
+/** Strict read. Null when the value names no rung — aliases still resolve. */
+export function readLiveUnparkStage(
   raw: string | undefined,
-): LiveUnparkStage {
+): LiveUnparkStage | null {
   const value = String(raw ?? "")
     .trim()
     .toLowerCase();
@@ -63,17 +68,46 @@ export function parseLiveUnparkStage(
     case "orders":
       return "overview_orders";
     default:
-      return "parked";
+      return null;
   }
 }
 
+export function parseLiveUnparkStage(
+  raw: string | undefined,
+): LiveUnparkStage {
+  return readLiveUnparkStage(raw) ?? "parked";
+}
+
+/** Warn once per process. The value is a Fly secret — log the names, not it. */
+let unknownStageWarned = false;
+
+function warnUnknownLiveStage(): void {
+  if (unknownStageWarned) return;
+  unknownStageWarned = true;
+  console.warn(
+    `[live] MCFLY_LIVE_STAGE is set to a value that names no rung (expected one of ${LIVE_UNPARK_STAGES.join(
+      " | ",
+    )}). Serving the whole desk (${LIVE_DEFAULT_STAGE}).`,
+  );
+}
+
+/**
+ * Freeze wins, then an explicit rung, then the whole desk.
+ *
+ * A stage string nobody can parse used to fall through to `parked`, which
+ * turned one operator typo into a dark desk for every paying shop. Parking
+ * now requires spelling a rung correctly.
+ */
 export function resolveLiveUnparkStage(
   env: NodeJS.ProcessEnv = process.env,
 ): LiveUnparkStage {
   if (sampleOnlyFreezeOn(env.MCFLY_SAMPLE_ONLY)) return "parked";
-  const raw = env.MCFLY_LIVE_STAGE;
-  if (!String(raw ?? "").trim()) return "overview_orders";
-  return parseLiveUnparkStage(raw);
+  const raw = String(env.MCFLY_LIVE_STAGE ?? "").trim();
+  if (!raw) return LIVE_DEFAULT_STAGE;
+  const stage = readLiveUnparkStage(raw);
+  if (stage) return stage;
+  warnUnknownLiveStage();
+  return LIVE_DEFAULT_STAGE;
 }
 
 /**
@@ -121,8 +155,9 @@ export function liveIngestPolicy(input: {
   if (input.stage === "parked") {
     return { kind: "none", reason: "stage_parked" };
   }
-  if (input.paid) return { kind: "paid_full" };
-  return { kind: "unpaid_slice", closedDays: LIVE_UNPAID_INGEST_DAYS };
+  // `paid` does not change the window. Trial and paid share 24 months.
+  void input.paid;
+  return { kind: "paid_full" };
 }
 
 export type LiveShopifyWindowSchedule =
@@ -130,9 +165,10 @@ export type LiveShopifyWindowSchedule =
   | { schedule: true; closedDays: number | null };
 
 /**
- * Kick vs skip, plus the unpaid closed-day window.
- * `closedDays` is null for paid — the crawl keeps the Shopify-visible
- * window (order rows still stop at 24 months).
+ * Kick vs skip. `closedDays` is null for the shared desk — the crawl keeps
+ * the Shopify-visible window, and order rows still stop at 24 months.
+ * `unpaid_slice` remains on the type so a caller can still name a shorter
+ * window; this app does not schedule one.
  */
 export function liveShopifyWindowSchedule(
   policy: LiveIngestPolicy,
@@ -159,8 +195,8 @@ export function liveShopifyWindowShouldSchedule(
 }
 
 /**
- * Unknown shops are not treated as paid-full. Callers that know billing
- * pass `paid`. Unpaid/trial crawls stop at {@link LIVE_UNPAID_INGEST_DAYS}.
+ * Freeze and parked still skip ingest. Trial and paid both schedule the
+ * full commercial window. `paid` does not shrink it.
  */
 export function liveUnparkIngestPolicyFromEnv(
   env: NodeJS.ProcessEnv = process.env,

@@ -5,7 +5,6 @@
 
 import { calculateAmer } from "@mcfly/mer-core";
 import type { LiveIngestDepth } from "./live-ingest-depth";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   overviewChartDayLabel,
   overviewIsoWeekStartKey,
@@ -80,9 +79,8 @@ export function cpaExplorerRangesFor(
 ): readonly CpaExplorerRange[] {
   switch (orderBookDepth) {
     case "paid_full":
-      return CPA_EXPLORER_RANGES;
     case "trial_slice":
-      return CPA_EXPLORER_RANGES.filter((id) => id !== "ytd");
+      return CPA_EXPLORER_RANGES;
     default: {
       const _never: never = orderBookDepth;
       return _never;
@@ -93,9 +91,8 @@ export function cpaExplorerRangesFor(
 export function cpaYtdChipNote(orderBookDepth: LiveIngestDepth): string | null {
   switch (orderBookDepth) {
     case "paid_full":
-      return null;
     case "trial_slice":
-      return `Unpaid till — no YTD. Order rows stop at ${LIVE_UNPAID_INGEST_DAYS} closed days.`;
+      return null;
     default: {
       const _never: never = orderBookDepth;
       return _never;
@@ -228,17 +225,14 @@ export function rangeDayKeys(
   };
 }
 
-/** This month + Last 28 on the cards; explorer lookback is YTD ∪ last 90 (paid) or last 90 (unpaid). */
+/** This month + Last 28 on the cards; explorer lookback is YTD ∪ last 90 for trial and paid. */
 export function resolveCpaDeskWindows(
   now = new Date(),
   timeZone: string | null | undefined,
   orderBookDepth: LiveIngestDepth,
 ): CpaDeskWindows {
-  const thisMonth = clampCpaRangeToClosedDays(
-    resolvePeriod("mtd", now, timeZone),
-    now,
-    timeZone,
-  );
+  // Same "this month" as the Spend header. Closed-yesterday would be a second figure.
+  const thisMonth = resolvePeriod("mtd", now, timeZone);
   const ytd = clampCpaRangeToClosedDays(
     resolvePeriod("ytd", now, timeZone),
     now,
@@ -246,12 +240,10 @@ export function resolveCpaDeskWindows(
   );
   const last28 = resolveLastNDays(28, now, timeZone);
   const last90 = resolveLastNDays(90, now, timeZone);
-  let explorerStart =
+  const explorerStart =
     ytd.start.getTime() < last90.start.getTime() ? ytd.start : last90.start;
   switch (orderBookDepth) {
     case "trial_slice":
-      explorerStart = last90.start;
-      break;
     case "paid_full":
       break;
     default: {

@@ -18,11 +18,12 @@ export function DataModeBar({
   useSampleDesk,
   samplePreviewAllowed: _samplePreviewAllowed,
   shotMode = false,
-  sampleOnlyFreeze = false,
+  sampleOnlyFreeze: _sampleOnlyFreeze = false,
 }: DataModeBarProps) {
-  // Live hosts: no SAMPLE bar. Freeze + shot keep the honesty label.
-  if (!useSampleDesk) return null;
-  if (!sampleOnlyFreeze && !shotMode) return null;
+  // Live hosts stay unlabeled. The public demo names Sample shop once in the
+  // layout. Shot captures have no layout line, so this bar is that one name.
+  if (!useSampleDesk || !shotMode) return null;
+  void _sampleOnlyFreeze;
 
   return (
     <div
@@ -35,17 +36,7 @@ export function DataModeBar({
         .join(" ")}
       role="status"
     >
-      <p className="mcfly-data-mode__status">
-        <strong>{PRODUCT_NOUN.sampleData}</strong>
-        <span aria-hidden="true"> · </span>
-        {PRODUCT_NOUN.sampleHint}
-        {!shotMode && sampleOnlyFreeze ? (
-          <>
-            <span aria-hidden="true"> · </span>
-            Sample mode is locked
-          </>
-        ) : null}
-      </p>
+      <p className="mcfly-data-mode__status">{PRODUCT_NOUN.sampleHint}</p>
     </div>
   );
 }

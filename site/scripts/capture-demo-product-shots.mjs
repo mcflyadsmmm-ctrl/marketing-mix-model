@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Capture Snowdevil SAMPLE desk product shots from /demo.
+ * Capture Sample shop desk product shots from /demo.
  * Owns: site/assets/product-shots/** (plus this script).
  *
  * Usage:
@@ -20,7 +20,7 @@ const SITE = path.resolve(__dirname, "..");
 const OUT = path.join(SITE, "assets", "product-shots");
 const VIEWPORT = { width: 1440, height: 900 };
 const MIN_BYTES = 80 * 1024;
-const SAMPLE = { spend: "$19,023", sales: "$68,457", totalRoas: "3.60×", shop: "Snowdevil" };
+const SAMPLE = { spend: "$19,023", sales: "$68,457", totalRoas: "3.60×", shop: "Sample shop" };
 
 const SHOTS = [
   {
@@ -189,14 +189,14 @@ async function writeReadme(demoUrl, results) {
         `| \`${r.file}\` | ${(r.bytes / 1024).toFixed(1)} KB | ${r.bytes} | ${r.note} |`,
     )
     .join("\n");
-  const md = `# Product shots — Snowdevil SAMPLE desk
+  const md = `# Product shots — Sample shop desk
 
 Captured from the **real** \`/demo\` desk UI (tables, KPI rows, tab chrome).
 Not the marketing float wells on the demo hero.
 
 | | |
 |---|---|
-| Shop | Snowdevil SAMPLE · not a live client |
+| Shop | Sample shop · not a live client |
 | Spend | $19,023 |
 | Sales | $68,457 |
 | Total ROAS | 3.60× · $68,457 ÷ $19,023 |
@@ -269,7 +269,7 @@ async function main() {
       sales: 68457,
       totalRoas: 3.6,
       breakEven: 2.5,
-      shop: "Snowdevil",
+      shop: "Sample shop",
       note: "SAMPLE · not a live client",
     },
     minBytes: MIN_BYTES,

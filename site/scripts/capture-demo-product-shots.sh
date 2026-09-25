@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Capture Snowdevil SAMPLE /demo desk into site/assets/product-shots/
+# Capture Sample shop /demo desk into site/assets/product-shots/
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

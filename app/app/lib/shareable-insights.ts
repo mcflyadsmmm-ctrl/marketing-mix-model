@@ -74,6 +74,13 @@ export type ShareableInsightInput = {
   todaySalesTruncated?: boolean;
 };
 
+function shareWindowName(periodLabel: string): string {
+  const label = periodLabel.trim();
+  if (label === "Month to date") return "This month";
+  if (!label) return "This period";
+  return label;
+}
+
 function finitePositive(n: number | null | undefined): number | null {
   if (n == null || !Number.isFinite(n) || n <= 0) return null;
   return n;
@@ -89,7 +96,7 @@ function daysLabel(days: number): string {
 }
 
 export function shareableShopBrand(shopLabel: string, sample: boolean): string {
-  if (sample) return "Snowdevil";
+  if (sample) return "Sample shop";
   const raw = shopLabel.trim();
   if (!raw) return "This shop";
   return raw.replace(/\.myshopify\.com$/i, "");
@@ -221,6 +228,7 @@ function returningCard(
       : null;
   if (ret == null || share == null) return null;
   const pct = wholePercent(share);
+  const window = shareWindowName(input.periodLabel);
   const newSales = finitePositive(input.newSales);
   const plug =
     newSales != null
@@ -228,7 +236,7 @@ function returningCard(
       : `${money(ret)} ÷ (new $ + returning $)`;
   return {
     kind: "returning",
-    label: "Returning $",
+    label: `Returning $ · ${window}`,
     value: money(ret),
     line: `Returning buyers carry ${pct}% of sales (${money(ret)}) — dollars, not headcount.`,
     formula: `Returning $ ÷ (new $ + returning $) = ${pct}%. ${plug}.`,
@@ -244,9 +252,10 @@ function typicalOrderCard(
 ): ShareableInsightCard | null {
   const typical = finitePositive(input.typicalOrder);
   if (typical == null) return null;
+  const window = shareWindowName(input.periodLabel);
   return {
     kind: "typicalOrder",
-    label: "Typical order",
+    label: `Typical order · ${window}`,
     value: money(typical),
     line: `Typical order is ${money(typical)} — the middle order, not Shopify’s average.`,
     formula: "Typical order = median of paid orders in this window.",
@@ -361,7 +370,7 @@ export function formatSlackInsightMessage(input: {
   sample: boolean;
   where: string;
 }): string {
-  const shop = input.sample ? `${input.shopBrand} · SAMPLE` : input.shopBrand;
+  const shop = input.shopBrand;
   const where = [shop, input.where.trim()].filter((part) => part.length > 0).join(" · ");
   return [
     `*${input.label}* · ${where}`,

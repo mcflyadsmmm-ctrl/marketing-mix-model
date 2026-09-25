@@ -192,7 +192,7 @@ function returningNote(
   if (target == null) return "No returning-$ target yet. Not $0.";
   switch (source) {
     case "sample":
-      return "Snowdevil stretch — SAMPLE example, not a target you typed.";
+      return "Example stretch — not a target you typed.";
     case "typed":
       return "Vs the returning-$ target you typed.";
     case null:

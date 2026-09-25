@@ -18,9 +18,7 @@ export default function PrivacyPage() {
       <main id="main" className={styles.article}>
         <h1>Privacy</h1>
         <p className={styles.lede}>
-          Mcfly Analytics measures Shopify sales next to the ad spend you add
-          (Total ROAS = sales ÷ entered spend). We do not run pixels,
-          multi-touch attribution, or a name/email CRM.
+          Mcfly Analytics measures Shopify sales next to the ad spend you add (Total ROAS = sales ÷ entered spend). We do not run pixels, multi-touch attribution, or a name/email CRM.
         </p>
 
         <h2>What we read from Shopify</h2>

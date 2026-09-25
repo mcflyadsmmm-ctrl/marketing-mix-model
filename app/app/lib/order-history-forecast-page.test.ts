@@ -24,7 +24,6 @@ describe("P2-A order-history forecast — on the existing tabs", () => {
     const order = [
       "<OverviewMixForecast",
       "<OrderHistoryForecast",
-      "<ShareableInsightCards",
     ].map((tag) => overview.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
@@ -37,25 +36,17 @@ describe("P2-A order-history forecast — on the existing tabs", () => {
     expect(sample).toContain("buildOrderHistoryForecast");
   });
 
-  it("densifies Goals from order history without a new tab", () => {
-    const boardAt = goals.indexOf("<OrderHistoryGoalsBoard");
-    const forecastAt = goals.indexOf("<OrderHistoryForecast");
-    const heroAt = goals.indexOf("mcfly-goals-hero--soft");
-    expect(boardAt).toBeGreaterThan(-1);
-    expect(forecastAt).toBeGreaterThan(boardAt);
-    expect(heroAt).toBeGreaterThan(forecastAt);
-    expect(goals).toContain('variant="goals"');
-    expect(demoGoals).toContain("<OrderHistoryGoalsBoard");
-    expect(demoGoals).toContain("<OrderHistoryForecast");
-    expect(demoGoals).toContain('variant="goals"');
-    expect(demoGoals).toContain("<SalesGoalGauges");
-    expect(demoGoals).toContain("mcfly-goals-hero--soft");
+  it("keeps Goals as its own route with one saved target", () => {
+    expect(goals).toContain('name="targetMer"');
+    expect(goals).toContain("No target saved.");
+    expect(goals).not.toContain("<OrderHistoryGoalsBoard");
+    expect(demoGoals).toContain('name="targetMer"');
+    expect(demoGoals).not.toMatch(/throw redirect/);
     expect(demoGoals).not.toMatch(/profit margin/i);
-    expect(nav).toContain('{ path: "/app", label: "Home" }');
+    expect(nav).toContain('{ path: "/app", label: "Orders" }');
     expect(nav).toContain('{ path: "/app/customers", label: "Customers" }');
     expect(nav).toContain('{ path: "/app/spend", label: "Spend" }');
-    expect(nav).not.toContain('{ path: "/app/orders"');
-    expect(nav).not.toContain('{ path: "/app/goals"');
+    expect(nav).toContain('{ path: "/app/goals", label: "Goals" }');
     expect(nav).not.toContain('{ path: "/app/growth"');
     expect(nav).not.toContain('{ path: "/app/ltv"');
     expect(nav).not.toContain("Forecast");

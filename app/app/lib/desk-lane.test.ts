@@ -102,7 +102,6 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
       "<OverviewSalesChart",
       'label="Mix and month close"',
       "<OverviewMixForecast",
-      "<ShareableInsightCards",
       'label="More order detail"',
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",
@@ -141,7 +140,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       "<CustomersCompareGlance",
       "<CustomerMixChart",
       'label="Returning mix and facts"',
-      "<ShareableInsightCards",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
       "<UnlockFullHistoryBanner",
@@ -187,43 +185,27 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     }
     expect(customers).toContain("GROWTH_FIRST_LANE_LABEL");
     expect(customers).toContain("<CustomersGrowthSection");
-    expect(growth).toContain("throw redirect");
-    expect(growth).toContain("/app/customers");
+    expect(growth).toContain('retryHref="/app/growth"');
+    expect(growth).not.toContain("throw redirect");
   });
 
   it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {
-    const order = [
-      'rank="first"',
-      "<OrdersFirstViewport",
-      "<OrdersCompareGlance",
-      "<OrdersTimingChart",
-      'rank="more"',
-      'label={ORDERS_CLOCK_LANE_LABEL}',
-      "<OrdersScoreboard",
-      "<OrdersIntelligence",
-      "<OrdersFrequencyChart",
-    ].map((tag) => orders.indexOf(tag));
-    expect(order.every((i) => i > -1)).toBe(true);
-    for (let i = 1; i < order.length; i += 1) {
-      expect(order[i]!).toBeGreaterThan(order[i - 1]!);
-    }
+    expect(orders).toMatch(/throw redirect/);
+    const overview = read("../routes/app._index.tsx");
+    expect(overview.indexOf("<OverviewFirstViewport")).toBeGreaterThan(-1);
+    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+      overview.indexOf('rank="more"'),
+    );
     expect(scoreboard).toContain("<DeskLane");
     expect(scoreboard).toContain('rank="more"');
     expect(scoreboard).toContain("<OrdersClockBar");
     expect(scoreboard).not.toContain("<details");
-    const firstStart = orders.indexOf('<DeskLane rank="first"');
-    const firstEnd = orders.indexOf('rank="more"', firstStart + 1);
-    const firstLane = orders.slice(firstStart, firstEnd);
-    expect(firstLane).toContain("<OrdersFirstViewport");
-    expect(firstLane).toContain("<OrdersTimingChart");
-    expect(firstLane).not.toContain("<OrdersScoreboard");
-    expect(firstLane).not.toContain("<OrdersIntelligence");
   });
 
   it("ranks LTV value first, explorers next, spend last — no details FAQ", () => {
     const section = read("../components/CustomersLtvSection.tsx");
     const order = [
-      "<LtvValueBuild",
+      "mcfly-book__hero-k\">First 90 days",
       "<LtvFirstProductDrivers",
       "<LtvPromoBoard",
       "<LtvFlagshipBoard",
@@ -242,11 +224,11 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(customers.indexOf("<CustomersLtvWindows")).toBeLessThan(
       customers.indexOf("<CustomersLtvEconomics"),
     );
-    expect(customers).toContain("<ShareableInsightCards");
+    expect(customers).not.toContain("<ShareableInsightCards");
     expect(customers).not.toContain("<details");
     expect(customers).toContain("<UnlockFullHistoryBanner");
-    expect(ltv).toContain("throw redirect");
-    expect(ltv).toContain("/app/customers");
+    expect(ltv).toContain('retryHref="/app/ltv"');
+    expect(ltv).not.toContain("throw redirect");
   });
 
   it("ranks Spend pair first, explorer in first lane, depth at more — empty live promotes add", () => {
@@ -267,13 +249,14 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
     expect(spend).toContain("emptyLiveSpend");
     expect(spend).toMatch(
-      /defaultOpen=\{\s*shotMode \|\| spendPanel === "mix" \|\| spendPanel === "cpa"\s*\}/,
+      /defaultOpen=\{\s*shotMode \|\|[\s\S]*spendPanel === "mix" \|\|[\s\S]*spendPanel === "cpa"\s*\}/,
     );
     expect(spend).toContain("<CertifiedScoreboard");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<CpaExplorer");
     expect(spend).not.toContain("0.00×");
-    expect(spend).toContain('spendPanel === "spend-add"');
+    expect(spend).toContain("label={SPEND_ADD_LANE_LABEL}");
+    expect(spend).not.toMatch(/label=\{SPEND_ADD_LANE_LABEL\}[\s\S]{0,160}\bfold\b/);
     expect(spend).toContain('href="#mcfly-spend-add"');
   });
 });
@@ -390,6 +373,6 @@ describe("preserved desk chrome", () => {
     const freeze = read("./sample-desk.server.ts");
     expect(freeze).toContain("isSampleOnlyFreeze");
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("Sample mode is locked");
+    expect(bar).toContain("if (!useSampleDesk || !shotMode) return null");
   });
 });

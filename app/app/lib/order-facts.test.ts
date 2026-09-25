@@ -27,6 +27,7 @@ const {
   ensureShopMetadata,
   adminGraphqlJson,
   shopIsProForIngest,
+  queryRaw,
 } = vi.hoisted(() => ({
   deleteManyOrderFact: vi.fn(),
   countOrderFact: vi.fn(),
@@ -41,6 +42,7 @@ const {
   ensureShopMetadata: vi.fn(),
   adminGraphqlJson: vi.fn(),
   shopIsProForIngest: vi.fn(),
+  queryRaw: vi.fn(),
 }));
 
 vi.mock("../db.server", () => ({
@@ -60,6 +62,7 @@ vi.mock("../db.server", () => ({
     cohortFact: {
       upsert: (...args: unknown[]) => upsertCohort(...args),
     },
+    $queryRaw: (...args: unknown[]) => queryRaw(...args),
   },
 }));
 
@@ -369,6 +372,8 @@ describe("truncated busy-day crawl", () => {
     adminGraphqlJson.mockReset();
     shopIsProForIngest.mockReset();
     shopIsProForIngest.mockResolvedValue(false);
+    queryRaw.mockReset();
+    queryRaw.mockResolvedValue([]);
 
     countOrderFact.mockResolvedValue(0);
     findManyOrderFact.mockResolvedValue([]);
@@ -522,7 +527,7 @@ describe("truncated busy-day crawl", () => {
     expect(progress!.completeDays).toBe(0);
   });
 
-  it("clamps unpaid order progress to 90 closed days when billing is on", async () => {
+  it("keeps trial order progress on the 24-month window when billing is on", async () => {
     expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
@@ -538,7 +543,8 @@ describe("truncated busy-day crawl", () => {
         ianaTimezone: "UTC",
         now: NOW,
       });
-      expect(progress!.windowDays).toBe(LIVE_UNPAID_INGEST_DAYS);
+      expect(progress!.windowDays).toBeGreaterThan(700);
+      expect(progress!.windowDays).toBeLessThan(750);
       expect(shopIsProForIngest).toHaveBeenCalledWith("shop_1");
     } finally {
       if (prev === undefined) delete process.env.MCFLY_BILLING;

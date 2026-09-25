@@ -8,6 +8,7 @@ import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
 import { DeskCurrencyContext } from "../lib/desk-currency";
 import { PUBLIC_SAMPLE_CURRENCY } from "../lib/public-sample-constants";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
+import { deskShellShouldRevalidate } from "../lib/desk-tab-flow";
 import deskStyles from "../styles/mcfly-desk.css?url";
 import publicDemoStyles from "../styles/public-demo.css?url";
 
@@ -19,15 +20,17 @@ export const links: LinksFunction = () => [
 ];
 
 export const meta: MetaFunction = () => [
-  { title: "Full Snowdevil SAMPLE demo | Mcfly Analytics" },
+  { title: "Full Sample shop demo | Mcfly Analytics" },
   {
     name: "description",
     content:
-      "Same Mcfly Analytics desk as the Shopify app, on SAMPLE Snowdevil. No install. Typical order, returning dollars, YoY, Total ROAS. Not a live client.",
+      "Same Mcfly Analytics desk as the Shopify app, on Sample shop. No install. Typical order, returning dollars, YoY, Total ROAS. Not a live client.",
   },
 ];
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
+
+export const shouldRevalidate = deskShellShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -55,7 +58,7 @@ export default function PublicDemoLayout() {
         {!shotMode && !embed ? (
           <div className="mcfly-public-install">
             <p className="mcfly-public-install__note">
-              SAMPLE Snowdevil · same desk as the Shopify app · not a live client
+              Sample shop · same desk as the Shopify app · not a live client
             </p>
             <a className="mcfly-public-install__cta" href={LISTING} rel="noopener noreferrer">
               Install
@@ -82,7 +85,7 @@ export function ErrorBoundary() {
     <main style={{ padding: "2rem 1rem" }}>
       <MerchantErrorRecovery error={error} retryHref="/demo" />
       <p>
-        <Link to="/demo">Back to SAMPLE demo</Link>
+        <Link to="/demo">Back to the demo</Link>
       </p>
     </main>
   );

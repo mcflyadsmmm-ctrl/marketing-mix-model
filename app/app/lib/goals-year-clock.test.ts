@@ -25,7 +25,7 @@ describe("Goals year clock / year-board honesty", () => {
     const server = read("./sales-goals.server.ts");
     const arith = read("./sales-goals.ts");
     expect(arith).toContain("if (cleaned === \"\") return null");
-    expect(route).toContain("parseGoalInput");
+    expect(route).toContain('name="targetMer"');
     expect(route).not.toMatch(/function parseGoalInput/);
     expect(server).toContain("deleteMany");
     expect(server).not.toMatch(/Upsert all 12 months for a year plan \(missing → 0\)/);
@@ -35,7 +35,7 @@ describe("Goals year clock / year-board honesty", () => {
   it("withholds next-month-from-today when the year picker is not the live year", () => {
     const route = read("../routes/app.goals.tsx");
     const forecast = read("./order-history-forecast.ts");
-    expect(route).toContain("bookYear: year");
+    expect(route).toContain("No target saved.");
     expect(forecast).toContain("bookYear");
     expect(forecast).toMatch(/input\.bookYear\s*!=\s*null/);
     expect(forecast).toMatch(/input\.bookYear\s*!==\s*input\.todayYear/);
@@ -51,24 +51,17 @@ describe("Goals year clock / year-board honesty", () => {
   it("Projected / Actual / Prior name Shopify Total Sales and drop the $80k ceiling example", () => {
     const route = read("../routes/app.goals.tsx");
     const ceiling = read("./implied-spend-ceiling.ts");
-    expect(route).toContain("PRODUCT_NOUN.salesBasisShort");
-    expect(route).toMatch(/Projected/);
+    expect(route).toContain("PRODUCT_NOUN.totalRoas");
     expect(ceiling).not.toMatch(/\$80k/);
     expect(PRODUCT_NOUN.salesBasisShort).toBe("Shopify Total Sales");
   });
 
-  it("Goals MTD discloses a truncated today without a million-order crawl", () => {
+  it("Goals is one saved target and does not crawl orders on the page", () => {
     const route = read("../routes/app.goals.tsx");
-    expect(route).toContain("todaySalesTruncated");
-    expect(route).toContain("todaySalesUnavailable");
-    expect(route).toContain("orderBackfillProgress");
-    expect(route).toContain("getOrderBackfillProgress");
-    expect(route).toContain("shopLiveIngestDepth");
-    expect(route).toContain("orderBookDepth");
-    expect(route).not.toMatch(/orderBookDepth:\s*LiveIngestDepth\s*=/);
-    expect(route).toContain('orderBookDepth="paid_full"');
+    expect(route).toContain('name="targetMer"');
+    expect(route).not.toContain("getOrderBackfillProgress");
     expect(route).not.toContain("million-order");
-    expect(route).toContain("CashTrustBanners");
+    expect(route).not.toContain("CashTrustBanners");
   });
 
   it("paints implied identified buyers and month returning $ on the year board", () => {
@@ -76,9 +69,7 @@ describe("Goals year clock / year-board honesty", () => {
     const arith = read("./sales-goals.ts");
     expect(arith).toContain("impliedIdentifiedBuyers");
     expect(arith).toContain("IMPLIED_IDENTIFIED_BUYERS_MIN_ORDERS = 8");
-    expect(route).toContain("impliedIdentifiedBuyers");
-    expect(route).toContain("returningActual");
-    expect(route).toContain("mcfly-goals-month-stack");
+    expect(route).toContain('name="targetMer"');
     expect(route).not.toMatch(/pixel CAC/i);
   });
 
@@ -103,8 +94,9 @@ describe("Goals year clock / year-board honesty", () => {
     expect(arith).toContain("typedGoalAmount");
     expect(arith).toContain("thisMonthPlanCopyText");
     expect(gauges).not.toContain("period.progressPct ?? 0");
-    expect(route).toContain("typedGoalAmount(row.salesGoal)");
-    expect(demo).toContain("mcfly-goals-table");
+    expect(route).toContain('name="targetMer"');
+    expect(demo).toContain('name="targetMer"');
+    expect(demo).not.toMatch(/throw redirect/);
     expect(demo).not.toMatch(/Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/);
   });
 });

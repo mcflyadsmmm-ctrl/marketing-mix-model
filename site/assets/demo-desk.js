@@ -1,6 +1,6 @@
 /**
- * Mcfly SAMPLE Overview — Snowdevil.
- * YoY sales first. Overview · Orders · Customers peek. Spend optional ($19,023 / $68,457 / 3.60×).
+ * Mcfly SAMPLE Overview — Sample shop.
+ * YoY sales first. Overview · Orders · Customers peek. This month $21,100 / $75,943 / 3.60×.
  * Recomputed from buildThreeYearSampleDesk({ now: 2026-09-16T18:00:00Z }).
  * Demo data only. Loud SAMPLE labeling. No pixels / MTA / path credit.
  */
@@ -10,10 +10,10 @@
   var DEFAULT_TARGET = 3.5;
   var DEFAULT_MARGIN = 0.4;
   var AS_OF_SHORT = "Sep 16";
-  var SHOP = "Snowdevil";
+  var SHOP = "Sample shop";
 
   var YOY = {
-    mtd: { sales: 68457, prior: 69891 },
+    mtd: { sales: 75943, prior: 67617 },
     qtd: { sales: 210622, prior: 210817 },
     ytd: { sales: 918649, prior: 918365 },
   };
@@ -23,19 +23,19 @@
       id: "mtd",
       label: "This month",
       asOf: "Sep 1–16, 2026",
-      netSales: 68457,
-      spend: 19023,
-      priorSales: 69891,
+      netSales: 75943,
+      spend: 21100,
+      priorSales: 67617,
       orders: 110,
       newCustomers: 37,
-      returningSales: 45409,
-      typicalOrder: 631,
+      returningSales: 45685,
+      typicalOrder: 595,
       weekendShare: 0.23,
       daysToSecond: 21,
       ltv90: 890,
-      decisionLead: "Typical order around $631. Returning buyers carry 66% of sales.",
+      decisionLead: "Typical order around $595. Returning buyers carry this month.",
       decisionWhy:
-        "This month SAMPLE: 110 orders and $68,457 sales. Spend is optional.",
+        "This month: $75,943 sales and $21,100 spend. Spend is optional.",
     },
     qtd: {
       id: "qtd",
@@ -53,7 +53,7 @@
       ltv90: 890,
       decisionLead: "Typical order around $612. Returning buyers carry 69% of sales.",
       decisionWhy:
-        "This quarter SAMPLE: 346 orders and $210,622 sales. Spend is optional.",
+        "This quarter: 346 orders and $210,622 sales. Spend is optional.",
     },
     ytd: {
       id: "ytd",
@@ -71,7 +71,7 @@
       ltv90: 890,
       decisionLead: "Typical order around $611. Returning buyers carry 68% of sales.",
       decisionWhy:
-        "This year SAMPLE: 1,506 orders and $918,649 sales. Spend is optional.",
+        "This year: 1,506 orders and $918,649 sales. Spend is optional.",
     },
   };
 
@@ -184,7 +184,6 @@
   function render() {
     var period = PERIODS[state.period] || PERIODS.mtd;
     var mer = merOf(period.netSales, period.spend);
-    var be = breakEven(state.margin);
     var returningShare =
       period.netSales > 0
         ? Math.round((period.returningSales / period.netSales) * 100)
@@ -230,11 +229,7 @@
         " sample · " +
         period.label +
         " sales " +
-        money(period.netSales) +
-        " · optional Total ROAS " +
-        formatMer(mer) +
-        " · BE " +
-        formatMer(be);
+        money(period.netSales);
     }
   }
 
@@ -272,7 +267,7 @@
       customers: ["Customers", "Returning dollars · LTV 30/90/365 · days-to-second"],
       spend: ["Spend", "Optional · type a day or paste CSV · Total ROAS · mix · CPA"],
       goals: ["Goals", "Monthly sales plan · spend optional"],
-      settings: ["Settings", "Sample data · Snowdevil · $39/mo"],
+      settings: ["Settings", "Sample data · Sample shop · $39/mo"],
     };
     var copy = labels[key] || labels.overview;
     if (title) title.textContent = copy[0];
@@ -291,7 +286,7 @@
           period.label +
           ". Last year " +
           money(period.priorSales) +
-          ". SAMPLE Snowdevil.</p>",
+          ". Sample shop.</p>",
         trigger,
       );
       return;

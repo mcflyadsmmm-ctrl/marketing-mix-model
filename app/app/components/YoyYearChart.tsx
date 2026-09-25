@@ -197,7 +197,7 @@ export function YoyYearChart({
           v: money(totals.spend),
           sub:
             totals.mer != null
-              ? `Total ROAS ${formatMer(totals.mer)}×`
+              ? `Total ROAS · ${year} ${formatMer(totals.mer)}×`
               : "typed spend",
         }
       : {
@@ -221,7 +221,7 @@ export function YoyYearChart({
             {year} sales vs {year - 1}
             {totals.yoyPct != null ? ` · ${formatYoyPct(totals.yoyPct)}` : ""}
             {hasSpend && totals.mer != null
-              ? ` · Total ROAS ${formatMer(totals.mer)}×`
+              ? ` · Total ROAS · ${year} ${formatMer(totals.mer)}×`
               : ""}
           </p>
         </div>
@@ -369,7 +369,7 @@ export function YoyYearChart({
                     ? { k: `${year - 1} spend`, v: money(bucket.priorSpend) }
                     : null,
                   hasSpend
-                    ? { k: "Total ROAS", v: merLabel(bucket.mer) }
+                    ? { k: `Total ROAS · ${bucket.label}`, v: merLabel(bucket.mer) }
                     : null,
                   {
                     k: "What this is",

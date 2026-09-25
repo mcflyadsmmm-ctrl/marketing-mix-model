@@ -14,8 +14,8 @@ import {
   suggestAllocation,
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
-import { deskPeriodTimeZone, type DateRange } from "./periods";
-import { localDayKey, utcDayKey, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
+import { deskPeriodTimeZone, type DateRange, type PeriodPreset } from "./periods";
+import { localDayKey, utcDayKey } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
   nextShopLocalDayKey,
@@ -49,7 +49,8 @@ import {
   buildTillLtvSummary,
   type TillLtvSummary,
 } from "./till-ltv.server";
-import { countNewBuyersInRange, loadOrderDepthRows, ORDER_FACT_SOURCE } from "./order-facts.server";
+import { loadOrderDepthRows } from "./order-facts.server";
+import { readDeskMetricSnapshot } from "./desk-metric-snapshot.server";
 import {
   shopifyDepthStats,
   type ShopifyDepthStats,
@@ -1099,6 +1100,8 @@ export async function buildDashboardMetrics(
      * suppression and blocks break-even advice while backfill runs.
      */
     salesCoverage?: SalesCoverageSlice | null;
+    /** Live chip. Reads that stored window. Sample ignores it. */
+    periodPreset?: PeriodPreset;
   },
 ): Promise<DashboardMetrics> {
   const shop = await ensureShop(shopDomain);
@@ -1108,11 +1111,10 @@ export async function buildDashboardMetrics(
     options?.salesBasis ?? settings.salesBasis,
     "total",
   );
-  // SAMPLE must not invent a confirmed profit margin. Target ROAS overlay stays.
+  // SAMPLE must not invent a confirmed profit margin or a saved target.
   const effectiveMarginPct = settings.marginPct;
-  const effectiveTargetMer = useSampleDesk
-    ? SAMPLE_DESK_TARGET_MER
-    : settings.targetMer;
+  const goalSaved = settings.targetMerSavedAt != null;
+  const effectiveTargetMer = goalSaved ? settings.targetMer : 0;
   const entitlements = getShopEntitlements(shopDomain, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
@@ -1269,12 +1271,13 @@ export async function buildDashboardMetrics(
   }
 
   // LTV is part of the one desk — no plan branch. Trial and paid both compute it.
+  // Live paint reads the stored snapshot. Sample still folds the local book.
+  const liveSnapshot = useSampleDesk
+    ? null
+    : await readDeskMetricSnapshot(shop.id, options?.periodPreset ?? null);
   const tillNewBuyers = useSampleDesk
     ? (honestSales.newCustomers ?? 0)
-    : ((await countNewBuyersInRange(shop.id, range)) ??
-      (honestSales.customerMetricsAvailable
-        ? (honestSales.newCustomers ?? 0)
-        : 0));
+    : (liveSnapshot?.hero?.newBuyers ?? 0);
 
   const tillLtv: TillLtvSummary = await buildTillLtvSummary(shop.id, {
     totalSpend,
@@ -1284,21 +1287,31 @@ export async function buildDashboardMetrics(
     ianaTimezone: deskTz,
   });
 
-  const depthRows = await loadOrderDepthRows(
-    shop.id,
-    range,
-    useSampleDesk ? "sample" : ORDER_FACT_SOURCE,
-  );
-  const shopifyDepth = shopifyDepthStats({
-    orders: depthRows,
-    totalSales: totalSalesAmount,
-    netSales: netSalesAmount,
-    netSalesKnown,
-    grossSales: honestSales.grossSales ?? 0,
-    grossSalesKnown: honestSales.grossSalesKnown !== false,
-    timeZone: deskTz,
-    windowEnd: range.end,
-  });
+  const depthRows = useSampleDesk
+    ? await loadOrderDepthRows(shop.id, range, "sample")
+    : [];
+  const shopifyDepth = useSampleDesk
+    ? shopifyDepthStats({
+        orders: depthRows,
+        totalSales: totalSalesAmount,
+        netSales: netSalesAmount,
+        netSalesKnown,
+        grossSales: honestSales.grossSales ?? 0,
+        grossSalesKnown: honestSales.grossSalesKnown !== false,
+        timeZone: deskTz,
+        windowEnd: range.end,
+      })
+    : (liveSnapshot?.depth ??
+      shopifyDepthStats({
+        orders: [],
+        totalSales: totalSalesAmount,
+        netSales: netSalesAmount,
+        netSalesKnown,
+        grossSales: honestSales.grossSales ?? 0,
+        grossSalesKnown: honestSales.grossSalesKnown !== false,
+        timeZone: deskTz,
+        windowEnd: range.end,
+      }));
 
   const spendRecon = spendReconMatchesPeriod(
     settings.declaredAdsSpendPeriodStart,

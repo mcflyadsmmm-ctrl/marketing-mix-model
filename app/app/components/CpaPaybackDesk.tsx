@@ -43,7 +43,12 @@ export function CpaPaybackDesk({
           <p className="mcfly-cpa__payback-v">
             {hasSpend ? moneyOrDash(payback.cashCac, currency) : "—"}
           </p>
-          <p className="mcfly-cpa__payback-d">{PRODUCT_NOUN.cashCacDef}</p>
+          <p className="mcfly-cpa__payback-d">
+            {PRODUCT_NOUN.cashCacDef}
+            {selected.buyersKnown && selected.newCustomers > 0
+              ? ` · ${selected.newCustomers.toLocaleString()} new buyers`
+              : ""}
+          </p>
         </article>
         <article className="mcfly-cpa__payback-side">
           <p className="mcfly-cpa__payback-k">First 90 days</p>

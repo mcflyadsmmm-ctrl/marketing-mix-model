@@ -12,6 +12,7 @@ import {
   shopifyOrderHistoryIsLimited,
 } from "./shopify-order-window";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
+import { orderMissingIngestDays } from "./ingest-priority";
 import { isBillingEnabled } from "./billing-flag.server";
 import { resolveCommercialOrderWindowDays } from "./live-ingest-depth";
 import { shopIsProForIngest } from "./live-ingest-depth.server";
@@ -23,6 +24,11 @@ import {
 import { orderGrossAmount, orderNetAmount } from "./shopify-sales.server";
 import { sumCohortWindows } from "./ltv-depth";
 import { enqueueJob } from "./job-queue.server";
+import { countFinishedBookMonths } from "./book-window";
+import {
+  queryCohortRollups,
+  queryNewBuyerCounts,
+} from "./order-fact-sql.server";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
 export const ORDER_FACT_SOURCE = "shopify_order_v1";
@@ -583,22 +589,8 @@ export async function recomputeCohortFacts(
   months?: string[],
   asOf: Date = new Date(),
 ): Promise<string[]> {
-  const orders = await prisma.orderFact.findMany({
-    where: {
-      shopId,
-      customerKey: { not: ORDER_FACT_GUEST_KEY },
-      // Exclude sample rows from live cohort recompute when both exist.
-      source: ORDER_FACT_SOURCE,
-    },
-    select: {
-      customerKey: true,
-      orderedAt: true,
-      amount: true,
-      lifetimeOrders: true,
-    },
-  });
-
-  const { rollups } = computeCohortRollups(orders);
+  // Postgres group-by. The book never becomes a JavaScript array.
+  const rollups = await queryCohortRollups(shopId);
   const filter =
     months && months.length > 0 ? new Set(months) : null;
   const touched: string[] = [];
@@ -779,9 +771,8 @@ function shopifyVisibleOrderDays(historyLimited: boolean, now: Date): number {
 }
 
 /**
- * Unpaid / trial stops at LIVE_UNPAID_INGEST_DAYS. Paid keeps the
- * Shopify-visible span, then the 24-month order-row cap. An explicit
- * `requestedWindowDays` can only shrink that result.
+ * Trial and paid keep the Shopify-visible span, then the 24-month
+ * order-row cap. An explicit `requestedWindowDays` can only shrink that.
  */
 async function clampedOrderWindowDays(input: {
   shopId: string;
@@ -806,8 +797,8 @@ async function clampedOrderWindowDays(input: {
 
 /**
  * Chunked OrderFact backfill — up to `maxDays` closed shop-local days (default 7)
- * within the commercial order window (unpaid/trial closed-day slice, else
- * Shopify-visible, always inside 24 months).
+ * within the commercial order window (Shopify-visible, always inside
+ * 24 months). Trial and paid share that window.
  * Never writes sample source. After upserts, recomputes touched cohort months.
  */
 export async function runOrderFactsBackfill(
@@ -861,8 +852,9 @@ export async function runOrderFactsBackfill(
   await unsealOrderFactsMissingV2(shopId);
   const windowDayKeys = listRecentClosedShopLocalDays(timeZone, windowDays, now);
 
-  // Prefer oldest missing days first. A day is covered only when the
-  // `__day_complete__` marker exists — partial page-capped crawls stay retryable.
+  // Newest closed days first, then the rest of the 24-month window.
+  // A day is covered only when the `__day_complete__` marker exists —
+  // partial page-capped crawls stay retryable.
   const completeMarkers = await prisma.orderFact.findMany({
     where: {
       shopId,
@@ -882,9 +874,10 @@ export async function runOrderFactsBackfill(
   const resume = parseOrderFactPageCursor(state.cursor);
   const resumeDay =
     resume && missing.includes(resume.dayKey) ? resume.dayKey : null;
+  const phase = orderMissingIngestDays(windowDayKeys, existingKeys);
   const orderedMissing = resumeDay
-    ? [resumeDay, ...missing.filter((k) => k !== resumeDay)]
-    : missing;
+    ? [resumeDay, ...phase.filter((k) => k !== resumeDay)]
+    : phase;
   const batch = orderedMissing.slice(0, maxDays);
 
   await prisma.orderBackfillState.update({
@@ -996,6 +989,19 @@ export async function runOrderFactsBackfill(
     await enqueueTruncatedOrderFactsRetry(shopId, truncatedDay);
   }
 
+  // Period chips are written off the request, at the end of each kick.
+  // Deferred import: the snapshot reads aggregates this module owns.
+  try {
+    const { recomputeDeskMetricSnapshot } = await import(
+      "./desk-metric-snapshot.server"
+    );
+    await recomputeDeskMetricSnapshot(shopId, now);
+  } catch (error) {
+    console.error(
+      `[order-facts] period window snapshot failed shopId=${shopId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
   return {
     shopId,
     ranAt,
@@ -1068,7 +1074,12 @@ export type OrderBackfillProgress = {
   /** Closed-day OrderFact crawl hit the page cap — not sealed, not $0. */
   truncated: boolean;
   truncatedDay: string | null;
-};
+  /** Closed months whose every window day is sealed. Not a percent. */
+  monthsFinished: number;
+  monthsInWindow: number;
+  /** Every closed day in the crawl window has a seal. */
+  bookSealed: boolean;
+}
 
 /**
  * Closed-day ingest progress for LTV empty states (not a spinner).
@@ -1112,6 +1123,12 @@ export async function getOrderBackfillProgress(
   });
   const completeDays = completeMarkers.length;
   const windowDays = windowDayKeys.length;
+  const completeKeys = new Set(
+    completeMarkers.map((row) =>
+      row.shopifyOrderId.replace(ORDER_FACT_DAY_COMPLETE_PREFIX, ""),
+    ),
+  );
+  const months = countFinishedBookMonths(windowDayKeys, completeKeys);
   const resume = parseOrderFactPageCursor(state?.cursor);
   return {
     completeDays,
@@ -1121,6 +1138,9 @@ export async function getOrderBackfillProgress(
     status: state?.status ?? "idle",
     truncated: resume != null,
     truncatedDay: resume?.dayKey ?? null,
+    monthsFinished: months.monthsFinished,
+    monthsInWindow: months.monthsInWindow,
+    bookSealed: months.bookSealed,
   };
 }
 
@@ -1234,16 +1254,10 @@ export async function countNewBuyersInRange(
   shopId: string,
   range: { start: Date; end: Date },
 ): Promise<number | null> {
-  const orders = await prisma.orderFact.findMany({
-    where: {
-      shopId,
-      source: ORDER_FACT_SOURCE,
-      customerKey: { not: ORDER_FACT_GUEST_KEY },
-      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
-    },
-    select: { customerKey: true, orderedAt: true, lifetimeOrders: true },
-  });
-  return countNewBuyersFromOrders(orders, range);
+  const counts = await queryNewBuyerCounts(shopId, range.start, range.end);
+  if (counts.identified <= 0) return null;
+  if (counts.unknownInRange > 0) return null;
+  return counts.newBuyers;
 }
 
 /**

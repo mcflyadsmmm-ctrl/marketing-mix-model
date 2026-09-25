@@ -298,7 +298,7 @@ export function LtvWindowTriangle({
         <p className="mcfly-chart__muted">
           {view.copy}
           {useSampleDesk
-            ? " From SAMPLE Snowdevil orders. Order history only, no spend."
+            ? " From Sample shop orders. Order history only, no spend."
             : " Order history only, no spend."}
         </p>
       </div>

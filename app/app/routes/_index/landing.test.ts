@@ -25,8 +25,8 @@ describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
 
   it("states one plan, never a Free tier, and uses on-origin trust URLs", () => {
     expect(route).toContain("How to install");
-    // 7-day trial then $39 for the whole desk — no Free plan to install onto.
-    expect(route).toContain("7-day free trial");
+    // 7 days, then $39 for the whole desk — no Free plan to install onto.
+    expect(route).toContain("7 days, then $39");
     expect(route).toContain("$39");
     expect(route).not.toContain("Install free");
     expect(route).not.toMatch(/\bPro adds\b/);

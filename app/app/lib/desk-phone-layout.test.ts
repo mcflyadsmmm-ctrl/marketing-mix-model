@@ -26,17 +26,19 @@ describe("Admin desk phone / narrow iframe", () => {
     const nav = read("./desk-nav.ts");
     const tabs = read("../components/DeskTopTabs.tsx");
     expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
-      "Home",
-      "Customers",
+      "Orders",
       "Spend",
+      "Goals",
+      "Customers",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
-      "Home",
-      "Customers",
+      "Orders",
       "Spend",
+      "Goals",
+      "Customers",
       "Settings",
     ]);
-    expect(DESK_IFRAME_NAV).toHaveLength(3);
+    expect(DESK_IFRAME_NAV).toHaveLength(4);
     expect(nav).toContain("DESK_PRIMARY_NAV");
     expect(tabs).toContain("DESK_IFRAME_NAV");
     expect(tabs).toContain("mcfly-desk-tabs--pills");
@@ -204,7 +206,7 @@ describe("Admin desk phone / narrow iframe", () => {
     const fixture = read("./desk-phone-fixture.html");
     expect(fixture).toContain("$68,457");
     expect(fixture).toContain("$631");
-    expect(fixture).toContain("Snowdevil");
+    expect(fixture).toContain("Sample shop");
     expect(fixture).toContain("Typical order");
     expect(fixture).toContain("Weekend vs weekday");
     expect(fixture).toContain("Typical day");
@@ -275,7 +277,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("mcfly-customers-hero");
     expect(fixture).toContain("RFM-lite, whales, repurchase clock");
     expect(fixture).toContain("Shopify Analytics Customers is a customer list.");
-    expect(fixture).toContain("Snowdevil example buyers");
+    expect(fixture).toContain("Sample shop example buyers");
     expect(fixture).toContain("Whale watch");
     expect(fixture).toContain("Typical repurchase");
     expect(fixture).toContain("Win-back by");
@@ -421,10 +423,10 @@ describe("Admin desk phone / narrow iframe", () => {
 
     const flagship = read("../components/LtvFlagshipBoard.tsx");
     expect(flagship).toContain("mcfly-depth-flag");
-    expect(flagship).toContain("mcfly-kpi-grid--peeks-lead");
-    expect(flagship).toContain("point.revenue != null");
-    expect(flagship).toContain('formatCurrency(point.revenue, currency)');
-    expect(flagship).toContain(': "—"');
+    expect(flagship).toContain("First 90 days");
+    expect(flagship).not.toContain("Today’s read");
+    expect(flagship).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(flagship).not.toContain("predicted365");
 
     const triangle = read("../components/LtvWindowTriangle.tsx");
     expect(triangle).toContain("mcfly-window-triangle");

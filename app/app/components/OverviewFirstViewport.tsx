@@ -60,7 +60,7 @@ export type OverviewPeekProps = {
   /** OrderFact hero for the first fold. When set, drives the morning number. */
   orderHero?: OverviewOrderBookHero | null;
   periodLabel?: string;
-  /** Unpaid = 90 closed days. Paid = up to 24 months. Required on live Overview. */
+  /** Trial and paid both keep up to 24 months. Required on live Overview. */
   orderBookDepth: LiveIngestDepth;
   /** Order-fact crawl resume — N days on file, window still filling. */
   orderBackfillLine?: string | null;
@@ -291,12 +291,17 @@ export function OverviewFirstViewport({
   const empty = hero?.empty ?? !(orderCount > 0);
   const heroSales =
     hero?.sales != null && Number.isFinite(hero.sales) ? hero.sales : null;
-  const salesLabel =
-    heroSales != null && Number.isFinite(heroSales) ? money(heroSales) : null;
   const heroValue =
-    salesPending && (heroSales == null || heroSales === 0)
-      ? "—"
-      : (salesLabel ?? "—");
+    !empty && heroSales != null ? money(heroSales) : "—";
+  const count = hero?.orderCount ?? orderCount;
+  const countLabel =
+    empty && !(count > 0)
+      ? "Order count still loading — not 0."
+      : `${count.toLocaleString()} orders`;
+  const sectionStillLoading =
+    !useSampleDesk && (salesPending || Boolean(orderBackfillLine));
+  const loadingOr = (label: string) =>
+    label === "—" && sectionStillLoading ? "orders still loading" : label;
   const missingPrior = hero == null || hero.priorSales == null;
   const delta = overviewOrderDeltaLabel({
     yoyPct: hero?.yoyPct ?? null,
@@ -336,22 +341,31 @@ export function OverviewFirstViewport({
             </p>
           ) : (
             <p className="mcfly-overview-plane__delta mcfly-overview-plane__delta--empty">
-              {empty ? OVERVIEW_ORDERS_EMPTY_LINE : OVERVIEW_PRIOR_MISSING_LINE}
+              {empty
+                ? OVERVIEW_ORDERS_EMPTY_LINE
+                : sectionStillLoading && missingPrior
+                  ? "Last year still loading — not $0."
+                  : OVERVIEW_PRIOR_MISSING_LINE}
             </p>
           )}
         </div>
                   <p className="mcfly-overview-plane__value">{heroValue}</p>
+        <p className="mcfly-overview-plane__count">{countLabel}</p>
         <p className="mcfly-overview-plane__meta">
           <span className="mcfly-overview-plane__source">{OVERVIEW_FROM_ORDERS_LABEL}</span>
           <span aria-hidden="true"> · </span>
           <span className="mcfly-overview-plane__prior">
             {missingPrior || hero?.priorSales == null
-              ? OVERVIEW_PRIOR_MISSING_LINE
+              ? sectionStillLoading
+                ? "Last year still loading — not $0."
+                : OVERVIEW_PRIOR_MISSING_LINE
               : `same days last year ${money(hero.priorSales)}`}
           </span>
         </p>
         <span className="mcfly-overview-plane__sr">
-          {overviewCoverageLine(orderBookDepth)}
+          {useSampleDesk
+            ? `${periodLabel}. Sample shop.`
+            : overviewCoverageLine(orderBookDepth)}
         </span>
       </div>
 
@@ -362,11 +376,11 @@ export function OverviewFirstViewport({
       ) : null}
 
       <p className="mcfly-overview-plane__strip">
-        <span>Returning {returning}</span>
+        <span>Returning {loadingOr(returning)}</span>
         <span aria-hidden="true"> · </span>
-        <span>Typical order {typical}</span>
+        <span>Typical order {loadingOr(typical)}</span>
         <span aria-hidden="true"> · </span>
-        <span>Weekend {weekendLabel}</span>
+        <span>Weekend {loadingOr(weekendLabel)}</span>
       </p>
 
       {empty && !useSampleDesk ? (

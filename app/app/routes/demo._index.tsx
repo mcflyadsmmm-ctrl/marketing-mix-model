@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
+import { Link, useLoaderData, useLocation, useSearchParams } from "react-router";
 
 import { DeskLane } from "../components/DeskLane";
 import {
@@ -16,11 +16,9 @@ import {
   buildOverviewYoyYearModel,
   useOverviewPanelScroll,
 } from "../components/OverviewYoyYearSection";
-import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
 import { useDeskHref } from "../lib/desk-base-path";
-import { useDeskCurrency } from "../lib/desk-currency";
 import {
   DESK_SECTION,
   deskNavHref,
@@ -28,8 +26,9 @@ import {
   deskStageFromHash,
   deskStageHeading,
   isOverviewHomeStage,
+  isOverviewToolStage,
+  overviewToolFromPanel,
 } from "../lib/desk-nav";
-import { formatCurrency } from "../lib/mer-format";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
@@ -42,15 +41,20 @@ import {
   overviewMixForecastRead,
 } from "../lib/overview-mix-forecast";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import {
+  namedDeskScreenFromPath,
+  namedDeskTitle,
+  refreshingSalesLine,
+} from "../lib/desk-request-screen";
+import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
-import {
-  buildShareableInsights,
-  pickShareableLtvPeek,
-} from "../lib/shareable-insights";
+import { pickShareableLtvPeek } from "../lib/shareable-insights";
 import { parseYoyYear } from "../lib/yoy-workspace";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadPublicSamplePage(request);
@@ -58,39 +62,48 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function PublicDemoOverview() {
   const data = useLoaderData<typeof loader>();
-  const currency = useDeskCurrency();
   const deskHref = useDeskHref();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigation = useNavigation();
   useDeskHashScroll();
   useOverviewPanelScroll(searchParams.get("panel"));
-  const isLoading = navigation.state === "loading";
-  const stage = data.shotMode
+  const isLoading = useDeskTabRefresh();
+  const requestScreen = data.shotMode
+    ? null
+    : namedDeskScreenFromPath(location.pathname);
+  const hashStage = data.shotMode
     ? DESK_SECTION.overview
     : deskStageFromHash(location.hash);
-  const onHome = isOverviewHomeStage(stage);
+  const panelTool = data.shotMode
+    ? null
+    : overviewToolFromPanel(searchParams.get("panel"));
+  const toolStage =
+    requestScreen == null && panelTool == null && isOverviewToolStage(hashStage)
+      ? hashStage
+      : panelTool;
+  const onHome =
+    requestScreen == null && toolStage == null && isOverviewHomeStage(hashStage);
+  const pageHeading =
+    requestScreen === "year-over-year" || requestScreen === "month-close"
+      ? namedDeskTitle(requestScreen)
+      : deskStageHeading(toolStage ?? hashStage);
   const ordersHref = deskNavHrefFromSearch(deskHref("/app/orders"), searchParams);
-  const yoyHref = deskNavHref(deskHref("/app"), {
+  const yoyHref = deskNavHref(deskHref("/app/yoy"), {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: OVERVIEW_YOY_YEAR_PANEL },
-    hash: OVERVIEW_YOY_YEAR_ID,
   });
   const customersHref = deskNavHrefFromSearch(
     deskHref("/app/customers"),
     searchParams,
   );
   const goalsHref = deskNavHrefFromSearch(deskHref("/app/goals"), searchParams);
-  const customersGrowthHref = deskNavHref(deskHref("/app/customers"), {
+  const customersGrowthHref = deskNavHref(deskHref("/app/growth"), {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: "growth" },
   });
-  const customersLtvHref = deskNavHref(deskHref("/app/customers"), {
+  const customersLtvHref = deskNavHref(deskHref("/app/ltv"), {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
-    extra: { panel: "ltv" },
   });
   const drillDays = data.cashControl?.drillDays ?? [];
   const yoyAsOf = asOfFromCertifiedDays(drillDays, new Date());
@@ -114,24 +127,6 @@ export default function PublicDemoOverview() {
     revenue365: data.ltv.revenue365,
     historyLimited: false,
   });
-  const insightView = buildShareableInsights(
-    {
-      salesPending: false,
-      orderCount: data.sales.orderCount,
-      returningSales: data.book.returningSales,
-      returningShare: data.book.returningSalesShare,
-      newSales: data.book.newSales,
-      typicalOrder: data.depth.medianAov,
-      daysToSecond: data.depth.medianDaysToSecond,
-      ltvPeek: ltvPeek?.amount ?? null,
-      ltvPeekDays: ltvPeek?.days ?? null,
-      historyLimited: false,
-      shopLabel: data.shopLabel,
-      sample: true,
-      periodLabel: data.rangeLabel,
-    },
-    (n) => formatCurrency(n, currency),
-  );
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk: true,
     salesPulledAt: null,
@@ -141,7 +136,7 @@ export default function PublicDemoOverview() {
   const embed = data.embed;
 
   return (
-    <s-page heading={data.shotMode ? undefined : deskStageHeading(stage)} inlineSize="large">
+    <s-page heading={data.shotMode ? undefined : pageHeading} inlineSize="large">
       <div
         className={[
           "mcfly-desk",
@@ -154,7 +149,9 @@ export default function PublicDemoOverview() {
       >
         {isLoading ? (
           <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing SAMPLE sales…</p>
+            <p className="mcfly-state__copy">
+              {refreshingSalesLine(data.rangeLabel)}
+            </p>
           </section>
         ) : null}
 
@@ -167,7 +164,6 @@ export default function PublicDemoOverview() {
             <span className="mcfly-ctx__asof">{data.tillLabel}</span>
           </div>
           <div className="mcfly-trust" aria-label="Trust and freshness">
-            <span className="mcfly-trust__chip mcfly-trust__chip--sample">SAMPLE</span>
             <span className="mcfly-trust__chip">{freshLabel}</span>
           </div>
         </div>
@@ -229,7 +225,8 @@ export default function PublicDemoOverview() {
                     days={data.explorerDays}
                     ordersHref={ordersHref}
                     salesPending={false}
-                    typicalDay={data.depth.medianDailySales}
+                    typicalDay={mixView.forecast?.typicalDay ?? null}
+                    typicalDayWindow={mixView.typicalDayWindow}
                   />
                 </div>
               )}
@@ -252,7 +249,6 @@ export default function PublicDemoOverview() {
                     variant="overview"
                     goalsHref={goalsHref}
                   />
-                  <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
                 </div>
                 </DeskLane>
                 <DeskLane
@@ -316,6 +312,60 @@ export default function PublicDemoOverview() {
               />
             ) : null}
           </div>
+        ) : null}
+        {requestScreen === "year-over-year" ? (
+          <section id={OVERVIEW_YOY_YEAR_ID} data-panel={OVERVIEW_YOY_YEAR_PANEL} aria-label="Year over year">
+            <OverviewYoyYearSection
+              {...yoyYearWorkspace}
+              salesPending={false}
+              onYearChange={onYoyYearChange}
+            />
+          </section>
+        ) : null}
+        {requestScreen === "month-close" ? (
+          <section id={OVERVIEW_MIX_CLOSE_ID} aria-label="Month close">
+            <OverviewMixForecast view={mixView} customersHref={customersHref} />
+          </section>
+        ) : null}
+        {toolStage === DESK_SECTION.compare ? (
+          <section id={DESK_SECTION.compare} aria-label="Compare">
+            <OverviewYoyCards
+              cards={data.yoyCards}
+              salesPending={false}
+              yoyHref={yoyHref}
+            />
+            <OverviewYoyYearSection
+              {...yoyYearWorkspace}
+              salesPending={false}
+              onYearChange={onYoyYearChange}
+            />
+          </section>
+        ) : null}
+        {toolStage === DESK_SECTION.ledger ? (
+          <section id={DESK_SECTION.ledger} aria-label="Ledger">
+            <OverviewSalesChart
+              caption="Ledger"
+              days={data.explorerDays}
+              ordersHref={ordersHref}
+              salesPending={false}
+              typicalDay={mixView.forecast?.typicalDay ?? null}
+              typicalDayWindow={mixView.typicalDayWindow}
+            />
+          </section>
+        ) : null}
+        {toolStage === DESK_SECTION.mix ? (
+          <section id={DESK_SECTION.mix} aria-label="Mix">
+            <OverviewMixForecast view={mixView} customersHref={customersHref} />
+          </section>
+        ) : null}
+        {toolStage === DESK_SECTION.plan ? (
+          <section id={DESK_SECTION.plan} aria-label="Plan">
+            <OrderHistoryForecast
+              view={data.orderHistoryForecast}
+              variant="overview"
+              goalsHref={goalsHref}
+            />
+          </section>
         ) : null}
       </div>
     </s-page>

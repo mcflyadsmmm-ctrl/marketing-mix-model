@@ -1,4 +1,4 @@
-import { useEffect, useId } from "react";
+import { useEffect } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
@@ -25,7 +25,6 @@ import {
 } from "../lib/mer-dashboard.server";
 import { formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { parseSalesBasis } from "../lib/sales-basis";
 import {
   applySampleDeskIntent,
   getSampleDeskEnabled,
@@ -34,7 +33,6 @@ import {
 } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
-import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -47,7 +45,7 @@ import {
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { BILLING_HONESTY } from "../lib/entitlements";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
-import { parseHabitGoalInput } from "../lib/goals-habit";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -63,6 +61,8 @@ function showAdminToast(
   ).shopify;
   bridge?.toast?.show?.(message, options);
 }
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await requireAdmin(request);
@@ -162,100 +162,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
   }
 
-  if (intent === "save_habit_goals") {
-    const returningSalesTarget = parseHabitGoalInput(
-      form.get("returningSalesTarget"),
-    );
-    if (Number.isNaN(returningSalesTarget)) {
-      return {
-        error: "Enter a non-negative returning-$ target — or leave blank to unset",
-        success: false as const,
-        breakEvenMer: null as number | null,
-        marginPct: null as number | null,
-        intent: "save_habit_goals" as const,
-      };
-    }
-    await prisma.settings.update({
-      where: { shopId: shop.id },
-      data: { ltvTarget: null, returningSalesTarget },
-    });
-    return {
-      error: null,
-      success: true as const,
-      breakEvenMer: null as number | null,
-      marginPct: null as number | null,
-      intent: "save_habit_goals" as const,
-      returningSalesTarget,
-    };
-  }
-
-  const targetMer = parseFloat(String(form.get("targetMer") ?? "0"));
-  if (!Number.isFinite(targetMer) || targetMer <= 0) {
-    return {
-      error: `Target ${PRODUCT_NOUN.totalRoas} must be positive`,
-      success: false as const,
-      breakEvenMer: null as number | null,
-      marginPct: null as number | null,
-    };
-  }
-
-  const marginRaw = String(form.get("marginPct") ?? "").trim();
-  const salesBasisRaw = form.get("salesBasis");
-  // Desk religion: Shopify Total Sales only.
-  const salesBasis =
-    salesBasisRaw != null && String(salesBasisRaw).trim() !== ""
-      ? parseSalesBasis(salesBasisRaw, "total")
-      : "total";
-
-  const updateData: {
-    targetMer: number;
-    salesBasis: ReturnType<typeof parseSalesBasis>;
-    marginPct?: number;
-    marginOverride?: boolean;
-    marginConfirmedAt?: Date;
-  } = {
-    targetMer,
-    salesBasis,
-  };
-
-  let breakEvenMer: number | null = null;
-  let marginPct: number | null = null;
-
-  if (marginRaw !== "") {
-    marginPct = parseFloat(marginRaw) / 100;
-    if (!Number.isFinite(marginPct) || marginPct <= 0 || marginPct > 1) {
-      return {
-        error: "Profit margin must be between 0.1% and 100% (or leave blank)",
-        success: false as const,
-        breakEvenMer: null as number | null,
-        marginPct: null as number | null,
-      };
-    }
-    breakEvenMer = calculateBreakEvenMer(marginPct);
-    if (breakEvenMer === null) {
-      return {
-        error: `Could not compute ${PRODUCT_NOUN.breakEvenTotalRoas} from that margin`,
-        success: false as const,
-        breakEvenMer: null as number | null,
-        marginPct: null as number | null,
-      };
-    }
-    updateData.marginPct = marginPct;
-    updateData.marginOverride = true;
-    updateData.marginConfirmedAt = new Date();
-  }
-
-  await prisma.settings.update({
-    where: { shopId: shop.id },
-    data: updateData,
-  });
-
   return {
-    error: null,
-    success: true as const,
-    breakEvenMer,
-    marginPct,
-    targetMer,
+    error: "The one target lives on Goals.",
+    success: false as const,
+    breakEvenMer: null as number | null,
+    marginPct: null as number | null,
   };
 };
 
@@ -272,10 +183,6 @@ export default function SettingsPage() {
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const fieldIds = useId();
-  const targetFieldId = `${fieldIds}-target`;
-  const targetHintId = `${fieldIds}-target-hint`;
-
   const isSaving = navigation.state === "submitting";
   const isRevalidating =
     navigation.state === "loading" && navigation.formMethod != null;
@@ -309,21 +216,6 @@ export default function SettingsPage() {
       );
       return;
     }
-    if (
-      actionData.success &&
-      "intent" in actionData &&
-      actionData.intent === "save_habit_goals"
-    ) {
-      showAdminToast("Returning-$ target saved", { duration: 4000 });
-      return;
-    }
-    if (actionData.success && "targetMer" in actionData) {
-      showAdminToast(
-        `Target ${PRODUCT_NOUN.totalRoas} saved · ${formatMer(Number(actionData.targetMer))}`,
-        { duration: 4000 },
-      );
-      return;
-    }
     if (actionData.error) {
       showAdminToast(actionData.error, { duration: 5000, isError: true });
     }
@@ -346,8 +238,7 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              This page is your target {PRODUCT_NOUN.totalRoas} and billing —
-              not reports.
+              Billing and support, not reports. The one target is on Goals.
             </p>
           </div>
         </header>
@@ -356,7 +247,7 @@ export default function SettingsPage() {
           <SampleDeskBanner
             note={
               sampleOnlyFreeze
-                ? `Settings here are real. ${PRODUCT_NOUN.totalRoas} is Snowdevil SAMPLE — sample mode stays on until your orders replace it.`
+                ? `Settings here are real. ${PRODUCT_NOUN.totalRoas} is Sample shop — sample mode stays on until your orders replace it.`
                 : `Settings here are real. ${PRODUCT_NOUN.totalRoas} may still show Sample data.`
             }
           />
@@ -414,150 +305,9 @@ export default function SettingsPage() {
           </section>
         ) : null}
 
-        <div className="mcfly-settings-template mcfly-settings-template--soft">
-          <aside className="mcfly-settings-template__desc">
-            <h2 className="mcfly-settings-template__heading">
-              Set your Total ROAS target
-            </h2>
-            <p className="mcfly-settings-template__copy">
-              {PRODUCT_NOUN.definition}. Target is the operating goal (e.g. 4.0 =
-              $4 sales per $1 spend).
-            </p>
-          </aside>
-
-          <section className="mcfly-panel mcfly-settings-form mcfly-settings-template__form mcfly-settings-panel--soft">
-            <div className="mcfly-panel__head">
-              <h2>Desk targets</h2>
-              <p className="mcfly-panel__muted">
-                Target {PRODUCT_NOUN.totalRoas}
-              </p>
-            </div>
-            <Form
-              method="post"
-              key={String(settings.updatedAt)}
-              data-save-bar
-              data-discard-confirmation
-              aria-busy={isSaving || undefined}
-            >
-              <input type="hidden" name="salesBasis" value="total" />
-              <fieldset
-                className="mcfly-settings-fields"
-                disabled={isSaving}
-                aria-describedby={
-                  actionData?.error ? `${fieldIds}-error` : undefined
-                }
-              >
-                <legend className="mcfly-settings-fields__legend">
-                  Target {PRODUCT_NOUN.totalRoas}
-                </legend>
-
-                <div className="mcfly-settings-field">
-                  <label
-                    className="mcfly-settings-field__label"
-                    htmlFor={targetFieldId}
-                  >
-                    Target {PRODUCT_NOUN.totalRoas}
-                  </label>
-                  <input
-                    id={targetFieldId}
-                    className="mcfly-field mcfly-settings-field__input"
-                    name="targetMer"
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    required
-                    inputMode="decimal"
-                    autoComplete="off"
-                    aria-describedby={targetHintId}
-                    defaultValue={settings.targetMer}
-                  />
-                  <span id={targetHintId} className="mcfly-settings-field__hint">
-                    Operating goal — e.g. 4.0 means $4 Shopify Total Sales per
-                    $1 ad spend. Same field as Goals.
-                  </span>
-                </div>
-
-                {actionData?.error ? (
-                  <p
-                    id={`${fieldIds}-error`}
-                    className="mcfly-settings-error"
-                    role="alert"
-                  >
-                    {actionData.error}
-                  </p>
-                ) : null}
-              </fieldset>
-            </Form>
-          </section>
-        </div>
-
-        <div className="mcfly-settings-template mcfly-settings-template--soft">
-          <aside className="mcfly-settings-template__desc">
-            <h2 className="mcfly-settings-template__heading">
-              Order-history targets
-            </h2>
-            <p className="mcfly-settings-template__copy">
-              Year returning $ — tracked from order history in Desk targets
-              below. LTV Target Line is
-              the observed average there and on LTV — no typing. No spend,
-              CPA, or ROAS. Leave blank to unset returning $.
-            </p>
-          </aside>
-
-          <section
-            className="mcfly-panel mcfly-settings-form mcfly-settings-template__form mcfly-settings-panel--soft"
-            aria-label="Order-history targets"
-          >
-            <div className="mcfly-panel__head">
-              <h2>Order-history targets</h2>
-              <p className="mcfly-panel__muted">Optional · zero spend</p>
-            </div>
-            <Form method="post">
-              <input type="hidden" name="intent" value="save_habit_goals" />
-              <fieldset className="mcfly-settings-fields" disabled={isSaving}>
-                <legend className="mcfly-settings-fields__legend">
-                  Year returning-$ target
-                </legend>
-                <div className="mcfly-settings-field">
-                  <label
-                    className="mcfly-settings-field__label"
-                    htmlFor={`${fieldIds}-returning-target`}
-                  >
-                    Year returning-$ target
-                  </label>
-                  <input
-                    id={`${fieldIds}-returning-target`}
-                    className="mcfly-field mcfly-settings-field__input"
-                    name="returningSalesTarget"
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    defaultValue={
-                      settings.returningSalesTarget != null &&
-                      settings.returningSalesTarget > 0
-                        ? String(Math.round(settings.returningSalesTarget))
-                        : ""
-                    }
-                    placeholder="e.g. 800000"
-                  />
-                  <span className="mcfly-settings-field__hint">
-                    Returning-buyer dollars in the Goals year. Guests stay
-                    out. Same field as Goals. LTV Target Line is the
-                    observed average — not set here. SAMPLE with no typed
-                    target stays unset, like Live.
-                  </span>
-                </div>
-                <button
-                  type="submit"
-                  className="mcfly-btn mcfly-btn--primary"
-                  disabled={isSaving || undefined}
-                >
-                  Save returning-$ target
-                </button>
-              </fieldset>
-            </Form>
-          </section>
-        </div>
+        <p className="mcfly-panel__muted">
+          The one target lives on Goals. Settings does not ask for it.
+        </p>
 
         {!shotMode ? (
           <section
@@ -579,9 +329,8 @@ export default function SettingsPage() {
               </p>
             ) : null}
             <p className="mcfly-control__k" style={{ marginTop: "0.75rem" }}>
-              $39 per store / month after a 7-day trial. Unpaid order rows
-              stop at {LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.
-              One plan.
+              7 days, then $39. Trial and paid both keep the full desk, up to
+              24 months of orders. Spend stays optional. One plan.
             </p>
             <ul className="mcfly-settings-guide">
               {billing.deskBullets.map((line) => (
@@ -610,14 +359,14 @@ export default function SettingsPage() {
                   style={{ marginTop: "0.75rem" }}
                 >
                   Start 7-day trial opens when billing is on this host. One Live shop view, not a Sample plan.
-                  Unpaid order rows stop at {LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.
+                  Trial and paid keep Customers, LTV, and up to 24 months of orders.
                 </p>
               )
             ) : (
               <div style={{ marginTop: "0.85rem" }}>
                 <p className="mcfly-panel__muted">
                   This shop has the whole desk. Uninstall in Admin stops the
-                  next 30-day cycle.
+                  next 30-day cycle. The current cycle may still charge.
                 </p>
                 {billing.enabled ? (
                   <div style={{ marginTop: "0.65rem" }}>

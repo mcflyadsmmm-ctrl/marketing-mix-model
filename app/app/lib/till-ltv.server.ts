@@ -9,6 +9,7 @@ import {
 import { cashPaybackDays } from "./cash-payback";
 import { ORDER_STEP_MIN_BUYERS } from "./customers-analytics";
 import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import { readDeskMetricSnapshot } from "./desk-metric-snapshot.server";
 import {
   cohortHasLivedYear,
   firstYearBlocked,
@@ -254,6 +255,9 @@ export async function buildTillLtvSummary(
   },
 ): Promise<TillLtvSummary> {
   const source = options.useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
+  const liveSnapshot = options.useSampleDesk
+    ? null
+    : await readDeskMetricSnapshot(shopId);
   const [allCohorts, historyLimited, progress, depthRows] = await Promise.all([
     getCohortFacts(shopId, {
       limit: 24,
@@ -267,20 +271,26 @@ export async function buildTillLtvSummary(
       : getOrderBackfillProgress(shopId, {
           ianaTimezone: options.ianaTimezone,
         }),
-    loadOrderDepthRows(shopId, { end: new Date() }, source),
+    options.useSampleDesk
+      ? loadOrderDepthRows(shopId, { end: new Date() }, source)
+      : Promise.resolve([]),
   ]);
 
-  const truncatedLifetimeBuyers = computeCohortRollups(depthRows).truncatedBuyers;
+  const truncatedLifetimeBuyers = options.useSampleDesk
+    ? computeCohortRollups(depthRows).truncatedBuyers
+    : (liveSnapshot?.hero?.truncatedLifetimeBuyers ?? 0);
   const asOf = new Date();
   const yearBlocked = options.useSampleDesk
     ? false
     : firstYearBlocked({
         historyLimited,
         orderBookDepth: await shopLiveIngestDepth(shopId),
-        bookSpanDays: orderBookSpanDays(
-          depthRows.map((row) => row.orderedAt),
-          asOf,
-        ),
+        bookSpanDays:
+          liveSnapshot?.hero?.bookSpanDays ??
+          orderBookSpanDays(
+            depthRows.map((row) => row.orderedAt),
+            asOf,
+          ),
       });
 
   return summarizeTillLtvFromCohorts(

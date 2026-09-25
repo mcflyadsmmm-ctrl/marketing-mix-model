@@ -239,11 +239,11 @@ describe("P1-A sits on the Customers LTV chip, below the fold", () => {
   const windows = section.slice(windowsStart, windowsEnd);
 
   it("keeps the hero, Target Line, and #125 triangle, then the product table", () => {
-    expect(windows).toContain("<LtvValueBuild");
-    expect(windows).toContain("targetLine={chartTargetLine}");
+    expect(windows).toContain("mcfly-book__hero-k\">First 90 days");
+    expect(windows).not.toContain("<LtvValueBuild");
     expect(windows).toContain("<LtvWindowTriangle");
     expect(windows).toContain("<LtvFirstProductDrivers");
-    expect(windows.indexOf("<LtvValueBuild")).toBeLessThan(
+    expect(windows.indexOf("mcfly-book__hero-k\">First 90 days")).toBeLessThan(
       windows.indexOf("<LtvWindowTriangle"),
     );
     expect(windows.indexOf("<LtvWindowTriangle")).toBeLessThan(
@@ -278,15 +278,14 @@ describe("P1-A sits on the Customers LTV chip, below the fold", () => {
   });
 
   it("does not add a top-nav tab", () => {
-    expect(nav).toContain('label: "Home"');
+    expect(nav).toContain('label: "Orders"');
     expect(nav).toContain('label: "Customers"');
     expect(nav).toContain('label: "Spend"');
-    expect(nav).not.toContain('label: "Orders"');
-    expect(nav).not.toContain('label: "Goals"');
+    expect(nav).toContain('label: "Goals"');
     expect(customers).not.toContain('href="/app/product"');
     expect(customers).not.toContain('label: "Product"');
     const labels = [...nav.matchAll(/label: "([^"]+)"/g)].map((hit) => hit[1]);
-    expect(labels).toEqual(["Home", "Customers", "Spend", "Settings"]);
+    expect(labels).toEqual(["Orders", "Spend", "Goals", "Customers", "Settings"]);
   });
 });
 

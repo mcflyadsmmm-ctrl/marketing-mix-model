@@ -14,6 +14,7 @@ import {
   CUSTOMERS_TODAY_TRUNCATED_LINE,
   buildCustomersHero,
   customersOperatorGreeting,
+  customersYoyLine,
 } from "../lib/customers-first-viewport";
 
 /**
@@ -27,6 +28,7 @@ export function CustomersFirstViewport({
   useSampleDesk = false,
   todaySalesTruncated = false,
   periodLabel = "This period",
+  windowSales = null,
 }: {
   analytics: CustomerAnalytics;
   book: ShopifyNativePeriodStats;
@@ -34,6 +36,8 @@ export function CustomersFirstViewport({
   useSampleDesk?: boolean;
   todaySalesTruncated?: boolean;
   periodLabel?: string;
+  /** Shopify Total Sales for this window. Returning + new + guests equal this figure. */
+  windowSales?: number | null;
 }): ReactNode {
   const currency = useDeskCurrency();
   const money = (n: number) => formatCurrency(n, currency);
@@ -97,6 +101,15 @@ export function CustomersFirstViewport({
 
   const pendingLine = salesPending ? CUSTOMERS_PENDING_LINE : null;
   const truncatedLine = todaySalesTruncated ? CUSTOMERS_TODAY_TRUNCATED_LINE : null;
+  const returningDollars = book.returningSales ?? 0;
+  const newDollars = book.newSales ?? 0;
+  const guestDollars =
+    !salesPending &&
+    windowSales != null &&
+    Number.isFinite(windowSales) &&
+    windowSales + 0.005 >= returningDollars + newDollars
+      ? Math.max(0, windowSales - returningDollars - newDollars)
+      : null;
 
   return (
     <section
@@ -122,6 +135,7 @@ export function CustomersFirstViewport({
           <span className="mcfly-overview-plane__prior">
             <DeskIcon name="customers" />
             {hero.k}
+            {hero.yoyPct != null ? ` · ${customersYoyLine(hero.yoyPct)}` : ""}
           </span>
         </p>
         <span className="mcfly-overview-plane__sr">
@@ -136,6 +150,18 @@ export function CustomersFirstViewport({
         <p className="mcfly-overview-plane__pending">{pendingLine}</p>
       ) : truncatedLine ? (
         <p className="mcfly-overview-plane__pending">{truncatedLine}</p>
+      ) : null}
+
+      {guestDollars != null && windowSales != null ? (
+        <p className="mcfly-overview-plane__note">
+          {periodLabel} sales {money(windowSales)} = returning{" "}
+          {money(returningDollars)} + new {money(newDollars)} + guests{" "}
+          {money(guestDollars)}.
+        </p>
+      ) : hasSplit ? (
+        <p className="mcfly-overview-plane__note">
+          {periodLabel} · identified buyers. Guest orders are a separate share.
+        </p>
       ) : null}
 
       {stripParts.length > 0 ? (

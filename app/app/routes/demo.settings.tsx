@@ -5,11 +5,13 @@ import { DeskBookPage } from "../components/DeskBookPage";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
-import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 
 const LISTING = "https://apps.shopify.com/mcfly-analytics-public";
+
+export const shouldRevalidate = deskPageShouldRevalidate;
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
 
@@ -32,22 +34,19 @@ export default function PublicDemoSettings() {
       retryHref="/demo/settings"
     >
       <p className="mcfly-book__lede">
-        {PRODUCT_NOUN.sampleHint} Sample mode is locked. This public demo
-        cannot switch to a live shop.
+        This public demo cannot switch to a live shop.
       </p>
       <div className="mcfly-well mcfly-well--scoreboard mcfly-well--soft">
         <p>
-          <strong>Data</strong> · SAMPLE Snowdevil only. No Sample | Live toggle
-          here.
+          <strong>Data</strong> · This book only. No live-shop toggle here.
         </p>
         <p>
           <strong>{PRODUCT_NOUN.totalRoas}</strong> · {NUMBER_HONESTY.formula}.
           Empty spend is —.
         </p>
         <p>
-          <strong>Plan</strong> · SAMPLE is the paid-shaped book — up to 24
-          months of orders. Live trial is {LIVE_UNPAID_INGEST_DAYS} closed days
-          of order rows. Then $39/store/month, one plan.{" "}
+          <strong>Plan</strong> · 7 days, then $39. Trial and paid both keep
+          the full desk, up to 24 months of orders.{" "}
           <a href={LISTING} rel="noopener noreferrer">
             Install
           </a>

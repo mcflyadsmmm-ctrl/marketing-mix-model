@@ -214,6 +214,7 @@ describe("mer-control mix + ledger", () => {
     expect(chipZone({ mer: 4, spend: 100, vsTarget: 0 })).toBe("ok");
     expect(chipZone({ mer: 4.2, spend: 100, vsTarget: 0.2 })).toBe("ok");
     expect(chipZone({ mer: 2, spend: 100, vsTarget: -2 })).toBe("below");
+    expect(chipZone({ mer: 3.6, spend: 100, vsTarget: null })).toBe("unset");
     const { days } = certifyDailyRows(septDeterioration());
     const chips = buildCashChips(days, 4);
     const yesterday = chips.find((c) => c.id === "yesterday");
@@ -321,7 +322,7 @@ describe("mer-control mix + ledger", () => {
     expect(thinModel?.paceDays).toBe(3);
   });
 
-  it("compare scores cut last month and last year to this month's day", () => {
+  it("compare scores use the full last month and day-align last year", () => {
     const rows = septDeterioration();
     for (let d = 1; d <= 20; d++) {
       const dd = String(d).padStart(2, "0");
@@ -356,19 +357,22 @@ describe("mer-control mix + ledger", () => {
     const thisMonth = scores[0];
     const lastMonth = scores[1];
     const lastYear = scores[2];
+    expect(thisMonth?.label).toBe("This month · Sep 1–15");
     expect(thisMonth?.sales).toBeCloseTo(150_000, 4);
-    expect(thisMonth?.salesChangePct).toBeNull();
-    expect(lastMonth?.days).toBe(15);
-    expect(lastMonth?.sales).toBeCloseTo(150_000, 4);
+    expect(thisMonth?.salesChangePct).toBeCloseTo(
+      ((150_000 - 135_000) / 135_000) * 100,
+      8,
+    );
+    expect(lastMonth?.label).toBe("Last month · Aug 1–20");
+    expect(lastMonth?.days).toBe(20);
+    expect(lastMonth?.sales).toBeCloseTo(200_000, 4);
     expect(lastMonth?.mer).toBeCloseTo(5, 8);
-    expect(lastMonth?.salesChangePct).toBeCloseTo(0, 8);
+    expect(lastMonth?.salesChangePct).toBeNull();
+    expect(lastYear?.label).toBe("This month last year · Sep 1–15");
     expect(lastYear?.days).toBe(15);
     expect(lastYear?.sales).toBeCloseTo(135_000, 4);
     expect(lastYear?.mer).toBeCloseTo(4, 8);
-    expect(lastYear?.salesChangePct).toBeCloseTo(
-      ((135_000 - 150_000) / 150_000) * 100,
-      8,
-    );
+    expect(lastYear?.salesChangePct).toBeNull();
 
     const board = buildCashControlBoard(rows, 4);
     expect(board.compareScores).toHaveLength(3);
@@ -534,7 +538,7 @@ describe("mer-control chrome", () => {
     expect(source).toContain("mcfly-spend-room__compare");
     expect(source).toContain("board.compareScores");
     expect(source).toContain("Same calendar days so far");
-    expect(source).toContain("Sales vs this month");
+    expect(source).toContain("Vs last year");
     expect(source).not.toContain("data-tab");
   });
 
