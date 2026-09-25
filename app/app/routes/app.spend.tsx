@@ -36,7 +36,7 @@ import {
   namedDeskTitle,
   salesWindowPendingHeading,
 } from "../lib/desk-request-screen";
-import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import {
@@ -759,7 +759,6 @@ export default function SpendEntryPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const isLoading = useDeskTabRefresh();
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
@@ -957,17 +956,10 @@ export default function SpendEntryPage() {
           "mcfly-roas--soft",
           shotMode ? "mcfly-desk--shot" : null,
           sampleDesk.enabled ? "mcfly-desk--sample" : null,
-          isLoading && !shotMode ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {isLoading && !shotMode ? (
-          <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing Spend…</p>
-          </section>
-        ) : null}
-
         {salesError && !shotMode ? (
           <section
             className="mcfly-state mcfly-state--critical mcfly-state--soft"

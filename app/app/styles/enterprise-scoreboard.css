@@ -1,0 +1,127 @@
+/**
+ * First-fold scoreboard. Loaded after mcfly-desk.css.
+ * Polaris sans, tabular figures, 8px radius. No display serif. No sky well.
+ */
+
+.mcfly-scoreboard-chrome,
+.mcfly-scoreboard {
+  font-family: var(--p-font-family-sans, var(--mcfly-font, "Source Sans 3", "Segoe UI", sans-serif));
+  color: var(--p-color-text, #202223);
+  background: transparent;
+  box-shadow: none;
+}
+
+.mcfly-scoreboard {
+  display: grid;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.mcfly-scoreboard-chrome {
+  padding: 8px 0 4px;
+}
+
+.mcfly-scoreboard__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.mcfly-scoreboard__title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.mcfly-scoreboard__sample {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--p-color-border, #c9cccf);
+  border-radius: 8px;
+  padding: 2px 8px;
+}
+
+.mcfly-scoreboard__header .mcfly-period {
+  margin-left: auto;
+}
+
+.mcfly-scoreboard__hero-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+}
+
+.mcfly-scoreboard__sales {
+  margin: 0;
+  font-family: var(--p-font-family-sans, var(--mcfly-font, "Source Sans 3", "Segoe UI", sans-serif));
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.mcfly-scoreboard__compare,
+.mcfly-scoreboard__count,
+.mcfly-scoreboard__figure-label,
+.mcfly-scoreboard__figure-value,
+.mcfly-scoreboard__status,
+.mcfly-scoreboard__empty {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-scoreboard__compare,
+.mcfly-scoreboard__count,
+.mcfly-scoreboard__status,
+.mcfly-scoreboard__empty {
+  margin: 0;
+  color: var(--p-color-text-secondary, #6d7175);
+}
+
+.mcfly-scoreboard__count {
+  font-size: 0.875rem;
+}
+
+.mcfly-scoreboard__status,
+.mcfly-scoreboard__empty {
+  font-size: 0.8125rem;
+}
+
+.mcfly-scoreboard__figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+
+.mcfly-scoreboard__figure {
+  margin: 0;
+}
+
+.mcfly-scoreboard__figure-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--p-color-text-secondary, #6d7175);
+}
+
+.mcfly-scoreboard__figure-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--p-color-text, #202223);
+}
+
+@media (max-width: 40rem) {
+  .mcfly-scoreboard__figures {
+    grid-template-columns: 1fr;
+  }
+}

@@ -27,7 +27,7 @@ describe("Orders page", () => {
   it("redirects the old Orders URL onto the first tab", () => {
     expect(orders).toMatch(/throw redirect/);
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).not.toContain("<OrdersIntelligence");
   });
 

@@ -22,7 +22,7 @@ import {
   namedDeskScreenFromPath,
   namedDeskTitle,
 } from "../lib/desk-request-screen";
-import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import {
   buildCpaPaybackView,
   CPA_EMPTY_SPEND,
@@ -154,7 +154,6 @@ export default function PublicDemoSpend() {
     [data.cashControl, savedTarget],
   );
   useSpendPanelScroll();
-  const isLoading = useDeskTabRefresh();
   const hasSpend = data.spend > 0;
   const inPeriod = (dateKey: string) =>
     dateKey >= data.periodFromKey && dateKey <= data.periodToKey;
@@ -260,7 +259,6 @@ export default function PublicDemoSpend() {
           "mcfly-desk--sample",
           "mcfly-roas--soft",
           data.shotMode ? "mcfly-desk--shot" : null,
-          isLoading ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}

@@ -8,15 +8,18 @@ import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
 import { DeskCurrencyContext } from "../lib/desk-currency";
 import { PUBLIC_SAMPLE_CURRENCY } from "../lib/public-sample-constants";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
+import { DeskPeriodChrome } from "../components/DeskPeriodChrome";
 import { deskShellShouldRevalidate } from "../lib/desk-tab-flow";
 import deskStyles from "../styles/mcfly-desk.css?url";
 import publicDemoStyles from "../styles/public-demo.css?url";
+import scoreboardStyles from "../styles/enterprise-scoreboard.css?url";
 
 const LISTING = "https://apps.shopify.com/mcfly-analytics-public";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: deskStyles },
   { rel: "stylesheet", href: publicDemoStyles },
+  { rel: "stylesheet", href: scoreboardStyles },
 ];
 
 export const meta: MetaFunction = () => [
@@ -71,6 +74,13 @@ export default function PublicDemoLayout() {
           sampleOnlyFreeze
         />
         <DeskTopTabs shotMode={shotMode} includeSettings />
+        {embed ? null : (
+          <DeskPeriodChrome
+            orderBookDepth="paid_full"
+            useSampleDesk
+            shotMode={shotMode}
+          />
+        )}
         <DeskDrillProvider>
           <Outlet />
         </DeskDrillProvider>

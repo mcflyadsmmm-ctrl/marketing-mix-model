@@ -1,7 +1,5 @@
 import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
-import { refreshingSalesLine } from "../lib/desk-request-screen";
-import { useDeskTabRefresh } from "../lib/desk-tab-flow";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
@@ -19,7 +17,6 @@ export function DeskBookPage({
   preset,
   shotMode,
   useSampleDesk,
-  isLoading,
   showPeriod = true,
   orderBookDepth,
   orderFactsTruncated = false,
@@ -59,7 +56,6 @@ export function DeskBookPage({
   retryHref?: string;
   children: ReactNode;
 }) {
-  const refreshing = useDeskTabRefresh();
   let panel: string | null = null;
   try {
     const [searchParams] = useSearchParams();
@@ -97,24 +93,10 @@ export function DeskBookPage({
           "mcfly-desk",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
-          isLoading && refreshing && !shotMode ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {isLoading && refreshing && !shotMode ? (
-          <section
-            className="mcfly-state mcfly-state--loading"
-            aria-live="polite"
-          >
-            <p className="mcfly-state__copy">
-              {periodLabel.trim()
-                ? refreshingSalesLine(periodLabel)
-                : "Refreshing this period…"}
-            </p>
-          </section>
-        ) : null}
-
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
             <span className="mcfly-ctx__asof">{tillLabel}</span>

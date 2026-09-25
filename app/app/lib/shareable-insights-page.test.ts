@@ -21,7 +21,7 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(overview).not.toContain("<ShareableInsightCards");
     expect(read("../routes/demo._index.tsx")).not.toContain("<ShareableInsightCards");
     const order = [
-      "<OverviewFirstViewport",
+      "<EnterpriseScoreboard",
       "<OverviewYoyCards",
       "<OverviewSalesChart",
       "<OverviewMixForecast",
@@ -44,7 +44,7 @@ describe("Shareable insight cards — habit, not a dump", () => {
     expect(customers.indexOf("<CustomersFirstViewport")).toBeLessThan(
       customers.indexOf("<CustomerMixChart"),
     );
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeLessThan(
       overview.indexOf("<OverviewSalesChart"),
     );
     expect(overview.indexOf('rank="first"')).toBeLessThan(

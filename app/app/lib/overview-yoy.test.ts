@@ -171,7 +171,7 @@ describe("Overview vs Shopify Analytics", () => {
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<DualCloseLine");
     expect(overview.indexOf("<OverviewYoyCards")).toBeGreaterThan(-1);
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeLessThan(
       overview.indexOf("<OverviewYoyCards"),
     );
   });

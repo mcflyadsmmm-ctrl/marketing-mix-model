@@ -147,7 +147,7 @@ describe("Sample data | Live data UX", () => {
     // Overview is cards + chart; explorer remains on Total ROAS.
     expect(overview).not.toContain("mcfly-hero-compact");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).toContain("<OverviewSalesChart");
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("NUMBER_HONESTY.empty");
@@ -162,7 +162,7 @@ describe("Sample data | Live data UX", () => {
     const labels = read("./product-labels.ts");
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("buildOverviewYoyCards");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).toContain("<OverviewSalesChart");
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<ShopifyBookSection");
@@ -268,9 +268,9 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("<MarketingSnapSection");
     expect(overview).not.toContain("<PeriodControl");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).toContain("<OverviewSalesChart");
-    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+    expect(overview.indexOf("<EnterpriseScoreboard")).toBeLessThan(
       overview.indexOf("<OverviewYoyCards"),
     );
     expect(overview).not.toContain("<SpendExplorer");
@@ -520,7 +520,7 @@ describe("Sample data | Live data UX", () => {
     const explorer = read("../components/SpendExplorer.tsx");
     const spend = read("../routes/app.spend.tsx");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).toContain("<OverviewSalesChart");
     expect(overview).not.toContain("<DeskWindowRail");
     expect(overview).not.toContain("<DualCloseLine");

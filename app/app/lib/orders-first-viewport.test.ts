@@ -149,7 +149,7 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     const orders = read("../routes/app.orders.tsx");
     const firstView = read("../components/OrdersFirstViewport.tsx");
     expect(orders).toMatch(/throw redirect/);
-    expect(read("../routes/app._index.tsx")).toContain("<OverviewFirstViewport");
+    expect(read("../routes/app._index.tsx")).toContain("<EnterpriseScoreboard");
     expect(firstView).toContain("mcfly-overview-plane");
     expect(firstView).toContain("mcfly-orders-plane");
     expect(firstView).toContain("OrdersTicketBand");
@@ -178,7 +178,7 @@ describe("Uninstall FAIL #3 SCORECARD — first Orders lane is typical-order her
     const overview = read("../routes/app._index.tsx");
     expect(orders).toMatch(/throw redirect/);
     expect(orders).not.toContain("mcfly-book__lede");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).not.toContain("SpendExplorer");
     expect(overview).not.toContain('name="targetMer"');
   });

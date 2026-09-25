@@ -12,20 +12,16 @@ import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-
 import {
   namedDeskScreenFromPath,
   namedDeskTitle,
-  refreshingSalesLine,
 } from "../lib/desk-request-screen";
-import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
 import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
 } from "../../scripts/shopify-app-path.mjs";
-import { CashTrustBanners } from "../components/CashTrustBanners";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { EnterpriseScoreboard } from "../components/EnterpriseScoreboard";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
-import {
-  OverviewDepthPeeks,
-  OverviewFirstViewport,
-} from "../components/OverviewFirstViewport";
+import { OverviewDepthPeeks } from "../components/OverviewFirstViewport";
 import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import {
@@ -34,10 +30,8 @@ import {
   useOverviewPanelScroll,
 } from "../components/OverviewYoyYearSection";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
-import { OverviewLivePeriodClock } from "../components/OverviewLivePeriodClock";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { DeskLane } from "../components/DeskLane";
-import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
 import {
   buildDailyRowsForWindow,
@@ -47,7 +41,6 @@ import {
 } from "../lib/mer-dashboard.server";
 import { buildCashControlBoard, certifyDailyRows } from "../lib/mer-control";
 import { buildOverviewYoyCards } from "../lib/overview-yoy";
-import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import {
@@ -60,19 +53,15 @@ import {
   isOverviewToolStage,
   overviewToolFromPanel,
 } from "../lib/desk-nav";
-import { formatCashFreshnessChip } from "../lib/mer-trust";
-import { deskPeriodTillLabel } from "../lib/desk-history";
+import { isDeskPeriodChip, type DeskPeriodChip } from "../lib/book-window";
 import {
   LIVE_SALES_ERROR,
-  dayOneOrdersCopy,
   ordersResumeLine,
 } from "../lib/merchant-book-progress";
 import { shopLiveIngestDepth } from "../lib/live-ingest-depth.server";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
-  OVERVIEW_LIVE_HANDOFF_BODY,
   OVERVIEW_MIX_CLOSE_ID,
-  OVERVIEW_PENDING_ASOF,
   OVERVIEW_YOY_YEAR_ID,
   OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
@@ -85,12 +74,9 @@ import {
   buildOverviewMixForecast,
   emptyOverviewMixForecast,
   overviewHistoryDays,
-  overviewMixForecastRead,
   overviewMonthClock,
   overviewMtdFromDays,
 } from "../lib/overview-mix-forecast";
-import { pickShareableLtvPeek } from "../lib/shareable-insights";
-import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
   type SalesResult,
@@ -104,12 +90,16 @@ import {
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
 import { getOrderBackfillProgress, loadOrderDepthRows, ORDER_FACT_SOURCE } from "../lib/order-facts.server";
-import { readDeskMetricSnapshot } from "../lib/desk-metric-snapshot.server";
+import { readDeskMetricWindows } from "../lib/desk-metric-snapshot.server";
+import {
+  orderWindowsFromBook,
+  orderWindowsFromStoredHeroes,
+  selectStoredDeskWindow,
+} from "../lib/desk-stored-windows";
 import {
   buildOverviewOrderBookHero,
   orderBookDaySeries,
   orderBookFirstOrderMs,
-  orderBookReturningSales,
   shiftRangeOneYear,
   type OverviewOrderBookHero,
   type OverviewOrderBookRow,
@@ -117,10 +107,8 @@ import {
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
-  periodMayExceedShopifyOrderWindow,
   resolvePeriod,
   resolvePriorPeriod,
-  type PeriodPreset,
 } from "../lib/periods";
 import {
   fetchSampleSales,
@@ -137,29 +125,7 @@ import {
   overviewShopifyFactsPending,
   periodRangeIncludesShopToday,
 } from "../lib/overview-live-period-clock";
-import { useDeskCurrency } from "../lib/desk-currency";
 import { parseYoyYear } from "../lib/yoy-workspace";
-import {
-  isLiveHandoffGuide,
-  LIVE_HANDOFF_HEADING,
-} from "../lib/sample-live-handoff";
-
-/** Compact prior-period label for KPI deltas. */
-function deltaVsLabel(priorLabel: string | undefined): string {
-  if (!priorLabel) return "prior";
-  const label = priorLabel.trim();
-  if (/^prior ytd$/i.test(label)) return "last year";
-  if (label.length > 32) return `${label.slice(0, 29)}…`;
-  return label;
-}
-
-function formatPctDelta(pct: number | null, priorLabel?: string): string {
-  const vs = deltaVsLabel(priorLabel);
-  if (pct == null) return vs === "last year" ? "vs last year —" : `vs ${vs} —`;
-  const sign = pct > 0 ? "+" : "";
-  if (vs === "last year") return `${sign}${pct.toFixed(0)}% vs last year`;
-  return `${sign}${pct.toFixed(0)}% vs ${vs}`;
-}
 
 export const shouldRevalidate = deskPageShouldRevalidate;
 
@@ -250,17 +216,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       complete: false,
       periodExceedsFactWindow: false,
     };
-    let dayCoverage: SalesFactsCoverage = {
-      expectedClosedDays: 0,
-      factDays: 0,
-      complete: false,
-      periodExceedsFactWindow: false,
-    };
     try {
-      [mainCoverage, dayCoverage] = await Promise.all([
-        getSalesFactsCoverage(shop.id, range, now, ianaTimezone),
-        getSalesFactsCoverage(shop.id, dayFetchRange, now, ianaTimezone),
-      ]);
+      mainCoverage = await getSalesFactsCoverage(shop.id, range, now, ianaTimezone);
     } catch {
       // Coverage read failed — still facts-only below (never unbounded live crawl).
     }
@@ -502,6 +459,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     priorOrders: [],
     firstByCustomer: new Map(),
   });
+  let orderWindows: Partial<Record<DeskPeriodChip, OverviewOrderBookHero>> | null =
+    null;
   let orderExplorerDays = explorerDays;
   let priorDayKey: string | null = null;
   let priorDayOnFile = false;
@@ -571,35 +530,53 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
       const series = orderBookDaySeries(historyOrders);
       if (series.length > 0) orderExplorerDays = series;
+      if (historyOrders.length > 0) {
+        orderWindows = orderWindowsFromBook({
+          orders: historyOrders,
+          now,
+          timeZone: deskTz ?? "UTC",
+          thisMonth: preset === "mtd" ? orderHero : null,
+        });
+      }
+      if (isDeskPeriodChip(preset)) {
+        orderWindows = { ...(orderWindows ?? {}), [preset]: orderHero };
+      }
     } catch {
       // Keep empty hero — paint —, never invent SalesDayFact as the Overview clock.
     }
   } else {
-    // LIVE_PERIOD_WINDOW — stored chip. Sales stay on day rows.
-    // This click does not scan order rows and does not call Shopify for them.
+    // LIVE_PERIOD_WINDOW — five stored chips. Sales stay on day rows.
+    // A period click selects one window in memory. It does not scan order rows
+    // and it does not call Shopify for them.
     const monthFactsLanded =
       (salesFactsCoverageForBanner?.factDays ?? 0) > 0 ||
       sales.orderCount > 0 ||
       sales.totalSales > 0;
     try {
-      const snap = await readDeskMetricSnapshot(shop.id, preset);
-      if (monthFactsLanded || (snap?.hero && !snap.hero.empty)) {
+      const stored = await readDeskMetricWindows(shop.id);
+      orderWindows = stored
+        ? orderWindowsFromStoredHeroes(stored.windows, stored.legacyHero)
+        : null;
+      const chip = isDeskPeriodChip(preset) ? preset : "mtd";
+      const snapHero = orderWindows?.[chip] ?? null;
+      if (monthFactsLanded || (snapHero && !snapHero.empty)) {
         orderHero = {
-          sales: monthFactsLanded ? sales.totalSales : (snap?.hero?.sales ?? null),
-          priorSales: snap?.hero?.priorSales ?? null,
-          yoyPct: snap?.hero?.yoyPct ?? null,
+          sales: monthFactsLanded ? sales.totalSales : (snapHero?.sales ?? null),
+          priorSales: snapHero?.priorSales ?? null,
+          yoyPct: snapHero?.yoyPct ?? null,
           zone:
-            snap?.hero?.zone && snap.hero.zone !== "empty"
-              ? snap.hero.zone
-              : "empty",
-          returningSales: snap?.hero?.returningSales ?? null,
-          typicalOrder: snap?.hero?.typicalOrder ?? null,
-          weekendShare: snap?.hero?.weekendShare ?? null,
+            snapHero?.zone && snapHero.zone !== "empty" ? snapHero.zone : "empty",
+          returningSales: snapHero?.returningSales ?? null,
+          typicalOrder: snapHero?.typicalOrder ?? null,
+          weekendShare: snapHero?.weekendShare ?? null,
           orderCount: monthFactsLanded
             ? sales.orderCount
-            : (snap?.hero?.orderCount ?? 0),
-          empty: !monthFactsLanded && (snap?.hero?.empty ?? true),
+            : (snapHero?.orderCount ?? 0),
+          empty: !monthFactsLanded && (snapHero?.empty ?? true),
         };
+      }
+      if (isDeskPeriodChip(preset)) {
+        orderWindows = { ...(orderWindows ?? {}), [preset]: orderHero };
       }
     } catch {
       if (monthFactsLanded) {
@@ -614,6 +591,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           orderCount: sales.orderCount,
           empty: false,
         };
+        if (isDeskPeriodChip(preset)) {
+          orderWindows = { [preset]: orderHero };
+        }
       }
     }
   }
@@ -668,6 +648,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderForecast,
     yoyYearWorkspace,
     orderHero,
+    orderWindows,
     orderBookDepth,
   };
 };
@@ -679,7 +660,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Dashboard() {
-  const currency = useDeskCurrency();
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -692,28 +672,21 @@ export default function Dashboard() {
     metrics,
     preset,
     salesError,
-    todaySalesUnavailable,
-    todaySalesTruncated,
     useSampleDesk,
     shotMode,
     cashControl = null,
     salesFactsCoverage,
     orderBackfillProgress,
-    shareSubject,
-    sharePeriodStartDay,
-    sharePeriodEndDay,
-    shopLabel,
     salesDays = [],
     salesExplorerDays = [],
     analyticsExplorerDays = [],
-    shopifyPeriodClock = null,
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
     orderHero,
+    orderWindows = null,
     orderBookDepth,
   } = data;
-  const isLoading = useDeskTabRefresh();
   const requestScreen = shotMode
     ? null
     : namedDeskScreenFromPath(location.pathname);
@@ -757,39 +730,6 @@ export default function Dashboard() {
         })
       : null;
   const deeperStillLoading = greetingPending;
-  // Never label mock / blocked sales as live Shopify when sample is off.
-  // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
-  const tillLabel =
-    greetingPending &&
-    !useSampleDesk &&
-    !shotMode &&
-    !salesError &&
-    !metrics.blockedMockAsLive &&
-    metrics.salesSource !== "mock"
-      ? `${metrics.period.label}${OVERVIEW_PENDING_ASOF}`
-      : deskPeriodTillLabel({
-          periodLabel: metrics.period.label,
-          useSampleDesk,
-          shotMode,
-          salesError,
-          blockedMockAsLive: metrics.blockedMockAsLive,
-          salesSource: metrics.salesSource,
-          todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
-          todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
-          shopifyOrderWindowLimited:
-            !useSampleDesk &&
-            (Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
-              periodMayExceedShopifyOrderWindow(metrics.period)),
-          includeShopifyOrderWindow: true,
-          orderBookDepth,
-        });
-  const freshLabel = formatCashFreshnessChip({
-    useSampleDesk,
-    salesPulledAt: metrics.freshness.salesPulledAt,
-    lastAt: metrics.freshness.lastAt,
-    source: metrics.freshness.source,
-    spendUpdatedAt: metrics.freshness.spendUpdatedAt,
-  });
   const marginBlocked = false;
   const spendBlocked =
     !metrics.onboarding.hasSpend && !useSampleDesk && !shotMode;
@@ -798,13 +738,6 @@ export default function Dashboard() {
   const coldEmpty = marginOnlyEmpty || bothBlockedEmpty;
   const scoreboardReady = !marginBlocked && !salesError;
 
-  const deltas = metrics.deltas;
-  const priorLabel = deltas?.priorLabel;
-  const salesDeltaLine = deltas
-    ? formatPctDelta(deltas.salesPct, priorLabel)
-    : metrics.orderCount > 0
-      ? `${metrics.orderCount.toLocaleString()} orders · AOV ${formatCurrency(metrics.sales / metrics.orderCount, currency)}`
-      : `${metrics.orderCount.toLocaleString()} orders`;
   const shopBook = shopifyNativePeriodStats({
     sales: metrics.sales,
     orderCount: metrics.orderCount,
@@ -817,19 +750,27 @@ export default function Dashboard() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
-  let hero = orderHero;
-  if (shopBook.returningSales != null && shopBook.returningSales > 0) {
-    hero = { ...hero, returningSales: shopBook.returningSales };
-  }
-  if (
-    metrics.shopifyDepth.medianAov != null &&
-    Number.isFinite(metrics.shopifyDepth.medianAov) &&
-    metrics.shopifyDepth.medianAov > 0
-  ) {
-    hero = {
-      ...hero,
-      typicalOrder: metrics.shopifyDepth.medianAov,
-    };
+  const picked = selectStoredDeskWindow({
+    windows: orderWindows,
+    period: searchParams.get("period"),
+    loadedPreset: preset,
+    fallback: orderHero,
+  });
+  let hero = picked.hero;
+  if (picked.chip === (isDeskPeriodChip(preset) ? preset : "mtd")) {
+    if (shopBook.returningSales != null && shopBook.returningSales > 0) {
+      hero = { ...hero, returningSales: shopBook.returningSales };
+    }
+    if (
+      metrics.shopifyDepth.medianAov != null &&
+      Number.isFinite(metrics.shopifyDepth.medianAov) &&
+      metrics.shopifyDepth.medianAov > 0
+    ) {
+      hero = {
+        ...hero,
+        typicalOrder: metrics.shopifyDepth.medianAov,
+      };
+    }
   }
   const mixView = greetingPending
     ? emptyOverviewMixForecast()
@@ -845,48 +786,6 @@ export default function Dashboard() {
           "Orders still syncing — not $0. Next month fills after 8 days with sales.",
       }
     : orderForecast;
-  const mixRead = overviewMixForecastRead(mixView);
-  const ltvPeek = pickShareableLtvPeek({
-    revenue30: metrics.tillLtv.avgRevenueD30,
-    revenue90: metrics.tillLtv.avgRevenueD90,
-    revenue365: metrics.tillLtv.avgRevenueD365,
-    historyLimited: Boolean(
-      !useSampleDesk &&
-        (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
-    ),
-  });
-  const shareText = formatOverviewShareText({
-    periodLabel: metrics.period.label,
-    periodStartDay: sharePeriodStartDay,
-    periodEndDay: sharePeriodEndDay,
-    totalSales: totalSalesDisplay,
-    totalSpend: 0,
-    mer: null,
-    breakEvenMer: null,
-    marginPct: null,
-    salesPending: greetingPending,
-    shopLabel,
-    salesDeltaLine,
-    typicalOrder: metrics.shopifyDepth.medianAov,
-    returningSalesShare: shopBook.returningSalesShare,
-    weekendSalesShare: metrics.shopifyDepth.weekendSalesShare,
-  });
-
-  const salesFactsIncomplete =
-    !useSampleDesk &&
-    salesFactsCoverage != null &&
-    !salesFactsCoverage.complete &&
-    !salesFactsCoverage.periodExceedsFactWindow &&
-    salesFactsCoverage.expectedClosedDays > 0
-      ? {
-          factDays: salesFactsCoverage.factDays,
-          expectedClosedDays: salesFactsCoverage.expectedClosedDays,
-        }
-      : null;
-  const syncNeedsTop =
-    greetingPending ||
-    salesFactsIncomplete != null ||
-    Boolean(orderBackfillProgress?.truncated);
   const closedDaysOnFile = useSampleDesk
     ? 1
     : Math.max(
@@ -896,45 +795,6 @@ export default function Dashboard() {
   const showOverviewChartBeat =
     useSampleDesk || (closedDaysOnFile >= 1 && !greetingPending);
 
-  const trustBanners = (
-    <CashTrustBanners
-      singlePendingSurface
-      blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
-      spendCoverage={null}
-      periodLabel={metrics.period.label}
-      shopifyOrderWindowLimited={
-        !useSampleDesk &&
-        (Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
-          periodMayExceedShopifyOrderWindow(metrics.period))
-      }
-      salesFactsIncomplete={salesFactsIncomplete}
-      hasSpend={Boolean(metrics.onboarding.hasSpend)}
-      orderBackfillProgress={null}
-      todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
-      todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
-      orderFactsTruncated={
-        !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
-      }
-      shotMode={shotMode}
-      cashActionReady={metrics.cashActionReady}
-      spendRecon={null}
-      belowBreakEven={null}
-      marginStale={!useSampleDesk && Boolean(metrics.marginStale)}
-      onboarding={null}
-    />
-  );
-
-  const shareButton =
-    !shotMode && scoreboardReady ? (
-      <ShareOverviewButton
-        subject={shareSubject}
-        body={shareText}
-        enabled={scoreboardReady}
-        compact
-      />
-    ) : null;
-
-  const shopBrand = shopLabel.replace(/\.myshopify\.com$/i, "");
   const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
   const yoyHref = deskNavHref("/app/yoy", {
     period: searchParams.get("period"),
@@ -956,25 +816,10 @@ export default function Dashboard() {
     if (shotMode) params.set("shot", "1");
     setSearchParams(params);
   };
-  const showLiveHandoff =
-    !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
-  const dayOne =
-    !useSampleDesk && !shotMode
-      ? dayOneOrdersCopy({
-          orderCount: hero?.orderCount ?? metrics.orderCount,
-          completeDays: orderBackfillProgress?.completeDays ?? 0,
-          windowDays: orderBackfillProgress?.windowDays ?? 0,
-          remainingDays: orderBackfillProgress?.remainingDays ?? 0,
-          monthsFinished: orderBackfillProgress?.monthsFinished,
-          bookSealed: orderBackfillProgress?.bookSealed,
-          historyLimited: orderBackfillProgress?.historyLimited,
-          salesPending: greetingPending,
-          sample: false,
-        })
-      : null;
+  const olderMonthsLoading = Boolean(orderBackfillResumeLine);
 
   return (
-    <s-page heading={pageHeading} inlineSize="large">
+    <s-page heading={onHome && !shotMode ? undefined : pageHeading} inlineSize="large">
       <div
         className={[
           "mcfly-desk",
@@ -984,71 +829,12 @@ export default function Dashboard() {
             ? "mcfly-desk--live-ready"
             : null,
           coldEmpty ? "mcfly-desk--cold-empty" : null,
-          isLoading && !shotMode ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {/* SAMPLE chrome only when ON — never competes with live KPI story. */}
+        {/* SAMPLE chip lives on the shell header. */}
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
-
-        {dayOne ? (
-          <s-banner tone="info" heading={dayOne.heading}>
-            <s-paragraph>{dayOne.body}</s-paragraph>
-          </s-banner>
-        ) : null}
-
-        {showLiveHandoff ? (
-          <s-banner tone="info" heading={LIVE_HANDOFF_HEADING}>
-            <s-paragraph>{OVERVIEW_LIVE_HANDOFF_BODY}</s-paragraph>
-          </s-banner>
-        ) : null}
-
-        {/* Pending / incomplete sync stays above the glance so whales see progress. */}
-        {syncNeedsTop || coldEmpty || (!scoreboardReady && !useSampleDesk)
-          ? trustBanners
-          : null}
-
-        {isLoading && !shotMode ? (
-          <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">
-              {refreshingSalesLine(metrics.period.label)}
-            </p>
-          </section>
-        ) : null}
-
-        {salesError && !shotMode ? (
-          <section
-            className="mcfly-state mcfly-state--critical mcfly-state--soft"
-            aria-label="Sales load error"
-          >
-            <p className="mcfly-state__copy">{LIVE_SALES_ERROR}</p>
-            <div className="mcfly-state__cta">
-              <s-button href={`/app?period=${preset}`} variant="primary">
-                Retry
-              </s-button>
-            </div>
-          </section>
-        ) : null}
-
-        <div className="mcfly-ctx" aria-live="polite">
-          <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">{shopBrand}</span>
-            <span className="mcfly-ctx__sep" aria-hidden="true">
-              ·
-            </span>
-            <span className="mcfly-ctx__asof">{tillLabel}</span>
-          </div>
-          <div className="mcfly-trust" aria-label="Trust and freshness">
-            {useSampleDesk ? (
-              <span className="mcfly-trust__chip mcfly-trust__chip--sample">
-                SAMPLE
-              </span>
-            ) : null}
-            <span className="mcfly-trust__chip">{freshLabel}</span>
-            {shareButton}
-          </div>
-        </div>
 
         {!marginBlocked ? (
           <>
@@ -1059,72 +845,13 @@ export default function Dashboard() {
               >
                 <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
                   <div className="mcfly-overview-first-beat">
-                  <OverviewFirstViewport
-                    orderCount={hero.orderCount}
-                    typicalOrder={hero.typicalOrder}
-                    meanAov={
-                      hero.orderCount > 0 && hero.sales != null
-                        ? hero.sales / hero.orderCount
-                        : null
-                    }
-                    typicalDay={metrics.shopifyDepth.medianDailySales}
-                    returningSalesShare={
-                      hero.sales != null &&
-                      hero.sales > 0 &&
-                      hero.returningSales != null
-                        ? hero.returningSales / hero.sales
-                        : shopBook.returningSalesShare
-                    }
-                    returningSales={hero.returningSales}
-                    newSales={shopBook.newSales}
-                    mixGreeting={mixRead?.line}
-                    medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
-                    weekendSalesShare={hero.weekendShare}
-                    peakWeekday={metrics.shopifyDepth.peakWeekday}
-                    weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={hero.sales}
-                    ltvPeek={ltvPeek?.amount ?? null}
-                    ltvPeekDays={ltvPeek?.days ?? null}
-                    ltvHistoryLimited={Boolean(
-                      !useSampleDesk &&
-                        (orderBackfillProgress?.historyLimited ||
-                          metrics.tillLtv.historyLimited),
-                    )}
-                    monthClose={mixView.forecast?.projected ?? null}
-                    monthCloseRemainingDays={
-                      mixView.forecast?.remainingDays ?? null
-                    }
-                    monthCloseClosed={mixView.forecast?.closed ?? false}
-                    salesPending={greetingPending}
-                    ordersHref={ordersHref}
-                    useSampleDesk={useSampleDesk}
-                    orderHero={hero}
-                    periodLabel={
-                      metrics.period.label === "Month to date"
-                        ? "This month"
-                        : metrics.period.label
-                    }
-                    orderBookDepth={orderBookDepth}
-                    orderBackfillLine={orderBackfillResumeLine}
-                    hideInlinePending={syncNeedsTop && !orderBackfillResumeLine}
+                  <EnterpriseScoreboard
+                    hero={hero}
+                    olderMonthsLoading={olderMonthsLoading}
+                    salesError={Boolean(salesError) && !shotMode}
+                    errorLine={LIVE_SALES_ERROR}
+                    retryHref={`/app?period=${picked.chip}`}
                   />
-                  {shopifyPeriodClock ? (
-                    <OverviewLivePeriodClock
-                      clock={shopifyPeriodClock}
-                      periodLabel={
-                        metrics.period.label === "Month to date"
-                          ? "This month"
-                          : metrics.period.label
-                      }
-                    />
-                  ) : null}
-                  {showOverviewChartBeat ? (
-                    <OverviewYoyCards
-                      cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                      salesPending={deeperStillLoading}
-                      yoyHref={yoyHref}
-                    />
-                  ) : null}
                   </div>
                   {showOverviewChartBeat ? (
                     <div
@@ -1323,7 +1050,6 @@ export default function Dashboard() {
               </section>
             ) : null}
 
-            {!syncNeedsTop && !coldEmpty && onHome ? trustBanners : null}
           </>
         ) : null}
       </div>

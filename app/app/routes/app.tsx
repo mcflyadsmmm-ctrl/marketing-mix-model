@@ -37,9 +37,12 @@ import { deskNavHrefFromSearch, DESK_PRIMARY_NAV } from "../lib/desk-nav";
 import { deskShellShouldRevalidate } from "../lib/desk-tab-flow";
 import { deskNavLabel, liveDeskNavState } from "../lib/live-desk-surface";
 import { resolveLiveUnparkStage } from "../lib/live-unpark";
+import { shopLiveIngestDepth } from "../lib/live-ingest-depth.server";
+import { DeskPeriodChrome } from "../components/DeskPeriodChrome";
 import { OriginShell } from "./_index/OriginShell";
 import originStyles from "./_index/styles.module.css";
 import deskStyles from "../styles/mcfly-desk.css?url";
+import scoreboardStyles from "../styles/enterprise-scoreboard.css?url";
 
 const PUBLIC_APP = {
   kind: "public" as const,
@@ -63,6 +66,7 @@ function isGoneResponse(error: unknown): boolean {
 /** Desk craft CSS only inside the embedded app — not on the bare Fly landing. */
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: deskStyles },
+  { rel: "stylesheet", href: scoreboardStyles },
 ];
 
 export const shouldRevalidate = deskShellShouldRevalidate;
@@ -101,6 +105,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sampleDesk: useSampleDesk,
     stage: resolveLiveUnparkStage(),
   });
+  const orderBookDepth = useSampleDesk
+    ? ("paid_full" as const)
+    : await shopLiveIngestDepth(shop.id);
 
   let plansUrl: string | null = null;
   if (isBillingEnabled()) {
@@ -118,6 +125,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     useSampleDesk,
     sampleOnlyFreeze,
     liveDeskNav,
+    orderBookDepth,
     shotMode,
     plansUrl,
     currencyCode: deskPaintCurrency(shop.currencyCode, {
@@ -149,6 +157,7 @@ export default function App() {
     useSampleDesk,
     sampleOnlyFreeze,
     liveDeskNav,
+    orderBookDepth,
     shotMode,
     plansUrl,
     currencyCode,
@@ -175,6 +184,11 @@ export default function App() {
           sampleOnlyFreeze={sampleOnlyFreeze}
         />
         <DeskTopTabs shotMode={shotMode} liveDeskNav={liveDeskNav} />
+        <DeskPeriodChrome
+          orderBookDepth={orderBookDepth}
+          useSampleDesk={useSampleDesk}
+          shotMode={shotMode}
+        />
         <DeskDrillProvider>
           <Outlet />
         </DeskDrillProvider>

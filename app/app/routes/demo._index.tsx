@@ -2,10 +2,8 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData, useLocation, useSearchParams } from "react-router";
 
 import { DeskLane } from "../components/DeskLane";
-import {
-  OverviewDepthPeeks,
-  OverviewFirstViewport,
-} from "../components/OverviewFirstViewport";
+import { EnterpriseScoreboard } from "../components/EnterpriseScoreboard";
+import { OverviewDepthPeeks } from "../components/OverviewFirstViewport";
 import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
@@ -29,7 +27,6 @@ import {
   isOverviewToolStage,
   overviewToolFromPanel,
 } from "../lib/desk-nav";
-import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_MIX_CLOSE_ID,
@@ -38,18 +35,16 @@ import {
 } from "../lib/overview-first-viewport";
 import {
   emptyOverviewMixForecast,
-  overviewMixForecastRead,
 } from "../lib/overview-mix-forecast";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   namedDeskScreenFromPath,
   namedDeskTitle,
-  refreshingSalesLine,
 } from "../lib/desk-request-screen";
-import { deskPageShouldRevalidate, useDeskTabRefresh } from "../lib/desk-tab-flow";
+import { deskPageShouldRevalidate } from "../lib/desk-tab-flow";
+import { selectStoredDeskWindow } from "../lib/desk-stored-windows";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
-import { pickShareableLtvPeek } from "../lib/shareable-insights";
 import { parseYoyYear } from "../lib/yoy-workspace";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
@@ -67,7 +62,12 @@ export default function PublicDemoOverview() {
   const [searchParams, setSearchParams] = useSearchParams();
   useDeskHashScroll();
   useOverviewPanelScroll(searchParams.get("panel"));
-  const isLoading = useDeskTabRefresh();
+  const picked = selectStoredDeskWindow({
+    windows: data.orderWindows,
+    period: searchParams.get("period"),
+    loadedPreset: data.preset,
+    fallback: data.orderHero,
+  });
   const requestScreen = data.shotMode
     ? null
     : namedDeskScreenFromPath(location.pathname);
@@ -120,103 +120,25 @@ export default function PublicDemoOverview() {
     setSearchParams(params);
   };
   const mixView = data.mixForecast ?? emptyOverviewMixForecast();
-  const mixRead = overviewMixForecastRead(mixView);
-  const ltvPeek = pickShareableLtvPeek({
-    revenue30: data.ltv.revenue30,
-    revenue90: data.ltv.revenue90,
-    revenue365: data.ltv.revenue365,
-    historyLimited: false,
-  });
-  const freshLabel = formatCashFreshnessChip({
-    useSampleDesk: true,
-    salesPulledAt: null,
-    lastAt: null,
-    source: "snapshot",
-  });
   const embed = data.embed;
 
   return (
-    <s-page heading={data.shotMode ? undefined : pageHeading} inlineSize="large">
+    <s-page heading={data.shotMode || onHome ? undefined : pageHeading} inlineSize="large">
       <div
         className={[
           "mcfly-desk",
           "mcfly-desk--sample",
           data.shotMode ? "mcfly-desk--shot" : null,
-          isLoading ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        {isLoading ? (
-          <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
-            <p className="mcfly-state__copy">
-              {refreshingSalesLine(data.rangeLabel)}
-            </p>
-          </section>
-        ) : null}
-
-        <div className="mcfly-ctx" aria-live="polite">
-          <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">{data.shopLabel}</span>
-            <span className="mcfly-ctx__sep" aria-hidden="true">
-              ·
-            </span>
-            <span className="mcfly-ctx__asof">{data.tillLabel}</span>
-          </div>
-          <div className="mcfly-trust" aria-label="Trust and freshness">
-            <span className="mcfly-trust__chip">{freshLabel}</span>
-          </div>
-        </div>
-
         {onHome ? (
           <div className="mcfly-desk-anchor mcfly-scoreboard--overview" id={DESK_SECTION.overview}>
             <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL} hint="">
               <div className="mcfly-overview-first-beat">
               {embed === "yoy" ? null : (
-                <OverviewFirstViewport
-                  orderCount={data.orderHero.orderCount}
-                  typicalOrder={data.orderHero.typicalOrder}
-                  meanAov={
-                    data.orderHero.orderCount > 0 && data.orderHero.sales != null
-                      ? data.orderHero.sales / data.orderHero.orderCount
-                      : null
-                  }
-                  typicalDay={data.depth.medianDailySales}
-                  returningSalesShare={
-                    data.orderHero.sales != null &&
-                    data.orderHero.sales > 0 &&
-                    data.orderHero.returningSales != null
-                      ? data.orderHero.returningSales / data.orderHero.sales
-                      : data.book.returningSalesShare
-                  }
-                  returningSales={data.orderHero.returningSales}
-                  newSales={data.book.newSales}
-                  mixGreeting={mixRead?.line}
-                  medianDaysToSecond={data.depth.medianDaysToSecond}
-                  weekendSalesShare={data.orderHero.weekendShare}
-                  peakWeekday={data.depth.peakWeekday}
-                  weekdaySalesShare={data.depth.weekdaySalesShare}
-                  windowSales={data.orderHero.sales}
-                  ltvPeek={ltvPeek?.amount ?? null}
-                  ltvPeekDays={ltvPeek?.days ?? null}
-                  ltvHistoryLimited={false}
-                  monthClose={mixView.forecast?.projected ?? null}
-                  monthCloseRemainingDays={mixView.forecast?.remainingDays ?? null}
-                  monthCloseClosed={mixView.forecast?.closed ?? false}
-                  salesPending={false}
-                  ordersHref={ordersHref}
-                  useSampleDesk
-                  orderHero={data.orderHero}
-                  periodLabel={data.rangeLabel === "Month to date" ? "This month" : data.rangeLabel}
-                  orderBookDepth="paid_full"
-                />
-              )}
-              {embed ? null : (
-                <OverviewYoyCards
-                  cards={data.yoyCards}
-                  salesPending={false}
-                  yoyHref={yoyHref}
-                />
+                <EnterpriseScoreboard hero={picked.hero} />
               )}
               </div>
               {embed === "typical" ? null : (
@@ -258,6 +180,7 @@ export default function PublicDemoOverview() {
                   defaultOpen={data.shotMode}
                 >
                   <OverviewDepthPeeks
+                    orderBookDepth="paid_full"
                     orderCount={data.orderHero.orderCount}
                     typicalOrder={data.orderHero.typicalOrder}
                     meanAov={

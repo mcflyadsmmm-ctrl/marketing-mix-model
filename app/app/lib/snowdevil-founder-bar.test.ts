@@ -220,7 +220,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(fixture).toContain("mcfly-desk--sample");
     expect(css).toMatch(/content:\s*none/);
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<EnterpriseScoreboard");
     expect(overview).toContain("<OverviewSalesChart");
     expect(overview).toContain("<OverviewDepthPeeks");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
