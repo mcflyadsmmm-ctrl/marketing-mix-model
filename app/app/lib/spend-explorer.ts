@@ -1217,9 +1217,15 @@ export function formatExplorerSubtitle(opts: {
                 ? "quarter bucket"
                 : "quarter buckets";
   const asOf = opts.asOfKey ? ` · as of ${opts.asOfKey}` : "";
+  const spendPaint =
+    opts.totalSpend > 0 ? opts.formatCurrency(opts.totalSpend) : "—";
+  const merPaint =
+    opts.totalSpend > 0 && opts.overallMer != null
+      ? opts.formatMer(opts.overallMer)
+      : "—";
   return (
-    `${opts.bucketCount} ${gran} · spend ${opts.formatCurrency(opts.totalSpend)}` +
-    ` · Total ROAS ${opts.formatMer(opts.overallMer)} (Σsales ÷ Σspend)` +
+    `${opts.bucketCount} ${gran} · spend ${spendPaint}` +
+    ` · Total ROAS ${merPaint} (Σsales ÷ Σspend)` +
     ` · ${formula} · closed days only${asOf}`
   );
 }

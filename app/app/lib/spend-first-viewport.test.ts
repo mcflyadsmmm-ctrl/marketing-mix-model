@@ -73,6 +73,17 @@ describe("Spend craft wiring", () => {
     expect(viewport).toContain('roasValue === "—"');
     expect(spend).not.toContain("0.00×");
   });
+
+  it("puts a need-spend strip under the empty Total ROAS scoreboard", () => {
+    const scoreboard = read("../components/CertifiedScoreboard.tsx");
+    expect(viewport).toContain("SPEND_EMPTY_MER_STRIP");
+    expect(viewport).toContain("mcfly-scoreboard__empty");
+    expect(viewport).toContain("HONEST_MER_LINE");
+    expect(scoreboard).toContain("SPEND_EMPTY_MER_STRIP");
+    expect(scoreboard).toContain("mcfly-scoreboard__empty");
+    expect(viewport).not.toContain("0.00×");
+    expect(scoreboard).not.toContain("0.00×");
+  });
 });
 
 describe("buildSpendCompareKpis", () => {
@@ -96,5 +107,29 @@ describe("buildSpendCompareKpis", () => {
     });
     expect(kpis.map((k) => k.key)).toEqual(["sales", "spend", "roas"]);
     expect(kpis[2]?.value).toBe("9.00×");
+  });
+
+  it("empty entered spend paints spend and Total ROAS as an em dash", () => {
+    const deltas = periodDeltasForBasis({
+      basis: "total",
+      currentSales: 900,
+      currentMer: null,
+      currentSpend: 0,
+      priorTotalSales: 800,
+      priorSpend: 0,
+      priorLabel: "prior month",
+    });
+    const kpis = buildSpendCompareKpis({
+      deltas,
+      salesPending: false,
+      sales: 900,
+      spend: 0,
+      mer: null,
+      money: (n) => `$${n}`,
+    });
+    expect(kpis.find((kpi) => kpi.key === "sales")?.value).toBe("$900");
+    expect(kpis.find((kpi) => kpi.key === "spend")?.value).toBe("—");
+    expect(kpis.find((kpi) => kpi.key === "roas")?.value).toBe("—");
+    expect(JSON.stringify(kpis)).not.toMatch(/0×|0\.00×|\$0/);
   });
 });

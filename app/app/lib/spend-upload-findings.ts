@@ -17,6 +17,9 @@ export const HONEST_MER_LINE =
 export const CERTIFIED_WINDOWS_KICKER =
   "Certified windows · honest MER = sales ÷ entered spend";
 
+/** First-fold label when entered spend is missing. Not a zero multiple. */
+export const SPEND_EMPTY_MER_STRIP = "Need spend";
+
 /** Live Spend Upload with no rows yet — doors stay input-only. */
 export function spendUploadEmptyFinding(): SpendFinding {
   return {

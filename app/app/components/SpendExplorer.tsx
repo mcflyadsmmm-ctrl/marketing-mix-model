@@ -31,6 +31,7 @@ import {
 } from "../lib/spend-explorer";
 import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
+import { SPEND_EMPTY_MER_STRIP } from "../lib/spend-upload-findings";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
 import type { PeriodPreset } from "../lib/periods";
@@ -137,6 +138,16 @@ function channelSegClass(channel: string): string {
   return "mcfly-explorer__seg--other";
 }
 
+function paintEnteredSpend(amount: number, currency: string): string {
+  if (!(amount > 0)) return "—";
+  return formatCurrency(amount, currency);
+}
+
+function paintEnteredMer(mer: number | null, spend: number): string {
+  if (!(spend > 0) || mer == null) return "—";
+  return formatMer(mer);
+}
+
 /** One phrase: "Total ROAS Z× · X sales ÷ Y spend" for tip / title / readout. */
 function bucketMerPhrase(
   bucket: {
@@ -146,6 +157,9 @@ function bucketMerPhrase(
   },
   currency: string,
 ): string {
+  if (!(bucket.spend > 0)) {
+    return `${formatCurrency(bucket.sales, currency)} sales · ${SPEND_EMPTY_MER_STRIP}`;
+  }
   const base = `${formatCurrency(bucket.sales, currency)} sales ÷ ${formatCurrency(bucket.spend, currency)} spend`;
   return bucket.mer != null
     ? `${PRODUCT_NOUN.totalRoas} ${formatMer(bucket.mer)} · ${base}`
@@ -1296,12 +1310,10 @@ export function SpendExplorer({
                         <strong>{tipBucket.label}</strong>
                         <span className="mcfly-explorer__tip-lead">
                           {PRODUCT_NOUN.totalRoas}{" "}
-                          {tipBucket.mer != null
-                            ? formatMer(tipBucket.mer)
-                            : "—"}
+                          {paintEnteredMer(tipBucket.mer, tipBucket.spend)}
                         </span>
                         <span>
-                          Spend {formatCurrency(tipBucket.spend, currency)}
+                          Spend {paintEnteredSpend(tipBucket.spend, currency)}
                         </span>
                         <span>
                           Sales {formatCurrency(tipBucket.sales, currency)}
@@ -1309,9 +1321,9 @@ export function SpendExplorer({
                         {tipCmp?.hasPrior ? (
                           <span className="mcfly-explorer__tip-prior">
                             vs {compareNoun} ({tipCmp.priorLabel}): spend{" "}
-                            {formatCurrency(tipCmp.priorSpend ?? 0, currency)} ·{" "}
+                            {paintEnteredSpend(tipCmp.priorSpend ?? 0, currency)} ·{" "}
                             {PRODUCT_NOUN.totalRoas}{" "}
-                            {tipCmp.priorMer != null ? formatMer(tipCmp.priorMer) : "—"}
+                            {paintEnteredMer(tipCmp.priorMer, tipCmp.priorSpend ?? 0)}
                           </span>
                         ) : null}
                       </>
@@ -1385,7 +1397,7 @@ export function SpendExplorer({
                     vs {compareNoun} ({selectedCmp.priorLabel})
                   </span>
                   {" · spend "}
-                  {formatCurrency(selectedCmp.spend, currency)}{" "}
+                  {paintEnteredSpend(selectedCmp.spend, currency)}{" "}
                   <span className="mcfly-explorer__compare-delta">
                     ({signedCurrency(selectedCmp.spendDelta ?? 0, currency)})
                   </span>
@@ -1395,7 +1407,8 @@ export function SpendExplorer({
                     ({signedCurrency(selectedCmp.salesDelta ?? 0, currency)})
                   </span>
                   {" · "}
-                  {PRODUCT_NOUN.totalRoas} {formatMer(selectedCmp.mer)}{" "}
+                  {PRODUCT_NOUN.totalRoas}{" "}
+                  {paintEnteredMer(selectedCmp.mer, selectedCmp.spend)}{" "}
                   {selectedCmp.merDelta != null ? (
                     <span
                       className={`mcfly-explorer__compare-delta${

@@ -32,7 +32,10 @@ describe("reconciliation honest states", () => {
     expect(totalRoasDisplay(null)).toBe("—");
     expect(totalRoasDisplay(Number.NaN)).toBe("—");
     expect(spendNote({ spendEntered: false, spendPartial: false, totalRoas: null })).toBe(
-      "Order reports stay usable.",
+      "Need spend",
+    );
+    expect(spendNote({ spendEntered: false, spendPartial: false, totalRoas: 0 })).toBe(
+      "Need spend",
     );
     expect(spendNote({ spendEntered: true, spendPartial: true, totalRoas: 4.2 })).toBe(
       "This ratio only covers the spend you entered.",

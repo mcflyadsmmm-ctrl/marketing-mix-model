@@ -5,7 +5,11 @@ import {
   type CashChip,
   type MonthClosePlan,
 } from "../lib/mer-control";
-import { CERTIFIED_WINDOWS_KICKER, HONEST_MER_LINE } from "../lib/spend-upload-findings";
+import {
+  CERTIFIED_WINDOWS_KICKER,
+  HONEST_MER_LINE,
+  SPEND_EMPTY_MER_STRIP,
+} from "../lib/spend-upload-findings";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 
@@ -21,7 +25,7 @@ function zoneCopy(zone: ReturnType<typeof chipZone>): string {
     case "below":
       return "Below goal";
     case "empty":
-      return "No spend";
+      return SPEND_EMPTY_MER_STRIP;
     case "unset":
       return "No target";
     default: {
@@ -148,7 +152,7 @@ export function CertifiedScoreboard({
               <span className="mcfly-scoreboard__sub">
                 {chip.spend > 0
                   ? `${formatCurrency(chip.sales, currency)} sales · ${formatCurrency(chip.spend, currency)} spend`
-                  : `${formatCurrency(chip.sales, currency)} sales · no spend`}
+                  : `${formatCurrency(chip.sales, currency)} sales · —`}
               </span>
               {yoy && !firstFold ? (
                 <span
@@ -170,6 +174,9 @@ export function CertifiedScoreboard({
           );
         })}
       </div>
+      {chips.some((chip) => !(chip.spend > 0)) ? (
+        <p className="mcfly-scoreboard__empty">{SPEND_EMPTY_MER_STRIP}</p>
+      ) : null}
       {plan && !firstFold ? (
         <p className="mcfly-scoreboard__plan">
           {plan.cannotHit
