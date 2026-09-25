@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-25 · America/Denver · Site probe **v5/visual-site** (drift — Pages republish pending) · occupancy **1/4** Desk QL fold · ads **NO** · reviews **0** · **#221 MERGED** whole-desk default on tip · Fly **v475+** · Conductor final draft executing · **Marty: secrets + Admin Result** |
+| **Updated** | 2026-09-25 · America/Denver · Site probe **v5/visual-site** (drift — Pages republish pending) · occupancy **0/4** · Wave B QL fold **shipped** `279a5c6` · ads **NO** · reviews **0** · **#221 MERGED** whole-desk default on tip · Fly **v475+** · Conductor final draft executing · **Marty: secrets + Admin Result** |
 | **Live** | https://mcflyads.com · probe `mcfly-version` **v5** / build visual-site (board previously v45 — do not invent) · H1 TBD on republish |
-| **Fly** | https://mcfly-analytics.fly.dev · **v476** · image `deployment-01M3DDWN3F3044BW44ZS069HHW` · `/health` **200** · tip `029a985` · git `[env]` kill-switch `true`/`parked` · **Secrets: Marty must re-assert** `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=ltv` (or unset) after this deploy |
+| **Fly** | https://mcfly-analytics.fly.dev · tip `279a5c6` Overview QL fold · `/health` **200** · git `[env]` kill-switch `true`/`parked` · **Secrets: Marty must re-assert** `MCFLY_SAMPLE_ONLY=false` + `MCFLY_LIVE_STAGE=ltv` (or unset) after this deploy |
 | **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
