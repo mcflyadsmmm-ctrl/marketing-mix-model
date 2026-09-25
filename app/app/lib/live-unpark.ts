@@ -21,8 +21,6 @@
  * {@link LIVE_SYNC_LAW_PR_REF}.
  */
 
-export const LIVE_UNPAID_INGEST_DAYS = 90;
-
 /** Sibling sync PR — one-shot window + webhook OrderFact. Not merged. */
 export const LIVE_SYNC_LAW_PR_REF = "cursor/sync-law-oneshot-webhook-6eb3";
 
@@ -141,7 +139,6 @@ export function liveDeskTabAllowed(
 
 export type LiveIngestPolicy =
   | { kind: "none"; reason: "sample_freeze" | "stage_parked" }
-  | { kind: "unpaid_slice"; closedDays: typeof LIVE_UNPAID_INGEST_DAYS }
   | { kind: "paid_full" };
 
 export function liveIngestPolicy(input: {
@@ -165,10 +162,8 @@ export type LiveShopifyWindowSchedule =
   | { schedule: true; closedDays: number | null };
 
 /**
- * Kick vs skip. `closedDays` is null for the shared desk — the crawl keeps
- * the Shopify-visible window, and order rows still stop at 24 months.
- * `unpaid_slice` remains on the type so a caller can still name a shorter
- * window; this app does not schedule one.
+ * Kick vs skip. A scheduled crawl has no shorter day cap — trial and paid
+ * keep the Shopify-visible window, and order rows still stop at 24 months.
  */
 export function liveShopifyWindowSchedule(
   policy: LiveIngestPolicy,
@@ -176,8 +171,6 @@ export function liveShopifyWindowSchedule(
   switch (policy.kind) {
     case "none":
       return { schedule: false };
-    case "unpaid_slice":
-      return { schedule: true, closedDays: policy.closedDays };
     case "paid_full":
       return { schedule: true, closedDays: null };
     default: {

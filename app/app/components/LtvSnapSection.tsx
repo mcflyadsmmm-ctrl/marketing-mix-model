@@ -107,7 +107,7 @@ function emptyLine(emptyReason: string | null): string {
   if (emptyReason === "history_limited") {
     return `Order history is limited — open ${PRODUCT_NOUN.ltvTitle} for coverage.`;
   }
-  return `Backfilling first-order months — open ${PRODUCT_NOUN.ltvTitle} for progress.`;
+  return "Customers and LTV use the months already loaded. The range is partial. Not $0.";
 }
 
 export function LtvSnapSection({

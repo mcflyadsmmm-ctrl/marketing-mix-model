@@ -472,13 +472,18 @@ describe("overviewGreetingPending", () => {
 });
 
 describe("overviewOrderBackfillLine", () => {
-  it("states N days on file while the crawl is still short of the window", () => {
-    expect(overviewOrderBackfillLine(9)).toBe(
-      "Orders still loading — 9 days on file — not $0.",
-    );
-    expect(overviewOrderBackfillLine(0)).toBe(
-      "Orders still loading — 0 days on file — not $0.",
-    );
+  const now = new Date(Date.UTC(2026, 8, 24, 15, 0, 0));
+
+  it("keeps this month ready and counts months finished, never a percent", () => {
+    const ready = overviewOrderBackfillLine(9, now);
+    expect(ready).toMatch(/This month is ready/);
+    expect(ready).toMatch(/newest first/);
+    expect(ready).toMatch(/0 months finished/);
+    expect(ready).not.toMatch(/%|days on file/);
+    const waiting = overviewOrderBackfillLine(0, now);
+    expect(waiting).toMatch(/This month is still loading/);
+    expect(waiting).toMatch(/0 months finished/);
+    expect(waiting).not.toMatch(/%/);
   });
 });
 

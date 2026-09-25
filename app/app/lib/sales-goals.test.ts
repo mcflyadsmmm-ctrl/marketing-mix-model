@@ -22,7 +22,6 @@ import { impliedSpendCeiling, impliedSpendCeilingCaption } from "./implied-spend
 import { FORECAST_MIN_DAYS } from "./overview-mix-forecast";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { DeskCurrencyContext } from "./desk-currency";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   formatGoalInput,
   goalsAtYoyGrowth,
@@ -744,9 +743,10 @@ describe("Goals leftover honesty locks", () => {
     return readFileSync(join(here, rel), "utf8");
   }
 
-  it("does not lengthen the unpaid crawl past 90 closed days", () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
-    expect(read("./live-unpark.ts")).toMatch(/LIVE_UNPAID_INGEST_DAYS = 90/);
+  it("does not keep a 90-day unpaid order crawl", () => {
+    const unpark = read("./live-unpark.ts");
+    expect(unpark).not.toMatch(/LIVE_UNPAID_INGEST_DAYS\s*=\s*90/);
+    expect(unpark).not.toMatch(/unpaid_slice/);
   });
 
   it("does not mount a fake twelve-month $0 Admin plan on public demo Goals", () => {

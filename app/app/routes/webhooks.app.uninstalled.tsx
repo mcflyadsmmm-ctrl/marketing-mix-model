@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { noteUninstallStopsNextCycle } from "../lib/billing-cycle.server";
 import {
   purgeWebhookDeliveriesForShop,
   recordWebhookDelivery,
@@ -27,6 +28,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   try {
+    // Shopify cancels the subscription on uninstall, which stops the next
+    // cycle. A paid end already stored stays so that period can run out.
+    // This does not write a trial tombstone.
+    await noteUninstallStopsNextCycle(shop);
+
     // Always clear sessions for this shop domain (match shop/redact) — session may
     // already be null on repeat deliveries, but other Session rows can remain.
     await db.session.deleteMany({ where: { shop } });

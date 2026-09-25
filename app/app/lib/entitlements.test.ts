@@ -15,8 +15,6 @@ import {
   isProShop,
   parseProShopOverrideList,
 } from "./entitlements.server";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
-
 const ORIG_PRO = process.env.MCFLY_PRO_SHOPS;
 const ORIG_BILLING = process.env.MCFLY_BILLING;
 
@@ -148,7 +146,6 @@ describe("entitlements whole-desk plan", () => {
 
 describe("entitlements plan copy names one 24-month desk", () => {
   it("trial and paid keep the same book — not a 90-day withhold", () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const bullets = DESK_FEATURE_BULLETS.join(" ");
     expect(bullets).toMatch(/Trial and paid both keep the full desk, up to 24 months/);
     expect(bullets).toMatch(/7 days, then \$39/);

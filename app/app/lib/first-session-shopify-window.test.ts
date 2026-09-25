@@ -341,7 +341,7 @@ describe("first-session Shopify window resume", () => {
     expect(sales).toContain("stored SalesDayFact only");
     expect(orders).toContain("resolveCommercialOrderWindowDays");
     expect(depth).toContain("ORDER_ROW_WINDOW_MONTHS = 24");
-    expect(depth).toContain("LIVE_UNPAID_INGEST_DAYS");
+    expect(depth).not.toContain("LIVE_UNPAID_INGEST_DAYS");
     expect(depth).not.toContain("TRIAL_LIVE_SLICE_DAYS = 90");
     expect(gate).toContain("liveShopifyWindowSchedule");
   });

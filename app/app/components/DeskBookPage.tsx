@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
+import { refreshingSalesLine } from "../lib/desk-request-screen";
 import { useDeskTabRefresh } from "../lib/desk-tab-flow";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
@@ -28,7 +29,7 @@ export function DeskBookPage({
   shopifyOrderWindowLimited = false,
   periodLabel = "",
   salesError = false,
-  salesErrorBody = "Sales didn’t load. Retry to see this shop’s orders.",
+  salesErrorBody = "Sales didn’t load. Retry to see this shop’s orders. Sample numbers stay on Sample shop.",
   retryHref,
   children,
 }: {
@@ -106,7 +107,11 @@ export function DeskBookPage({
             className="mcfly-state mcfly-state--loading"
             aria-live="polite"
           >
-            <p className="mcfly-state__copy">Refreshing this period…</p>
+            <p className="mcfly-state__copy">
+              {periodLabel.trim()
+                ? refreshingSalesLine(periodLabel)
+                : "Refreshing this period…"}
+            </p>
           </section>
         ) : null}
 

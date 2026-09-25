@@ -1,5 +1,3 @@
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
-
 /**
  * Live Shopify ingest depth — not a feature gate.
  *
@@ -14,8 +12,6 @@ import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
  * Flat $39. Price does not rise with sales. No GMV cliffs.
  */
 
-export { LIVE_UNPAID_INGEST_DAYS };
-
 /** Order-level rows. 24 calendar months is the first-year LTV book. */
 export const ORDER_ROW_WINDOW_MONTHS = 24;
 
@@ -25,6 +21,7 @@ export function shopMayIngestFullHistory(_input: {
   billingEnabled: boolean;
   isPro: boolean;
 }): boolean {
+  void _input;
   // Trial and paid share the 24-month book. Do not withhold history until charge.
   return true;
 }
@@ -55,9 +52,10 @@ export function resolveLiveIngestWindowDays(input: {
   isPro: boolean;
   paidWindowDays: number;
 }): number {
-  const granted = Math.max(0, input.paidWindowDays);
-  if (shopMayIngestFullHistory(input)) return granted;
-  return Math.min(LIVE_UNPAID_INGEST_DAYS, granted);
+  // Trial and paid share this window. Billing does not shorten it.
+  void input.billingEnabled;
+  void input.isPro;
+  return Math.max(0, input.paidWindowDays);
 }
 
 /**

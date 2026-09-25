@@ -9,7 +9,6 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import { orderNetAmount } from "./shopify-sales.server";
 import { ORDER_FACT_PAGES_COST_SAFE_CAP } from "./shopify-graphql-cost.server";
 
@@ -528,7 +527,6 @@ describe("truncated busy-day crawl", () => {
   });
 
   it("keeps trial order progress on the 24-month window when billing is on", async () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
     shopIsProForIngest.mockResolvedValue(false);

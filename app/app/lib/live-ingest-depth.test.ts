@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   liveIngestDepth,
   orderRowWindowDayCount,
@@ -31,7 +33,13 @@ describe("Live ingest windows", () => {
     expect(liveIngestDepth({ billingEnabled: true, isPro: false })).toBe(
       "paid_full",
     );
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
+    const here = dirname(fileURLToPath(import.meta.url));
+    expect(readFileSync(join(here, "live-unpark.ts"), "utf8")).not.toMatch(
+      /LIVE_UNPAID_INGEST_DAYS\s*=\s*90/,
+    );
+    expect(readFileSync(join(here, "live-ingest-depth.ts"), "utf8")).not.toMatch(
+      /LIVE_UNPAID_INGEST_DAYS/,
+    );
     expect(
       resolveLiveIngestWindowDays({
         billingEnabled: true,

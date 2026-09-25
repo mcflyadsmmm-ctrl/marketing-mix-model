@@ -1,7 +1,8 @@
 import {
-  bookLoadHonestyLine,
-  customersBookRangeLine,
-} from "./book-window";
+  historyLoadCopy,
+  loadedBookRangeLine,
+  type BookLoadInput,
+} from "./merchant-book-progress";
 
 /**
  * Trust-banner copy — keep first-run incomplete coverage from looking like a 404.
@@ -35,59 +36,29 @@ export function salesFactsIncompleteMessage(input: {
   };
 }
 
-export type OrderHistoryProgressInput = {
-  completeDays: number;
-  windowDays: number;
-  remainingDays: number;
-  /** Closed months fully sealed. Present on the live order crawl. */
-  monthsFinished?: number;
-  bookSealed?: boolean;
-  historyLimited?: boolean;
+export type OrderHistoryProgressInput = BookLoadInput & {
   /** Customers and LTV name a partial range until the book is sealed. */
   customersRange?: boolean;
 };
 
 /**
- * Closed-day OrderFact crawl — progress / pending, never a spinner and never $0.
- * Sealed books return null so we stay quiet once days are on file.
+ * Closed-day crawl — this month stays usable. Months finished, never a percent.
+ * Stored month counts win. Quiet once a non-customer window has no days left.
  */
 export function orderHistoryProgressMessage(
   input: OrderHistoryProgressInput,
 ): { heading: string; body: string } | null {
-  if (
-    typeof input.monthsFinished === "number" ||
-    typeof input.bookSealed === "boolean"
-  ) {
-    const honesty = {
-      monthsFinished: Math.max(0, Math.floor(input.monthsFinished ?? 0)),
-      bookSealed: Boolean(input.bookSealed),
-      historyLimited: Boolean(input.historyLimited),
-    };
-    const status = bookLoadHonestyLine(honesty);
-    const range = input.customersRange ? customersBookRangeLine(honesty) : null;
-    const body = range && range !== status ? `${status} ${range}` : status;
-    return {
-      heading: honesty.bookSealed ? "Order history" : "Older months still loading",
-      body,
-    };
+  const progress = historyLoadCopy(input);
+  if (!input.customersRange) return progress;
+  const range = loadedBookRangeLine(input);
+  if (input.bookSealed && range) {
+    return { heading: "Order history", body: range };
   }
-
-  const completeDays = Math.max(0, Math.floor(input.completeDays));
-  const windowDays = Math.max(0, Math.floor(input.windowDays));
-  const remainingDays = Math.max(0, Math.floor(input.remainingDays));
-  if (windowDays <= 0 || remainingDays <= 0) return null;
-
-  if (completeDays <= 0) {
-    return {
-      heading: "Order history still loading",
-      body: `0 of ${windowDays} closed days ready. Typical order, returning dollars, and LTV wait — not $0. Refresh in a few minutes.`,
-    };
+  if (progress && range && !progress.body.includes("The range is partial")) {
+    return { heading: progress.heading, body: `${progress.body} ${range}` };
   }
-
-  return {
-    heading: `Order history: ${completeDays} of ${windowDays} days ready`,
-    body: `Still filling in (${remainingDays} closed ${remainingDays === 1 ? "day" : "days"} left). Incomplete history is not $0. Refresh in a few minutes.`,
-  };
+  if (!progress && range) return { heading: "Order history", body: range };
+  return progress;
 }
 
 /**

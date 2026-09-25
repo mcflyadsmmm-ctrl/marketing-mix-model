@@ -974,7 +974,7 @@ export default function SpendEntryPage() {
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
-              Sales didn’t load. Retry to see Shopify Total Sales next to spend.
+              Sales didn’t load. Retry to see this shop’s orders next to spend. Sample numbers stay on Sample shop.
             </p>
             <div className="mcfly-state__cta">
               <s-button href={`/app/spend?period=${preset}`} variant="primary">

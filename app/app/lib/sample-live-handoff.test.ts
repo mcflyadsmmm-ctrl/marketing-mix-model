@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   isLiveHandoffGuide,
   LIVE_HANDOFF_BODY,
@@ -100,7 +99,6 @@ describe("SAMPLE → Live handoff", () => {
   });
 
   it("TRIAL_VS_VIEW names one 24-month desk — not full-access, not already on", () => {
-    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     expect(TRIAL_VS_VIEW).toMatch(/Trial and paid both keep the full desk/);
     expect(TRIAL_VS_VIEW).toMatch(/up to 24 months/i);
     expect(TRIAL_VS_VIEW).toMatch(/\$39/);
