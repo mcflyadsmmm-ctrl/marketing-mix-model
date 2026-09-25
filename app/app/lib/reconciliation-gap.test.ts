@@ -135,6 +135,7 @@ describe("reconciliation gap", () => {
     expect(loading.ourNetSales).toBeNull();
     expect(loading.shopifyReportTotal).toBeNull();
     expect(loading.lines.every((line) => line.amount == null)).toBe(true);
+    expect(loading.orderCount).toBeNull();
 
     const failed = buildReconciliationWindow({
       ...windowBase,
@@ -146,6 +147,7 @@ describe("reconciliation gap", () => {
     expect(failed.ourNetSales).toBeNull();
     expect(failed.shopifyReportTotal).toBeNull();
     expect(failed.refundRate).toBeNull();
+    expect(failed.orderCount).toBeNull();
   });
 
   it("leaves a figure blank when Shopify did not send it", () => {
@@ -186,6 +188,7 @@ describe("reconciliation gap", () => {
     expect(empty.status).toBe("checked");
     expect(empty.ourNetSales).toBe(0);
     expect(empty.shopifyReportTotal).toBe(0);
+    expect(empty.orderCount).toBe(0);
   });
 
   it("cuts last 7 days and this month on the shop day", () => {

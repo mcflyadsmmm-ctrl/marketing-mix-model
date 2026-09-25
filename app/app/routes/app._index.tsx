@@ -697,6 +697,7 @@ export default function Dashboard() {
     orderWindows = null,
     orderBookDepth,
     reconciliation,
+    shopLabel,
   } = data;
   const requestScreen = shotMode
     ? null
@@ -846,7 +847,37 @@ export default function Dashboard() {
       >
         {/* SAMPLE chip lives on the shell header. */}
         {onHome && reconciliation ? (
-          <ReconciliationDesk data={reconciliation} />
+          <ReconciliationDesk
+            data={reconciliation}
+            shopName={shopLabel}
+            live={!useSampleDesk}
+            spendEntered={!useSampleDesk && metrics.onboarding.hasSpend}
+            spendPartial={
+              !useSampleDesk &&
+              metrics.onboarding.hasSpend &&
+              metrics.spendCoverage.incomplete
+            }
+            totalRoas={
+              !useSampleDesk &&
+              metrics.onboarding.hasSpend &&
+              !metrics.salesPending &&
+              metrics.mer != null &&
+              Number.isFinite(metrics.mer)
+                ? metrics.mer
+                : null
+            }
+            customerLtvAvailable={
+              useSampleDesk ? true : metrics.customerMetricsAvailable
+            }
+            priorYearLoaded={
+              useSampleDesk
+                ? null
+                : orderHero != null &&
+                  orderHero.priorSales != null &&
+                  Number.isFinite(orderHero.priorSales)
+            }
+            trialEndsAt={null}
+          />
         ) : null}
 
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}

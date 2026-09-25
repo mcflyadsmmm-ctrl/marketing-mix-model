@@ -2,6 +2,19 @@ import { useMemo, useState } from "react";
 import { costChanges, parseCostFile, rankVariants } from "../lib/dated-cost-file";
 import { formatFreshness, formatSpendAmount } from "../lib/mer-format";
 import type { ReadStatus, ReconciliationDeskData } from "../lib/reconciliation-gap";
+import {
+  FAILED_LOAD,
+  LTV_UNAVAILABLE,
+  PRIOR_YEAR_MISSING,
+  emptyOrdersLine,
+  liveHeaderRange,
+  loadingLine,
+  spendNote,
+  totalRoasDisplay,
+  trialEndLine,
+} from "../lib/reconciliation-states";
+
+const SUPPORT_HREF = "mailto:mcflyadsmmm@gmail.com";
 
 const NET_DEFINITION =
   "Current product subtotal after discounts and returns. Tax is not in this number. Days use the shop timezone.";
@@ -33,7 +46,34 @@ function pct(value: number | null): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-export function ReconciliationDesk({ data }: { data: ReconciliationDeskData }) {
+export function ReconciliationDesk({
+  data,
+  shopName = null,
+  live = false,
+  spendEntered = false,
+  spendPartial = false,
+  totalRoas = null,
+  customerLtvAvailable = true,
+  priorYearLoaded = null,
+  trialEndsAt = null,
+}: {
+  data: ReconciliationDeskData;
+  shopName?: string | null;
+  /** Live cards never take SAMPLE spend, ROAS, or LTV. */
+  live?: boolean;
+  spendEntered?: boolean;
+  spendPartial?: boolean;
+  totalRoas?: number | null;
+  customerLtvAvailable?: boolean;
+  /** False when last year was checked and nothing loaded. Null skips the line. */
+  priorYearLoaded?: boolean | null;
+  /**
+   * ISO trial end only when the app already has one.
+   * Partner trialEndsAt is not stored on this desk, so this stays null
+   * until a real timestamp is passed in.
+   */
+  trialEndsAt?: string | null;
+}) {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [costText, setCostText] = useState("");
   const currency = data.currency;
@@ -45,9 +85,50 @@ export function ReconciliationDesk({ data }: { data: ReconciliationDeskData }) {
     costFile && asOf && data.variantLines
       ? rankVariants({ lines: data.variantLines, file: costFile, asOf })
       : [];
+  const headerRange = liveHeaderRange(data.windows);
+  const loading = loadingLine(data.windows);
+  const trialLine = trialEndLine(trialEndsAt);
+  const roasValue = live ? totalRoasDisplay(spendEntered ? totalRoas : null) : "—";
+  const roasNote = live
+    ? spendNote({
+        spendEntered,
+        spendPartial,
+        totalRoas: spendEntered ? totalRoas : null,
+      })
+    : null;
+
+  function windowMoney(status: ReadStatus, amount: number | null): string {
+    if (status !== "checked") return "—";
+    return money(amount, currency);
+  }
+
+  function windowPct(status: ReadStatus, value: number | null): string {
+    if (status !== "checked") return "—";
+    return pct(value);
+  }
 
   return (
     <section className="mcfly-recon" aria-label="Reconciliation">
+      {live ? (
+        <header className="mcfly-recon__live">
+          <h2>{shopName || "—"}</h2>
+          <p>{headerRange || "—"}</p>
+        </header>
+      ) : null}
+      {loading ? <p className="mcfly-recon__state">{loading}</p> : null}
+      {live && priorYearLoaded === false ? (
+        <p className="mcfly-recon__state">{PRIOR_YEAR_MISSING}</p>
+      ) : null}
+      {live ? (
+        <p className="mcfly-recon__roas">
+          <span>Total ROAS</span> <strong>{roasValue}</strong>
+          {roasNote ? <span className="mcfly-recon__def">{roasNote}</span> : null}
+        </p>
+      ) : null}
+      {live && !customerLtvAvailable ? (
+        <p className="mcfly-recon__state">{LTV_UNAVAILABLE}</p>
+      ) : null}
+      {trialLine ? <p className="mcfly-recon__state">{trialLine}</p> : null}
       <div className="mcfly-recon__windows">
         {data.windows.map((window) => (
           <article key={window.id} className="mcfly-recon__window" aria-label={window.label}>
@@ -62,6 +143,22 @@ export function ReconciliationDesk({ data }: { data: ReconciliationDeskData }) {
               <p className="mcfly-recon__range">
                 {window.since && window.until ? `${window.since} – ${window.until}` : "—"}
               </p>
+              {window.status === "loading" ? (
+                <p className="mcfly-recon__state">Loading your Shopify order history.</p>
+              ) : null}
+              {window.status === "failed" ? (
+                <p className="mcfly-recon__state">
+                  {FAILED_LOAD} <a href="/app">Retry</a>
+                  {" · "}
+                  <a href={SUPPORT_HREF}>Support</a>
+                </p>
+              ) : null}
+              {window.status === "checked" && window.orderCount === 0 ? (
+                <p className="mcfly-recon__state">
+                  {emptyOrdersLine(window.since, window.until)}{" "}
+                  <a href="/app?period=ytd">Change the dates</a>
+                </p>
+              ) : null}
             </header>
             <table className="mcfly-recon__table">
               <thead>
@@ -76,33 +173,34 @@ export function ReconciliationDesk({ data }: { data: ReconciliationDeskData }) {
                     Our net sales
                     <span className="mcfly-recon__def">{NET_DEFINITION}</span>
                   </th>
-                  <td>{money(window.ourNetSales, currency)}</td>
+                  <td>{windowMoney(window.status, window.ourNetSales)}</td>
                 </tr>
                 <tr>
                   <th scope="row">
                     Shopify sales report
                     <span className="mcfly-recon__def">{REPORT_DEFINITION}</span>
                   </th>
-                  <td>{money(window.shopifyReportTotal, currency)}</td>
+                  <td>{windowMoney(window.status, window.shopifyReportTotal)}</td>
                 </tr>
                 <tr>
                   <th scope="row">Discounts</th>
-                  <td>{money(window.discounts, currency)}</td>
+                  <td>{windowMoney(window.status, window.discounts)}</td>
                 </tr>
                 <tr>
                   <th scope="row">Refunds</th>
-                  <td>{money(window.refunds, currency)}</td>
+                  <td>{windowMoney(window.status, window.refunds)}</td>
                 </tr>
                 <tr>
                   <th scope="row">Refund rate</th>
-                  <td>{pct(window.refundRate)}</td>
+                  <td>{windowPct(window.status, window.refundRate)}</td>
                 </tr>
                 <tr>
                   <th scope="row">Mix</th>
                   <td>
                     {window.mix.map((share) => (
                       <span key={share.label} className="mcfly-recon__mix">
-                        {share.label === "Unknown" ? "unknown" : share.label} {pct(share.share)}
+                        {share.label === "Unknown" ? "unknown" : share.label}{" "}
+                        {windowPct(window.status, share.share)}
                       </span>
                     ))}
                   </td>
@@ -122,13 +220,13 @@ export function ReconciliationDesk({ data }: { data: ReconciliationDeskData }) {
                           {line.label}
                         </button>
                       </th>
-                      <td>{money(line.amount, currency)}</td>
+                      <td>{windowMoney(window.status, line.amount)}</td>
                     </tr>
                   );
                 })}
                 <tr>
                   <th scope="row">Refund restock</th>
-                  <td>{money(window.restock, currency)}</td>
+                  <td>{windowMoney(window.status, window.restock)}</td>
                 </tr>
               </tbody>
             </table>

@@ -85,6 +85,8 @@ export type ReconciliationWindowView = {
   mix: MixShare[];
   lines: GapLineView[];
   restock: number | null;
+  /** Null until the read is checked. Zero means the dates loaded and had no orders. */
+  orderCount: number | null;
 };
 
 export type ReconciliationDeskData = {
@@ -174,6 +176,7 @@ export function buildReconciliationWindow(
       orders: [],
     })),
     restock: null,
+    orderCount: null,
   };
   if (!ready) return base;
 
@@ -292,6 +295,7 @@ export function buildReconciliationWindow(
     mix,
     lines,
     restock,
+    orderCount: ours.length,
   };
 }
 

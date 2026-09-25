@@ -22425,6 +22425,15 @@ button.mcfly-habit-goals__read:focus-visible {
   margin: 0 0 1.5rem;
 }
 
+.mcfly-recon__live h2,
+.mcfly-recon__roas {
+  margin: 0 0 0.35rem;
+}
+
+.mcfly-recon__state {
+  margin: 0.35rem 0 0.75rem;
+}
+
 .mcfly-recon__windows {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
