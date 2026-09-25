@@ -1198,6 +1198,200 @@
     return found;
   }
 
+  function renderReconciliation() {
+    var host = $("#dd-recon");
+    if (!host || !PERIODS.l7d || !PERIODS.mtd) return;
+    var windows = [PERIODS.l7d, PERIODS.mtd];
+    var table = document.createElement("table");
+    table.className = "dd-recon__table";
+    var head = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    ["Figure", "Last 7 days (USD)", "This month (USD)"].forEach(function (label) {
+      var cell = document.createElement("th");
+      cell.scope = "col";
+      cell.textContent = label;
+      headRow.appendChild(cell);
+    });
+    head.appendChild(headRow);
+    table.appendChild(head);
+    var body = document.createElement("tbody");
+    function addRow(label, values) {
+      var row = document.createElement("tr");
+      var name = document.createElement("th");
+      name.scope = "row";
+      name.textContent = label;
+      row.appendChild(name);
+      values.forEach(function (value) {
+        var cell = document.createElement("td");
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      body.appendChild(row);
+    }
+    addRow("Status", ["SAMPLE", "SAMPLE"]);
+    addRow(
+      "Our net sales",
+      windows.map(function (window) {
+        return money(window.netSales);
+      }),
+    );
+    addRow("Shopify sales report", ["—", "—"]);
+    addRow("Discounts", ["—", "—"]);
+    addRow("Refunds", ["—", "—"]);
+    addRow("Refund rate", ["—", "—"]);
+    addRow(
+      "Mix",
+      windows.map(function (window) {
+        if (window.newCustomers == null || window.returning == null || !window.orders) {
+          return "—";
+        }
+        return (
+          "New " +
+          formatPct(window.newCustomers / window.orders) +
+          " of orders · Returning " +
+          formatPct(window.returning / window.orders) +
+          " of orders"
+        );
+      }),
+    );
+    ["Timing", "Tax", "Discounts", "Channels", "B2B or draft", "Refund restock"].forEach(
+      function (label) {
+        addRow(label, ["—", "—"]);
+      },
+    );
+    table.appendChild(body);
+    host.replaceChildren(table);
+
+    var perNew = windows.map(function (window) {
+      if (!(window.spend > 0) || !(window.newCustomers > 0)) return "—";
+      return money(window.spend / window.newCustomers);
+    });
+    var spendLine = $("#dd-spend-new");
+    if (spendLine) {
+      spendLine.textContent =
+        "Spend per new customer · Last 7 days " +
+        perNew[0] +
+        " · This month " +
+        perNew[1] +
+        ". Pasted book spend ÷ new customers of this store.";
+    }
+    var lanes = $("#dd-spend-lanes");
+    if (lanes) {
+      lanes.textContent = "Wholesale — · Draft — · unknown —";
+    }
+  }
+
+  function parseSampleCost(text) {
+    var closed = null;
+    var rows = [];
+    var header = null;
+    text.split(/\r?\n/).forEach(function (raw) {
+      var line = raw.trim();
+      if (!line || line.charAt(0) === "#") return;
+      var cells = line.split(",").map(function (cell) {
+        return cell.trim();
+      });
+      if (cells[0] && cells[0].toLowerCase() === "closed_through" && /^\d{4}-\d{2}-\d{2}$/.test(cells[1] || "")) {
+        closed = cells[1];
+        return;
+      }
+      if (!header) {
+        header = cells.map(function (cell) {
+          return cell.toLowerCase();
+        });
+        return;
+      }
+      var record = {};
+      header.forEach(function (key, index) {
+        record[key] = cells[index] || "";
+      });
+      var status = (record.status || "").toLowerCase();
+      var cost = Number(record.unit_cost);
+      if (!record.variant || !/^\d{4}-\d{2}-\d{2}$/.test(record.start_date || "")) return;
+      if (status !== "provisional" && status !== "settled") return;
+      if (!Number.isFinite(cost) || record.unit_cost === "") return;
+      if (status === "settled" && !/^\d{4}-\d{2}-\d{2}$/.test(record.invoice_date || "")) return;
+      rows.push({
+        variant: record.variant,
+        startDate: record.start_date,
+        unitCost: cost,
+        status: status,
+        invoiceDate: record.invoice_date || null,
+      });
+    });
+    return { closedThrough: closed, rows: rows };
+  }
+
+  function costOnDay(file, variant, day) {
+    var eligible = file.rows.filter(function (row) {
+      if (row.variant !== variant || row.startDate > day) return false;
+      if (file.closedThrough && day <= file.closedThrough && row.invoiceDate && row.invoiceDate > file.closedThrough) {
+        return false;
+      }
+      return true;
+    });
+    eligible.sort(function (a, b) {
+      if (a.startDate !== b.startDate) return a.startDate < b.startDate ? 1 : -1;
+      var ai = a.invoiceDate || "";
+      var bi = b.invoiceDate || "";
+      if (ai === bi) return 0;
+      return ai < bi ? 1 : -1;
+    });
+    return eligible[0] || null;
+  }
+
+  var costBound = false;
+  function bindCostFile() {
+    if (costBound) return;
+    var input = $("#dd-cost-file");
+    var out = $("#dd-cost-out");
+    if (!input || !out) return;
+    costBound = true;
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (!file) {
+        out.textContent = "—";
+        return;
+      }
+      file.text().then(function (text) {
+        var parsed = parseSampleCost(text);
+        if (!parsed.rows.length) {
+          out.textContent = "—";
+          return;
+        }
+        var asOf = "2026-07-27";
+        var variants = [];
+        parsed.rows.forEach(function (row) {
+          if (variants.indexOf(row.variant) < 0) variants.push(row.variant);
+        });
+        var table = document.createElement("table");
+        table.className = "dd-recon__table";
+        table.innerHTML = "<thead><tr><th>Variant</th><th>Closed unit (USD)</th><th>Open unit (USD)</th><th>Change (USD)</th></tr></thead>";
+        var body = document.createElement("tbody");
+        variants.forEach(function (variant) {
+          var open = costOnDay(parsed, variant, asOf);
+          var closed = parsed.closedThrough ? costOnDay(parsed, variant, parsed.closedThrough) : null;
+          var change =
+            closed && open && closed.unitCost !== open.unitCost ? open.unitCost - closed.unitCost : null;
+          var row = document.createElement("tr");
+          row.innerHTML =
+            "<th scope='row'>" +
+            variant +
+            "</th><td>" +
+            (closed ? money(closed.unitCost) : "—") +
+            "</td><td>" +
+            (open ? money(open.unitCost) : "—") +
+            "</td><td>" +
+            money(change) +
+            "</td>";
+          body.appendChild(row);
+        });
+        table.appendChild(body);
+        out.replaceChildren(table);
+      });
+    });
+  }
+
   function renderExtra(period, mer, be, aov) {
     setText("#dd-orders-sales", money(period.netSales));
     setText("#dd-orders-count", formatInt(period.orders));
@@ -1503,6 +1697,8 @@
     renderPace(period, mer);
     renderGoals(period, be);
     renderExtra(period, mer, be, aov);
+    renderReconciliation();
+    bindCostFile();
     renderShifts(period);
     renderChannels(period);
     renderSettings();
