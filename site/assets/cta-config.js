@@ -1,31 +1,31 @@
 /* launch-v2-20260826-one-product */
 /**
  * Public CTA honesty gate.
- * Listing not live — primary CTA is Try the demo.
- * Never invent apps.shopify.com URLs. Never "Install free" → /support.
+ * Listing is live at apps.shopify.com/mcfly-analytics-public.
+ * Primary CTA is Install. Secondary is the SAMPLE demo.
  *
  * Tokens:
- *   data-mcfly-cta="primary"   → Try the demo /demo
- *   data-mcfly-cta="demo"      → Try the demo /demo
+ *   data-mcfly-cta="primary"   → Install Mcfly Analytics
+ *   data-mcfly-cta="demo"      → View SAMPLE demo
  *   data-mcfly-cta="secondary" → left alone (page keeps custom label)
  */
 (function (w) {
   "use strict";
 
-  /** Flip true only when the App Store listing is live. Do not invent apps.shopify.com. */
-  w.MCFLY_APP_STORE_LIVE = false;
+  w.MCFLY_APP_STORE_LIVE = true;
+  w.MCFLY_APP_STORE_URL = "https://apps.shopify.com/mcfly-analytics-public";
 
   function primary() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "Install Mcfly Analytics", href: w.MCFLY_APP_STORE_URL };
   }
 
-  /** Chrome mobile nav / intentional demo CTAs only. */
+  /** SAMPLE demo, not the install. */
   function secondary() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "View SAMPLE demo", href: "/demo" };
   }
 
   function demo() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "View SAMPLE demo", href: "/demo" };
   }
 
   function apply(root) {

@@ -1,5 +1,5 @@
 /**
- * Mcfly sample Total ROAS desk — Northline Supply (Jul 2026).
+ * Mcfly SAMPLE desk — illustrative data, not a live client (Jul 2026).
  * Demo data only. Loud SAMPLE labeling. No pixels / MTA / path credit.
  */
 (function () {
@@ -8,7 +8,7 @@
   var DEFAULT_TARGET = 4;
   var DEFAULT_MARGIN = 0.35;
   var AS_OF_SHORT = "Jul 27";
-  var SHOP = "Northline Supply";
+  var SHOP = "SAMPLE";
   var COVERAGE = 0.92;
   var RECON_PCT = 0.028;
   var CLAIMED_MER = 4.8;
@@ -651,7 +651,7 @@
               : ""),
         ) +
         nextHtml(kpiNextAction("mer", mer, be)) +
-        '<p class="dd-drawer__foot">SAMPLE Northline Supply — sales ÷ spend only.</p>';
+        '<p class="dd-drawer__foot">SAMPLE — illustrative, not a live client. Shopify sales divided by spend you type.</p>';
     } else if (key === "sales") {
       title = "Total Sales";
       html =
@@ -1163,13 +1163,11 @@
     var live = $("#dd-live");
     if (live) {
       live.textContent =
-        SHOP +
-        " sample · " +
+        "SAMPLE, illustrative, not a live client. " +
         period.label +
-        " Total ROAS " +
-        formatMer(mer) +
-        " · BE " +
-        formatMer(be);
+        ". " +
+        formatInt(period.orders) +
+        " orders. Spend is optional.";
     }
   }
 
