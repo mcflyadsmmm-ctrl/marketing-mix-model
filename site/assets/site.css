@@ -3884,9 +3884,9 @@ body.pricing-page .btn.ghost {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
   gap: 32px;
-  align-items: center;
-  padding-top: 88px;
-  padding-bottom: 32px;
+  align-items: start;
+  padding-top: 76px;
+  padding-bottom: 12px;
 }
 .mkt-kicker {
   margin: 0 0 8px;
@@ -3906,8 +3906,21 @@ body.pricing-page .btn.ghost {
   line-height: 1.12;
 }
 .mkt-hero h1 {
-  font-size: 52px;
-  max-width: 16ch;
+  font-size: 32px;
+  max-width: 24ch;
+}
+.mkt-hero .mkt-pair {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.mkt-hero .mkt-pair dd {
+  font-size: 22px;
+}
+.mkt-hero .mkt-report {
+  padding: 12px;
+}
+.mkt-preview--band {
+  margin-top: 24px;
+  max-width: 40rem;
 }
 .mkt-band h2 {
   font-size: 32px;
@@ -4247,7 +4260,11 @@ body.pricing-page .foot {
     grid-template-columns: 1fr;
   }
   .mkt-hero h1 {
-    font-size: 36px;
+    font-size: 32px;
+    max-width: 18ch;
+  }
+  .mkt-hero .mkt-pair {
+    grid-template-columns: 1fr;
   }
   .top:not(.top--studio),
   .mkt-hero,
